@@ -5,4 +5,4 @@ class MatchMakerAlgorithm(BaseAlignerAlgorithm):
     def __call__(self, structure1, structure2, alignment):
         ...  # TODO: Implement this using the UCSF Chimera algorithm
 
-"Test"
+"Test!"
