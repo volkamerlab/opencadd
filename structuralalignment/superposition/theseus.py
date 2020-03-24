@@ -3,7 +3,19 @@ import subprocess
 
 # usage: Theseus(["3dk3"])
 class Theseus:
+    """
+    Superpose structures with identical sequences with the tool Theseus
+    """
+
     def __init__(self, pdbs):
+        """
+        Initialize variables and fetch PDB files with atomium
+
+        Parameters
+        ----------
+        pdbs : array-like
+            array of PDB file names
+        """
         self.pdbs = pdbs
         self.fetched_pdbs = []
         for pdb in pdbs:
@@ -11,6 +23,10 @@ class Theseus:
         self.align()
 
     def align(self):
+        """
+        Save the fetched PDB files and run the theseus command with subprocess
+        """
+
         self.fetched_pdbs_filename = []
         """
         for m in range(len(self.fetched_pdbs)):
@@ -28,13 +44,18 @@ class Theseus:
         return self._parse(output)
 
     def _parse(self, output):
+        """
+        Parse the output
+        """
         print(output)
 
 
-
-
-#usage: TheseusAlign(["3DK3"])
+# usage: TheseusAlign(["3DK3"])
 class TheseusAlign:
+    """
+    Superpose structures with different sequences but similar structures
+    """
+
     def __init__(self, pdbs):
         self.pdbs = pdbs
         self.fetched_pdbs = []
@@ -54,6 +75,9 @@ class TheseusAlign:
         self.use_theseus()
 
     def get_fasta(self):
+        """
+        Use Theseus to make fasta files
+        """
         for m in range(len(self.fetched_pdbs)):
             self.fetched_pdbs[m].model.save(
                 self.pdbs[m] + "." + self.fetched_pdbs[m].filetype
@@ -67,6 +91,9 @@ class TheseusAlign:
         )
 
     def concatenate_fasta(self):
+        """
+        Concatenate the fasta files made with Theseus into one multiple sequence fasta file
+        """
         filenames = self.fetched_pdbs_filename
         with open(self.fastafile, "w") as outfile:
             for fname in filenames:
@@ -75,12 +102,18 @@ class TheseusAlign:
                         outfile.write(line)
 
     def filemap(self):
+        """
+        Create filemap for Theseus
+        """
         filenames = self.fetched_pdbs_filename
         with open(self.filemap_file, "w") as outfile:
             for fname in filenames:
                 outfile.write(fname + " " + fname)
 
     def align(self):
+        """
+        Align the sequences with an alignment tool
+        """
         output = subprocess.check_output(
             [
                 self.alignment_app,
@@ -96,9 +129,15 @@ class TheseusAlign:
         return self._parse(output)
 
     def _parse(self, output):
+        """
+        Parse the output
+        """
         print(output)
 
     def use_theseus(self):
+        """
+        Superpose with Theseus based on the sequence alignment
+        """
         output = subprocess.check_output(
             [
                 "-f",
@@ -110,5 +149,4 @@ class TheseusAlign:
             ]
         )
         self._parse(output)
-
 
