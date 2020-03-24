@@ -4,6 +4,9 @@ dependencies:
     # Base depends
   - python
   - pip
+  - atomium
+  - os
+  - subprocess
 
     # Testing
   - pytest

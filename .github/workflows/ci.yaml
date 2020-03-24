@@ -1,0 +1,56 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
+        python-version: [3.6, 3.7]
+    env:
+      CI_OS: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Additional info about the build
+      shell: bash
+      run: |
+        uname -a
+        df -h
+        ulimit -a
+    - name: Create environment for package
+      shell: bash
+      run: |
+        . devtools/scripts/initialize_conda.sh
+        conda info
+        python devtools/scripts/create_conda_env.py -n=test -p=${{ matrix.python-version }} devtools/conda-envs/test_env.yaml
+    - name: Install package
+      shell: bash
+      run: |
+        . devtools/scripts/initialize_conda.sh
+        python -m pip install . --no-deps
+        conda list
+    - name: Lint with flake8
+      shell: bash
+      run: |
+        . devtools/scripts/initialize_conda.sh
+        pip install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Run tests
+      shell: bash
+      run: |
+        . devtools/scripts/initialize_conda.sh
+        pytest -v --cov=kinoml --cov-report=xml --color=yes kinoml/tests/
+    - name: CodeCov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        yml: ./.codecov.yml

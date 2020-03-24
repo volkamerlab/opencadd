@@ -10,8 +10,11 @@ Welcome to StructuralAlignment's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Installing
+   developers
    getting_started
-   api
+   Tutorial
+   Full_API
 
 
 

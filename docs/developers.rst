@@ -1,53 +1,95 @@
-Our object model
-================
+For the developers
+==================
 
-Explain how Atomium can be used for all kinds of IO and structure manipulation.
+Using Atomium
+-------------
 
-Detail some naming conventions used in Atomium and how to do some basic tasks
 
-What's the difference between a Model and a Molecule?
+Opening a pdb file::
 
-Some useful methods in each of them?
+    pdb1 = atomium.open('../1LOL.pdb')
+    pdb2 = atomium.fetch('5XME.pdb')
+With "open" you can open a local pdb file.
 
-Questions:
-- How to access all alpha carbons in the protein?
-- How to remove all waters
-- How to remove all ligands
-- How to select a subset of the protein (all isoleucines)
+With "fetch" you can load a pdb file from the RCSB.
+
+
+How to select a subset of the protein (all isoleucines, all isoleucines and all valines)::
+
+    model = pdb1.model
+    model.residues(name = "ISO")
+    model.residues(name__regex = "ISO|VAL")
+
+
+Accessing all alpha carbons in the protein::
+
+    model.atoms(name="CA")
+
+
+Removing all waters::
+
+    model.dehydrate()
+
+
+Removing all ligands::
+
+There is no function for this in atomium.
+There are to options how to handle this.
+First we write out one function an bound it to our model-object::
+    import types
+
+    def remove_ligands(self):
+        self._ligands = atomium.base.StructureSet()
+
+    atomium.Model.remove_ligands = types.MethodType(remove_ligands, atomium.Model)
+
+    model.remove_ligands()
+
+
+Second, we can just do it manually::
+
+        model._ligands = atomium.base.StructureSet()
+
+
+If the pdb file provides a sequence, you can access it with (here for chain A)::
+
+    model.chain("A").sequence
+
+Computing RMSD (works only, if the structures have the same amount of atoms)::
+
+    model1.rmsd_with(model2)
 
 Alignment API
-=============
+-------------
 
-Agree on the required arguments (and their names) for every alignment engine,
-and the returned objects so they are consistent across modules.
+This sections defines our input and output parameters and their names.
+They should be consistent over all modules.
 
-For this we will define the following API:
+The aligment function should have the follwing parameters:
 
 - Input parameters:
-    - atomium Models [link to docs]
+    - atomium Models [https://atomium.samireland.com/api/structures.html]
     - optional kwargs
+
 - Returns:
-    - superposed structures [using atomium Models/Molecules]
-    - scores
+    - superposed structures using atomium Models/Molecules
+    - scores (RMSD)
 
-How the package is structured
-==============================
+How the package will be structured
+----------------------------------
 
-Explain the directory tree and what each subpackage should contain and why
+What should each Pull Request contain
+---------------------------------------
 
-
-What each PR should contain
-============================
-
-* Docs
-* Tests
-* Examples
+* Documantation
+* Tests with Pytest
+* Examples for the use of the new functions
 * Little benchmark
-* Explain added 3rd party dependencies
+* Explaination of 3rd party dependencies
 
-Maybe create a GitHub Pull Request template
+A template is following soon.
 
 How to add a new test
-=====================
+---------------------
 
-Little example
+Coming soon.
