@@ -26,27 +26,21 @@ jobs:
       shell: bash
       run: |
         . devtools/scripts/initialize_conda.sh
+        conda activate
         conda info
         python devtools/scripts/create_conda_env.py -n=test -p=${{ matrix.python-version }} devtools/conda-envs/test_env.yaml
     - name: Install package
       shell: bash
       run: |
         . devtools/scripts/initialize_conda.sh
+        conda activate test
         python -m pip install . --no-deps
         conda list
-    - name: Lint with pylint
-      shell: bash
-      run: |
-        . devtools/scripts/initialize_conda.sh
-        pip install pylint
-        # stop the build if there are Python syntax errors or undefined names
-        pylint . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        pylint . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run tests
       shell: bash
       run: |
         . devtools/scripts/initialize_conda.sh
+        conda activate test
         pytest -v --cov=structuralalignment --cov-report=xml --color=yes structuralalignment/tests/
     - name: CodeCov
       uses: codecov/codecov-action@v1
@@ -55,3 +49,36 @@ jobs:
         file: ./coverage.xml
         flags: unittests
         yml: ./.codecov.yml
+#############
+  lint-format:
+    runs-on: ubuntu-latest
+    env:
+      CI_OS: ubuntu-latest
+      PACKAGE: "structuralalignment"
+      PYVER: "3.7"
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v1
+
+    - name: Install linter and formatter
+      shell: bash
+      run: |
+        . devtools/github-actions/initialize_conda.sh
+        conda activate
+        python devtools/scripts/create_conda_env.py -n=test -p=$PYVER devtools/conda-envs/test_env.yaml
+        conda activate test
+        conda install -y pylint black
+    - name: Run pylint
+      shell: bash
+      run: |
+        . devtools/github-actions/initialize_conda.sh
+        conda activate test
+        pylint $PACKAGE/
+    - name: Run black check
+      shell: bash
+      if: always()
+      run: |
+        . devtools/github-actions/initialize_conda.sh
+        conda activate test
+        black --check -l 99 $PACKAGE/
