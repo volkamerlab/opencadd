@@ -69,7 +69,7 @@ jobs:
     - name: Install linter and formatter
       shell: bash
       run: |
-        . devtools/github-actions/initialize_conda.sh
+        . devtools/scripts/initialize_conda.sh
         conda activate
         python devtools/scripts/create_conda_env.py -n=test -p=$PYVER devtools/conda-envs/test_env.yaml
         conda activate test
@@ -77,13 +77,13 @@ jobs:
     - name: Run pylint
       shell: bash
       run: |
-        . devtools/github-actions/initialize_conda.sh
+        . devtools/scripts/initialize_conda.sh
         conda activate test
         pylint $PACKAGE/
     - name: Run black check
       shell: bash
       if: always()
       run: |
-        . devtools/github-actions/initialize_conda.sh
+        . devtools/scripts/initialize_conda.sh
         conda activate test
         black --check -l 99 $PACKAGE/
