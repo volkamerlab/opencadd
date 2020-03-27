@@ -5,13 +5,14 @@ dependencies:
   - python
   - pip
   - atomium
-  - os
-  - subprocess
+  - sphinx
+  - sphinx_rtd_theme
 
     # Testing
   - pytest
   - pytest-cov
   - codecov
+  - pylint
 
     # Pip-only installs
   #- pip:

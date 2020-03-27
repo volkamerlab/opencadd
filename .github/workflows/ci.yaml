@@ -1,3 +1,4 @@
+#!/bin/bash
 name: CI
 
 on: [push, pull_request]
@@ -46,7 +47,7 @@ jobs:
       shell: bash
       run: |
         . devtools/scripts/initialize_conda.sh
-        pytest -v --cov=kinoml --cov-report=xml --color=yes kinoml/tests/
+        pytest -v --cov=structuralalignment --cov-report=xml --color=yes structuralalignment/tests/
     - name: CodeCov
       uses: codecov/codecov-action@v1
       with:
