@@ -14,6 +14,19 @@ class MMLignerWrapper(CommandLineWrapper):
     These seeds are iteratively refined over an Expectation-Maximization approach using the I-value criterion.
     By substracting the ivalue from the null model, the statistical significance of the alignment can be computed. If the
     difference is positive, the alignment is significant.
+
+    Collier, J.H., Allison, L., Lesk A.M., Stuckey, P.J., Garcia de la Banda , M., Konagurthu, A.S. (2017)
+    Statistical inference of protein structural alignments using information and compression.
+    Bioinformatics, 33(7), 1005-1013
+
+    Wallace,C.S. and Boulton,D.M. (1968) An information measure for classification.
+    Comput. J., 11, 185–194.
+
+    Wallace,C.S. (2005) Statistical and Inductive Inference Using MinimumMessage Length.
+    Information Science and Statistics. SpringerVerlag, New York, NY.
+
+    Shannon,C.E. (1948) A mathematical theory of communication.
+    Bell Syst.Tech. J., 27, 379–423.
     """
 
     def __init__(self):
