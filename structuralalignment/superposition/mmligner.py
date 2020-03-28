@@ -5,6 +5,15 @@ from .base import CommandLineWrapper
 class MMLignerWrapper(CommandLineWrapper):
     """
     subclass of "CommandLineWrapper" that wrapps the mmligner to superpose two protein structures
+
+    The MMLigner (Collier et al., 2017) works by minimizing the ivalue of the alignment. The ivalue is based on
+    the Minimum Message Length framework (Wallace and Boulton, 1968; Wallace, 2005), a Bayesian framework for
+    statistical inductive inference. The ivalue represents the hypothetical minimum message length needed to transmit
+    the computed alignment losslessly (Shannon, 1948).
+    Using the ivalue measure, the algorithm creates crude-but-effective strucural alignments rapidly to act as seeds.
+    These seeds are iteratively refined over an Expectation-Maximization approach using the I-value criterion.
+    By substracting the ivalue from the null model, the statistical significance of the alignment can be computed. If the
+    difference is positive, the alignment is significant.
     """
 
     def __init__(self):
@@ -26,7 +35,9 @@ class MMLignerWrapper(CommandLineWrapper):
         dict
             {
                 "rmsd": float
+                    RMSD Value of the alignment
                 "score": float
+                    ivalue of the alignment. The smaller the better
                 "metadata": ?
             }
             dictionary containing the rmsd value and the score of the superpoesed structures as well as the metadata. Parsed by self._parse(output).
@@ -56,7 +67,9 @@ class MMLignerWrapper(CommandLineWrapper):
         dict
             {
                 "rmsd": float
+                    RMSD Value of the alignment
                 "score": float
+                    ivalue of the alignment. The smaller the better
                 "metadata": ?
             }
             dictionary containing the rmsd value and the score of the superpoesed structures as well as the metadata
@@ -96,7 +109,9 @@ class MMLignerWrapper(CommandLineWrapper):
         dict
             {
                 "rmsd": float
+                    RMSD Value of the alignment
                 "score": float
+                    ivalue of the alignment. The smaller the better
                 "metadata": ?
             }
         dictionary containing the rmsd value and the score of the alignment for the given two structures as well as the metadata by calling self._parse(output)
