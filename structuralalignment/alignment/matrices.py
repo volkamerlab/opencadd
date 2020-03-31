@@ -26,7 +26,7 @@ def matrices(name: str) -> align.SubstitutionMatrix:
 
     """
     if name not in align.SubstitutionMatrix.list_db():
-        warnings.warn("Substitution Matrix could not be found. BLOSUM62 will be used.")
+        raise ValueError(f"Substitution Matrix '{name}' could not be found.")
         matrix = align.SubstitutionMatrix.std_protein_matrix()
     else:
         alph = seq.ProteinSequence.alphabet

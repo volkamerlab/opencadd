@@ -4,12 +4,14 @@ import biotite.structure.io.pdb as pdb
 import biotite.sequence as seq
 import biotite.structure.io as strucio
 import biotite.structure as struc
+import MDAnalysis as mda
+import biotite.sequence.io.fasta as fasta
 
-from needleman_wunsch import needleman_wunsch
-from smith_waterman import smith_waterman
+from structuralalignment.alignment.needleman_wunsch import needleman_wunsch
+from structuralalignment.alignment.smith_waterman import smith_waterman
 
 
-def biotite_aminoSeq(name: str) -> str:
+def biotite_amino_seq(name: str) -> str:
 
     """
     1. Download structure file from RCSB
@@ -26,22 +28,32 @@ def biotite_aminoSeq(name: str) -> str:
         one-letter amino acid sequence of the file
 
     """
-
-    pdb_file_path = rcsb.fetch(name[0 : len(name) - 4], "pdb", biotite.temp_dir())
-    file = pdb.PDBFile()
-    file.read(pdb_file_path)
-    atomarraystack = strucio.load_structure(pdb_file_path)
-    ca_atoms = atomarraystack[atomarraystack.atom_name == "CA"]
-    residuen = ca_atoms.res_name
-    sequence = list(map(seq.ProteinSequence.convert_letter_3to1, residuen))
-
-    return "".join([str(elem) for elem in sequence])
+    universe = mda.Universe(name)
+    ca_atoms = universe.select_atoms("name CA")
+    sequence = ca_atoms.residues.sequence()
+    return str(sequence.seq)
 
 
-# print(type(residuen).__name__)
+def get_alignment_fasta(fasta_file):
+
+    """
+    Get an alignment from a FastaFile instance.
+
+    Parameter
+    ---------
+    fasta_file: FastaFile
+
+    Returns
+    -------
+    alignment: Alignment
+    """
+    sequence = fasta.get_alignment(fasta_file)
+    return sequence
 
 
-def get_alignment(ref: str, mobile: str, methods: bool, matrix: str, gap: int) -> str:
+def get_alignment(
+    ref: str, mobile: str, local: bool = False, matrix: str = "BLOSUM62", gap: int = -10
+) -> str:
 
     """
     Perform a global alignment, based on the the Needleman-Wunsch algorithm
@@ -52,27 +64,37 @@ def get_alignment(ref: str, mobile: str, methods: bool, matrix: str, gap: int) -
     ref,mobile: string
         string of sequences
 
-    methods: bool
+    methods: bool, optional
         true for local alignment, otherwise a global alignment is performed
+        (Default: False)
 
-    matrix: string
+    matrix: string, optional
         The substitution matrix used for scoring
+        (Default: BLOSUM62)
 
-    gap: int or (tuple, dtype=int)
+    gap: int or (tuple, dtype=int), optional
         Int the value will be interpreted as general gap penalty.
         Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
         the second integer is the gap extension penalty. The values need to be negative.
+        (Default: -10)
 
     Returns
     -------
     string
     An alignment of two sequences
 
+    Examples
+    --------
+    >>> get_alignment("xxxx.pdb", "xxxx.pdb", False, "PAM250", (-5, -15))
+
+    RKKSLVDIDLSSLRDP
+    R-K-I-DLS-S-LRDP
+
     """
 
-    seq1, seq2 = biotite_aminoSeq(ref), biotite_aminoSeq(mobile)
+    seq1, seq2 = biotite_amino_seq(ref), biotite_amino_seq(mobile)
 
-    if methods == True:
+    if local is True:
         alignment = smith_waterman(seq1, seq2, matrix, gap)
     else:
         alignment = needleman_wunsch(seq1, seq2, matrix, gap)
@@ -80,4 +102,7 @@ def get_alignment(ref: str, mobile: str, methods: bool, matrix: str, gap: int) -
     return alignment
 
 
-# print(get_alignment("4u3y.pdb", "4u40.pdb", False, "PAM250", (-5, -15)))
+if __name__ == "__main__":
+    print(get_alignment_fasta("4u40.fasta.txt"))
+# print(get_alignment("4u3y.pdb", "4u40.pdb"))
+

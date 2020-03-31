@@ -1,7 +1,7 @@
 import biotite
 import biotite.sequence as seq
 import biotite.sequence.align as align
-from matrices import matrices
+from structuralalignment.alignment.matrices import matrices
 
 
 def needleman_wunsch(seq1: str, seq2: str, matrix: str, gap: int) -> str:
@@ -32,6 +32,5 @@ def needleman_wunsch(seq1: str, seq2: str, matrix: str, gap: int) -> str:
     alignment = align.align_optimal(
         seq.ProteinSequence(seq1), seq.ProteinSequence(seq2), matrix, gap_penalty=gap,
     )
-
     return alignment[0]
 

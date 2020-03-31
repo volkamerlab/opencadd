@@ -1,7 +1,7 @@
 import biotite
 import biotite.sequence as seq
 import biotite.sequence.align as align
-from matrices import matrices
+from structuralalignment.alignment.matrices import matrices
 
 
 def smith_waterman(seq1: str, seq2: str, matrix: str, gap: int) -> str:
