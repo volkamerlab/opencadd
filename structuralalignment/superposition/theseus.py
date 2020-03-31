@@ -7,7 +7,7 @@ from structuralalignment.utils import enter_temp_directory
 """
 Theseus superposes a set of macromolecular structures simultaneously
 using the method of maximum like-lihood (ML), rather than the
-conventional least-squares criterion.Theseus assumes that the
+conventional least-squares criterion. Theseus assumes that the
 structures are distributed according to a matrix Gaussian
 distribution and that the eigenvalues of the atomic
 covariancematrix are hierarchically distributed according
@@ -15,6 +15,20 @@ to an inverse gamma distribution. This ML superpositioning model
 produces much more accurate results by essentially downweighting
 variable regions of the structuresand by correcting for correlations
 among atoms.
+
+References
+----------
+* https://theobald.brandeis.edu/theseus/
+* Optimal simultaneous superpositioning of multiple structures with missing data.
+  Theobald, Douglas L. & Steindel, Philip A. (2012) Bioinformatics 28 (15): 1972-1979
+* Accurate structural correlations from maximum likelihood superpositions.
+  Theobald, Douglas L. & Wuttke, Deborah S. (2008) PLOS Computational Biology 4(2):e43
+
+.. todo::
+
+    - Add literature references to this docstring.
+    - Can we unify both classes in a single one? Mode of operation
+      would be configured with a keyword (e.g. `identical=True`).
 """
 
 
