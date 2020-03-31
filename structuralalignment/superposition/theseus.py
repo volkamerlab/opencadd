@@ -124,7 +124,7 @@ with enter_temp_directory():
             self.fetched_pdbs.append(pdb)
 
         for pdbs in self.fetched_pdbs:
-            pdb_filename = pdbs.code + "." + pdbs.filetype
+            pdb_filename = f"{pdbs.code}.pdb"
             pdbs.model.save(pdb_filename)
             self.fetched_pdbs_filename.append(pdb_filename)
 
