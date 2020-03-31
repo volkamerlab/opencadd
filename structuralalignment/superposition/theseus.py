@@ -1,6 +1,9 @@
-import atomium
 import subprocess
-from base import CommandLineWrapper
+from pathlib import Path
+
+import atomium
+
+from structuralalignment.superposition.base import CommandLineWrapper
 from structuralalignment.utils import enter_temp_directory
 
 
@@ -35,15 +38,10 @@ References
 class Theseus(CommandLineWrapper):
     """
     A mode for superpositioning macromolecules with
-    identical  sequences  and  numbers  ofresidues,
+    identical sequences and numbers of residues,
     for instance, multiple models in an NMR family
-    or multiple structures from differentcrystal
+    or multiple structures from different crystal
     forms of the same protein.
-
-    Parameter
-    ---------
-    CommandLineWrapper : class
-
     """
 
     def _calculate(self, structures, **kwargs):
@@ -81,26 +79,27 @@ class Theseus(CommandLineWrapper):
 
 
 class TheseusAlign(CommandLineWrapper):
+
     """
     Superpose structures with different sequences but similar structures
 
-    An alignment mode for superpositioning structures with different
-    sequences, for example, multiple structures of the cytochrome c
-    protein from different species or multiple mutated structures of
-    hen egg white lysozyme.
+    Parameters
+    ----------
+    max_iterations : int
+        number of iterations for muscle
+
+    Examples
+    --------
+
+    .. todo::
+
+        Move these two examples to ``docs/examples`` or ``docs/tutorials``
+
+    * Multiple structures of the cytochrome c protein from different species
+    * Multiple mutated structures of hen egg white lysozyme.
     """
 
-
-with enter_temp_directory():
-
     def __init__(self, max_iterations: int = 32):
-        """
-        Parameter
-        ---------
-
-        max_iterations: int
-            number of iterations for muscle
-        """
         self.max_iterations = max_iterations
 
         self.fastafile = "theseus.fasta"
@@ -108,7 +107,7 @@ with enter_temp_directory():
         self.alignment_file = "theseus.aln"
         self.alignment_app = "muscle"
 
-    def create_pdb(self, structures):
+    def _create_pdb(self, structures):
         """
         Create files with atomium objects
 
@@ -116,26 +115,29 @@ with enter_temp_directory():
         ---------
         structures : list
             list of atomium objects
-        """
-        self.fetched_pdbs = []
-        self.fetched_pdbs_filename = []
 
-        for pdb in structures:
-            self.fetched_pdbs.append(pdb)
+        .. todo::
+            This method should be private and not set state,
+            just return temporary filenames
+        """
+        self.fetched_pdbs = structures
+        self.fetched_pdbs_filename = []
 
         for pdbs in self.fetched_pdbs:
             pdb_filename = f"{pdbs.code}.pdb"
             pdbs.model.save(pdb_filename)
             self.fetched_pdbs_filename.append(pdb_filename)
 
-    def get_fasta(self):
+    def _get_fasta(self):
         """
         Use Theseus to create fasta files
+
+        .. todo::
+            We can probably generate this from atomium directly
         """
+        return subprocess.check_output(["theseus", "-f", "-F", *self.fetched_pdbs_filename])
 
-        subprocess.check_output(["theseus", "-f", "-F"] + self.fetched_pdbs_filename)
-
-    def concatenate_fasta(self):
+    def _concatenate_fasta(self):
         """
         Concatenate the fasta files created with Theseus into one multiple sequence fasta file
         """
@@ -157,41 +159,65 @@ with enter_temp_directory():
 
     def _calculate(self, structures, **kwargs):
         """
-        Align the sequences with an alignment tool(muscle)
+        Align the sequences with an alignment tool (``muscle``)
 
-        Parameter
-        ---------
+        .. todo::
+
+            Can we use a different alignment tool, preferrably in Python? E.g. biotite?
+
+        Parameters
+        ----------
         structures : list
             list of atomium objects
-        **kwargs : dictionary
-            optional arguments
         """
-        self.create_pdb(structures)
-        self.get_fasta()
-        self.concatenate_fasta()
-        self.filemap()
-        output = subprocess.check_output(
-            [
-                self.alignment_app,
-                "-maxiters",
+        with enter_temp_directory(remove=False) as (cwd, tmpdir):
+            print("DEBUG: Running in", tmpdir, " -- TODO: DELETE BEFORE MERGE --")
+            self._create_pdb(structures)
+            self._get_fasta()
+            self._concatenate_fasta()
+            self._filemap()
+            seq_alignment_output = subprocess.check_output(
+                [
+                    self.alignment_app,
+                    "-maxiters",
                     str(self.max_iterations),
                     "-in",
-            ]
-        )
-        self.execute()
-        return self._parse(output)
+                    self.fastafile,
+                    "-out",
+                    self.alignment_file,
+                    "-clwstrict",
+                ],
+                universal_newlines=True,
+            )
+            self._parse_alignment(seq_alignment_output)
+            print(seq_alignment_output)
+            superposition_output = self._run_theseus()
+            print(superposition_output)
+            print("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
+            print(*list(Path(tmpdir).glob("theseus_*")), sep="\n")
+        return self._parse_superposition(superposition_output)
 
-    def _parse(self, output):
+    def _parse_alignment(self, output):
         """
-        Parse the output
+        Parse the output from the MSA program (muscle, by default)
 
-        Parameter
-        ---------
-        output : idk yet
+        Parameters
+        ----------
+        output : bytes
         """
         return output
 
-    def execute(self):
+    def _parse_superposition(self, output):
+        """
+        Parse the output from theseus itself
+
+        Parameters
+        ----------
+        output : bytes
+        """
+        return output
+
+    def _run_theseus(self):
         """
         Superpose with Theseus based on the sequence alignment
         """
@@ -205,7 +231,10 @@ with enter_temp_directory():
                 self.alignment_file,
                 *self.fetched_pdbs_filename,
             ],
+            universal_newlines=True,
         )
+        return output
+
 
 if __name__ == "__main__":
     import sys
