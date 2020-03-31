@@ -203,8 +203,8 @@ with enter_temp_directory():
                 self.filemap_file,
                 "-A",
                 self.alignment_file,
-                self.fetched_pdbs_filename,
-            ]
+                *self.fetched_pdbs_filename,
+            ],
         )
         self._parse(output)
 
