@@ -142,7 +142,7 @@ with enter_temp_directory():
         filenames = self.fetched_pdbs_filename
         with open(self.fastafile, "w") as outfile:
             for fname in filenames:
-                with open(fname) as infile:
+                with open(f"{fname}.fst") as infile:
                     for line in infile:
                         outfile.write(line)
 
