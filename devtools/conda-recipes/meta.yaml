@@ -1,0 +1,59 @@
+# Note: there are many handy hints in comments in this example -- remove them when you've finalized your recipe
+
+# Jinja variables help maintain the recipe as you'll update the version only here.
+# Using the name variable with the URL in line 14 is convenient
+# when copying and pasting from another recipe, but not really needed.
+{% set name = "structuralalignment" %}
+{% set version = "??" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../../structuralalignment
+
+  # sha256: d58439c548433adcda98e695be53e526ba940a4b9c44fb9a05d92cd495cdd47f
+  # sha256 needs to be edited
+
+build:
+  number: 0
+  script: # "{{ PYTHON }} -m pip install . -vv"   what should be here?
+
+requirements:
+  host:
+    - python
+    - pip
+
+  run:
+    - python
+    - atomium
+    - sphinx
+    - sphinx_rtd_theme
+    - biotite
+    - MDAnalysis
+    - structuralalignment
+    - .base
+    - muscle
+# test:
+#   imports:
+
+
+about:
+  home: https://github.com/volkamerlab/structuralalignment
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: 'A Python library for molecular structural alignment and superposition'
+
+  description: |
+    structuralalignment is a Python library for molecular alignmnet and
+    superposition with different methods like theseus, mmligner and
+    Chimera-Matchmaker.
+  doc_url: https://structural-alignment.readthedocs.io/en/latest/
+  dev_url: https://github.com/volkamerlab/structuralalignment
+
+extra:
+  recipe-maintainers:
+    - pipaj97
+    - jaimergp

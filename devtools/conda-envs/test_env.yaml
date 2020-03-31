@@ -10,6 +10,20 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
 
+    # Chimera reimplementation
+  - biotite
+  - MDAnalysis
+  - structuralalignment
+
+    # mmligner
+  - .base
+
+    # Theseus
+  - muscle
+
+
+  warnings
+
     # Testing
   - pytest
   - pytest-cov
