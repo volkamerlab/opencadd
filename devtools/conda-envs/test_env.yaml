@@ -21,9 +21,6 @@ dependencies:
     # Theseus
   - muscle
 
-
-  warnings
-
     # Testing
   - pytest
   - pytest-cov
