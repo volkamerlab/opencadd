@@ -206,5 +206,12 @@ with enter_temp_directory():
                 *self.fetched_pdbs_filename,
             ],
         )
-        self._parse(output)
 
+if __name__ == "__main__":
+    import sys
+    import atomium
+
+    pdb_ids = sys.argv[1:]
+    models = [atomium.fetch(pdb_id) for pdb_id in pdb_ids]
+    theseus = TheseusAlign()
+    theseus.calculate(models)
