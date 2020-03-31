@@ -174,12 +174,8 @@ with enter_temp_directory():
             [
                 self.alignment_app,
                 "-maxiters",
-                self.max_iterations,
-                "-in",
-                self.fastafile,
-                "-out",
-                self.alignment_file,
-                "-clwstrict",
+                    str(self.max_iterations),
+                    "-in",
             ]
         )
         self.execute()
