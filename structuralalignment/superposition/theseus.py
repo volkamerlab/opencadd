@@ -146,14 +146,14 @@ with enter_temp_directory():
                     for line in infile:
                         outfile.write(line)
 
-    def filemap(self):
+    def _filemap(self):
         """
         Create filemap for Theseus
         """
         filenames = self.fetched_pdbs_filename
         with open(self.filemap_file, "w") as outfile:
             for fname in filenames:
-                outfile.write(fname + " " + fname)
+                outfile.write(f"{fname} {fname}\n")
 
     def _calculate(self, structures, **kwargs):
         """
