@@ -1,9 +1,16 @@
 name: test
 channels:
+  - conda-forge
+  - bioconda
+  - defaults
 dependencies:
     # Base depends
   - python
   - pip
+  - atomium
+
+    # Theseus
+  - muscle
 
     # Testing
   - pytest
