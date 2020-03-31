@@ -13,13 +13,13 @@ dependencies:
     # Chimera reimplementation
   - biotite
   - MDAnalysis
-  - structuralalignment
+
 
     # mmligner
-  - .base
+
 
     # Theseus
-  - muscle
+
 
     # Testing
   - pytest
@@ -27,6 +27,7 @@ dependencies:
   - codecov
 
     # Pip-only installs
-  #- pip:
+  - pip:
   #  - codecov
+  - muscle
 
