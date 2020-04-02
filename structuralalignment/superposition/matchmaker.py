@@ -1,4 +1,7 @@
-class MatchMakerAlgorithm(BaseAlignerAlgorithm):
+from .base import BaseAligner
+
+
+class MatchMakerAligner(BaseAligner):
     def __init__(self, params):
         self.params = params
 
