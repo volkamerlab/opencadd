@@ -4,21 +4,23 @@
 # Using the name variable with the URL in line 14 is convenient
 # when copying and pasting from another recipe, but not really needed.
 {% set name = "structuralalignment" %}
-{% set version = "??" %}
+{% set version = "0.0.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  path: ../../structuralalignment
+  path: ../../
 
   # sha256: d58439c548433adcda98e695be53e526ba940a4b9c44fb9a05d92cd495cdd47f
   # sha256 needs to be edited
 
 build:
   number: 0
-  script: # "{{ PYTHON }} -m pip install . -vv"   what should be here?
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - structuralalignment = structuralalignment.cli:main
 
 requirements:
   host:
@@ -28,16 +30,16 @@ requirements:
   run:
     - python
     - atomium
-    - sphinx
-    - sphinx_rtd_theme
     - biotite
     - MDAnalysis
     - structuralalignment
-    - .base
     - muscle
-# test:
-#   imports:
 
+test:
+  imports:
+    - structuralalignment
+  commands:
+    - structuralalignment -h
 
 about:
   home: https://github.com/volkamerlab/structuralalignment
