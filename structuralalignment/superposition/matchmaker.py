@@ -1,103 +1,146 @@
-import biotite
-import biotite.structure as struc
-from structuralalignment.alignment.base import get_alignment
-from structuralalignment.alignment.base import biotite_amino_seq
-
 import MDAnalysis as mda
 from MDAnalysis.analysis import align as mda_align
 
+from .base import BaseAligner
+from ..sequences import needleman_wunsch, smith_waterman
 
-def get_trace_atoms(ref: str, mobile: str, alignment: str) -> mda.AtomGroup:
 
+class MatchMakerAligner(BaseAligner):
     """
-    Get the trace of the aligned residues in the sequences and use it
-    to map corresponding residues in their structures
+    Factory to configure an aligner based on
+    UCSF Chimera's MatchMaker algorithms.
+
+    Roughly, the algorithm follows these steps:
+
+    1. Sequence alignment -- using ``biotite``
+    2. Trace (atom pairing) -- using ``biotite`` and ``MDAnalysis``
+    3. Structural superposition -- using ``MDAnalysis``
 
     Parameters
     ----------
-    ref,mobile: string
-        name of file
+    alignment_strategy : str, optional, default=global
+        What type of algorithm will be used to calculate the
+        sequence alignment. Choose between:
+        - ``global`` (Needleman-Wunsch)
+        - ``local`` (Smith-Waterman)
+    alignment_matrix : str, optional, default=BLOSUM62
+        The substitution matrix used for scoring
+    alignment_gap : int or (tuple, dtype=int), optional
+        Int the value will be interpreted as general gap penalty.
+        Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
+        the second integer is the gap extension penalty. The values need to be negative.
+        (Default: -10)
+    strict_superposition
+        TODO: add description and typing
+    superposition_selection
+        TODO: add description and typing
+    superposition_weights
+        TODO: add description and typing
+    superposition_delta_mass_tolerance
+        TODO: add description and typing
 
-    alignment: string
-        an alignment of two sequences
-
-    Returns
-    -------
-    AtomGroup with atoms
-        AtomGroup with information about the atoms such as names,
-        indices, or the coordinates in the positions attribute
-
-    Examples
-    --------
-    >>> a = get_alignment("xxxx.pdb", "xxxx.pdb", True, "PAM250", (-5, -15))
-    get_trace_atoms("xxxx.pdb", "xxxx.pdb", a)
-
-    [<Atom 1: N of type N of resname SER, resid 17 and segid A and altLoc>,....]
-
-    """
-    ref_universe = mda.Universe(ref)
-    mobile_universe = mda.Universe(mobile)
-    trace = alignment.trace
-    trace = trace[~(trace == -1).any(axis=1)]
-    aref = ref_universe.residues[trace[:, 0]]
-    amob = mobile_universe.residues[trace[:, 1]]
-
-    return aref.atoms, amob.atoms
-
-
-def align_protein(ref: mda.AtomGroup, mobile: mda.AtomGroup) -> (float, float):
-
-    """
-    Perform a spatial superposition by minimizing the RMSD.
-    Spatially align the group of atoms mobile to reference by doing a RMSD fit on select atoms.
-
-    Parameters
+    References
     ----------
-    ref,mobile: AtomGroup with Atoms
-
-    Returns
-    -------
-    old_rmsd (float) – RMSD before spatial alignment
-    new_rmsd (float) – RMSD after spatial alignment
-
-    """
-    return mda_align.alignto(ref, mobile, strict=False, select="protein and name CA")
-
-
-def create_pdbfile(ref: str, mobile: str, alignment: str) -> str:
-
-    """
-    Create a new PDB-file
-
-    Parameters
-    ----------
-    ref,mobile: string
-        name of file
-
-    alignment: string
-        an alignment of two sequences
-
-    Returns
-    -------
-
-    PDF-file
-        a new PDF-file
-
-    string
-        The PDB-file was successfully created.
-
+    * <LINK>!
     """
 
-    aref, amob = get_trace_atoms(ref, mobile, alignment)
-    mda_align.alignto(aref, amob, strict=False, select="protein and name CA")
-    with mda.Writer("protein.pdb", multiframe=True) as pdb:
-        pdb.write(aref)
-        pdb.write(amob)
-    return "The PDB-file was successfully created. "
+    def __init__(
+        self,
+        alignment_strategy: str = "global",
+        alignment_matrix: str = "BLOSUM62",
+        alignment_gap: int = -10,
+        strict_superposition: bool = False,
+        superposition_selection="protein and name CA",
+        superposition_weights=None,
+        superposition_delta_mass_tolerance=0.1,
+    ):
+        self.alignment_strategy = alignment_strategy.lower()
+        if self.alignment_strategy == "global":
+            self._sequence_aligner = needleman_wunsch
+        elif self.alignment_strategy == "local":
+            self._sequence_aligner = smith_waterman
+        else:
+            raise ValueError("`alignment_strategy` must be one of `global, local`.")
 
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.alignment_matrix = alignment_matrix
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.alignment_gap = alignment_gap
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.strict_superposition = strict_superposition
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.superposition_selection = superposition_selection
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.superposition_weights = superposition_weights
+        # TODO: Add checks for allowed values (as above) and raise ValueError with informative message otherwise
+        self.superposition_delta_mass_tolerance = superposition_delta_mass_tolerance
 
-if __name__ == "__main__":
-    a = get_alignment("4u3y.pdb", "4u40.pdb", True, "PAM250", (-5, -15))
-    b1, b2 = get_trace_atoms("4u3y.pdb", "4u40.pdb", a)
-    # print(align_protein(b1, b2))
-    print(create_pdbfile("4u3y.pdb", "4u40.pdb", a))
+    def _calculate(self, structures):
+        """
+
+        Parameters
+        ----------
+        structures : list of atomium.Model
+            First one will be the target (static structure). Following, will be mobile.
+
+        Returns
+        -------
+        dict
+            superposed models
+            rmsd
+            metadata
+        """
+        if len(structures) > 2:
+            raise NotImplementedError(
+                "This method can only be used for two structures at the same time, for now"
+            )
+        reference, mobile = structures
+        ref_universe = self._atomium_to_mda_universe(reference)
+        mob_universe = self._atomium_to_mda_universe(mobile)
+
+        # Compute sequence alignment
+        ref_sequence = _retrieve_sequence(reference)
+        mob_sequence = _retrieve_sequence(mobile)
+        alignment = self._align(ref_sequence, mob_sequence)
+
+        # Retrieve trace atoms
+        trace = alignment.trace
+        # Filter residue pairs that are == -1, which means they are a gap (not aligned!)
+        trace = trace[~(trace == -1).any(axis=1)]
+
+        aligned_residues_ref = ref_universe.residues[trace[:, 0]]
+        aligned_residues_mob = mob_universe.residues[trace[:, 1]]
+
+        # FIXME: Does MDA move the structure as part of the RMSD calculation?
+        old_rmsd, new_rmsd = mda_align.alignto(
+            aligned_residues_mob.atoms,
+            aligned_residues_ref.atoms,
+            strict=self.strict_superposition,
+            select=self.superposition_selection,
+        )
+
+    @staticmethod
+    def _retrieve_sequence(atomium_model):
+        sequences = []
+        for chain in atomium_model._chains.structures:
+            sequences.append(chain.sequence)
+        return "".join(sequences)
+
+    @staticmethod
+    def _atomium_to_mda_universe(atomium_model):
+        # FIXME: This is not implemented yet!
+        raise NotImplementedError("TODO: Jaime will take care of this")
+        return mda.Universe(...)
+
+    def _align(self, sequence_1, sequence_2):
+        """
+        Examples
+        --------
+        >>> get_alignment("xxxx.pdb", "xxxx.pdb", False, "PAM250", (-5, -15))
+
+        RKKSLVDIDLSSLRDP
+        R-K-I-DLS-S-LRDP
+        """
+        return self._sequence_aligner(
+            sequence_1, sequence_2, self.alignment_matrix, self.alignment_gap
+        )
