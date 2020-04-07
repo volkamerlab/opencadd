@@ -41,9 +41,8 @@ def parse_method_options(string):
     fields = string.split(";")
     # use YAML (through ruamel_yaml) to parse each field
     for field in fields:
-        minidict = {
-            "dummy": "value"
-        }  # REPLACE WITH some_ruamel_yaml_function(field)  # -> {key: value}
+        # TODO: REPLACE WITH some_ruamel_yaml_function(field)  # -> {key: value}
+        minidict = {"dummy": "value"}
         options.update(minidict)
     return options
 
