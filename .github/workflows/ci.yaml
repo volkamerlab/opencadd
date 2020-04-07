@@ -95,7 +95,7 @@ jobs:
         run: |
           . devtools/scripts/initialize_conda.sh
           conda activate test
-          black --check -l 99 $PACKAGE/ --exclude $PACKAGE/_version.py
+          black --check -l 99 $PACKAGE/
   #############
   docs:
     runs-on: ubuntu-latest
