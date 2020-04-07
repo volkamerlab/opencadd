@@ -19,8 +19,7 @@ dependencies:
     # mmligner
 
 
-    # Theseus
-    - muscle
+
 
 
     # Testing
@@ -31,5 +30,9 @@ dependencies:
     # Pip-only installs
   #- pip:
   #  - codecov
+
+  - bioconda:
+      # Theseus
+    - muscle
 
 
