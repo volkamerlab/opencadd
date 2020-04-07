@@ -68,28 +68,79 @@ Alignment API
 This sections defines our input and output parameters and their names.
 They should be consistent over all modules.
 
+**How does the API work?**
+
+The first 2 to n arguments are the structures to be superposed.
+If there are more than 2 structures, the first one will be considered the target
+structure and every other structure will be superposed on this creating multiple
+structural alignments.
+If the user does not give any other arguments, the method will be Theseus.
+The next argument is the method of choice. If available the user can give some
+more method-options.
+
+The structures are automaticaly transformed to `atomium.models
+<https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_.
+This means the input for all other alignment functions should be `atomium.models
+<https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_.
+
+**Example:**
+::
+    structuralalignment 1lol 5XME --method mmligner --method-options something
+
+
 **The aligment function should have the follwing parameters:**
 
 - Input parameters:
-    - atomium Models [https://atomium.samireland.com/api/structures.html]
+    - `atomium Models
+      <https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_
     - optional kwargs
 
 - Returns:
-    - superposed structures using atomium Models/Molecules
+    - superposed atomium Models/Molecules
     - scores (RMSD)
+    - metadata
 
 How the package will be structured
 ----------------------------------
 
-What should each Pull Request contain
----------------------------------------
+Contributing to structuralalignment
+-----------------------------------
+First of all, thank you for considering making this project better.
 
-* Documantation
-* Tests with Pytest
+You can help to make structuralalignment better by raising an issue to report a bug or suggest a
+feature which is not implemented yet.
+You can also create a new feature and add it via a Pull Request.
+
+How Pull Requests work
+----------------------
+
+1. Fork the structuralalignment repository.
+   Now you have your own copy of the repository.
+2. Clone the repository. For that you can type :code:`clone https://github.com/your_username/structuralalignment`
+   in your terminal.
+3. Make your changes.
+4. Push your change to your forked repository.
+5. Click the 'new pull request' Button.
+6. Follow the template given there. Be aware of the requirements_.
+
+The default branch to merge is the master branch.
+
+The team of `structuralalignment` will review the pull request and if there are no flaws it will be merged
+to the master branch. If there are some flaws, the team will request you to fix them.
+
+.. _requirements:
+
+**************************************
+What should each Pull Request contain?
+**************************************
+
+* Documantation (should be in rst format)
+* Tests_ with Pytest
 * Examples for the use of the new functions
 * Little benchmark
 * Explaination of 3rd party dependencies
 * It should be formatted by black
+* short summary of the changes that were made
 
 A template is following soon.
 
@@ -115,7 +166,14 @@ Formatting with black
     * activate "Editor: Format On Save"
 
 
+.. _Tests:
 
+How to add a new test
+---------------------
+
+- write a unit test for the new (or changed) function with `pytest
+  <https://docs.pytest.org/en/latest/>`_.
+- add new dependencies to the test_env.yaml
 
 
 Steps made by the Github Actions Workflow
@@ -137,8 +195,3 @@ The formating check is done in ubuntu.
 * Running pylint.
 * Running black.
 
-
-How to add a new test
----------------------
-
-Coming soon.
