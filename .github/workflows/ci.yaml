@@ -118,6 +118,7 @@ jobs:
         shell: bash
         run: |
           . devtools/scripts/initialize_conda.sh
+          conda activate test
           cd docs
           make clean
           SPHINXOPTS="-W -T --keep-going" make html
