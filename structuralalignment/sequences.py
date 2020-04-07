@@ -1,8 +1,8 @@
 """
-sequences.py
+ sequences.py
 
-Utilities for sequence alignment
-"""
+ Utilities for sequence alignment
+ """
 
 import biotite
 import biotite.sequence.align as align
@@ -33,8 +33,7 @@ def matrices(name: str) -> align.SubstitutionMatrix:
         in an m-length alphabet 1 and an n-length alphabet 2
 
     """
-    if name not in align.SubstitutionMatrix.list_db():
-        raise ValueError(f"Substitution Matrix '{name}' could not be found.")
+    if name is "BLOSUM62":
         matrix = align.SubstitutionMatrix.std_protein_matrix()
     else:
         alph = seq.ProteinSequence.alphabet
@@ -57,9 +56,9 @@ def needleman_wunsch(seq1: str, seq2: str, matrix: str, gap: int) -> str:
         The substitution matrix used for scoring
 
     gap: int or (tuple, dtype=int)
-        Int the value will be interpreted as general gap penalty.
-        Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
-        the second integer is the gap extension penalty. The values need to be negative.
+         Int the value will be interpreted as general gap penalty.
+         Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
+         the second integer is the gap extension penalty. The values need to be negative.
 
     Returns
     -------
@@ -82,24 +81,28 @@ def smith_waterman(seq1: str, seq2: str, matrix: str, gap: int) -> str:
     Parameters
     ----------
     seq1,seq2: str
-        The sequences to be aligned
+         The sequences to be aligned
 
     matrix: SubstitutionMatrix
         The substitution matrix used for scoring
 
     gap: int or (tuple, dtype=int)
-        Int the value will be interpreted as general gap penalty.
-        Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
-        the second integer is the gap extension penalty. The values need to be negative.
+         Int the value will be interpreted as general gap penalty.
+         Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
+         the second integer is the gap extension penalty. The values need to be negative.
 
     Returns
     -------
     str
-        A local alignment of two sequences
+        a local alignment of two sequences
     """
     matrix = matrices(matrix)
     alignment = align.align_optimal(
-        seq.ProteinSequence(seq1), seq.ProteinSequence(seq2), matrix, local=True, gap_penalty=gap
+        seq.ProteinSequence(seq1),
+        seq.ProteinSequence(seq2),
+        matrix,
+        local=True,
+        gap_penalty=gap,
     )
 
     return alignment[0]
