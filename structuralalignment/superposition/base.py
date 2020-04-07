@@ -8,6 +8,9 @@ class CommandLineWrapper:
 
 
 class BaseAligner:
+    def align(self, *args, **kwargs):
+        print("Hey, it's working. I am supposed to do something useful via a subclass.")
+
     def compute_sequence_alignment(self, algorithm, **kwargs):
         """
         Example implementation of first step
