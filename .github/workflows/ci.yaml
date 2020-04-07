@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Install linter and formatter
         shell: bash
@@ -87,3 +87,28 @@ jobs:
           . devtools/scripts/initialize_conda.sh
           conda activate test
           black --check -l 99 $PACKAGE/ --exclude $PACKAGE/_version.py
+  #############
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      CI_OS: ubuntu-latest
+      PACKAGE: "structuralalignment"
+      PYVER: "3.7"
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Create environment
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          conda activate
+          python devtools/scripts/create_conda_env.py -n=test -p=$PYVER devtools/conda-envs/test_env.yaml
+      - name: Run sphinx
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          cd docs
+          make clean
+          SPHINXOPTS="-W -T --keep-going" make html
