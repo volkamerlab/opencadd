@@ -2,6 +2,7 @@ name: test
 channels:
 - conda-forge
 - defaults
+- bioconda
 dependencies:
     # Base depends
   - python
@@ -19,6 +20,7 @@ dependencies:
 
 
     # Theseus
+    - muscle
 
 
     # Testing
@@ -29,5 +31,5 @@ dependencies:
     # Pip-only installs
   #- pip:
   #  - codecov
-  #- muscle
+
 
