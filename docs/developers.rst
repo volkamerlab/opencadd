@@ -138,7 +138,7 @@ How Pull Requests work
 4. Make your changes.
 5. Add, commit and push your change to your forked repository.
 6. Click on ``Create pull request`` Button.
-6. Follow the template given there. Be aware of the requirements_.
+7. Follow the template given there. Be aware of the requirements_.
 
 The ``structuralalignment`` team will review the pull request and if there are no flaws it will be merged
 to the ``master`` branch. If there are some flaws, the team will request you to fix them.
