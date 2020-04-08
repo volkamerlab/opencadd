@@ -1,5 +1,10 @@
 import subprocess
-from .base import CommandLineWrapper
+import atomium
+import biotite
+import biotite.sequence.io.fasta as fasta
+
+from base import CommandLineWrapper
+from utils import enter_temp_directory
 
 
 class MMLignerWrapper(CommandLineWrapper):
@@ -30,7 +35,8 @@ class MMLignerWrapper(CommandLineWrapper):
     """
 
     def __init__(self):
-        self.executable = mmligner
+        # self.executable = "../../../../mmligner_1.0.2/bin/mmligner64.exe"
+        self.executable = "C:/Universität/Softwarepraktikum/mmligner_1.0.2/bin/mmligner64.exe"
 
     def _calculate(self, structures, **kwargs):
         """
@@ -56,15 +62,22 @@ class MMLignerWrapper(CommandLineWrapper):
             dictionary containing the rmsd value and the score of the superpoesed structures as well as the metadata. Parsed by self._parse(output).
 
         """
-        # TODO: conda recipe for mmligner so executable is always there
-        output = subprocess.check_output([
-            self.executable,
-            structures[0].to_pdb(),
-            structures[1].to_pdb(),
-            "--superpose"
-        ])
 
-        return self._parse(output)
+        with enter_temp_directory() as (cwd, tmpdir):
+
+            path1, path2 = self._edit_pdb(structures)
+
+            output = subprocess.check_output([
+                self.executable,
+                path1,
+                path2,
+                "-o", "temp",
+                "--superpose"
+            ])
+
+            result = self._parse(output)
+
+        return result
 
     def _parse(self, output):
         """
@@ -97,12 +110,16 @@ class MMLignerWrapper(CommandLineWrapper):
             #   coverage = float(line.split()[2])
 
             elif line.startswith(b"I(A & <S,T>)"):
-                ivalue = float(line.split()[2])
+                ivalue = float(line.split()[4])
+
+        alignment = fasta.FastaFile()
 
         return {
             'rmsd': rmsd,
             'score': ivalue,
-            'metadata': {}  # what's supposed to be returned as "metadata"?
+            'metadata': {
+                'alignment': alignment.read("./temp__1.afasta")
+            }
         }
 
     def ivalue(self, structures, alignment):
@@ -127,7 +144,8 @@ class MMLignerWrapper(CommandLineWrapper):
                     ivalue of the alignment. The smaller the better
                 "metadata": ?
             }
-        dictionary containing the rmsd value and the score of the alignment for the given two structures as well as the metadata by calling self._parse(output)
+        dictionary containing the rmsd value and the score of the alignment for the given two structures as well as the
+        metadata by calling self._parse(output)
         """
         assert len(structures) == 2
 
@@ -139,3 +157,86 @@ class MMLignerWrapper(CommandLineWrapper):
         ])
 
         return self._parse(output)
+
+    def _edit_pdb(self, structures, path=["./structure1.pdb", "./structure2.pdb"]):
+        """
+        function to write atomium protein models to pdb readable by mmligner
+
+        Parameters
+        ----------
+        structures: [array like, array like]
+            two protein structures
+
+        path: [str, str], Optional=["structure1.pdb, "structure2.pdb"]
+            Path where the pdbs should be written
+
+        Returns
+        -------
+        str, str
+            Paths of both structures
+        """
+        assert len(path) == 2
+
+        structures[0].save(path[0])
+        structures[1].save(path[1])
+
+        for i in range(len(path)):
+            pdb = []
+            with open(path[i], 'r') as infile:
+                assert infile.mode == 'r'
+
+                pdb = infile.readlines()
+                for j in range(1, len(pdb)):
+                    if pdb[j].startswith("TER"):
+                        pdb[j] = pdb[j].split()[0] + '    ' + pdb[j-1].split()[1] + '\n'
+
+            self._write_pdb(path[i], pdb)
+
+        return path[0], path[1]
+
+    def _write_pdb(self, path, pdb):
+        """
+        function to write atomium protein models to pdb readable by mmligner
+
+        Parameters
+        ----------
+        path: str
+            Path where the pdb should be written
+
+        pdb: array like
+            edited pdb file
+
+        Returns
+        -------
+        none
+        """
+        with open(path, 'w') as outfile:
+            assert outfile.mode == 'w'
+
+            for line in pdb:
+                outfile.write(line)
+
+        return
+
+
+if __name__ == "__main__":
+    """
+    Script for debugging.
+    """
+    structures = []
+    structures.append(atomium.fetch("4u3y").model)
+    structures.append(atomium.fetch("4u40").model)
+
+    Aligner = MMLignerWrapper()
+
+    # Aligner._edit_pdb(structures)
+
+    result = Aligner.calculate(structures)
+    print(f"Alignment has a RMSD of: {result['rmsd']} and a Score (IValue) of: {result['score']} ")
+    # print("Alignment data:")
+    # print(result["metadata"]["alignment"])
+    # for header, string in result["metadata"]["alignment"].items():
+    #    print("Header:", header)
+    #    print(len(string))
+    #    print("Sequence:", string[:50], "...")
+    #    print("Sequence length:", len(string))
