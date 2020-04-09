@@ -7,10 +7,18 @@ Welcome to StructuralAlignment's documentation!
 =========================================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: User guide
 
+   installing
    getting_started
+   tutorial
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developers
+
+   developers
    api
 
 

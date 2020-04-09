@@ -67,13 +67,9 @@ class MMLignerWrapper(CommandLineWrapper):
 
             path1, path2 = self._edit_pdb(structures)
 
-            output = subprocess.check_output([
-                self.executable,
-                path1,
-                path2,
-                "-o", "temp",
-                "--superpose"
-            ])
+            output = subprocess.check_output(
+                [self.executable, path1, path2, "-o", "temp", "--superpose"]
+            )
 
             result = self._parse(output)
 
@@ -115,11 +111,9 @@ class MMLignerWrapper(CommandLineWrapper):
         alignment = fasta.FastaFile()
 
         return {
-            'rmsd': rmsd,
-            'score': ivalue,
-            'metadata': {
-                'alignment': alignment.read("./temp__1.afasta")
-            }
+            "rmsd": rmsd,
+            "score": ivalue,
+            "metadata": {"alignment": alignment.read("./temp__1.afasta")},
         }
 
     def ivalue(self, structures, alignment):
@@ -149,12 +143,15 @@ class MMLignerWrapper(CommandLineWrapper):
         """
         assert len(structures) == 2
 
-        output = subprocess.check_output([
-            self.executable,
-            structures[0].to_pdb(),
-            structures[1].to_pdb(),
-            "--ivalue", alignment.to_fasta()
-        ])
+        output = subprocess.check_output(
+            [
+                self.executable,
+                structures[0].to_pdb(),
+                structures[1].to_pdb(),
+                "--ivalue",
+                alignment.to_fasta(),
+            ]
+        )
 
         return self._parse(output)
 
@@ -182,13 +179,13 @@ class MMLignerWrapper(CommandLineWrapper):
 
         for i in range(len(path)):
             pdb = []
-            with open(path[i], 'r') as infile:
-                assert infile.mode == 'r'
+            with open(path[i], "r") as infile:
+                assert infile.mode == "r"
 
                 pdb = infile.readlines()
                 for j in range(1, len(pdb)):
                     if pdb[j].startswith("TER"):
-                        pdb[j] = pdb[j].split()[0] + '    ' + pdb[j-1].split()[1] + '\n'
+                        pdb[j] = pdb[j].split()[0] + "    " + pdb[j - 1].split()[1] + "\n"
 
             self._write_pdb(path[i], pdb)
 
@@ -210,8 +207,8 @@ class MMLignerWrapper(CommandLineWrapper):
         -------
         none
         """
-        with open(path, 'w') as outfile:
-            assert outfile.mode == 'w'
+        with open(path, "w") as outfile:
+            assert outfile.mode == "w"
 
             for line in pdb:
                 outfile.write(line)
