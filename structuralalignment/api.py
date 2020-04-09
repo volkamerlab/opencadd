@@ -5,7 +5,7 @@ from .superposition.matchmaker import MatchMakerAligner
 METHODS = {"theseus": TheseusAligner, "mmligner": MMLignerAligner, "matchmaker": MatchMakerAligner}
 
 
-def align(*structures, method=TheseusAligner, **kwargs):
+def align(structures, method=TheseusAligner, **kwargs):
     """
     Main entry point for our project
 
@@ -25,8 +25,10 @@ def align(*structures, method=TheseusAligner, **kwargs):
         metadata
     """
     aligner = method(**kwargs)
-    result = aligner.align(*structures)
-    assert (
-        len(result) == len(structures) - 1
-    ), "Number of superpositions does not match number of structures"
-    return result
+    reference, *mobiles = structures
+    results = []
+    for mobile in mobiles:
+        result = aligner.calculate([reference, mobile])
+        results.append(result)
+
+    return results

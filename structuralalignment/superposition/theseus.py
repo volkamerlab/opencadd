@@ -27,11 +27,15 @@ References
 
 import subprocess
 from pathlib import Path
+import logging
 
 import atomium
 
 from structuralalignment.superposition.base import BaseAligner
 from structuralalignment.utils import enter_temp_directory
+
+
+logger = logging.getLogger(__name__)
 
 
 class TheseusAligner(BaseAligner):
@@ -134,7 +138,7 @@ class TheseusAligner(BaseAligner):
         """
 
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            print("DEBUG: Running in", tmpdir, " -- TODO: DELETE BEFORE MERGE --")
+            logger.info("DEBUG: Running in %s -- TODO: DELETE BEFORE MERGE --", tmpdir)
 
             pdbs_filename = self._create_pdb(structures)
 
@@ -142,16 +146,18 @@ class TheseusAligner(BaseAligner):
                 superposition_output = self._run_theseus_identical(pdbs_filename)
             else:
                 superposition_output = self._run_theseus_different(pdbs_filename)
-                print(superposition_output)
-                print("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
-                print(*list(Path(tmpdir).glob("theseus_*")), sep="\n")
+                logger.info(superposition_output)
+                logger.info("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
+                logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
         return self._parse_superposition(superposition_output)
 
     def _run_theseus_identical(self, pdbs_filename):
         """
         Superpose identical sequences with Theseus
         """
-        output = subprocess.check_output(["theseus", *pdbs_filename], universal_newlines=True)
+        output = subprocess.check_output(
+            ["theseus", *pdbs_filename], stderr=subprocess.PIPE, universal_newlines=True
+        )
         return output
 
     def _run_alignment(self):
@@ -166,6 +172,7 @@ class TheseusAligner(BaseAligner):
                 self.alignment_file,
                 "-clwstrict",
             ],
+            stderr=subprocess.PIPE,
             universal_newlines=True,
         )
         return output
@@ -180,7 +187,7 @@ class TheseusAligner(BaseAligner):
         seq_alignment_output = self._run_alignment()
 
         self._parse_alignment(seq_alignment_output)
-        print(seq_alignment_output)
+        logger.info(seq_alignment_output)
 
         output = subprocess.check_output(
             ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename],
