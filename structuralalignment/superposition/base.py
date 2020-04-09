@@ -1,12 +1,3 @@
-class CommandLineWrapper:
-    def calculate(self, structures):
-        assert len(structures) == 2
-        return self._calculate(structures)
-
-    def _calculate(self, structures, **kwargs):
-        raise NotImplementedError("Reimplement in your subclass")
-
-
 class BaseAligner:
     def align(self, *args, **kwargs):
         print("Hey, it's working. I am supposed to do something useful via a subclass.")
@@ -30,3 +21,10 @@ class BaseAligner:
         rmsd_after = self.compute_rmsd(overlapped_1, overlapped_2)
         logger.log("RMSD before and after: %d, %d", rmsd_before, rmsd_after)
         return overlapped_1, overlapped_2, rmsd_after
+
+    def calculate(self, structures, **kwargs):
+        assert len(structures) == 2
+        return self._calculate(structures, **kwargs)
+
+    def _calculate(self, structures, **kwargs):
+        raise NotImplementedError("Reimplement in your subclass")

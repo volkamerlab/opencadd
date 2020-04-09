@@ -5,3 +5,4 @@ API Documentation
    :toctree: autosummary
 
    structuralalignment.core
+   structuralalignment.superposition.theseus

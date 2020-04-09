@@ -1,12 +1,3 @@
-import subprocess
-from pathlib import Path
-
-import atomium
-
-from structuralalignment.superposition.base import CommandLineWrapper
-from structuralalignment.utils import enter_temp_directory
-
-
 """
 Theseus superposes a set of macromolecular structures simultaneously
 using the method of maximum like-lihood (ML), rather than the
@@ -34,8 +25,16 @@ References
       would be configured with a keyword (e.g. `identical=True`).
 """
 
+import subprocess
+from pathlib import Path
 
-class Theseus(CommandLineWrapper):
+import atomium
+
+from structuralalignment.superposition.base import BaseAligner
+from structuralalignment.utils import enter_temp_directory
+
+
+class TheseusAligner(BaseAligner):
 
     """
     Superpose structures with different sequences but similar structures
@@ -107,14 +106,13 @@ class Theseus(CommandLineWrapper):
             for fname in pdbs_filename:
                 outfile.write(f"{fname} {fname}\n")
 
-    def _calculate(self, structures, identical: bool = True, **kwargs):
+    def _calculate(self, structures, identical: bool = False, **kwargs):
         """
         Align the sequences with an alignment tool (``muscle``)
 
         .. todo::
 
             Can we use a different alignment tool, preferrably in Python? E.g. biotite?
-
 
 
         A mode for superpositioning macromolecules with
@@ -128,7 +126,9 @@ class Theseus(CommandLineWrapper):
         ---------
         structures : list
             list of atomium objects
-
+        identical : bool, optional, default=False
+            Whether to use sequence alignment to obtain an optimum pairing for
+            different length sequences or not (recommended: assume sequences are different).
         **kwargs : dictionary
             optional parameter
         """
@@ -208,24 +208,14 @@ class Theseus(CommandLineWrapper):
         """
         for line in output.splitlines():
             if "Classical" in line:
-                rmsd = line.split()[5]
-        # TODO: return superposed atomium models?
-        return {"rmsd": rmsd, "metadata": {}}
+                rmsd = float(line.split()[5])
 
+        return {
+            "superposed": None,  # TODO: Add the superposed models here!
+            "scores": {"rmsd": rmsd},  # TODO: More scores from output?
+            "metadata": {},  # TODO: See what interesting extra info we have in the output
+        }
 
-if __name__ == "__main__":
-    import sys
-    import atomium
-
-    # pdb_ids = sys.argv[1:3]
-    pdb_ids = ["6HG4", "6HG9"]
-
-    models = [atomium.fetch(pdb_id).model for pdb_id in pdb_ids]
-
-    theseus = Theseus()
-
-    # theseus.calculate((models))
-    theseus._calculate(models, False)
 
 """
 TODO:
