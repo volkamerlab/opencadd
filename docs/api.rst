@@ -4,4 +4,6 @@ API Documentation
 .. autosummary::
    :toctree: autosummary
 
-   structuralalignment.canvas
+   structuralalignment.core
+   structuralalignment.superposition.mmligner
+   structuralalignment.superposition.theseus
