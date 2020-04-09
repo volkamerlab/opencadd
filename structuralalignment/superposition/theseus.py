@@ -183,7 +183,7 @@ class Theseus(CommandLineWrapper):
         print(seq_alignment_output)
 
         output = subprocess.check_output(
-            ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename,],
+            ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename],
             universal_newlines=True,
         )
         return output

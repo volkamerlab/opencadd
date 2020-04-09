@@ -1,23 +1,23 @@
 name: test
 channels:
   - conda-forge
-  - bioconda
   - defaults
+  - bioconda
 dependencies:
-    # Base depends
+  # Base depends
   - python
   - pip
   - atomium
-
-    # Theseus
+  # Chimera reimplementation
+  - biotite
+  - MDAnalysis
+  # mmligner
+  # theseus
   - muscle
-
-    # Testing
+  # Testing
   - pytest
   - pytest-cov
   - codecov
-
-    # Pip-only installs
-  #- pip:
-  #  - codecov
-
+  # docs
+  - sphinx
+  - sphinx_rtd_theme
