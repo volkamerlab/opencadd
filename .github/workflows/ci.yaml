@@ -36,6 +36,16 @@ jobs:
         if: startsWith(matrix.os, 'macOS')
         run: |
           sudo chown -R $(id -u):$(id -g) ${CONDA}
+      # TODO: Remove this step when theseus and mmligner are in conda-forge already
+      - name: Build recipes for theseus and mmligner
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          conda activate
+          conda install --yes conda-build
+          conda build --python=${{ matrix.python-version }} -c conda-forge -c bioconda devtool/conda-recipes/mmligner/
+          conda build --python=${{ matrix.python-version }} -c conda-forge -c bioconda devtool/conda-recipes/theseus/
+
       - name: Create environment for package
         shell: bash
         run: |
