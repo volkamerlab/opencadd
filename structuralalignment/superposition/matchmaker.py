@@ -1,3 +1,7 @@
+"""
+Aligner based on UCSF Chimera's MatchMaker algorithms.
+"""
+
 import uuid
 
 import MDAnalysis as mda
@@ -61,7 +65,7 @@ class MatchMakerAligner(BaseAligner):
         alignment_matrix: str = "BLOSUM62",
         alignment_gap: int = -10,
         strict_superposition: bool = False,
-        superposition_selection="protein and name CA",
+        superposition_selection="name CA",
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
@@ -74,11 +78,10 @@ class MatchMakerAligner(BaseAligner):
         else:
             raise ValueError("`alignment_strategy` must be one of `global, local`.")
 
-        self.alignment_matrix = alignment_matrix
-        if self.alignment_matrix not in align.SubstitutionMatrix.list_db():
-            raise ValueError(f"Substitution Matrix '{self.alignment_matrix }' could not be found.")
+        if alignment_matrix not in align.SubstitutionMatrix.list_db():
+            raise ValueError(f"Substitution Matrix '{alignment_matrix }' could not be found.")
         else:
-            self.alignment_matrix = matrices
+            self.alignment_matrix = alignment_matrix
 
         self.alignment_gap = alignment_gap
         self.strict_superposition = strict_superposition
@@ -119,8 +122,9 @@ class MatchMakerAligner(BaseAligner):
         # grab only rows where sequences are aligned
         trace = trace[~(trace == -1).any(axis=1)]
 
-        aligned_residues_ref = ref_universe.residues[trace[:, 0]]
-        aligned_residues_mob = mob_universe.residues[trace[:, 1]]
+        # FIXME!!!! We need to deal with the whole structure!
+        aligned_residues_ref = ref_universe.residues[trace[:100, 0]]
+        aligned_residues_mob = mob_universe.residues[trace[:100, 1]]
 
         # FIXME: Does MDA move the structure as part of the RMSD calculation?
         old_rmsd, new_rmsd = mda_align.alignto(
@@ -131,7 +135,11 @@ class MatchMakerAligner(BaseAligner):
             weights=self.superposition_weights,
             tol_mass=self.superposition_delta_mass_tolerance,
         )
-        return {"rmsd": new_rmsd}
+        return {
+            "superposed": None,  # TODO: superposed atomium model(s) go here
+            "scores": {"rmsd": new_rmsd},
+            "metadata": {},
+        }
 
     @staticmethod
     def _retrieve_sequence(atomium_model):

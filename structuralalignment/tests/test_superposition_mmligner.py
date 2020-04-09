@@ -24,3 +24,20 @@ def test_mmligner_alignment():
     # Check RMSD value for these PDBs
     # TODO: Check behaviour of this - make sure you can make it fail at some point
     assert pytest.approx(result["scores"]["rmsd"], 2.279)
+
+
+# @pytest.mark.parametrize("structure1, structure2, structure3", ["ARN", "DBC", "EQZGHILKM"])
+# def test_calculate_invalid_inputs(structure1, structure2, structure3):
+#     mmligner = MMLignerAligner()
+
+#     with pytest.raises(TypeError):
+#         mmligner.calculate([[structure1], [None]])
+
+#     with pytest.raises(TypeError):
+#         mmligner.calculate([None, structure2])
+
+#     with pytest.raises(TypeError):
+#         mmligner.calculate([structure1])
+
+#     with pytest.raises(TypeError):
+#         mmligner.calculate([structure1, structure2, structure3])
