@@ -1,6 +1,9 @@
 """
 Base class for all the superposition engines.
 """
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class BaseAligner:
@@ -21,7 +24,7 @@ class BaseAligner:
             self.structures[0], self.structures[1], alignment
         )
         rmsd_after = self.compute_rmsd(overlapped_1, overlapped_2)
-        logger.log("RMSD before and after: %d, %d", rmsd_before, rmsd_after)
+        _logger.log("RMSD before and after: %d, %d", rmsd_before, rmsd_after)
         return overlapped_1, overlapped_2, rmsd_after
 
     def calculate(self, structures, **kwargs):

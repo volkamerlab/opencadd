@@ -11,7 +11,7 @@ from .api import align, METHODS
 from ._version import get_versions as _get_versions
 
 __version__ = _get_versions()["version"]
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def parse_cli(argv=None, greet=False):
@@ -85,7 +85,7 @@ def main():
     debug_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(level=debug_level, format="%(message)s")
 
-    logger.log(100, "%s", greeting().format(version=__version__))
+    _logger.log(100, "%s", greeting().format(version=__version__))
 
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
@@ -99,7 +99,7 @@ def main():
         result, *_empty = align(
             [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
         )
-        logger.log(
+        _logger.log(
             100,
             "RMSD for alignment between `%s` and `%s` is %.1fÅ",
             reference_id,
