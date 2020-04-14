@@ -1,6 +1,4 @@
 """
-CLI
-
 Command Line Interface for structuralalignment
 """
 import os

@@ -1,7 +1,5 @@
 """
- sequences.py
-
- Utilities for sequence alignment
+Utilities for sequence alignment
 """
 
 import biotite.sequence.align as align
@@ -102,12 +100,11 @@ def smith_waterman(seq1: str, seq2: str, matrix: str, gap: int) -> str:
 
 
 def get_alignment_fasta(fasta_file):
-
     """
     Get an alignment from a FastaFile instance.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     fasta_file: FastaFile
 
     Returns

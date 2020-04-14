@@ -1,3 +1,7 @@
+"""
+Useful utilities used across the library
+"""
+
 import os
 import shutil
 import tempfile

@@ -1,3 +1,8 @@
+"""
+Base class for all the superposition engines.
+"""
+
+
 class BaseAligner:
     def compute_sequence_alignment(self, algorithm, **kwargs):
         """

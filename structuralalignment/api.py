@@ -1,3 +1,7 @@
+"""
+Defines easy programmatic access for any entry point
+"""
+
 from .superposition.theseus import TheseusAligner
 from .superposition.mmligner import MMLignerAligner
 from .superposition.matchmaker import MatchMakerAligner
@@ -14,8 +18,7 @@ def align(structures, method=TheseusAligner, **kwargs):
     structures : list of atomium.Model objects
         First one will be the targer to which the rest are aligned
     method : callable
-        Usually a subclass of BaseAligner. This will be passed
-        **kwargs
+        Usually a subclass of BaseAligner. This will be passed ``**kwargs``
 
     Returns
     -------

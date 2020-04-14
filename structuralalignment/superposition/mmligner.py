@@ -62,14 +62,12 @@ class MMLignerAligner(BaseAligner):
         Returns
         -------
         dict
-            {
-                "rmsd": float
-                    RMSD Value of the alignment
-                "score": float
+            As returned by ``._parse(output)``.
+
+            - ``rmsd`` (float): RMSD Value of the alignment
+            - ``score`` (float)
                     ivalue of the alignment. The smaller the better
-                "metadata": ?
-            }
-            dictionary containing the rmsd value and the score of the superpoesed structures as well as the metadata. Parsed by self._parse(output).
+            - ``metadata`` (?)
 
         """
 
@@ -95,15 +93,12 @@ class MMLignerAligner(BaseAligner):
         Returns
         -------
         dict
-            {
-                "rmsd": float
-                    RMSD Value of the alignment
-                "score": float
+            As returned by ``._parse(output)``.
+
+            - ``rmsd`` (float): RMSD Value of the alignment
+            - ``score`` (float)
                     ivalue of the alignment. The smaller the better
-                "metadata": ?
-            }
-            dictionary containing the rmsd value and the score of the superposed
-            structures as well as the metadata
+            - ``metadata`` (?)
         """
 
         for line in output.splitlines():
@@ -134,23 +129,18 @@ class MMLignerAligner(BaseAligner):
         ----------
         structures: [array like, array like]
             sequences of two protein structures of same length
-
         alignment: array like
             alignment of the given two sequences
 
         Returns
         -------
         dict
-            {
-                "rmsd": float
-                    RMSD Value of the alignment
-                "score": float
+            As returned by ``._parse(output)``.
+
+            - ``rmsd`` (float): RMSD Value of the alignment
+            - ``score`` (float)
                     ivalue of the alignment. The smaller the better
-                "metadata": ?
-            }
-        dictionary containing the rmsd value and the score of the alignment
-        for the given two structures as well as the metadata by
-        calling self._parse(output)
+            - ``metadata`` (?)
         """
         assert len(structures) == 2
         with enter_temp_directory() as (cwd, tmpdir):
@@ -166,7 +156,7 @@ class MMLignerAligner(BaseAligner):
 
             return self._parse(output)
 
-    def _edit_pdb(self, structures, path=["./structure1.pdb", "./structure2.pdb"]):
+    def _edit_pdb(self, structures, path=("./structure1.pdb", "./structure2.pdb")):
         """
         function to write atomium protein models to pdb readable by mmligner
 
