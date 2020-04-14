@@ -35,7 +35,7 @@ from structuralalignment.superposition.base import BaseAligner
 from structuralalignment.utils import enter_temp_directory
 
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class TheseusAligner(BaseAligner):
@@ -149,7 +149,7 @@ class TheseusAligner(BaseAligner):
         """
 
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            logger.info("DEBUG: Running in %s -- TODO: DELETE BEFORE MERGE --", tmpdir)
+            _logger.info("DEBUG: Running in %s -- TODO: DELETE BEFORE MERGE --", tmpdir)
 
             pdbs_filename = self._create_pdb(structures)
 
@@ -157,9 +157,9 @@ class TheseusAligner(BaseAligner):
                 superposition_output = self._run_theseus_identical(pdbs_filename)
             else:
                 superposition_output = self._run_theseus_different(pdbs_filename)
-                logger.info(superposition_output)
-                logger.info("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
-                logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
+                _logger.info(superposition_output)
+                _logger.info("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
+                _logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
         return self._parse_superposition(superposition_output)
 
     def _run_theseus_identical(self, pdbs_filename):
@@ -198,7 +198,7 @@ class TheseusAligner(BaseAligner):
         seq_alignment_output = self._run_alignment()
 
         self._parse_alignment(seq_alignment_output)
-        logger.info(seq_alignment_output)
+        _logger.info(seq_alignment_output)
 
         output = subprocess.check_output(
             ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename],
