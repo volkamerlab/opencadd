@@ -21,15 +21,15 @@ References
 .. todo::
 
     - Add literature references to this docstring.
-    - Can we unify both classes in a single one? Mode of operation
-      would be configured with a keyword (e.g. `identical=True`).
+    - Maybe parse more information from output files
+    - Try different alignment tool (biotite)
+    - Improve documentation
+    - Delete debug code
 """
 
 import subprocess
 from pathlib import Path
 import logging
-
-import atomium
 
 from structuralalignment.superposition.base import BaseAligner
 from structuralalignment.utils import enter_temp_directory
@@ -110,6 +110,7 @@ class TheseusAligner(BaseAligner):
             for fname in pdbs_filename:
                 outfile.write(f"{fname} {fname}\n")
 
+    # pylint: disable=arguments-differ
     def _calculate(self, structures, identical: bool = False, **kwargs):
         """
         Align the sequences with an alignment tool (``muscle``)
@@ -126,15 +127,25 @@ class TheseusAligner(BaseAligner):
         forms of the same protein.
 
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         structures : list
             list of atomium objects
         identical : bool, optional, default=False
             Whether to use sequence alignment to obtain an optimum pairing for
             different length sequences or not (recommended: assume sequences are different).
-        **kwargs : dictionary
+        **kwargs : dict
             optional parameter
+
+        Returns
+        -------
+        dict
+            As returned by ``._parse_superposition(output)``.
+
+            - ``rmsd`` (float): RMSD Value of the alignment
+            - ``score`` (float)
+                    ivalue of the alignment. The smaller the better
+            - ``metadata`` (?)
         """
 
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
@@ -222,12 +233,3 @@ class TheseusAligner(BaseAligner):
             "scores": {"rmsd": rmsd},  # TODO: More scores from output?
             "metadata": {},  # TODO: See what interesting extra info we have in the output
         }
-
-
-"""
-TODO:
-- Maybe parse more information from output files
-- Try different alignment tool (biotite)
-- Improve documentation
-- Delete debug code
-"""

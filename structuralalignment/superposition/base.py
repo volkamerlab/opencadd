@@ -28,5 +28,5 @@ class BaseAligner:
         assert len(structures) == 2
         return self._calculate(structures, **kwargs)
 
-    def _calculate(self, structures, **kwargs):
+    def _calculate(self, structures, *args, **kwargs):
         raise NotImplementedError("Reimplement in your subclass")

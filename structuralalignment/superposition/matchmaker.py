@@ -9,7 +9,7 @@ from MDAnalysis.analysis import align as mda_align
 import biotite.sequence.align as align
 
 from .base import BaseAligner
-from ..sequences import needleman_wunsch, smith_waterman, matrices
+from ..sequences import needleman_wunsch, smith_waterman
 from ..utils import enter_temp_directory
 
 
@@ -89,6 +89,7 @@ class MatchMakerAligner(BaseAligner):
         self.superposition_weights = superposition_weights
         self.superposition_delta_mass_tolerance = superposition_delta_mass_tolerance
 
+    # pylint: disable=arguments-differ
     def _calculate(self, structures):
         """
 

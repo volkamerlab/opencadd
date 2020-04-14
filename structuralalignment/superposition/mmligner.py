@@ -25,8 +25,6 @@ Bell Syst.Tech. J., 27, 379–423.
 import sys
 import subprocess
 
-import atomium
-import biotite
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
@@ -48,6 +46,7 @@ class MMLignerAligner(BaseAligner):
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
 
+    # pylint: disable=arguments-differ
     def _calculate(self, structures, **kwargs):
         """
         Calculates the superposition of two protein structures.
