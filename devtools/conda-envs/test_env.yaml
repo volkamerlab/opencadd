@@ -13,6 +13,7 @@ dependencies:
   - biotite
   - MDAnalysis
   # mmligner
+  - mmligner
   # theseus
   - muscle
   - theseus
