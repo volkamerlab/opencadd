@@ -16,11 +16,13 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [macOS-latest, ubuntu-latest]
         python-version: [3.7, 3.8]
     env:
       CI_OS: ${{ matrix.os }}
+      PYVER: ${{ matrix.python-version }}
       PACKAGE: "structuralalignment"
 
     steps:
@@ -36,13 +38,24 @@ jobs:
         if: startsWith(matrix.os, 'macOS')
         run: |
           sudo chown -R $(id -u):$(id -g) ${CONDA}
+
+      # TODO: Remove this step when theseus and mmligner are in conda-forge already
+      - name: Build recipes for theseus and mmligner
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          conda activate
+          conda install --yes conda-build
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/mmligner/
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/theseus/
+
       - name: Create environment for package
         shell: bash
         run: |
           . devtools/scripts/initialize_conda.sh
           conda activate
           conda info --all
-          python devtools/scripts/create_conda_env.py -n=test -p=${{ matrix.python-version }} devtools/conda-envs/test_env.yaml
+          python devtools/scripts/create_conda_env.py -n=test -p=$PYVER devtools/conda-envs/test_env.yaml
       - name: Install package
         shell: bash
         run: |
@@ -74,6 +87,16 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v2
+
+      # TODO: Remove this step when theseus and mmligner are in conda-forge already
+      - name: Build recipes for theseus and mmligner
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          conda activate
+          conda install --yes conda-build
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/mmligner/
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/theseus/
 
       - name: Install linter and formatter
         shell: bash
@@ -107,6 +130,16 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v2
+
+      # TODO: Remove this step when theseus and mmligner are in conda-forge already
+      - name: Build recipes for theseus and mmligner
+        shell: bash
+        run: |
+          . devtools/scripts/initialize_conda.sh
+          conda activate
+          conda install --yes conda-build
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/mmligner/
+          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/theseus/
 
       - name: Create environment
         shell: bash

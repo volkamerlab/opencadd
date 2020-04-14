@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
   - bioconda
+  - local
 dependencies:
   # Base depends
   - python
@@ -12,8 +13,10 @@ dependencies:
   - biotite
   - MDAnalysis
   # mmligner
+  - mmligner
   # theseus
   - muscle
+  - theseus
   # Testing
   - pytest
   - pytest-cov
