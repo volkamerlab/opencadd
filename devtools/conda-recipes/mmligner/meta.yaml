@@ -10,24 +10,29 @@ source:
   sha256: 0208e8fd1eb0492a13d1bfcba53a7a97f96023f18e3982e334962f0ce1c69f07
   patches:
     - add_cli_h_flag.patch
+    - makefile.patch
 
 build:
   number: 0
   script: make && mkdir -p ${PREFIX}/bin && cp bin/mmligner ${PREFIX}/bin/mmligner  # [unix]
-  # script: make && mkdir -p ${PREFIX}/bin && cp bin/mmligner ${PREFIX}/bin/mmligner  # [win]
+  skip: True  # [win]
+  # script: jom && mkdir "%SCRIPTS%" && copy "bin\mmligner.exe" "%SCRIPTS%\mmligner.exe"  # [win]
 
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - make
+    - make  # [unix]
+    - jom  # [win]
+    - git  # [win]
 
 test:
   commands:
-    - mmligner -h
+    - mmligner -h  # [unix]
+    - mmligner.exe -h  # [win]
 
 about:
   home: http://lcb.infotech.monash.edu.au/mmligner/
-  license: GPL-3.0
+  license: GPL-3.0-only
   license_file: LICENSE.txt
   summary: 'Tool for statistical inference of protein stuctural alignment'
 
