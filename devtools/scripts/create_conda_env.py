@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+import sys
 import glob
 import shutil
 import subprocess as sp
@@ -92,4 +93,5 @@ with temp_cd():
     temp_file_name = "temp_script.yaml"
     with open(temp_file_name, 'w') as f:
         f.write(yaml.dump(yaml_script))
-    sp.call("{} env create -n {} -f {}".format(conda_path, args.name, temp_file_name), shell=True)
+    retcode = sp.call("{} env create -n {} -f {}".format(conda_path, args.name, temp_file_name), shell=True)
+sys.exit(retcode)
