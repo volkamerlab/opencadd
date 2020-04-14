@@ -10,15 +10,20 @@ import logging
 import atomium
 
 from .api import align, METHODS
+from ._version import get_versions as _get_versions
+
+__version__ = _get_versions()["version"]
+logger = logging.getLogger(__name__)
 
 
-def parse_cli():
-    p = argparse.ArgumentParser()
+def parse_cli(argv=None, greet=False):
+    p = argparse.ArgumentParser(argv)
     p.add_argument(
         "structures",
         nargs="+",
         help="PDB IDs or paths to structure files to be aligned. At least two are needed. First one will be considered the target.",
     )
+    p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     p.add_argument(
         "-v",
         "--verbose",
@@ -57,7 +62,7 @@ def parse_method_options(string):
 
 def greeting():
     return (
-        """
+        r"""
    _____ _                   _                   _
   / ____| |                 | |                 | |
  | (___ | |_ _ __ _   _  ___| |_ _   _ _ __ __ _| |
@@ -80,11 +85,10 @@ def greeting():
 def main():
     args = parse_cli()
     debug_level = logging.INFO if args.verbose else logging.WARNING
-    logging.basicConfig(level=debug_level)
+    logging.basicConfig(level=debug_level, format="%(message)s")
 
-    from ._version import get_versions
+    logger.log(100, "%s", greeting().format(version=__version__))
 
-    print(greeting().format(version=get_versions()["version"]))
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
 
@@ -97,6 +101,10 @@ def main():
         result, *_empty = align(
             [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
         )
-        print(
-            f"RMSD for alignment between `{reference_id}` and `{mobile_id}` is {result['scores']['rmsd']}Å"
+        logger.log(
+            100,
+            "RMSD for alignment between `%s` and `%s` is %.1fÅ",
+            reference_id,
+            mobile_id,
+            result["scores"]["rmsd"],
         )

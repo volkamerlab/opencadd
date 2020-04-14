@@ -2,14 +2,11 @@
  sequences.py
 
  Utilities for sequence alignment
- """
+"""
 
-import biotite
 import biotite.sequence.align as align
 import biotite.sequence as seq
 import biotite.sequence.io.fasta as fasta
-
-import warnings
 
 
 def matrices(name: str) -> align.SubstitutionMatrix:
@@ -33,7 +30,7 @@ def matrices(name: str) -> align.SubstitutionMatrix:
         in an m-length alphabet 1 and an n-length alphabet 2
 
     """
-    if name is "BLOSUM62":
+    if name == "BLOSUM62":
         matrix = align.SubstitutionMatrix.std_protein_matrix()
     else:
         alph = seq.ProteinSequence.alphabet
@@ -98,11 +95,7 @@ def smith_waterman(seq1: str, seq2: str, matrix: str, gap: int) -> str:
     """
     matrix = matrices(matrix)
     alignment = align.align_optimal(
-        seq.ProteinSequence(seq1),
-        seq.ProteinSequence(seq2),
-        matrix,
-        local=True,
-        gap_penalty=gap,
+        seq.ProteinSequence(seq1), seq.ProteinSequence(seq2), matrix, local=True, gap_penalty=gap,
     )
 
     return alignment[0]
