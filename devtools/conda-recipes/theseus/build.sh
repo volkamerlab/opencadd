@@ -10,9 +10,9 @@ INSTALLDIR = ${PREFIX}/bin
 RANLIB = ${RANLIB}
 EOF
 
-# ARCH defaults to "6"4 (bit) in conda-build, this should be AR!
-sed -i -e 's/\$(ARCH)/$(AR)/g' \
-       -e 's/\$(ARCHFLAGS)/rvs/g' \
-       Makefile lib*/Makefile
+# ARCH defaults to "64" (bit) in conda-build, this should be AR!
+sed -i.bak -e 's/\$(ARCH)/$(AR)/g' \
+           -e 's/\$(ARCHFLAGS)/rvs/g' \
+           Makefile lib*/Makefile
 
 make && make install
