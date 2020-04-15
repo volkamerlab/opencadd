@@ -25,6 +25,7 @@ Bell Syst.Tech. J., 27, 379–423.
 import sys
 import subprocess
 
+import atomium
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
@@ -103,9 +104,8 @@ class MMLignerAligner(BaseAligner):
         for line in output.splitlines():
             if line.startswith(b"RMSD"):
                 rmsd = float(line.split()[2])
-            # coverage may still be relevant?
-            # elif line.startswith(b"Coverage"):
-            #   coverage = float(line.split()[2])
+            elif line.startswith(b"Coverage"):
+                coverage = float(line.split()[2])
 
             elif line.startswith(b"I(A & <S,T>)"):
                 ivalue = float(line.split()[4])
@@ -113,8 +113,8 @@ class MMLignerAligner(BaseAligner):
         alignment = fasta.FastaFile()
 
         return {
-            "superposed": None,
-            "scores": {"rmsd": rmsd, "score": ivalue},
+            "superposed": atomium.data.File("p_superposed__1.pdb").model,
+            "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
             "metadata": {
                 "alignment": alignment.read("temp__1.afasta")
             },  # TODO: AV asked for the coverage!
@@ -141,19 +141,16 @@ class MMLignerAligner(BaseAligner):
                     ivalue of the alignment. The smaller the better
             - ``metadata`` (?)
         """
-        assert len(structures) == 2
-        with enter_temp_directory() as (cwd, tmpdir):
-            output = subprocess.check_output(
-                [
-                    self.executable,
-                    structures[0].to_pdb(),
-                    structures[1].to_pdb(),
-                    "--ivalue",
-                    alignment.to_fasta(),
-                ]
-            )
 
-            return self._parse(output)
+        with enter_temp_directory() as (cwd, tmpdir):
+            path1, path2 = self._edit_pdb(structures)
+            output = subprocess.check_output(
+                [self.executable, path1, path2, "--ivalue", alignment.to_fasta()]
+            )
+            # We need access to the temporary files at parse time!
+            result = self._parse(output)
+
+        return result
 
     def _edit_pdb(self, structures, path=("./structure1.pdb", "./structure2.pdb")):
         """
