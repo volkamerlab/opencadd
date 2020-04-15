@@ -229,7 +229,7 @@ class TheseusAligner(BaseAligner):
                 rmsd = float(line.split()[5])
 
         return {
-            "superposed": None,  # TODO: Add the superposed models here!
+            "superposed": None,  # TODO: Add the superposed models here!!
             "scores": {"rmsd": rmsd},  # TODO: More scores from output?
             "metadata": {},  # TODO: See what interesting extra info we have in the output
         }
