@@ -113,7 +113,7 @@ class MMLignerAligner(BaseAligner):
         alignment = fasta.FastaFile()
 
         return {
-            "superposed": atomium.data.File("p_superposed__1.pdb").model,
+            "superposed": atomium.open("p_superposed__1.pdb").model,
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
             "metadata": {
                 "alignment": alignment.read("temp__1.afasta")
