@@ -64,7 +64,7 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``superposed`` ([atomium.model, atomium.model]): superposed structures
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
@@ -97,7 +97,7 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``superposed`` ([atomium.model, atomium.model]): superposed structures
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
@@ -118,7 +118,7 @@ class MMLignerAligner(BaseAligner):
         alignment = fasta.FastaFile()
 
         return {
-            "superposed": atomium.open("p_superposed__1.pdb").model,
+            "superposed": [atomium.open("structure1.pdb").model, atomium.open("p_superposed__1.pdb").model],
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
             "metadata": {
                 "alignment": alignment.read("temp__1.afasta")
@@ -141,7 +141,7 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``superposed`` ([atomium.model, atomium.model]): superposed structures
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
