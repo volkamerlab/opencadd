@@ -64,11 +64,13 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
-
+            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+            - ``metadata`` (dict):
+                - ``alignment``: (biotite.alignment): computed alignment
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
@@ -95,10 +97,13 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
+            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+            - ``metadata`` (dict):
+                - ``alignment``: (biotite.alignment): computed alignment
         """
 
         for line in output.splitlines():
@@ -117,7 +122,7 @@ class MMLignerAligner(BaseAligner):
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
             "metadata": {
                 "alignment": alignment.read("temp__1.afasta")
-            },  # TODO: AV asked for the coverage!
+            },
         }
 
     def ivalue(self, structures, alignment):
@@ -136,10 +141,13 @@ class MMLignerAligner(BaseAligner):
         dict
             As returned by ``._parse(output)``.
 
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
+            - ``superposed`` (atomium.model): superposed structure of the second structure
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+            - ``metadata`` (dict):
+                - ``alignment``: (biotite.alignment): computed alignment
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
