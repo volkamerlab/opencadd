@@ -169,9 +169,10 @@ class TheseusAligner(BaseAligner):
                 _logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
             superposed_pdb_models = self._get_superposed_models(pdbs_filename)
             transformation_matrix = self._get_transformation_matrix()
-        return self._parse_superposition(
-            superposition_output, superposed_pdb_models, transformation_matrix
-        )
+        results = self._parse_superposition(superposition_output)
+        results["superposed"] = superposed_pdb_models
+        results["metadata"]["transformation"] = transformation_matrix
+        return results
 
     def _run_theseus_identical(self, pdbs_filename):
         """
@@ -231,6 +232,13 @@ class TheseusAligner(BaseAligner):
         return output
 
     def _get_superposed_models(self, pdbs_filename):
+        """
+        .. todo:
+
+            Get the coordinates of superposed_pdb_models and add them to the original
+            Atomium Models or maybe a copy of those.
+
+        """
         superposed_pdb_filename = []
         for pdb in pdbs_filename:
             superposed_pdb_filename.append(f"theseus_{pdb}")
@@ -283,7 +291,7 @@ class TheseusAligner(BaseAligner):
         """
         return output
 
-    def _parse_superposition(self, output, superposed_pdb_models, transformation_matrix):
+    def _parse_superposition(self, output):
         """
         Parse the output from theseus itself
 
@@ -291,56 +299,56 @@ class TheseusAligner(BaseAligner):
         ----------
         output : bytes
         """
+        print(output)
         for line in output.splitlines():
+            blocks = line.split()
             if "Classical LS pairwise <RMSD>" in line:
-                rmsd = float(line.split()[5])
+                rmsd = float(blocks[5])
             elif "Least-squares <sigma>" in line:
-                least_squares = float(line.split()[3])
+                least_squares = float(blocks[3])
             elif "Maximum Likelihood <sigma>" in line:
-                maximum_likelihood = float(line.split()[4])
+                maximum_likelihood = float(blocks[4])
             elif "Marginal Log Likelihood" in line:
-                log_marginal_likelihood = float(line.split()[4])
+                log_marginal_likelihood = float(blocks[4])
             elif "AIC" in line:
-                aic = float(line.split()[2])
+                aic = float(blocks[2])
             elif "BIC" in line:
-                bic = float(line.split()[2])
+                bic = float(blocks[2])
             elif "Omnibus chi^2" in line:
-                omnibus_chi_square = float(line.split()[3])
+                omnibus_chi_square = float(blocks[3])
             elif "Hierarchical var" in line:
-                hierarchical_var_chi_square = float(line.split()[6])
+                hierarchical_var_chi_square = float(blocks[6])
             elif "Rotational, translational, covar" in line:
-                rotational_translational_covar_chi_square = float(line.split()[5])
+                rotational_translational_covar_chi_square = float(blocks[5])
             elif "Hierarchical minimum var" in line:
                 # TODO: check for 1.13e-02 value
-                hierarchical_minimum_var_sigma = float(line.split()[5])
+                hierarchical_minimum_var = float(blocks[5])
+                hierarchical_minimum_sigma = float(blocks[-1][1:-1])
             elif "skewness Z-value" in line:
-                skewness_z = float(line.split()[3])
+                skewness_z = float(blocks[3])
             elif "skewness" in line:
-                skewness = float(line.split()[2])
+                skewness = float(blocks[2])
             elif "kurtosis Z-value" in line:
-                kurtosis_z = float(line.split()[3])
+                kurtosis_z = float(blocks[3])
             elif "kurtosis" in line:
-                kurtosis = float(line.split()[2])
+                kurtosis = float(blocks[2])
             elif "Data pts" in line:
                 fields = line.split(",")
                 data_pts = float(fields[0].split()[-1])
                 free_params = float(fields[1].split()[-1])
                 d_p = float(fields[2].split()[-1])
             elif "Median" in line:
-                median_structure = float(line.split()[4][1:])
+                median_structure = float(blocks[4][1:])
             elif "N(total)" in line:
                 fields = line.split(",")
                 n_total = float(fields[0].split()[-1])
                 n_atoms = float(fields[1].split()[-1])
                 n_structures = float(fields[2].split()[-1])
             elif "Total rounds" in line:
-                total_rounds = float(line.split()[3])
+                total_rounds = float(blocks[3])
         return {
-            "superposed": superposed_pdb_models,  # TODO is this correct or should the models be in {}?
             "scores": {"rmsd": rmsd},
             "metadata": {
-                "transformation": transformation_matrix,
-                "rmsd": rmsd,
                 "least_squares": least_squares,
                 "maximum_likelihood": maximum_likelihood,
                 "log_marginal_likelihood": log_marginal_likelihood,
@@ -349,7 +357,8 @@ class TheseusAligner(BaseAligner):
                 "omnibus_chi_square": omnibus_chi_square,
                 "hierarchical_var_chi_square": hierarchical_var_chi_square,
                 "rotational_translational_covar_chi_square": rotational_translational_covar_chi_square,
-                "hierarchical_minimum_var_sigma": hierarchical_minimum_var_sigma,
+                "hierarchical_minimum_var": hierarchical_minimum_var,
+                "hierarchical_minimum_sigma": hierarchical_minimum_sigma,
                 "skewness": skewness,
                 "skewness_z": skewness_z,
                 "kurtosis": kurtosis,
