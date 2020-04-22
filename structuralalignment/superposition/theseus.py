@@ -32,8 +32,11 @@ from pathlib import Path
 import logging
 import atomium
 
+import numpy as np
+
 from structuralalignment.superposition.base import BaseAligner
-#from ..sequences import get_alignment_fasta
+
+# from ..sequences import get_alignment_fasta
 import biotite.sequence.io.fasta as fasta
 from structuralalignment.utils import enter_temp_directory
 
@@ -166,7 +169,9 @@ class TheseusAligner(BaseAligner):
                 _logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
             superposed_pdb_models = self._get_superposed_models(pdbs_filename)
             transformation_matrix = self._get_transformation_matrix()
-        return self._parse_superposition(superposition_output, superposed_pdb_models, transformation_matrix)
+        return self._parse_superposition(
+            superposition_output, superposed_pdb_models, transformation_matrix
+        )
 
     def _run_theseus_identical(self, pdbs_filename):
         """
@@ -201,8 +206,8 @@ class TheseusAligner(BaseAligner):
     def _run_alignment_biotite(self):
         # TODO: seq_strings = list(fasta_file.values()) // AttributeError: 'str' object has no attribute 'values'
         fasta_file = fasta.FastaFile()
-        read_fasta = fasta_file.read(self.fastafile)
-        alignment = fasta.get_alignment(read_fasta, additional_gap_chars = ('-',))
+        fasta_file.read(self.fastafile)
+        alignment = fasta.get_alignment(fasta_file, additional_gap_chars=("-",))
         with open(self.alignment_file_biotite, "w") as outfile:
             outfile.write(alignment)
         return alignment
@@ -241,19 +246,32 @@ class TheseusAligner(BaseAligner):
                 lines = infile.readlines()
             with open(pdb, "w") as outfile:
                 for line in lines:
-                    if not line.startswith('REMARK') or line.startswith('NUMMDL'):
+                    if not line.startswith("REMARK") or line.startswith("NUMMDL"):
                         outfile.write(line)
 
     def _get_transformation_matrix(self):
-        matrix = {}
+        translations, rotations = {}, {}
         with open("theseus_transf.txt", "r") as infile:
             lines = infile.readlines()
             for line in lines:
-                if "R:" in line:
-                    model = line.split(":")[0]
-                    matrices = line.split(":")[1]
-                    matrix[model] = matrices
-        return matrix
+                if " R:" in line:  # rotation matrix
+                    model, matrix = line.split(":")
+                    model_id = int(model.split()[1])
+                    matrix_array = np.reshape(list(map(float, matrix.split())), (-1, 3))
+                    rotations[model_id] = matrix_array
+                elif " t:" in line:  # translation vector
+                    model, vector = line.split(":")
+                    model_id = int(model.split()[1])
+                    vector_array = np.array([[float(x)] for x in vector.split()])
+                    translations[model_id] = vector_array
+        matrices = {}
+        for model_id, rotation in rotations.items():
+            translation = translations[model_id]
+            matrix = np.empty((3, 4))
+            matrix[:, :3] = rotation
+            matrix[:, 3:] = translation
+            matrices[model_id] = matrix
+        return matrices
 
     def _parse_alignment(self, output):
         """
@@ -274,51 +292,78 @@ class TheseusAligner(BaseAligner):
         output : bytes
         """
         for line in output.splitlines():
-            if "Classical" in line:
+            if "Classical LS pairwise <RMSD>" in line:
                 rmsd = float(line.split()[5])
-            if "Least-squares" in line:
+            elif "Least-squares <sigma>" in line:
                 least_squares = float(line.split()[3])
-            if "Maximum" in line:
+            elif "Maximum Likelihood <sigma>" in line:
                 maximum_likelihood = float(line.split()[4])
-            if "Marginal" in line:
+            elif "Marginal Log Likelihood" in line:
                 log_marginal_likelihood = float(line.split()[4])
-            if "AIC" in line:
+            elif "AIC" in line:
                 aic = float(line.split()[2])
-            if "BIC" in line:
+            elif "BIC" in line:
                 bic = float(line.split()[2])
-            if "Omnibus" in line:
+            elif "Omnibus chi^2" in line:
                 omnibus_chi_square = float(line.split()[3])
-            if "Hierarchical var" in line:
-                hierarchical_var_chi_square = float(line.split()[5])
-            if "Rotational" in line:
+            elif "Hierarchical var" in line:
+                hierarchical_var_chi_square = float(line.split()[6])
+            elif "Rotational, translational, covar" in line:
                 rotational_translational_covar_chi_square = float(line.split()[5])
-            if "Hierarchical minimum" in line:
-                hierarchical_minimum_var_sigma = float(line.split()[5]) # TODO: check for 1.13e-02 value
-            if "skewness" in line:
-                skewness = float(line.split()[2])
-            if "skewness Z-value" in line:
+            elif "Hierarchical minimum var" in line:
+                # TODO: check for 1.13e-02 value
+                hierarchical_minimum_var_sigma = float(line.split()[5])
+            elif "skewness Z-value" in line:
                 skewness_z = float(line.split()[3])
-            if "kurtosis" in line:
-                kurtosis = float(line.split()[2])
-            if "kurtosis Z-value" in line:
+            elif "skewness" in line:
+                skewness = float(line.split()[2])
+            elif "kurtosis Z-value" in line:
                 kurtosis_z = float(line.split()[3])
-            if "data pts" in line:
-                data_pts = float(line.split()[4])
-                free_params = float(line.split()[8])
-                d_p = float(line.split()[11])
-            if "Median" in line:
-                median_structure = float(line.split()[4])
-            if "N(total)" in line:
-                n_total = float(line.split()[3])
-                n_atoms = float(line.split()[6])
-                n_structures = float(line.split()[9])
-            if "Total rounds" in line:
+            elif "kurtosis" in line:
+                kurtosis = float(line.split()[2])
+            elif "Data pts" in line:
+                fields = line.split(",")
+                data_pts = float(fields[0].split()[-1])
+                free_params = float(fields[1].split()[-1])
+                d_p = float(fields[2].split()[-1])
+            elif "Median" in line:
+                median_structure = float(line.split()[4][1:])
+            elif "N(total)" in line:
+                fields = line.split(",")
+                n_total = float(fields[0].split()[-1])
+                n_atoms = float(fields[1].split()[-1])
+                n_structures = float(fields[2].split()[-1])
+            elif "Total rounds" in line:
                 total_rounds = float(line.split()[3])
         return {
-            "superposed": superposed_pdb_models, #TODO is this correct or should the models be in {}?
+            "superposed": superposed_pdb_models,  # TODO is this correct or should the models be in {}?
             "scores": {"rmsd": rmsd},
-            "metadata": {"transformation": transformation_matrix},  # TODO: add info from top
-            #TODO:add residues
+            "metadata": {
+                "transformation": transformation_matrix,
+                "rmsd": rmsd,
+                "least_squares": least_squares,
+                "maximum_likelihood": maximum_likelihood,
+                "log_marginal_likelihood": log_marginal_likelihood,
+                "aic": aic,
+                "bic": bic,
+                "omnibus_chi_square": omnibus_chi_square,
+                "hierarchical_var_chi_square": hierarchical_var_chi_square,
+                "rotational_translational_covar_chi_square": rotational_translational_covar_chi_square,
+                "hierarchical_minimum_var_sigma": hierarchical_minimum_var_sigma,
+                "skewness": skewness,
+                "skewness_z": skewness_z,
+                "kurtosis": kurtosis,
+                "kurtosis_z": kurtosis_z,
+                "data_pts": data_pts,
+                "free_params": free_params,
+                "d_p": d_p,
+                "median_structure": median_structure,
+                "n_total": n_total,
+                "n_atoms": n_atoms,
+                "n_structures": n_structures,
+                "total_rounds": total_rounds,
+            },  # TODO: add info from top
+            # TODO:add residues
         }
 
 
