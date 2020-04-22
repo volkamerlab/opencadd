@@ -30,8 +30,11 @@ References
 import subprocess
 from pathlib import Path
 import logging
+import atomium
 
 from structuralalignment.superposition.base import BaseAligner
+#from ..sequences import get_alignment_fasta
+import biotite.sequence.io.fasta as fasta
 from structuralalignment.utils import enter_temp_directory
 
 
@@ -65,6 +68,7 @@ class TheseusAligner(BaseAligner):
         self.fastafile = "theseus.fasta"
         self.filemap_file = "theseus.filemap"
         self.alignment_file = "theseus.aln"
+        self.alignment_file_biotite = "theseus_biotite.aln"
         self.alignment_app = "muscle"
 
     def _create_pdb(self, structures):
@@ -160,7 +164,9 @@ class TheseusAligner(BaseAligner):
                 _logger.info(superposition_output)
                 _logger.info("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
                 _logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
-        return self._parse_superposition(superposition_output)
+            superposed_pdb_models = self._get_superposed_models(pdbs_filename)
+            transformation_matrix = self._get_transformation_matrix()
+        return self._parse_superposition(superposition_output, superposed_pdb_models, transformation_matrix)
 
     def _run_theseus_identical(self, pdbs_filename):
         """
@@ -182,11 +188,24 @@ class TheseusAligner(BaseAligner):
                 "-out",
                 self.alignment_file,
                 "-clwstrict",
+                "-verbose",
+                "-log",
+                "muscle.log",
             ],
             stderr=subprocess.PIPE,
             universal_newlines=True,
         )
+        _logger.info(output)
         return output
+
+    def _run_alignment_biotite(self):
+        # TODO: seq_strings = list(fasta_file.values()) // AttributeError: 'str' object has no attribute 'values'
+        fasta_file = fasta.FastaFile()
+        read_fasta = fasta_file.read(self.fastafile)
+        alignment = fasta.get_alignment(read_fasta, additional_gap_chars = ('-',))
+        with open(self.alignment_file_biotite, "w") as outfile:
+            outfile.write(alignment)
+        return alignment
 
     def _run_theseus_different(self, pdbs_filename):
         """
@@ -206,6 +225,36 @@ class TheseusAligner(BaseAligner):
         )
         return output
 
+    def _get_superposed_models(self, pdbs_filename):
+        superposed_pdb_filename = []
+        for pdb in pdbs_filename:
+            superposed_pdb_filename.append(f"theseus_{pdb}")
+
+        self._strip_remark_lines(superposed_pdb_filename)
+
+        superposed_pdb_models = [atomium.open(pdb_id).model for pdb_id in superposed_pdb_filename]
+        return superposed_pdb_models
+
+    def _strip_remark_lines(self, pdb_filenames):
+        for pdb in pdb_filenames:
+            with open(pdb, "r") as infile:
+                lines = infile.readlines()
+            with open(pdb, "w") as outfile:
+                for line in lines:
+                    if not line.startswith('REMARK') or line.startswith('NUMMDL'):
+                        outfile.write(line)
+
+    def _get_transformation_matrix(self):
+        matrix = {}
+        with open("theseus_transf.txt", "r") as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if "R:" in line:
+                    model = line.split(":")[0]
+                    matrices = line.split(":")[1]
+                    matrix[model] = matrices
+        return matrix
+
     def _parse_alignment(self, output):
         """
         Parse the output from the MSA program (muscle, by default)
@@ -216,7 +265,7 @@ class TheseusAligner(BaseAligner):
         """
         return output
 
-    def _parse_superposition(self, output):
+    def _parse_superposition(self, output, superposed_pdb_models, transformation_matrix):
         """
         Parse the output from theseus itself
 
@@ -227,9 +276,58 @@ class TheseusAligner(BaseAligner):
         for line in output.splitlines():
             if "Classical" in line:
                 rmsd = float(line.split()[5])
-
+            if "Least-squares" in line:
+                least_squares = float(line.split()[3])
+            if "Maximum" in line:
+                maximum_likelihood = float(line.split()[4])
+            if "Marginal" in line:
+                log_marginal_likelihood = float(line.split()[4])
+            if "AIC" in line:
+                aic = float(line.split()[2])
+            if "BIC" in line:
+                bic = float(line.split()[2])
+            if "Omnibus" in line:
+                omnibus_chi_square = float(line.split()[3])
+            if "Hierarchical var" in line:
+                hierarchical_var_chi_square = float(line.split()[5])
+            if "Rotational" in line:
+                rotational_translational_covar_chi_square = float(line.split()[5])
+            if "Hierarchical minimum" in line:
+                hierarchical_minimum_var_sigma = float(line.split()[5]) # TODO: check for 1.13e-02 value
+            if "skewness" in line:
+                skewness = float(line.split()[2])
+            if "skewness Z-value" in line:
+                skewness_z = float(line.split()[3])
+            if "kurtosis" in line:
+                kurtosis = float(line.split()[2])
+            if "kurtosis Z-value" in line:
+                kurtosis_z = float(line.split()[3])
+            if "data pts" in line:
+                data_pts = float(line.split()[4])
+                free_params = float(line.split()[8])
+                d_p = float(line.split()[11])
+            if "Median" in line:
+                median_structure = float(line.split()[4])
+            if "N(total)" in line:
+                n_total = float(line.split()[3])
+                n_atoms = float(line.split()[6])
+                n_structures = float(line.split()[9])
+            if "Total rounds" in line:
+                total_rounds = float(line.split()[3])
         return {
-            "superposed": None,  # TODO: Add the superposed models here!!
-            "scores": {"rmsd": rmsd},  # TODO: More scores from output?
-            "metadata": {},  # TODO: See what interesting extra info we have in the output
+            "superposed": superposed_pdb_models, #TODO is this correct or should the models be in {}?
+            "scores": {"rmsd": rmsd},
+            "metadata": {"transformation": transformation_matrix},  # TODO: add info from top
+            #TODO:add residues
         }
+
+
+# TODO: REMOVE
+if __name__ == "__main__":
+    pdb_ids = ["6HG4", "6HG9"]
+
+    models = [atomium.fetch(pdb_id).model for pdb_id in pdb_ids]
+
+    theseus = TheseusAligner()
+
+    theseus._calculate(models, False)
