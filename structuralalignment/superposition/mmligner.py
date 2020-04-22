@@ -118,11 +118,12 @@ class MMLignerAligner(BaseAligner):
         alignment = fasta.FastaFile()
 
         return {
-            "superposed": [atomium.open("structure1.pdb").model, atomium.open("p_superposed__1.pdb").model],
+            "superposed": [
+                atomium.open("structure1.pdb").model,
+                atomium.open("p_superposed__1.pdb").model,
+            ],
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
-            "metadata": {
-                "alignment": alignment.read("temp__1.afasta")
-            },
+            "metadata": {"alignment": alignment.read("temp__1.afasta")},
         }
 
     def ivalue(self, structures, alignment):
@@ -147,7 +148,7 @@ class MMLignerAligner(BaseAligner):
                 - ``score`` (float): ivalue of the alignment
                 - ``coverage`` (float): coverage of the alignment
             - ``metadata`` (dict):
-                - ``alignment``: (biotite.alignment): computed alignment
+                - ``alignment``(biotite.alignment): computed alignment
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
