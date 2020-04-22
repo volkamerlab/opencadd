@@ -299,7 +299,6 @@ class TheseusAligner(BaseAligner):
         ----------
         output : bytes
         """
-        print(output)
         for line in output.splitlines():
             blocks = line.split()
             if "Classical LS pairwise <RMSD>" in line:
