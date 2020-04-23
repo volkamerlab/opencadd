@@ -3,15 +3,16 @@ Aligner based on UCSF Chimera's MatchMaker algorithms.
 """
 
 import uuid
+from copy import deepcopy
 
 import MDAnalysis as mda
-from MDAnalysis.analysis import align as mda_align
+from MDAnalysis.analysis import align as mda_align, rms
 from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
 import biotite.sequence.align as align
 from biotite.sequence.io.fasta import FastaFile
 
 from .base import BaseAligner
-from ..sequences import needleman_wunsch, smith_waterman
+from ..sequences import needleman_wunsch, smith_waterman, fasta2select
 from ..utils import enter_temp_directory
 
 
@@ -114,37 +115,47 @@ class MatchMakerAligner(BaseAligner):
         reference, mobile = structures
         ref_universe = self._atomium_to_mda_universe(reference)
         mob_universe = self._atomium_to_mda_universe(mobile)
+        mob_universe_cp = self._atomium_to_mda_universe(mobile)
 
         # Compute sequence alignment
-        ref_sequence = self._retrieve_sequence(ref_universe)
-        mob_sequence = self._retrieve_sequence(mob_universe)
+        ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(ref_universe)
+        mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mob_universe)
         alignment = self._align(ref_sequence, mob_sequence)
-
         with enter_temp_directory():
             fasta = FastaFile()
             fasta["ref"] = alignment.get_gapped_sequences()[0]
             fasta["mob"] = alignment.get_gapped_sequences()[1]
             fasta.write("temp.fasta")
-            selection = mda_align.fasta2select("temp.fasta", is_aligned=True)
-            selection["reference"] = selection["reference"].replace("backbone", "name CA")
-            selection["mobile"] = selection["mobile"].replace("backbone", "name CA")
+            selection = fasta2select(
+                "temp.fasta",
+                is_aligned=True,
+                ref_resids=ref_resids,
+                target_resids=mob_resids,
+                ref_segids=ref_segids,
+                target_segids=mob_segids,
+                backbone_selection=self.superposition_selection,
+            )
 
-        # # FIXME: Does MDA move the structure as part of the RMSD calculation?
-        # old_rmsd, new_rmsd = mda_align.alignto(
-        #     mob_universe,
-        #     ref_universe,
-        #     # strict=self.strict_superposition,
-        #     select=selection,
-        #     # weights=self.superposition_weights,
-        #     # tol_mass=self.superposition_delta_mass_tolerance,
-        # )
+        ref_atoms = ref_universe.select_atoms(selection["reference"])
+        mobile_atoms = mob_universe.select_atoms(selection["mobile"])
+        initial_rmsd = rms.rmsd(ref_atoms.positions, mobile_atoms.positions)
+
+        mobile_atoms.translate(-mobile_atoms.center_of_mass())
+        ref_atoms.translate(-ref_atoms.center_of_mass())
+        rotation, rmsd = mda_align.rotation_matrix(ref_atoms.positions, mobile_atoms.positions)
+
+        mob_universe.atoms.translate(-mob_universe.atoms.center_of_mass())
+        mob_universe.atoms.rotate(rotation)
+        mob_universe.atoms.translate(ref_universe.atoms.center_of_mass())
+
         return {
-            "superposed": [
-                ref_universe,
-                mob_universe,
-            ],  # TODO: superposed atomium model(s) go here
-            "scores": {"rmsd": None},
-            "metadata": {"selection": selection},
+            "superposed": [ref_universe, mob_universe, mob_universe_cp],
+            "scores": {"rmsd": rmsd},
+            "metadata": {
+                "selection": selection,
+                "alignment": alignment,
+                "initial_rmsd": initial_rmsd,
+            },
         }
 
     @staticmethod
@@ -160,16 +171,20 @@ class MatchMakerAligner(BaseAligner):
         -------
         str
             one-letter amino acid sequence
+        tuple of int
+            residue ids of the protein sequence
         """
         sequences = []
+        residue_ids = []
+        segment_ids = []
         protein = universe.select_atoms("protein")
         for segment in protein.segments:
-            sequence = []
             for residue in segment.residues:
                 if residue.resname in canonical_inverse_aa_codes:
-                    sequence.append(convert_aa_code(residue.resname))
-            sequences.append("".join(sequence))
-        return "".join(sequences)
+                    sequences.append(convert_aa_code(residue.resname))
+                    residue_ids.append(residue.resid)
+                    segment_ids.append(residue.segid)
+        return "".join(sequences), residue_ids, segment_ids
 
     @staticmethod
     def _atomium_to_mda_universe(atomium_model):
