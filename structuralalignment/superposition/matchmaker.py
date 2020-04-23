@@ -6,7 +6,9 @@ import uuid
 
 import MDAnalysis as mda
 from MDAnalysis.analysis import align as mda_align
+from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
 import biotite.sequence.align as align
+from biotite.sequence.io.fasta import FastaFile
 
 from .base import BaseAligner
 from ..sequences import needleman_wunsch, smith_waterman
@@ -114,52 +116,59 @@ class MatchMakerAligner(BaseAligner):
         mob_universe = self._atomium_to_mda_universe(mobile)
 
         # Compute sequence alignment
-        ref_sequence = self._retrieve_sequence(reference)
-        mob_sequence = self._retrieve_sequence(mobile)
+        ref_sequence = self._retrieve_sequence(ref_universe)
+        mob_sequence = self._retrieve_sequence(mob_universe)
         alignment = self._align(ref_sequence, mob_sequence)
 
-        # Retrieve trace atoms
-        trace = alignment.trace
-        # grab only rows where sequences are aligned
-        trace = trace[~(trace == -1).any(axis=1)]
+        with enter_temp_directory():
+            fasta = FastaFile()
+            fasta["ref"] = alignment.get_gapped_sequences()[0]
+            fasta["mob"] = alignment.get_gapped_sequences()[1]
+            fasta.write("temp.fasta")
+            selection = mda_align.fasta2select("temp.fasta", is_aligned=True)
+            selection["reference"] = selection["reference"].replace("backbone", "name CA")
+            selection["mobile"] = selection["mobile"].replace("backbone", "name CA")
 
-        # FIXME!!!! We need to deal with the whole structure!
-        aligned_residues_ref = ref_universe.residues[trace[:100, 0]]
-        aligned_residues_mob = mob_universe.residues[trace[:100, 1]]
-
-        # FIXME: Does MDA move the structure as part of the RMSD calculation?
-        old_rmsd, new_rmsd = mda_align.alignto(
-            aligned_residues_mob.atoms,
-            aligned_residues_ref.atoms,
-            strict=self.strict_superposition,
-            select=self.superposition_selection,
-            weights=self.superposition_weights,
-            tol_mass=self.superposition_delta_mass_tolerance,
-        )
+        # # FIXME: Does MDA move the structure as part of the RMSD calculation?
+        # old_rmsd, new_rmsd = mda_align.alignto(
+        #     mob_universe,
+        #     ref_universe,
+        #     # strict=self.strict_superposition,
+        #     select=selection,
+        #     # weights=self.superposition_weights,
+        #     # tol_mass=self.superposition_delta_mass_tolerance,
+        # )
         return {
-            "superposed": None,  # TODO: superposed atomium model(s) go here
-            "scores": {"rmsd": new_rmsd},
-            "metadata": {},
+            "superposed": [
+                ref_universe,
+                mob_universe,
+            ],  # TODO: superposed atomium model(s) go here
+            "scores": {"rmsd": None},
+            "metadata": {"selection": selection},
         }
 
     @staticmethod
-    def _retrieve_sequence(atomium_model):
+    def _retrieve_sequence(universe):
         """
         Get the amino acid sequence
 
         Parameters
         ----------
-        atomium model
+        universe : mdanalysis.Universe
 
         Returns
         -------
         str
             one-letter amino acid sequence
         """
-
         sequences = []
-        for chain in atomium_model._chains.structures:
-            sequences.append(chain.sequence)
+        protein = universe.select_atoms("protein")
+        for segment in protein.segments:
+            sequence = []
+            for residue in segment.residues:
+                if residue.resname in canonical_inverse_aa_codes:
+                    sequence.append(convert_aa_code(residue.resname))
+            sequences.append("".join(sequence))
         return "".join(sequences)
 
     @staticmethod
