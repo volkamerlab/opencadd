@@ -1,0 +1,57 @@
+diff --git a/src/main.cpp b/src/main.cpp
+index 849a9e1..801b1aa 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -109,10 +109,26 @@ void writeSuperposedPDBfile(
+   if (!flag) {
+       Superpose3DClass obj(mT,mS);
+       pdb_T.printPDB(outfname.c_str(),obj);
++      cout << "printRotationalCenters\n";
++      obj.printRotationalCenters();
++      cout << "printEigens\n";
++      obj.printEigens();
++      cout << "printQuaternionMatrix\n";
++      obj.printQuaternionMatrix();
++      cout << "printRotationMatrix\n";
++      obj.printRotationMatrix();
+   }
+   else {
+       Superpose3DClass obj(mS,mT);
+       pdb_S.printPDB(outfname.c_str(),obj);
++      cout << "printRotationalCenters\n";
++      obj.printRotationalCenters();
++      cout << "printEigens\n";
++      obj.printEigens();
++      cout << "printQuaternionMatrix\n";
++      obj.printQuaternionMatrix();
++      cout << "printRotationMatrix\n";
++      obj.printRotationMatrix();
+   }
+ }
+ 
+diff --git a/src/superpose3D.h b/src/superpose3D.h
+index 4749db8..42115e1 100644
+--- a/src/superpose3D.h
++++ b/src/superpose3D.h
+@@ -111,11 +111,6 @@ class Superpose3DClass {
+    bool updateLSqFit_addition();
+    bool updateLSqFit_subtraction();
+ 
+-   //debug
+-   void printRotationalCenters();
+-   void printEigens();
+-   void printQuaternionMatrix();
+-   void printRotationMatrix();
+ 
+  public:
+    Superpose3DClass();
+@@ -131,5 +126,9 @@ class Superpose3DClass {
+    void copyRotationMatrixInto(double [][3]);
+    void copyRotationalCentersInto(double [3], double[3]);
+    SuffStatClass getSufficientStatistics();
++   void printRotationalCenters();
++   void printEigens();
++   void printQuaternionMatrix();
++   void printRotationMatrix();
+ };
+ #endif

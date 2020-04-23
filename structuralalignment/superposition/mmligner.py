@@ -24,7 +24,9 @@ Bell Syst.Tech. J., 27, 379–423.
 
 import sys
 import subprocess
+from copy import deepcopy
 
+import numpy as np
 import atomium
 import biotite.sequence.io.fasta as fasta
 
@@ -73,17 +75,20 @@ class MMLignerAligner(BaseAligner):
                 - ``alignment``: (biotite.alignment): computed alignment
         """
 
-        with enter_temp_directory() as (cwd, tmpdir):
+        with enter_temp_directory(remove=False) as (cwd, tmpdir):
+            print(tmpdir)
             path1, path2 = self._edit_pdb(structures)
             output = subprocess.check_output(
                 [self.executable, path1, path2, "-o", "temp", "--superpose"]
             )
             # We need access to the temporary files at parse time!
-            result = self._parse(output)
-
+            result = self._parse_metadata(output.decode())
+            copies = [deepcopy(structure) for structure in structures]
+            superposed_models = self._calculate_transformed(copies, result["metadata"])
+            result.update({"superposed": superposed_models})
         return result
 
-    def _parse(self, output):
+    def _parse_metadata(self, output):
         """
         retrieves rmsd, score and metadata from the output of the mmligner subprocess
 
@@ -96,8 +101,6 @@ class MMLignerAligner(BaseAligner):
         -------
         dict
             As returned by ``._parse(output)``.
-
-            - ``superposed`` ([atomium.model, atomium.model]): superposed structures
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
@@ -105,26 +108,65 @@ class MMLignerAligner(BaseAligner):
             - ``metadata`` (dict):
                 - ``alignment``: (biotite.alignment): computed alignment
         """
-
-        for line in output.splitlines():
-            if line.startswith(b"RMSD"):
+        lines = iter(output.splitlines())
+        print(output)
+        for line in lines:
+            if line.startswith("RMSD"):
                 rmsd = float(line.split()[2])
-            elif line.startswith(b"Coverage"):
+            elif line.startswith("Coverage"):
                 coverage = float(line.split()[2])
-
-            elif line.startswith(b"I(A & <S,T>)"):
+            elif line.startswith("I(A & <S,T>)"):
                 ivalue = float(line.split()[4])
+            elif "Print Centers of Mass of moving set:" in line:
+                moving_com = np.array([float(x) for x in next(lines).split()])
+            elif "Print Centers of Mass of fixed set:" in line:
+                fixed_com = np.array([float(x) for x in next(lines).split()])
+            elif "Print Rotation matrix" in line:
+                rotation = [[float(x) for x in next(lines).split()] for _ in range(3)]
 
+        translation = fixed_com - moving_com
         alignment = fasta.FastaFile()
-
+        alignment.read("temp__1.afasta")
         return {
-            "superposed": [
-                atomium.open("structure1.pdb").model,
-                atomium.open("p_superposed__1.pdb").model,
-            ],
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
-            "metadata": {"alignment": alignment.read("temp__1.afasta")},
+            "metadata": {
+                "alignment": alignment,
+                "rotation": rotation,
+                "translation": translation,
+            },
         }
+
+    def _calculate_transformed(self, structures, metadata):
+        """
+        Parse back output PDBs and construct updated atomium models
+
+        Parameters
+        ----------
+        structures: list of atomium.Model
+            Original input structures
+
+        Return
+        ------
+        list of atomium.Model
+            Input structures with updated coordinates
+        """
+        ref, original_mobile, *_ = structures
+        # assert len(ref.atoms()) == len(atomium.open("structure1.pdb").model.atoms())  # quick check
+        # with open("p_superposed__1.pdb") as f:
+        #     for line in f:
+        #         if "REMARK" in line and "Rotation:" in line:
+        #             rotation = np.reshape([float(x) for x in line.split(":")[1].split()], (-1, 3))
+        #         if "REMARK" in line and "Translation:" in line:
+        #             translation = [float(x) for x in line.split(":")[1].split()]
+        translation = metadata["translation"]
+        rotation = metadata["rotation"]
+
+        atomium_translation = original_mobile.center_of_mass - ref.center_of_mass
+        original_mobile.translate(*translation)
+        original_mobile.transform(rotation)
+        original_mobile.translate(ref.center_of_mass - original_mobile.center_of_mass)
+
+        return ref, original_mobile
 
     def ivalue(self, structures, alignment):
         """
