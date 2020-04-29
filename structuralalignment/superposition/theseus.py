@@ -17,14 +17,6 @@ References
   Theobald, Douglas L. & Steindel, Philip A. (2012) Bioinformatics 28 (15): 1972-1979
 * Accurate structural correlations from maximum likelihood superpositions.
   Theobald, Douglas L. & Wuttke, Deborah S. (2008) PLOS Computational Biology 4(2):e43
-
-.. todo::
-
-    - Add literature references to this docstring.
-    - Maybe parse more information from output files
-    - Try different alignment tool (biotite)
-    - Improve documentation
-    - Delete debug code
 """
 
 import subprocess
@@ -35,9 +27,6 @@ import atomium
 import numpy as np
 
 from structuralalignment.superposition.base import BaseAligner
-
-# from ..sequences import get_alignment_fasta
-import biotite.sequence.io.fasta as fasta
 from structuralalignment.utils import enter_temp_directory
 
 
@@ -53,19 +42,9 @@ class TheseusAligner(BaseAligner):
     ----------
     max_iterations : int
         number of iterations for muscle
-
-    Examples
-    --------
-
-    .. todo::
-
-        Move these two examples to ``docs/examples`` or ``docs/tutorials``
-
-    * Multiple structures of the cytochrome c protein from different species
-    * Multiple mutated structures of hen egg white lysozyme.
     """
 
-    def __init__(self, max_iterations: int = 32):
+    def __init__(self, max_iterations: int = 32) -> None:
         self.max_iterations = max_iterations
 
         self.fastafile = "theseus.fasta"
@@ -74,7 +53,7 @@ class TheseusAligner(BaseAligner):
         self.alignment_file_biotite = "theseus_biotite.aln"
         self.alignment_app = "muscle"
 
-    def _create_pdb(self, structures):
+    def _create_pdb(self, structures) -> list:
         """
         Create files with atomium models
 
@@ -82,6 +61,11 @@ class TheseusAligner(BaseAligner):
         ---------
         structures : list
             list of atomium models
+
+        Returns
+        -------
+        list
+            list of pdb filenames
         """
         fetched_pdbs_filename = []
         for index, pdbs in enumerate(structures):
@@ -90,18 +74,30 @@ class TheseusAligner(BaseAligner):
             fetched_pdbs_filename.append(pdb_filename)
         return fetched_pdbs_filename
 
-    def _get_fasta(self, pdbs_filename):
+    def _get_fasta(self, pdbs_filename) -> str:
         """
         Use Theseus to create fasta files
 
-        .. todo::
-            We can probably generate this from atomium directly
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
+
+        Returns
+        -------
+        str
+            Output of the created fasta filenames
         """
         return subprocess.check_output(["theseus", "-f", "-F", *pdbs_filename])
 
-    def _concatenate_fasta(self, pdbs_filename):
+    def _concatenate_fasta(self, pdbs_filename) -> None:
         """
         Concatenate the fasta files created with Theseus into one multiple sequence fasta file
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
         """
         with open(self.fastafile, "w") as outfile:
             for fname in pdbs_filename:
@@ -109,23 +105,23 @@ class TheseusAligner(BaseAligner):
                     for line in infile:
                         outfile.write(line)
 
-    def _filemap(self, pdbs_filename):
+    def _filemap(self, pdbs_filename) -> None:
         """
         Create filemap for Theseus
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
         """
         with open(self.filemap_file, "w") as outfile:
             for fname in pdbs_filename:
                 outfile.write(f"{fname} {fname}\n")
 
     # pylint: disable=arguments-differ
-    def _calculate(self, structures, identical: bool = False, **kwargs):
+    def _calculate(self, structures, identical: bool = False, **kwargs) -> dict:
         """
         Align the sequences with an alignment tool (``muscle``)
-
-        .. todo::
-
-            Can we use a different alignment tool, preferrably in Python? E.g. biotite?
-
 
         A mode for superpositioning macromolecules with
         identical sequences and numbers of residues,
@@ -149,14 +145,35 @@ class TheseusAligner(BaseAligner):
         dict
             As returned by ``._parse_superposition(output)``.
 
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
+            - ``scores`` (dict)
+                    ``rmsd`` (float): RMSD value of the alignment
+            - ``metadata`` (dict)
+                    ``least_squares``: least squares
+                    ``maximum_likelihood``: maximum likelihood
+                    ``log_marginal_likelihood``: log marginal likelihood
+                    ``aic``: Akaike information criterion
+                    ``bic``: Bayesion information criterion
+                    ``omnibus_chi_square``: omnibus chi square
+                    ``hierarchical_var_chi_square``: hierarchical var chi square
+                    ``rotational_translational_covar_chi_square``: rotational translational covar chi square
+                    ``hierarchical_minimum_var``: hierarchical minimum var
+                    ``hierarchical_minimum_sigma``: hierarchical minimum sigma
+                    ``skewness``: skewness
+                    ``skewness_z``: skewness z
+                    ``kurtosis``: kurtosis
+                    ``kurtosis_z``: kurtosis z
+                    ``data_pts``: data points
+                    ``free_params``: free params
+                    ``d_p``: d_p
+                    ``median_structure``: median_structure
+                    ``n_total``: number total
+                    ``n_atoms``: number of atoms
+                    ``n_structures``: number of structures
+                    ``total_rounds``: total rounds
         """
 
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            _logger.info("DEBUG: Running in %s -- TODO: DELETE BEFORE MERGE --", tmpdir)
+            _logger.info("All files are located in: %s", tmpdir)
 
             pdbs_filename = self._create_pdb(structures)
 
@@ -165,8 +182,6 @@ class TheseusAligner(BaseAligner):
             else:
                 superposition_output = self._run_theseus_different(pdbs_filename)
                 _logger.info(superposition_output)
-                _logger.info("-- OUTPUT WE NEED TO PARSE BEFORE DELETING TEMPFILES --")
-                _logger.info("\n".join([str(item) for item in Path(tmpdir).glob("theseus_*")]))
             superposed_pdb_models = self._get_superposed_models(pdbs_filename)
             transformation_matrix = self._get_transformation_matrix()
         results = self._parse_superposition(superposition_output)
@@ -174,9 +189,20 @@ class TheseusAligner(BaseAligner):
         results["metadata"]["transformation"] = transformation_matrix
         return results
 
-    def _run_theseus_identical(self, pdbs_filename):
+    def _run_theseus_identical(self, pdbs_filename) -> str:
         """
         Superpose identical sequences with Theseus
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
+
+        Returns
+        -------
+        str
+            Theseus output
+
         """
         output = subprocess.check_output(
             ["theseus", *pdbs_filename], stderr=subprocess.PIPE, universal_newlines=True
@@ -184,6 +210,14 @@ class TheseusAligner(BaseAligner):
         return output
 
     def _run_alignment(self):
+        """
+        Run MUSCLE
+
+        Returns
+        -------
+        str
+            Output of MUSCLE
+        """
         output = subprocess.check_output(
             [
                 self.alignment_app,
@@ -204,18 +238,19 @@ class TheseusAligner(BaseAligner):
         _logger.info(output)
         return output
 
-    def _run_alignment_biotite(self):
-        # TODO: seq_strings = list(fasta_file.values()) // AttributeError: 'str' object has no attribute 'values'
-        fasta_file = fasta.FastaFile()
-        fasta_file.read(self.fastafile)
-        alignment = fasta.get_alignment(fasta_file, additional_gap_chars=("-",))
-        with open(self.alignment_file_biotite, "w") as outfile:
-            outfile.write(alignment)
-        return alignment
-
-    def _run_theseus_different(self, pdbs_filename):
+    def _run_theseus_different(self, pdbs_filename) -> str:
         """
         Superpose different sequences with Theseus based on the sequence alignment
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
+
+        Returns
+        -------
+        str
+            Theseus output
         """
         self._get_fasta(pdbs_filename)
         self._concatenate_fasta(pdbs_filename)
@@ -231,13 +266,19 @@ class TheseusAligner(BaseAligner):
         )
         return output
 
-    def _get_superposed_models(self, pdbs_filename):
+    def _get_superposed_models(self, pdbs_filename) -> list:
         """
-        .. todo:
+        Get the superposed models
 
-            Get the coordinates of superposed_pdb_models and add them to the original
-            Atomium Models or maybe a copy of those.
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
 
+        Returns
+        -------
+        list
+            list of superposed pdb models
         """
         superposed_pdb_filename = []
         for pdb in pdbs_filename:
@@ -248,7 +289,15 @@ class TheseusAligner(BaseAligner):
         superposed_pdb_models = [atomium.open(pdb_id).model for pdb_id in superposed_pdb_filename]
         return superposed_pdb_models
 
-    def _strip_remark_lines(self, pdb_filenames):
+    def _strip_remark_lines(self, pdb_filenames) -> None:
+        """
+        Remove the "REMARK" lines in the pdb files
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
+        """
         for pdb in pdb_filenames:
             with open(pdb, "r") as infile:
                 lines = infile.readlines()
@@ -257,7 +306,15 @@ class TheseusAligner(BaseAligner):
                     if not line.startswith("REMARK") or line.startswith("NUMMDL"):
                         outfile.write(line)
 
-    def _get_transformation_matrix(self):
+    def _get_transformation_matrix(self) -> dict:
+        """
+        Get the rotation matrix and translation vector
+
+        Returns
+        -------
+        dict
+            Rotation matrix and translation vector
+        """
         translations, rotations = {}, {}
         with open("theseus_transf.txt", "r") as infile:
             lines = infile.readlines()
@@ -281,23 +338,34 @@ class TheseusAligner(BaseAligner):
             matrices[model_id] = matrix
         return matrices
 
-    def _parse_alignment(self, output):
+    def _parse_alignment(self, output) -> str:
         """
         Parse the output from the MSA program (muscle, by default)
 
-        Parameters
-        ----------
+        Parameter
+        ---------
         output : bytes
+
+        Returns
+        -------
+        str
+            Output from MUSCLE
+        -------
         """
         return output
 
-    def _parse_superposition(self, output):
+    def _parse_superposition(self, output) -> dict:
         """
         Parse the output from theseus itself
 
         Parameters
         ----------
         output : bytes
+
+        Returns
+        -------
+        dict
+            All the information provided by Theseus
         """
         for line in output.splitlines():
             blocks = line.split()
@@ -320,7 +388,6 @@ class TheseusAligner(BaseAligner):
             elif "Rotational, translational, covar" in line:
                 rotational_translational_covar_chi_square = float(blocks[5])
             elif "Hierarchical minimum var" in line:
-                # TODO: check for 1.13e-02 value
                 hierarchical_minimum_var = float(blocks[5])
                 hierarchical_minimum_sigma = float(blocks[-1][1:-1])
             elif "skewness Z-value" in line:
@@ -370,17 +437,5 @@ class TheseusAligner(BaseAligner):
                 "n_atoms": n_atoms,
                 "n_structures": n_structures,
                 "total_rounds": total_rounds,
-            },  # TODO: add info from top
-            # TODO:add residues
+            },
         }
-
-
-# TODO: REMOVE
-if __name__ == "__main__":
-    pdb_ids = ["6HG4", "6HG9"]
-
-    models = [atomium.fetch(pdb_id).model for pdb_id in pdb_ids]
-
-    theseus = TheseusAligner()
-
-    theseus._calculate(models, False)

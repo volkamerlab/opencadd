@@ -6,9 +6,6 @@ import pytest
 import atomium
 
 
-# TODO: Fill in the unit tests
-
-
 def test_theseus_instantiation():
     from structuralalignment.superposition.theseus import TheseusAligner
 
@@ -25,7 +22,6 @@ def test_theseus_different():
     different_models = [atomium.fetch(pdb_id).model for pdb_id in ["6HG4", "6HG9"]]
     aligner = TheseusAligner()
     results = aligner.calculate(different_models, identical=False)
-    # Check API compliance
     assert "superposed" in results
     assert "scores" in results
     assert "rmsd" in results["scores"]
@@ -106,14 +102,21 @@ I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
 
 
 def test_parse_muscle():
-    # TODO: Andrea Volkamer suggested we report the coverage
-    # and this is part of the MUSCLE output
-    pass
+    output = """
+    MUSCLE v3.8.31 by Robert C. Edgar
 
+http://www.drive5.com/muscle
+This software is donated to the public domain.
+Please cite: Edgar, R.C. Nucleic Acids Res 32(5), 1792-97.
 
-def test_parse_rmsd():
-    pass
+theseus 2 seqs, max length 532, avg  length 531
+00:00:00    23 MB(-3%)  Iter   1  100.00%  K-mer dist pass 1
+00:00:00    23 MB(-3%)  Iter   1  100.00%  K-mer dist pass 2
+00:00:00    26 MB(-4%)  Iter   1  100.00%  Align node
+00:00:00    26 MB(-4%)  Iter   1  100.00%  Root alignment
+    """
+    from structuralalignment.superposition.theseus import TheseusAligner
 
-
-def test_parse_others():
-    pass
+    aligner = TheseusAligner()
+    r = aligner._parse_alignment(output)
+    assert r == output
