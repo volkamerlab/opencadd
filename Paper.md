@@ -95,7 +95,7 @@ RMSD for alignment between `2GZ9` and `5R8T` is 1.7Å
 
 
 **3.3 Current limitations**
-For now, the only method, that supports a benchmark is MMLigner in form of the ivalue. The other methods do not provide a benchmark yet. It is not clear if the ivalue is a good and consistent benchmark over different methods. This means it is not obvious whether an alignment is good or not compared to the other alignments. It is also not possible to perform multiple alignment at the moment. One can perform multiple pairwise alignments successively.
+For now, the only method, that supports a benchmark is MMLigner in form of the ivalue. The other methods do not provide a benchmark yet. It is not clear if the ivalue is a good and consistent benchmark over different methods. This means it is not obvious whether an alignment is good or not, compared to the other alignments. It is also not possible to perform a multiple alignment at the moment. One can perform multiple pairwise alignments successively.
 
 **3.4 Future work**
 In the future more alignment methods will be added. Because StructuralAlignment is open source, every developer can participate in making StructuralAlignment better and more versatile. The MMLigner method already provides a benchmark with the ivalue. The developer team is working on providing a benchmark for every alignment method. This benchmark should be consistent over the different methods. In addition to the benchmarking the team is working on a solution to visualize the aligned structures in this library, without the need of any third-party program.
