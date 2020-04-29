@@ -46,7 +46,7 @@ StructuralAlignment is a command line application with support for the latest Li
 Running StructuralAlignment in the terminal can be performed with the command: `structuralalignment TARGET_STRUCTURE STRUCTURE_TO_ALIGN --method METHOD_OF_CHOICE --method-options METHOD_OPTIONS`. StructuralAlignment features the methods MMLigner ([Collier, J. H., Allison, L., Lesk, A. M., Stuckey, P. J., Garcia de la Banda, M., & Konagurthu, A. S., 2017](#references)), Theseus ([Theobald, D. L., & Wuttke, D. S., 2006](#references)) and Chimera's MatchMaker. It is also possible to perform multiple pairwise alignments by adding more structures to align to the command above. All structures will therefore be aligned against the target structure. The output in the terminal is the RMSD.
 
 **3.2 Demonstrating the Benefits of 'StructuralAlignment'**
-StructuralAlignment brings different methods for structural alignment together, so that it is not necessary to have all the stand alone programs install. The methods also have different approaches.
+StructuralAlignment brings different methods for structural alignment together, so that it is not necessary to have all the stand alone programs installed. The methods also have different approaches.
 For the more traditional approach, one can use the method matchmaker from chimera
 ```
 INPUT: structuralalignment 2GZ9 5R8T --method=matchmaker
