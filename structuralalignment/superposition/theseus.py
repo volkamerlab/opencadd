@@ -438,3 +438,45 @@ class TheseusAligner(BaseAligner):
                 "total_rounds": total_rounds,
             },
         }
+
+    def run_theseus_different_no_superposition(self, structures) -> dict:
+        """
+        Calculate statistics (don't superposition)
+
+        Parameter
+        ---------
+        pdbs_filename : list
+            list of pdb filenames
+
+        Returns
+        -------
+        dict
+            As returned by ``._parse_superposition(output)``.
+        """
+        with enter_temp_directory(remove=False) as (cwd, tmpdir):
+            _logger.info("All files are located in: %s", tmpdir)
+
+            pdbs_filename = self._create_pdb(structures)
+            self._get_fasta(pdbs_filename)
+            self._concatenate_fasta(pdbs_filename)
+            self._filemap(pdbs_filename)
+            seq_alignment_output = self._run_alignment()
+
+            self._parse_alignment(seq_alignment_output)
+            _logger.info(seq_alignment_output)
+
+            output = subprocess.check_output(
+                [
+                    "theseus",
+                    "-I",
+                    "-f",
+                    "-M",
+                    self.filemap_file,
+                    "-A",
+                    self.alignment_file,
+                    *pdbs_filename,
+                ],
+                universal_newlines=True,
+            )
+        results = self._parse_superposition(output)
+        return results
