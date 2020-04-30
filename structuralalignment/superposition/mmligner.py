@@ -188,8 +188,8 @@ class MMLignerAligner(BaseAligner):
         structures: list of atomium.Model
             Original input structures
 
-        Return
-        ------
+        Returns
+        -------
         list of atomium.Model
             Input structures with updated coordinates
         """
@@ -212,6 +212,7 @@ class MMLignerAligner(BaseAligner):
         ----------
         structures: [array like, array like]
             sequences of two protein structures of same length
+
         alignment: biotite.alignment
             alignment of the given two sequences
 
