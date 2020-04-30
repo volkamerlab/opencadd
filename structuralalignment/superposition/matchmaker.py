@@ -25,8 +25,7 @@ class MatchMakerAligner(BaseAligner):
     Roughly, the algorithm follows these steps:
 
     1. Sequence alignment -- using "biotite" and "MDAnalysis"
-    2. Trace (atom pairing) -- using "biotite" and "MDAnalysis"
-    3. Structural superposition -- using "MDAnalysis"
+    2. Structural superposition -- using "MDAnalysis"
 
     Parameters
     ----------
@@ -82,7 +81,9 @@ class MatchMakerAligner(BaseAligner):
             raise ValueError("`alignment_strategy` must be one of `global, local`.")
 
         if alignment_matrix not in align.SubstitutionMatrix.list_db():
-            raise ValueError(f"Substitution Matrix '{alignment_matrix }' could not be found.")
+            raise ValueError(
+                f"Substitution Matrix '{alignment_matrix }' could not be found."
+            )
         else:
             self.alignment_matrix = alignment_matrix
 
@@ -142,8 +143,9 @@ class MatchMakerAligner(BaseAligner):
 
         mobile_atoms.translate(-mobile_atoms.center_of_mass())
         ref_atoms.translate(-ref_atoms.center_of_mass())
-        rotation, rmsd = mda_align.rotation_matrix(ref_atoms.positions, mobile_atoms.positions)
-
+        rotation, rmsd = mda_align.rotation_matrix(
+            ref_atoms.positions, mobile_atoms.positions
+        )
         mob_universe.atoms.translate(-mob_universe.atoms.center_of_mass())
         mob_universe.atoms.rotate(rotation)
         mob_universe.atoms.translate(ref_universe.atoms.center_of_mass())
