@@ -27,8 +27,8 @@ import subprocess
 from copy import deepcopy
 
 import numpy as np
-import atomium
-import biotite.sequence as seq
+
+# import atomium
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
@@ -50,7 +50,7 @@ class MMLignerAligner(BaseAligner):
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
 
-    def _calculate(self, structures, **kwargs):
+    def _calculate(self, structures, *args, **kwargs):
         """
         Calculates the superposition of two protein structures.
 
@@ -78,7 +78,9 @@ class MMLignerAligner(BaseAligner):
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
-            sys.setrecursionlimit(10000)  # Needed because of the need of a copy of the structures.
+            sys.setrecursionlimit(
+                100000
+            )  # Needed because of the need of a copy of the structures.
 
             path1, path2 = self._edit_pdb(structures)
             output = subprocess.check_output(
@@ -142,7 +144,7 @@ class MMLignerAligner(BaseAligner):
                 "alignment": alignment,
                 "rotation": rotation,
                 "translation": translation,
-                "quarternion": quarternion
+                "quarternion": quarternion,
             },
         }
 
@@ -313,15 +315,15 @@ class MMLignerAligner(BaseAligner):
         path: str
             Path to the fasta file that is to be edited.
         """
-        with open(path, 'r') as fasta:
+        with open(path, "r") as fasta:
             data = fasta.readlines()
 
         lines = iter(data)
         for line in lines:
             if next(lines).startswith(">structure2.pdb"):
-                line = line + '\n'
+                line = line + "\n"
 
-        data[-1] = data[-1] + '\n'
+        data[-1] = data[-1] + "\n"
 
         with open(path, "w") as fasta:
             for line in data:
