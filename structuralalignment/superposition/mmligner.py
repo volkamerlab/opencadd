@@ -206,20 +206,19 @@ class MMLignerAligner(BaseAligner):
 
     def ivalue(self, structures, alignment):
         """
-        Computes the ivalue and RMSD for a given alignment of two structures by calling mmligner as a subprocess.
+        Parse back output PDBs and construct updated atomium models.
 
         Parameters
         ----------
         structures: [array like, array like]
             sequences of two protein structures of same length
-
         alignment: biotite.alignment
             alignment of the given two sequences
 
         Returns
         -------
         dict
-            As returned by ``._parse_metadata(output)``.
+            As returned by ``._parse_scoring(output)``.
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
