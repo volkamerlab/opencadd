@@ -28,7 +28,7 @@ index 849a9e1..801b1aa 100644
 +      obj.printRotationMatrix();
    }
  }
- 
+
 diff --git a/src/superpose3D.h b/src/superpose3D.h
 index 4749db8..42115e1 100644
 --- a/src/superpose3D.h
@@ -36,13 +36,13 @@ index 4749db8..42115e1 100644
 @@ -111,11 +111,6 @@ class Superpose3DClass {
     bool updateLSqFit_addition();
     bool updateLSqFit_subtraction();
- 
+
 -   //debug
 -   void printRotationalCenters();
 -   void printEigens();
 -   void printQuaternionMatrix();
 -   void printRotationMatrix();
- 
+
   public:
     Superpose3DClass();
 @@ -131,5 +126,9 @@ class Superpose3DClass {

@@ -22,7 +22,6 @@ def test_mmligner_alignment():
     assert "metadata" in result
 
     # Check RMSD value for these PDBs
-    # TODO: Check behaviour of this - make sure you can make it fail at some point
     assert pytest.approx(result["scores"]["rmsd"], 2.279)
 
 
