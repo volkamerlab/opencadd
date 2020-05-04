@@ -1,16 +1,17 @@
 ---
 title: 'Superposer: A Python library to use different methods for structural alignment.'
 tags:
-    - python
-    - bioinformatics
+- python
+- bioinformatics
 authors:
- - name: Julian Pipart
-   orcid: 0000-0002-1089-5931
- - name: Jaime Rodríguez-Guerra
- - name: Andrea Volkamer
- - name: Dennis Köser
- - name: Annie Pham
- - name: Enes Kurnaz
+- name: Julian Pipart
+  orcid: 0000-0002-1089-5931
+- name: Jaime Rodríguez-Guerra
+  orcid: 0000-0001-8974-1566
+- name: Andrea Volkamer
+- name: Dennis Köser
+- name: Annie Pham
+- name: Enes Kurnaz
 date: 29 April 2020
 ---
 
