@@ -53,7 +53,7 @@ class MMLignerAligner(BaseAligner):
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
         _logger.warning(
-            "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures."
+            "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures!"
         )
 
     def _calculate(self, structures, *args, **kwargs):
@@ -84,9 +84,8 @@ class MMLignerAligner(BaseAligner):
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
-            sys.setrecursionlimit(
-                100000
-            )  # Needed because of the need of a copy of the structures.
+            # Needed because of the need of a copy of the structures.
+            sys.setrecursionlimit(100000)
 
             path1, path2 = self._edit_pdb(structures)
             output = subprocess.check_output(

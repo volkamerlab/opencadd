@@ -32,9 +32,10 @@ class PerLevelFormatter(logging.Formatter):
         logging.INFO: "%(message)s",
         logging.DEBUG: "Debug: %(message)s",
         101: "%(message)s",
+        25: "%(message)s",
     }
 
-    def __init__(self, fmt="%(levelName)d: %(message)s", datefmt=None, style="%", **kwargs):
+    def __init__(self, fmt="%(levelname)d: %(message)s", datefmt=None, style="%", **kwargs):
         super().__init__(fmt=fmt, datefmt=datefmt, style=style, **kwargs)
 
     def format(self, record):
@@ -49,3 +50,14 @@ class PerLevelFormatter(logging.Formatter):
         self._style._fmt = format_orig
 
         return result
+
+
+class EmojiPerLevelFormatter(PerLevelFormatter):
+    FORMATS = {
+        logging.ERROR: "❌ ERROR! %(message)s",
+        logging.WARNING: "⚠️ WARNING: %(message)s",
+        logging.INFO: "ℹ️ %(message)s",
+        logging.DEBUG: "⚙️ Debug: %(message)s",
+        101: "%(message)s",
+        25: "☑️ %(message)s",
+    }

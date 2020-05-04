@@ -8,7 +8,7 @@ import logging
 import atomium
 
 from .api import align, METHODS
-from .utils import PerLevelFormatter
+from .utils import PerLevelFormatter, EmojiPerLevelFormatter
 from ._version import get_versions as _get_versions
 
 __version__ = _get_versions()["version"]
@@ -30,6 +30,7 @@ def parse_cli(argv=None, greet=False):
         default=False,
         help="Whether to print debugging info to stdout",
     )
+    p.add_argument("--no-emoji", action="store_true", default=False, help="Disable emoji logging")
     p.add_argument(
         "--method",
         default="theseus",
@@ -70,20 +71,22 @@ def greeting():
     )[1:]
 
 
-def configure_logger(level=logging.INFO):
+def configure_logger(level=logging.INFO, formatter=EmojiPerLevelFormatter):
     logger = logging.getLogger("superposer")
     logger.setLevel(level)
     handler = logging.StreamHandler()
-    formatter = PerLevelFormatter()
-    handler.setFormatter(formatter)
+    formatter_instance = formatter()
+    handler.setFormatter(formatter_instance)
     logger.addHandler(handler)
 
 
 def main():
     args = parse_cli()
-    configure_logger(logging.DEBUG if args.verbose else logging.INFO)
+    formatter = PerLevelFormatter if args.no_emoji else EmojiPerLevelFormatter
+    level = logging.DEBUG if args.verbose else logging.INFO
+    configure_logger(level, formatter)
 
-    _logger.info(greeting())
+    _logger.log(101, greeting())
 
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
@@ -105,7 +108,8 @@ def main():
         result, *_empty = align(
             [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
         )
-        _logger.info(
+        _logger.log(
+            25,  # this the level id for results
             "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
             i,
             reference_id,
