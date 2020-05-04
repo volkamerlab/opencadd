@@ -15,7 +15,7 @@ The sequence length has to be the same.
 How to use the library
 ----------------------
 
-After the command :code:`structuralalignment` the user provides the structurenames. The library will
+After the command :code:`superposer` the user provides the structurenames. The library will
 search locally for the file, if a path is given. Otherwise it will search in the `Protein Data Bank
 <https://www.rcsb.org/>`_.
 
@@ -28,7 +28,7 @@ Simple examples
 ---------------
 Two structures superposed with mmligner without any additional options::
 
-    structuralalignment 1lol 5XME --method mmligner
+    superposer 1lol 5XME --method mmligner
 
 
 Two structures superposed with theseus with additional arguments::
@@ -37,7 +37,7 @@ Two structures superposed with theseus with additional arguments::
 
 Two structures superposed with theseus with additional options::
 
-    structuralalignment 1lol 5XME --method matchmaker --method-strategy --method-matrix --method-gap --method-strict --method-selection --method-weights --method-mass_tolerance
+    superposer 1lol 5XME --method matchmaker --method-strategy --method-matrix --method-gap --method-strict --method-selection --method-weights --method-mass_tolerance
 
 
 

@@ -1,20 +1,20 @@
-structuralalignment.superposition.matchmaker
+superposer.superposition.matchmaker
 ============================================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.superposition.matchmaker
+.. automodule:: superposer.superposition.matchmaker
 
-.. currentmodule:: structuralalignment.superposition.matchmaker
+.. currentmodule:: superposer.superposition.matchmaker
 
 
 .. rubric:: Classes
 
 .. autosummary::
     :toctree: .
-    
+
     MatchMakerAligner
-    
+
 
 
 

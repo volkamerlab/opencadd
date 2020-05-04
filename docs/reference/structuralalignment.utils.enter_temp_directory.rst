@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.utils.enter\_temp\_directory
+superposer.utils.enter\_temp\_directory
 ================================================
 
-.. currentmodule:: structuralalignment.utils
+.. currentmodule:: superposer.utils
 
 .. autofunction:: enter_temp_directory

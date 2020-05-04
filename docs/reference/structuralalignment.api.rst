@@ -1,11 +1,11 @@
-structuralalignment.api
+superposer.api
 =======================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.api
+.. automodule:: superposer.api
 
-.. currentmodule:: structuralalignment.api
+.. currentmodule:: superposer.api
 
 
 
@@ -14,7 +14,7 @@ structuralalignment.api
 
 .. autosummary::
     :toctree: .
-    
+
     align
-    
+
 

@@ -1,20 +1,20 @@
-structuralalignment.superposition.mmligner
+superposer.superposition.mmligner
 ==========================================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.superposition.mmligner
+.. automodule:: superposer.superposition.mmligner
 
-.. currentmodule:: structuralalignment.superposition.mmligner
+.. currentmodule:: superposer.superposition.mmligner
 
 
 .. rubric:: Classes
 
 .. autosummary::
     :toctree: .
-    
+
     MMLignerAligner
-    
+
 
 
 

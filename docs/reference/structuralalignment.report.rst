@@ -1,11 +1,11 @@
-structuralalignment.report
+superposer.report
 ==========================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.report
+.. automodule:: superposer.report
 
-.. currentmodule:: structuralalignment.report
+.. currentmodule:: superposer.report
 
 
 

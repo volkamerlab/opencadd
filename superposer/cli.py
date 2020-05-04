@@ -1,5 +1,5 @@
 """
-Command Line Interface for structuralalignment
+Command Line Interface for superposer
 """
 import os
 import argparse

@@ -1,10 +1,10 @@
 """
-Tests for structuralalignment.superposition.matchmaker
+Tests for superposer.superposition.matchmaker
 """
 
 import pytest
 import atomium
-from structuralalignment.superposition.matchmaker import MatchMakerAligner
+from superposer.superposition.matchmaker import MatchMakerAligner
 
 
 def test_matchmaker_instantiation():

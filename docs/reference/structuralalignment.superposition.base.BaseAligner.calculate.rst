@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.base.BaseAligner.calculate
+superposer.superposition.base.BaseAligner.calculate
 ============================================================
 
-.. currentmodule:: structuralalignment.superposition.base
+.. currentmodule:: superposer.superposition.base
 
 .. automethod:: BaseAligner.calculate

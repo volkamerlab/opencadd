@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.api.align
+superposer.api.align
 =============================
 
-.. currentmodule:: structuralalignment.api
+.. currentmodule:: superposer.api
 
 .. autofunction:: align

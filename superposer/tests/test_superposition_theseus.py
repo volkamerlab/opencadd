@@ -1,5 +1,5 @@
 """
-Test structuralalignment.superposition.theseus
+Test superposer.superposition.theseus
 """
 
 import pytest
@@ -7,7 +7,7 @@ import atomium
 
 
 def test_theseus_instantiation():
-    from structuralalignment.superposition.theseus import TheseusAligner
+    from superposer.superposition.theseus import TheseusAligner
 
     aligner = TheseusAligner()
 
@@ -17,7 +17,7 @@ def test_theseus_identical():
 
 
 def test_theseus_different_no_superposition():
-    from structuralalignment.superposition.theseus import TheseusAligner
+    from superposer.superposition.theseus import TheseusAligner
 
     different_models = [atomium.fetch(pdb_id).model for pdb_id in ["2BBM", "1CFC"]]
     aligner = TheseusAligner()
@@ -50,7 +50,7 @@ def test_theseus_different_no_superposition():
 
 
 def test_theseus_different():
-    from structuralalignment.superposition.theseus import TheseusAligner
+    from superposer.superposition.theseus import TheseusAligner
 
     different_models = [atomium.fetch(pdb_id).model for pdb_id in ["6HG4", "6HG9"]]
     aligner = TheseusAligner()
@@ -127,7 +127,7 @@ I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
 I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
                             <  END THESEUS 3.3.0  >
     """
-    from structuralalignment.superposition.theseus import TheseusAligner
+    from superposer.superposition.theseus import TheseusAligner
 
     aligner = TheseusAligner()
     r = aligner._parse_superposition(output)
@@ -148,7 +148,7 @@ theseus 2 seqs, max length 532, avg  length 531
 00:00:00    26 MB(-4%)  Iter   1  100.00%  Align node
 00:00:00    26 MB(-4%)  Iter   1  100.00%  Root alignment
     """
-    from structuralalignment.superposition.theseus import TheseusAligner
+    from superposer.superposition.theseus import TheseusAligner
 
     aligner = TheseusAligner()
     r = aligner._parse_alignment(output)

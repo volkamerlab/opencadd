@@ -25,8 +25,8 @@ import atomium
 
 import numpy as np
 
-from structuralalignment.superposition.base import BaseAligner
-from structuralalignment.utils import enter_temp_directory
+from superposer.superposition.base import BaseAligner
+from superposer.utils import enter_temp_directory
 
 
 _logger = logging.getLogger(__name__)

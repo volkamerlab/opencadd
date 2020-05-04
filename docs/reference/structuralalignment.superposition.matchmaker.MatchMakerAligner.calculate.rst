@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.matchmaker.MatchMakerAligner.calculate
+superposer.superposition.matchmaker.MatchMakerAligner.calculate
 ========================================================================
 
-.. currentmodule:: structuralalignment.superposition.matchmaker
+.. currentmodule:: superposer.superposition.matchmaker
 
 .. automethod:: MatchMakerAligner.calculate

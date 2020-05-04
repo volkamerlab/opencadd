@@ -1,11 +1,11 @@
-structuralalignment.utils
+superposer.utils
 =========================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.utils
+.. automodule:: superposer.utils
 
-.. currentmodule:: structuralalignment.utils
+.. currentmodule:: superposer.utils
 
 
 
@@ -14,7 +14,7 @@ structuralalignment.utils
 
 .. autosummary::
     :toctree: .
-    
+
     enter_temp_directory
-    
+
 

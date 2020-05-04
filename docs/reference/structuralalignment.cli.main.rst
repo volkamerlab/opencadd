@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.cli.main
+superposer.cli.main
 ============================
 
-.. currentmodule:: structuralalignment.cli
+.. currentmodule:: superposer.cli
 
 .. autofunction:: main

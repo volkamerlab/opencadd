@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.sequences.get\_alignment\_fasta
+superposer.sequences.get\_alignment\_fasta
 ===================================================
 
-.. currentmodule:: structuralalignment.sequences
+.. currentmodule:: superposer.sequences
 
 .. autofunction:: get_alignment_fasta

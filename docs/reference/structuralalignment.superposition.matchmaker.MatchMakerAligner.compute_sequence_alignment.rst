@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.matchmaker.MatchMakerAligner.compute\_sequence\_alignment
+superposer.superposition.matchmaker.MatchMakerAligner.compute\_sequence\_alignment
 ===========================================================================================
 
-.. currentmodule:: structuralalignment.superposition.matchmaker
+.. currentmodule:: superposer.superposition.matchmaker
 
 .. automethod:: MatchMakerAligner.compute_sequence_alignment

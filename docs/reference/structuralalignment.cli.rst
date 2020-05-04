@@ -1,11 +1,11 @@
-structuralalignment.cli
+superposer.cli
 =======================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.cli
+.. automodule:: superposer.cli
 
-.. currentmodule:: structuralalignment.cli
+.. currentmodule:: superposer.cli
 
 
 
@@ -14,13 +14,13 @@ structuralalignment.cli
 
 .. autosummary::
     :toctree: .
-    
+
     greeting
-    
+
     main
-    
+
     parse_cli
-    
+
     parse_method_options
-    
+
 

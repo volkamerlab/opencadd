@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.sequences.smith\_waterman
+superposer.sequences.smith\_waterman
 =============================================
 
-.. currentmodule:: structuralalignment.sequences
+.. currentmodule:: superposer.sequences
 
 .. autofunction:: smith_waterman

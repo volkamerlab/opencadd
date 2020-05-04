@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.base.BaseAligner.compute\_structural\_overlap
+superposer.superposition.base.BaseAligner.compute\_structural\_overlap
 ===============================================================================
 
-.. currentmodule:: structuralalignment.superposition.base
+.. currentmodule:: superposer.superposition.base
 
 .. automethod:: BaseAligner.compute_structural_overlap

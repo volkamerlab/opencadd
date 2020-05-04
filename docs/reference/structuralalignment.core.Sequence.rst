@@ -1,19 +1,18 @@
-structuralalignment.core.Sequence
+superposer.core.Sequence
 =================================
 
-.. currentmodule:: structuralalignment.core
+.. currentmodule:: superposer.core
 
 .. autoclass:: Sequence
 
-   
-   
-   
-   
 
-   
+
+
+
+
+
    .. HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
       .. autosummary::
          :toctree:
-      
-   
-   
+
+

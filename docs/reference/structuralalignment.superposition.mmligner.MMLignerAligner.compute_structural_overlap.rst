@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.mmligner.MMLignerAligner.compute\_structural\_overlap
+superposer.superposition.mmligner.MMLignerAligner.compute\_structural\_overlap
 =======================================================================================
 
-.. currentmodule:: structuralalignment.superposition.mmligner
+.. currentmodule:: superposer.superposition.mmligner
 
 .. automethod:: MMLignerAligner.compute_structural_overlap

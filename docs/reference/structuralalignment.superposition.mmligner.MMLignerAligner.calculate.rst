@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.mmligner.MMLignerAligner.calculate
+superposer.superposition.mmligner.MMLignerAligner.calculate
 ====================================================================
 
-.. currentmodule:: structuralalignment.superposition.mmligner
+.. currentmodule:: superposer.superposition.mmligner
 
 .. automethod:: MMLignerAligner.calculate

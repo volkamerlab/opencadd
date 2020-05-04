@@ -1,22 +1,22 @@
-structuralalignment.core
+superposer.core
 ========================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.core
+.. automodule:: superposer.core
 
-.. currentmodule:: structuralalignment.core
+.. currentmodule:: superposer.core
 
 
 .. rubric:: Classes
 
 .. autosummary::
     :toctree: .
-    
+
     Sequence
-    
+
     Structure
-    
+
 
 
 

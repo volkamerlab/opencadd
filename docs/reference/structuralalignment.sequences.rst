@@ -1,11 +1,11 @@
-structuralalignment.sequences
+superposer.sequences
 =============================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.sequences
+.. automodule:: superposer.sequences
 
-.. currentmodule:: structuralalignment.sequences
+.. currentmodule:: superposer.sequences
 
 
 
@@ -14,13 +14,13 @@ structuralalignment.sequences
 
 .. autosummary::
     :toctree: .
-    
+
     get_alignment_fasta
-    
+
     matrices
-    
+
     needleman_wunsch
-    
+
     smith_waterman
-    
+
 

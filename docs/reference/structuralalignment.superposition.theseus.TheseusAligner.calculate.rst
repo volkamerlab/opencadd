@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.theseus.TheseusAligner.calculate
+superposer.superposition.theseus.TheseusAligner.calculate
 ==================================================================
 
-.. currentmodule:: structuralalignment.superposition.theseus
+.. currentmodule:: superposer.superposition.theseus
 
 .. automethod:: TheseusAligner.calculate

@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=structuralalignment
+set SPHINXPROJ=superposer
 
 if "%1" == "" goto help
 

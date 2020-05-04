@@ -265,7 +265,7 @@ class MMLignerAligner(BaseAligner):
         .. note::
 
             This is a temporary workaround to fix issue #9 at:
-            https://github.com/volkamerlab/structuralalignment/issues/9
+            https://github.com/volkamerlab/superposer/issues/9
         """
         assert len(path) == 2
 
@@ -299,7 +299,7 @@ class MMLignerAligner(BaseAligner):
         .. note::
 
             This is a temporary workaround to fix issue #9 at:
-            https://github.com/volkamerlab/structuralalignment/issues/9
+            https://github.com/volkamerlab/superposer/issues/9
         """
         with open(path, "w") as outfile:
             for line in pdb:

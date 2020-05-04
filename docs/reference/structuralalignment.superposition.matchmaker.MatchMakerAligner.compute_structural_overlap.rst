@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.superposition.matchmaker.MatchMakerAligner.compute\_structural\_overlap
+superposer.superposition.matchmaker.MatchMakerAligner.compute\_structural\_overlap
 ===========================================================================================
 
-.. currentmodule:: structuralalignment.superposition.matchmaker
+.. currentmodule:: superposer.superposition.matchmaker
 
 .. automethod:: MatchMakerAligner.compute_structural_overlap

@@ -18,12 +18,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-import structuralalignment
+import superposer
 
 
 # -- Project information -----------------------------------------------------
 
-project = "StructuralAlignment"
+project = "superposer"
 copyright = (
     "2020, Volkamer Lab. Project structure based on the "
     "Computational Molecular Science Python Cookiecutter version 1.1"
@@ -121,7 +121,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "structuralalignmentdoc"
+htmlhelp_basename = "superposerdoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -145,13 +145,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (
-        master_doc,
-        "structuralalignment.tex",
-        "StructuralAlignment Documentation",
-        "structuralalignment",
-        "manual",
-    ),
+    (master_doc, "superposer.tex", "superposer Documentation", "superposer", "manual",),
 ]
 
 
@@ -159,7 +153,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "structuralalignment", "StructuralAlignment Documentation", [author], 1)]
+man_pages = [(master_doc, "superposer", "superposer Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -170,10 +164,10 @@ man_pages = [(master_doc, "structuralalignment", "StructuralAlignment Documentat
 texinfo_documents = [
     (
         master_doc,
-        "structuralalignment",
-        "StructuralAlignment Documentation",
+        "superposer",
+        "superposer Documentation",
         author,
-        "structuralalignment",
+        "superposer",
         "A Python library for molecular structural alignment and superposition",
         "Miscellaneous",
     ),

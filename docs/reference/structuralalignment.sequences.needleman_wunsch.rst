@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.sequences.needleman\_wunsch
+superposer.sequences.needleman\_wunsch
 ===============================================
 
-.. currentmodule:: structuralalignment.sequences
+.. currentmodule:: superposer.sequences
 
 .. autofunction:: needleman_wunsch

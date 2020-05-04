@@ -1,20 +1,20 @@
-structuralalignment.superposition.base
+superposer.superposition.base
 ======================================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment.superposition.base
+.. automodule:: superposer.superposition.base
 
-.. currentmodule:: structuralalignment.superposition.base
+.. currentmodule:: superposer.superposition.base
 
 
 .. rubric:: Classes
 
 .. autosummary::
     :toctree: .
-    
+
     BaseAligner
-    
+
 
 
 

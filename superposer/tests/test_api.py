@@ -1,10 +1,10 @@
 """
-Tests for structuralalignment.api
+Tests for superposer.api
 """
 
 import pytest
 import atomium
-from structuralalignment.api import align, METHODS
+from superposer.api import align, METHODS
 
 
 @pytest.mark.parametrize("method", list(METHODS.values()))

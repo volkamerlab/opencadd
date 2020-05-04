@@ -1,11 +1,11 @@
-structuralalignment
+superposer
 ===================
 
 .. rubric:: Description
 
-.. automodule:: structuralalignment
+.. automodule:: superposer
 
-.. currentmodule:: structuralalignment
+.. currentmodule:: superposer
 
 
 

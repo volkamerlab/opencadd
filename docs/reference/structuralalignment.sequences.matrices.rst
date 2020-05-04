@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.sequences.matrices
+superposer.sequences.matrices
 ======================================
 
-.. currentmodule:: structuralalignment.sequences
+.. currentmodule:: superposer.sequences
 
 .. autofunction:: matrices

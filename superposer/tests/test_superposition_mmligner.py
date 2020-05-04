@@ -1,10 +1,10 @@
 """
-Tests for structuralalignment.superposition.mmligner
+Tests for superposer.superposition.mmligner
 """
 
 import pytest
 import atomium
-from structuralalignment.superposition.mmligner import MMLignerAligner
+from superposer.superposition.mmligner import MMLignerAligner
 
 
 def test_mmligner_instantiation():

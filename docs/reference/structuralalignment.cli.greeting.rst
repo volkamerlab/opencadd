@@ -1,8 +1,8 @@
 :orphan:
 
-structuralalignment.cli.greeting
+superposer.cli.greeting
 ================================
 
-.. currentmodule:: structuralalignment.cli
+.. currentmodule:: superposer.cli
 
 .. autofunction:: greeting

@@ -16,7 +16,7 @@ def atomium_to_nglview(*models):
     nglview.NGLWidget
     """
     import nglview as nv
-    from structuralalignment.utils import enter_temp_directory
+    from superposer.utils import enter_temp_directory
 
     v = nv.NGLWidget()
     with enter_temp_directory():
