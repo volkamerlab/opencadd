@@ -55,7 +55,7 @@ Copyright (c) 2020, Volkamer Lab
 * Jaime Rodríguez-Guerra <jaime.rodriguez@charite.de>
 * Dennis Köser
 * Annie Pham
-* Enes Kuni
+* Enes Kurnaz
 * Julian Pipart
 
 ## Acknowledgements
