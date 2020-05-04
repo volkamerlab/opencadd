@@ -35,9 +35,34 @@ Two structures superposed with theseus with additional arguments::
 
     structuralaligment 1lol 5XME --method theseus --method-options something
 
+Two structures superposed with theseus with additional options::
+
+    structuralalignment 1lol 5XME --method matchmaker --method-strategy --method-matrix --method-gap --method-strict --method-selection --method-weights --method-mass_tolerance
+
 
 
 best pactices
 -------------
 
-coming soon.
+MatchMaker:
+    Introduction:
+        MatchMaker superimposes protein by first creating pairwise sequence alignments, then fitting the aligned residue pairs.
+        The standard Needleman-Wunsch and Smith-Waterman algorithms are available for producing global and local sequence alignments
+        and MatchMaker can identify the best-matching chains based on alignment scores.
+        Alignment scores can include residue similarity, secondary structure information, and gap penalties.
+        MatchMaker performs a spatial superposition by minimizing the RMSD.
+    Preparation:
+        Generating pairwise sequence alignments and matching, i.e., superimposing the structures according to those pairwise alignments
+    Alignment:
+        Spatially align the group of atoms `mobile` to `reference` by doing a RMSD fit on `select` atoms.
+        - A rotation matrix is computed that minimizes the RMSD between
+        the coordinates of `mobile.select_atoms(sel1)` and
+        `reference.select_atoms(sel2)`; before the rotation, `mobile` is
+        translated so that its center of geometry (or center of mass)
+        coincides with the one of `reference`.
+        - All atoms in :class:`~MDAnalysis.core.universe.Universe` that
+        contain `mobile` are shifted and rotated.
+    Analysis:
+        RMSD before and after spatial alignment
+
+

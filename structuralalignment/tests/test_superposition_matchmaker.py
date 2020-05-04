@@ -15,7 +15,6 @@ def test_matchmaker_calculation():
     aligner = MatchMakerAligner()
     structures = [atomium.fetch(pdb_id).model for pdb_id in ["4u3y", "4u40"]]
     result = aligner.calculate(structures)
-    print(result)
     # Check API compliance
     assert "superposed" in result
     assert "scores" in result
