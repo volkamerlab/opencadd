@@ -24,7 +24,11 @@ Bell Syst.Tech. J., 27, 379–423.
 
 import sys
 import subprocess
+from copy import deepcopy
 
+import numpy as np
+
+# import atomium
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
@@ -33,12 +37,12 @@ from ..utils import enter_temp_directory
 
 class MMLignerAligner(BaseAligner):
     """
-    Wraps mmligner to superpose two protein structures
+    Wraps MMLigner to superpose two protein structures.
 
     Parameters
     ----------
     executable : str
-        Path to the mmligner executable file
+        Path to the MMLigner executable file
     """
 
     def __init__(self, executable=None):
@@ -46,8 +50,7 @@ class MMLignerAligner(BaseAligner):
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
 
-    # pylint: disable=arguments-differ
-    def _calculate(self, structures, **kwargs):
+    def _calculate(self, structures, *args, **kwargs):
         """
         Calculates the superposition of two protein structures.
 
@@ -61,103 +64,190 @@ class MMLignerAligner(BaseAligner):
         Returns
         -------
         dict
-            As returned by ``._parse(output)``.
-
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
-
+            As returned by ``._parse_metadata(output)``.
+            - ``superposed`` ([atomium.model, atomium.model]): the superposed models
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+            - ``metadata`` (dict):
+                - ``alignment`` (biotite.alignment): computed alignment
+                - ``rotation`` (array-like): 3x3 rotation matrix
+                - ``translation`` (np.array): array containing the translation
+                - ``quarternion`` (array-like): 4x4 quarternion matrix
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
+            sys.setrecursionlimit(
+                100000
+            )  # Needed because of the need of a copy of the structures.
+
             path1, path2 = self._edit_pdb(structures)
             output = subprocess.check_output(
                 [self.executable, path1, path2, "-o", "temp", "--superpose"]
             )
             # We need access to the temporary files at parse time!
-            result = self._parse(output)
-
+            result = self._parse_metadata(output.decode())
+            copies = [deepcopy(structure) for structure in structures]
+            superposed_models = self._calculate_transformed(copies, result["metadata"])
+            result.update({"superposed": superposed_models})
         return result
 
-    def _parse(self, output):
+    def _parse_metadata(self, output):
         """
-        retrieves rmsd, score and metadata from the output of the mmligner subprocess
+        Retrieves RMSD, score and metadata from the output of the MMLigner subprocess.
 
         Parameters
         ----------
-        output: bytes
-            string of bytes containing the stdout of the mmligener call
+        output: str
+            string of containing the stdout of the mmligener call
 
         Returns
         -------
         dict
-            As returned by ``._parse(output)``.
-
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
+            As returned by ``._parse_metadata(output)``.
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+            - ``metadata`` (dict):
+                - ``alignment``: (biotite.alignment): computed alignment
+                - ``rotation``: (array-like): 3x3 rotation matrix
+                - ``translation``: (np.array): array containing the translation
+                - ``quarternion``: (array-like): 4x4 quarternion matrix
         """
-
-        for line in output.splitlines():
-            if line.startswith(b"RMSD"):
+        lines = iter(output.splitlines())
+        for line in lines:
+            if line.startswith("RMSD"):
                 rmsd = float(line.split()[2])
-            # coverage may still be relevant?
-            # elif line.startswith(b"Coverage"):
-            #   coverage = float(line.split()[2])
-
-            elif line.startswith(b"I(A & <S,T>)"):
+            elif line.startswith("Coverage"):
+                coverage = float(line.split()[2])
+            elif line.startswith("I(A & <S,T>)"):
                 ivalue = float(line.split()[4])
+            elif "Print Centers of Mass of moving set:" in line:
+                moving_com = np.array([float(x) for x in next(lines).split()])
+            elif "Print Centers of Mass of fixed set:" in line:
+                fixed_com = np.array([float(x) for x in next(lines).split()])
+            elif "Print Rotation matrix" in line:
+                rotation = [[float(x) for x in next(lines).split()] for _ in range(3)]
+            elif "Print Quaternion matrix" in line:
+                quarternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
+
+        translation = fixed_com - moving_com
 
         alignment = fasta.FastaFile()
+        alignment.read("temp__1.afasta")
 
         return {
-            "superposed": None,
-            "scores": {"rmsd": rmsd, "score": ivalue},
+            "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
             "metadata": {
-                "alignment": alignment.read("temp__1.afasta")
-            },  # TODO: AV asked for the coverage!
+                "alignment": alignment,
+                "rotation": rotation,
+                "translation": translation,
+                "quarternion": quarternion,
+            },
         }
+
+    def _parse_scoring(self, output):
+        """
+        Retrieves RMSD, score and ivalue from the output of the MMLigner subprocess.
+
+        Parameters
+        ----------
+        output: str
+            string containing the stdout of the mmligener call
+
+        Returns
+        -------
+        dict
+            As returned by ``._parse_scoring(output)``.
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
+        """
+        lines = iter(output.splitlines())
+        for line in lines:
+            if line.startswith("RMSD"):
+                rmsd = float(line.split()[2])
+            elif line.startswith("Coverage"):
+                coverage = float(line.split()[2])
+            elif line.startswith("I(A & <S,T>)"):
+                ivalue = float(line.split()[4])
+
+        return {
+            "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
+        }
+
+    def _calculate_transformed(self, structures, metadata):
+        """
+        Parse back output PDBs and construct updated atomium models.
+
+        Parameters
+        ----------
+        structures: list of atomium.Model
+            Original input structures
+
+        Returns
+        -------
+        list of atomium.Model
+            Input structures with updated coordinates
+        """
+        ref, original_mobile, *_ = structures
+        translation = metadata["translation"]
+        rotation = metadata["rotation"]
+
+        atomium_translation = original_mobile.center_of_mass - ref.center_of_mass
+        original_mobile.translate(*translation)
+        original_mobile.transform(rotation)
+        original_mobile.translate(ref.center_of_mass - original_mobile.center_of_mass)
+
+        return ref, original_mobile
 
     def ivalue(self, structures, alignment):
         """
-        computes the score and rmsd for a given alignment of two structures by calling mmligner as a subprocess
+        Parse back output PDBs and construct updated atomium models.
 
         Parameters
         ----------
         structures: [array like, array like]
             sequences of two protein structures of same length
-        alignment: array like
+        alignment: biotite.alignment
             alignment of the given two sequences
 
         Returns
         -------
         dict
-            As returned by ``._parse(output)``.
-
-            - ``rmsd`` (float): RMSD Value of the alignment
-            - ``score`` (float)
-                    ivalue of the alignment. The smaller the better
-            - ``metadata`` (?)
+            As returned by ``._parse_scoring(output)``.
+            - ``scores`` (dict):
+                - ``rmsd`` (float): RMSD value of the alignment
+                - ``score`` (float): ivalue of the alignment
+                - ``coverage`` (float): coverage of the alignment
         """
-        assert len(structures) == 2
+
         with enter_temp_directory() as (cwd, tmpdir):
+            path1, path2 = self._edit_pdb(structures)
+
+            fasta_file = fasta.FastaFile()
+
+            for header, string in alignment.items():
+                fasta_file[header] = string
+
+            fasta_file.write("temp_alignment.afasta")
+
+            self._edit_fasta("temp_alignment.afasta")
+
             output = subprocess.check_output(
-                [
-                    self.executable,
-                    structures[0].to_pdb(),
-                    structures[1].to_pdb(),
-                    "--ivalue",
-                    alignment.to_fasta(),
-                ]
+                [self.executable, path1, path2, "--ivalue", "temp_alignment.afasta"]
             )
+            # We need access to the temporary files at parse time!
+            result = self._parse_scoring(output.decode())
 
-            return self._parse(output)
+        return result
 
-    def _edit_pdb(self, structures, path=("./structure1.pdb", "./structure2.pdb")):
+    def _edit_pdb(self, structures, path=("structure1.pdb", "structure2.pdb")):
         """
-        function to write atomium protein models to pdb readable by mmligner
+        Method to write atomium protein models to PDBs readable by MMLigner.
 
         Parameters
         ----------
@@ -196,7 +286,7 @@ class MMLignerAligner(BaseAligner):
 
     def _write_pdb(self, path, pdb):
         """
-        function to write atomium protein models to pdb readable by mmligner
+        Method to write atomium protein models to PDBs readable by MMLigner.
 
         Parameters
         ----------
@@ -214,3 +304,27 @@ class MMLignerAligner(BaseAligner):
         with open(path, "w") as outfile:
             for line in pdb:
                 outfile.write(line)
+
+    def _edit_fasta(self, path):
+        """
+        Method to edit FASTA files written by biotite to FASTA files readable by MMLigner. This is needed,
+        because MMLigner expects an empty line after each sequence.
+
+        Parameters
+        ----------
+        path: str
+            Path to the fasta file that is to be edited.
+        """
+        with open(path, "r") as fasta:
+            data = fasta.readlines()
+
+        lines = iter(data)
+        for line in lines:
+            if next(lines).startswith(">structure2.pdb"):
+                line = line + "\n"
+
+        data[-1] = data[-1] + "\n"
+
+        with open(path, "w") as fasta:
+            for line in data:
+                fasta.write(line)
