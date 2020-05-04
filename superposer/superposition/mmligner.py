@@ -25,6 +25,7 @@ Bell Syst.Tech. J., 27, 379–423.
 import sys
 import subprocess
 from copy import deepcopy
+import logging
 
 import numpy as np
 
@@ -33,6 +34,8 @@ import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
 from ..utils import enter_temp_directory
+
+_logger = logging.getLogger(__name__)
 
 
 class MMLignerAligner(BaseAligner):
@@ -49,6 +52,9 @@ class MMLignerAligner(BaseAligner):
         if executable is None:
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
+        _logger.warning(
+            "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures."
+        )
 
     def _calculate(self, structures, *args, **kwargs):
         """

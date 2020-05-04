@@ -8,6 +8,7 @@ import logging
 import atomium
 
 from .api import align, METHODS
+from .utils import PerLevelFormatter
 from ._version import get_versions as _get_versions
 
 __version__ = _get_versions()["version"]
@@ -69,32 +70,47 @@ def greeting():
     )[1:]
 
 
+def configure_logger(level=logging.INFO):
+    logger = logging.getLogger("superposer")
+    logger.setLevel(level)
+    handler = logging.StreamHandler()
+    formatter = PerLevelFormatter()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+
 def main():
     args = parse_cli()
-    debug_level = logging.INFO if args.verbose else logging.WARNING
-    logging.basicConfig(level=debug_level, format="%(message)s")
+    configure_logger(logging.DEBUG if args.verbose else logging.INFO)
 
-    _logger.log(100, "%s", greeting().format(version=__version__))
+    _logger.info(greeting())
 
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
 
     opener = atomium.open if os.path.isfile(reference_id) else atomium.fetch
+    _logger.debug("Fetching reference model `%s`", reference_id)
     reference_model = opener(reference_id).model
 
     for i, mobile_id in enumerate(mobile_ids, 1):
+        _logger.debug("Fetching mobile model #%d `%s`", i, mobile_id)
         opener = atomium.open if os.path.isfile(mobile_id) else atomium.fetch
         mobile_model = opener(mobile_id).model
+        _logger.debug(
+            "Aligning reference `%s` and mobile `%s` with method `%s`",
+            reference_id,
+            mobile_id,
+            args.method,
+        )
         result, *_empty = align(
             [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
         )
-        _logger.log(
-            100,
+        _logger.info(
             "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
             i,
             reference_id,
             mobile_id,
             result["scores"]["rmsd"],
         )
-        for j, structure in enumerate(result["superposed"]):
-            structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
+        for j, structure in enumerate(result["superposed"], 1):
+            structure.save(f"superposed_{args.method}_{i}_{j}.pdb")
