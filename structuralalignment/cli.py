@@ -93,7 +93,7 @@ def main():
     opener = atomium.open if os.path.isfile(reference_id) else atomium.fetch
     reference_model = opener(reference_id).model
 
-    for mobile_id in mobile_ids:
+    for i, mobile_id in enumerate(mobile_ids, 1):
         opener = atomium.open if os.path.isfile(mobile_id) else atomium.fetch
         mobile_model = opener(mobile_id).model
         result, *_empty = align(
@@ -101,8 +101,11 @@ def main():
         )
         _logger.log(
             100,
-            "RMSD for alignment between `%s` and `%s` is %.1fÅ",
+            "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
+            i,
             reference_id,
             mobile_id,
             result["scores"]["rmsd"],
         )
+        for j, structure in enumerate(result["superposed"]):
+            structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
