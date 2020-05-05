@@ -5,7 +5,7 @@ Aligner based on UCSF Chimera's MatchMaker algorithms.
 import uuid
 from copy import deepcopy
 
-import MDAnalysis as mda
+import numpy as np
 from MDAnalysis.analysis import align as mda_align, rms
 from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
 import biotite.sequence.align as align
@@ -67,7 +67,7 @@ class MatchMakerAligner(BaseAligner):
         alignment_matrix: str = "BLOSUM62",
         alignment_gap: int = -10,
         strict_superposition: bool = False,
-        superposition_selection="name CA",
+        superposition_selection="name CA and not altloc B and not altloc C",
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
@@ -81,9 +81,7 @@ class MatchMakerAligner(BaseAligner):
             raise ValueError("`alignment_strategy` must be one of `global, local`.")
 
         if alignment_matrix not in align.SubstitutionMatrix.list_db():
-            raise ValueError(
-                f"Substitution Matrix '{alignment_matrix }' could not be found."
-            )
+            raise ValueError(f"Substitution Matrix '{alignment_matrix }' could not be found.")
         else:
             self.alignment_matrix = alignment_matrix
 
@@ -134,26 +132,34 @@ class MatchMakerAligner(BaseAligner):
                 backbone_selection=self.superposition_selection,
             )
 
+        # Compute initial RMSD (no preprocessing)
         ref_atoms = ref_universe.select_atoms(selection["reference"])
         mobile_atoms = mob_universe.select_atoms(selection["mobile"])
         initial_rmsd = rms.rmsd(ref_atoms.positions, mobile_atoms.positions)
 
-        mobile_atoms.translate(-mobile_atoms.center_of_mass())
-        ref_atoms.translate(-ref_atoms.center_of_mass())
-        rotation, rmsd = mda_align.rotation_matrix(
-            ref_atoms.positions, mobile_atoms.positions
-        )
-        mob_universe.atoms.translate(-mob_universe.atoms.center_of_mass())
+        # Compute centered RMSD (both structures share now the same center of mass)
+        ref_weights = np.asarray([a.mass for a in ref_atoms])
+        mobile_weights = np.asarray([a.mass for a in mobile_atoms])
+        ref_com = ref_atoms.center(ref_weights)
+        mobile_com = mobile_atoms.center(mobile_weights)
+        ref_coordinates = ref_atoms.positions - ref_com
+        mobile_coordinates = mobile_atoms.positions - mobile_com
+        centered_rmsd = rms.rmsd(ref_coordinates, mobile_coordinates)
+
+        # Calculate optimum rotation matrix
+        rotation, rmsd = mda_align.rotation_matrix(mobile_coordinates, ref_coordinates)
+        mob_universe.atoms.translate(-mobile_com)
         mob_universe.atoms.rotate(rotation)
-        mob_universe.atoms.translate(ref_universe.atoms.center_of_mass())
+        mob_universe.atoms.translate(ref_com)
 
         return {
-            "superposed": [ref_universe, mob_universe, mob_universe_cp],
+            "superposed": [ref_universe, mob_universe],
             "scores": {"rmsd": rmsd},
             "metadata": {
                 "selection": selection,
                 "alignment": alignment,
                 "initial_rmsd": initial_rmsd,
+                "centered_rmsd": centered_rmsd,
             },
         }
 
