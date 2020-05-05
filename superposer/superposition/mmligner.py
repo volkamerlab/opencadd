@@ -44,12 +44,16 @@ class MMLignerAligner(BaseAligner):
     ----------
     executable : str
         Path to the MMLigner executable file
+    protein_selection : str, optional, default=protein
+        MMLigner will not accept residues beyond the 20 standard AA.
+
     """
 
-    def __init__(self, executable=None):
+    def __init__(self, executable=None, protein_selector="protein"):
         if executable is None:
             executable = "mmligner64.exe" if sys.platform.startswith("win") else "mmligner"
         self.executable = executable
+        self.protein_selector = protein_selector
         _logger.warning(
             "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures!"
         )
@@ -91,8 +95,7 @@ class MMLignerAligner(BaseAligner):
             )
             # We need access to the temporary files at parse time!
             result = self._parse_metadata(output.decode())
-            copies = [deepcopy(structure) for structure in structures]
-            superposed_models = self._calculate_transformed(copies, result["metadata"])
+            superposed_models = self._calculate_transformed(structures, result["metadata"])
             result.update({"superposed": superposed_models})
         return result
 
@@ -196,15 +199,15 @@ class MMLignerAligner(BaseAligner):
         list of superposer.core.Structure
             Input structures with updated coordinates
         """
-        ref, original_mobile, *_ = structures
+        ref, mobile, *_ = structures
         translation = metadata["translation"]
         rotation = metadata["rotation"]
 
-        original_mobile.translate(*translation)
-        original_mobile.transform(rotation)
-        original_mobile.translate(ref.center_of_mass - original_mobile.center_of_mass)
+        mobile.atoms.translate(translation)
+        mobile.atoms.rotate(rotation)
+        mobile.atoms.translate(ref.atoms.center_of_geometry() - mobile.atoms.center_of_geometry())
 
-        return ref, original_mobile
+        return ref, mobile
 
     def ivalue(self, structures, alignment):
         """
@@ -229,8 +232,8 @@ class MMLignerAligner(BaseAligner):
 
         with enter_temp_directory() as (cwd, tmpdir):
             paths = "structure1.pdb", "structure2.pdb"
-            structures[0].write(paths[0])
-            structures[1].write(paths[1])
+            structures[0].select_atoms(self.protein_selector).write(paths[0])
+            structures[1].select_atoms(self.protein_selector).write(paths[1])
 
             fasta_file = fasta.FastaFile()
 
@@ -273,8 +276,8 @@ class MMLignerAligner(BaseAligner):
         """
         assert len(path) == 2
 
-        structures[0].write(path[0])
-        structures[1].write(path[1])
+        structures[0].select_atoms(self.protein_selector).write(path[0])
+        structures[1].select_atoms(self.protein_selector).write(path[1])
 
         for i in range(len(path)):
             pdb = []
