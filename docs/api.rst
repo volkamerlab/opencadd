@@ -2,13 +2,12 @@ API Documentation
 =================
 
 .. autosummary::
-   :toctree: reference
+   :toctree: generated
 
    superposer
    superposer.api
    superposer.cli
    superposer.core
-   superposer.report
    superposer.sequences
    superposer.superposition
    superposer.superposition.base

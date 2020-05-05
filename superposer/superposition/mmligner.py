@@ -224,6 +224,7 @@ class MMLignerAligner(BaseAligner):
         -------
         dict
             As returned by ``._parse_scoring(output)``.
+
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment

@@ -12,7 +12,7 @@ import biotite.sequence.align as align
 from biotite.sequence.io.fasta import FastaFile
 
 from .base import BaseAligner
-from ..sequences import needleman_wunsch, smith_waterman, fasta2select
+from ..sequences import sequence_alignment, fasta2select
 from ..utils import enter_temp_directory
 
 
@@ -36,22 +36,24 @@ class MatchMakerAligner(BaseAligner):
         - "local" (Smith-Waterman)
     alignment_matrix : str, optional, default=BLOSUM62
         The substitution matrix used for scoring
-    alignment_gap : int or (tuple, dtype=int), optional
+    alignment_gap : int or (tuple, dtype=int), optional, default=-10
         Int the value will be interpreted as general gap penalty.
-        Tupel is provided, an affine gap penalty is used. The first integer in the tuple is the gap opening penalty,
-        the second integer is the gap extension penalty. The values need to be negative.
-        (Default: -10)
+        Tupel is provided, an affine gap penalty is used. The first integer in the tuple
+        is the gap opening penalty, the second integer is the gap extension penalty.
+        The values need to be negative.
     strict_superposition: bool, optional, default=False
         True: Will raise SelectionError if a single atom does not match between the two selections.
         False: Will try to prepare a matching selection by dropping residues with non-matching atoms.
     superposition_selection: str or AtomGroup or None, optional, default=None
-        None: Apply to mobile.universe.atoms (i.e., all atoms in the context of the selection from mobile such as the rest of a protein, ligands and the surrounding water)
+        None: Apply to mobile.universe.atoms (i.e., all atoms in the context of the selection from
+        mobile such as the rest of a protein, ligands and the surrounding water)
         str: Apply to mobile.select_atoms(selection-string), e.g "protein and name CA"
         AtomGroup: Apply to the arbitrary group of atoms
     superposition_weights: {“mass”, None} or array_like, optional
         choose weights. With "mass" uses masses as weights;
         None: weigh each atom equally
-        If a float array of the same length as mobile is provided, use each element of the array_like as a weight for the corresponding atom in mobile.
+        If a float array of the same length as mobile is provided, use each element of the
+        array_like as a weight for the corresponding atom in mobile.
     superposition_delta_mass_tolerance: float, optional, default=0.1
         Reject match if the atomic masses for matched atoms differ by more than tol_mass
 
@@ -74,9 +76,9 @@ class MatchMakerAligner(BaseAligner):
 
         self.alignment_strategy = alignment_strategy.lower()
         if self.alignment_strategy == "global":
-            self._sequence_aligner = needleman_wunsch
+            self._align_local = False
         elif self.alignment_strategy == "local":
-            self._sequence_aligner = smith_waterman
+            self._align_local = True
         else:
             raise ValueError("`alignment_strategy` must be one of `global, local`.")
 
@@ -119,12 +121,10 @@ class MatchMakerAligner(BaseAligner):
         alignment = self._align(ref_sequence, mob_sequence)
         with enter_temp_directory():
             fasta = FastaFile()
-            fasta["ref"] = alignment.get_gapped_sequences()[0]
-            fasta["mob"] = alignment.get_gapped_sequences()[1]
+            fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
             fasta.write("temp.fasta")
             selection = fasta2select(
                 "temp.fasta",
-                is_aligned=True,
                 ref_resids=ref_resids,
                 target_resids=mob_resids,
                 ref_segids=ref_segids,
@@ -213,6 +213,10 @@ class MatchMakerAligner(BaseAligner):
         R-K-I-DLS-S-LRDP
         """
 
-        return self._sequence_aligner(
-            sequence_1, sequence_2, self.alignment_matrix, self.alignment_gap
+        return sequence_alignment(
+            sequence_1,
+            sequence_2,
+            self.alignment_matrix,
+            self.alignment_gap,
+            local=self._align_local,
         )

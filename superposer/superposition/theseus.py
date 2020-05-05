@@ -192,8 +192,8 @@ class TheseusAligner(BaseAligner):
         """
         Superpose identical sequences with Theseus
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         pdbs_filename : list
             list of pdb filenames
 
@@ -241,8 +241,8 @@ class TheseusAligner(BaseAligner):
         """
         Superpose different sequences with Theseus based on the sequence alignment
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         pdbs_filename : list
             list of pdb filenames
 
@@ -269,8 +269,8 @@ class TheseusAligner(BaseAligner):
         """
         Get the superposed models
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         pdbs_filename : list
             list of pdb filenames
 
@@ -292,8 +292,8 @@ class TheseusAligner(BaseAligner):
         """
         Remove the "REMARK" lines in the pdb files
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         pdbs_filename : list
             list of pdb filenames
         """
@@ -341,15 +341,14 @@ class TheseusAligner(BaseAligner):
         """
         Parse the output from the MSA program (muscle, by default)
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         output : bytes
 
         Returns
         -------
         str
             Output from MUSCLE
-        -------
         """
         return output
 
@@ -443,8 +442,8 @@ class TheseusAligner(BaseAligner):
         """
         Calculate statistics (don't superpose)
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         structures : list
             List of superposer.core.Structure
 

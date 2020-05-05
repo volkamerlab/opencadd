@@ -8,9 +8,10 @@ dependencies:
   # Base depends
   - python
   - pip
+  - MDAnalysis
+  - nglview
   # Chimera reimplementation
   - biotite
-  - MDAnalysis
   # mmligner
   - mmligner
   # theseus
@@ -23,4 +24,4 @@ dependencies:
   # docs
   - sphinx
   - sphinx_rtd_theme
-  - nglview
+  - nbsphinx

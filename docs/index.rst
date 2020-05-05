@@ -12,7 +12,14 @@ Welcome to superposer's documentation!
 
    installing
    getting_started
-   tutorial
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/matchmaker
+   tutorials/mmligner
+   tutorials/theseus
 
 .. toctree::
    :maxdepth: 1
