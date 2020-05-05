@@ -139,6 +139,9 @@ class MMLignerAligner(BaseAligner):
             elif "Print Quaternion matrix" in line:
                 quarternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
 
+        # fixed_com, moving_com, rotation and quaternion can only be obtained
+        # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
+        # -- this will fail in CI for now --
         translation = fixed_com - moving_com
 
         alignment = fasta.FastaFile()
