@@ -20,6 +20,9 @@ def test_theseus_different_no_superposition():
     from superposer.superposition.theseus import TheseusAligner
 
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
+    for m in different_models:  # workaround for MDAnalysis issue #2679
+        m.universe.trajectory.ts._unitcell = [0] * 6
+        m.universe.trajectory.ts.dimensions = [0] * 6
     aligner = TheseusAligner()
     results = aligner.run_theseus_different_no_superposition(different_models)
     assert "scores" in results

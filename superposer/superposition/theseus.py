@@ -68,7 +68,7 @@ class TheseusAligner(BaseAligner):
         """
         fetched_pdbs_filename = []
         for index, pdbs in enumerate(structures):
-            pdb_filename = f"{index}.pdb"
+            pdb_filename = f"structure_{index}.pdb"
             pdbs.write(pdb_filename)
             fetched_pdbs_filename.append(pdb_filename)
         return fetched_pdbs_filename
@@ -172,7 +172,7 @@ class TheseusAligner(BaseAligner):
         """
 
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            _logger.info("All files are located in: %s", tmpdir)
+            _logger.debug("All files are located in: %s", tmpdir)
 
             pdbs_filename = self._create_pdb(structures)
 
@@ -180,7 +180,7 @@ class TheseusAligner(BaseAligner):
                 superposition_output = self._run_theseus_identical(pdbs_filename)
             else:
                 superposition_output = self._run_theseus_different(pdbs_filename)
-                _logger.info(superposition_output)
+                _logger.debug(superposition_output)
             superposed_pdb_models = self._get_superposed_models(pdbs_filename)
             transformation_matrix = self._get_transformation_matrix()
         results = self._parse_superposition(superposition_output)
@@ -441,12 +441,12 @@ class TheseusAligner(BaseAligner):
 
     def run_theseus_different_no_superposition(self, structures) -> dict:
         """
-        Calculate statistics (don't superposition)
+        Calculate statistics (don't superpose)
 
         Parameter
         ---------
-        pdbs_filename : list
-            list of pdb filenames
+        structures : list
+            List of superposer.core.Structure
 
         Returns
         -------
@@ -454,7 +454,7 @@ class TheseusAligner(BaseAligner):
             As returned by ``._parse_superposition(output)``.
         """
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            _logger.info("All files are located in: %s", tmpdir)
+            _logger.debug("All files are located in: %s", tmpdir)
 
             pdbs_filename = self._create_pdb(structures)
             self._get_fasta(pdbs_filename)
