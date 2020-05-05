@@ -3,7 +3,7 @@ Tests for superposer.superposition.mmligner
 """
 
 import pytest
-import atomium
+from superposer.api import Structure
 from superposer.superposition.mmligner import MMLignerAligner
 
 
@@ -13,7 +13,7 @@ def test_mmligner_instantiation():
 
 def test_mmligner_alignment():
     aligner = MMLignerAligner()
-    structures = [atomium.fetch(pdb_id).model for pdb_id in ["4u3y", "4u40"]]
+    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
     result = aligner.calculate(structures)
     # Check API compliance
     assert "superposed" in result

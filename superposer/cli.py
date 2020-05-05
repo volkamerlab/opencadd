@@ -1,13 +1,11 @@
 """
 Command Line Interface for superposer
 """
-import os
 import argparse
 import logging
 
-import atomium
-
 from .api import align, METHODS
+from .core import Structure
 from .utils import PerLevelFormatter, EmojiPerLevelFormatter
 from ._version import get_versions as _get_versions
 
@@ -82,23 +80,21 @@ def configure_logger(level=logging.INFO, formatter=EmojiPerLevelFormatter):
 
 def main():
     args = parse_cli()
+    # Configure logging
     formatter = PerLevelFormatter if args.no_emoji else EmojiPerLevelFormatter
     level = logging.DEBUG if args.verbose else logging.INFO
     configure_logger(level, formatter)
-
     _logger.log(101, greeting())
 
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
 
-    opener = atomium.open if os.path.isfile(reference_id) else atomium.fetch
     _logger.debug("Fetching reference model `%s`", reference_id)
-    reference_model = opener(reference_id).model
+    reference_model = Structure.from_string(reference_id)
 
     for i, mobile_id in enumerate(mobile_ids, 1):
         _logger.debug("Fetching mobile model #%d `%s`", i, mobile_id)
-        opener = atomium.open if os.path.isfile(mobile_id) else atomium.fetch
-        mobile_model = opener(mobile_id).model
+        mobile_model = Structure.from_string(mobile_id)
         _logger.debug(
             "Aligning reference `%s` and mobile `%s` with method `%s`",
             reference_id,
@@ -117,4 +113,7 @@ def main():
             result["scores"]["rmsd"],
         )
         for j, structure in enumerate(result["superposed"], 1):
-            structure.save(f"superposed_{args.method}_{i}_{j}.pdb")
+            structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
+            _logger.debug(
+                "Wrote superposed model #%d to %s", j, f"superposed_{args.method}_{i}_{j}.pdb"
+            )

@@ -99,7 +99,7 @@ class MatchMakerAligner(BaseAligner):
 
         Parameters
         ----------
-        structures : list of atomium.Model
+        structures : list of superposer.core.Structure
             First one will be the target (static structure). Following, will be mobile.
 
         Returns
@@ -113,12 +113,9 @@ class MatchMakerAligner(BaseAligner):
             raise NotImplementedError(
                 "This method can only be used for two structures at the same time, for now"
             )
-        reference, mobile = structures
-        ref_universe = self._atomium_to_mda_universe(reference)
-        mob_universe = self._atomium_to_mda_universe(mobile)
-        mob_universe_cp = self._atomium_to_mda_universe(mobile)
+        ref_universe, mob_universe = structures
 
-        # Compute sequence alignment
+        # Compute sequence alignment and matching atoms
         ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(ref_universe)
         mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mob_universe)
         alignment = self._align(ref_sequence, mob_sequence)
@@ -187,13 +184,6 @@ class MatchMakerAligner(BaseAligner):
                     residue_ids.append(residue.resid)
                     segment_ids.append(residue.segid)
         return "".join(sequences), residue_ids, segment_ids
-
-    @staticmethod
-    def _atomium_to_mda_universe(atomium_model):
-        with enter_temp_directory():
-            filename = f"{uuid.uuid4()}.pdb"
-            atomium_model.save(filename)
-            return mda.Universe(filename)
 
     def _align(self, sequence_1, sequence_2):
         """

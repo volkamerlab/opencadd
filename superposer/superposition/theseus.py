@@ -21,11 +21,11 @@ References
 
 import subprocess
 import logging
-import atomium
 
 import numpy as np
 
 from superposer.superposition.base import BaseAligner
+from superposer.core import Structure
 from superposer.utils import enter_temp_directory
 
 
@@ -54,12 +54,12 @@ class TheseusAligner(BaseAligner):
 
     def _create_pdb(self, structures) -> list:
         """
-        Create files with atomium models
+        Create files with superposer.core.Structure models
 
         Parameter
         ---------
         structures : list
-            list of atomium models
+            list of superposer.core.Structure models
 
         Returns
         -------
@@ -69,7 +69,7 @@ class TheseusAligner(BaseAligner):
         fetched_pdbs_filename = []
         for index, pdbs in enumerate(structures):
             pdb_filename = f"{index}.pdb"
-            pdbs.save(pdb_filename)
+            pdbs.write(pdb_filename)
             fetched_pdbs_filename.append(pdb_filename)
         return fetched_pdbs_filename
 
@@ -132,7 +132,7 @@ class TheseusAligner(BaseAligner):
         Parameters
         ----------
         structures : list
-            list of atomium objects
+            list of superposer.core.Structures objects
         identical : bool, optional, default=False
             Whether to use sequence alignment to obtain an optimum pairing for
             different length sequences or not (recommended: assume sequences are different).
@@ -285,7 +285,7 @@ class TheseusAligner(BaseAligner):
 
         self._strip_remark_lines(superposed_pdb_filename)
 
-        superposed_pdb_models = [atomium.open(pdb_id).model for pdb_id in superposed_pdb_filename]
+        superposed_pdb_models = [Structure(fn) for fn in superposed_pdb_filename]
         return superposed_pdb_models
 
     def _strip_remark_lines(self, pdb_filenames) -> None:

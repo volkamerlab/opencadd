@@ -8,7 +8,6 @@ dependencies:
   # Base depends
   - python
   - pip
-  - atomium
   # Chimera reimplementation
   - biotite
   - MDAnalysis

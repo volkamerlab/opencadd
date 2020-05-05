@@ -5,8 +5,14 @@ Defines easy programmatic access for any entry point
 from .superposition.theseus import TheseusAligner
 from .superposition.mmligner import MMLignerAligner
 from .superposition.matchmaker import MatchMakerAligner
+from .core import Structure
 
-METHODS = {"theseus": TheseusAligner, "mmligner": MMLignerAligner, "matchmaker": MatchMakerAligner}
+
+METHODS = {
+    "theseus": TheseusAligner,
+    "mmligner": MMLignerAligner,
+    "matchmaker": MatchMakerAligner,
+}
 
 
 def align(structures, method=TheseusAligner, **kwargs):
@@ -15,10 +21,11 @@ def align(structures, method=TheseusAligner, **kwargs):
 
     Parameters
     ----------
-    structures : list of atomium.Model objects
+    structures : list of superposer.core.Structure objects
         First one will be the targer to which the rest are aligned
-    method : callable
-        Usually a subclass of BaseAligner. This will be passed ``**kwargs``
+    method : BaseAligner-like
+        Usually a subclass of BaseAligner. This will be passed ``**kwargs``. This class
+        MUST define `.calculate()`.
 
     Returns
     -------

@@ -3,7 +3,7 @@ Test superposer.superposition.theseus
 """
 
 import pytest
-import atomium
+from superposer.api import Structure
 
 
 def test_theseus_instantiation():
@@ -19,7 +19,7 @@ def test_theseus_identical():
 def test_theseus_different_no_superposition():
     from superposer.superposition.theseus import TheseusAligner
 
-    different_models = [atomium.fetch(pdb_id).model for pdb_id in ["2BBM", "1CFC"]]
+    different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
     aligner = TheseusAligner()
     results = aligner.run_theseus_different_no_superposition(different_models)
     assert "scores" in results
@@ -52,7 +52,7 @@ def test_theseus_different_no_superposition():
 def test_theseus_different():
     from superposer.superposition.theseus import TheseusAligner
 
-    different_models = [atomium.fetch(pdb_id).model for pdb_id in ["6HG4", "6HG9"]]
+    different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
     aligner = TheseusAligner()
     results = aligner.calculate(different_models, identical=False)
     assert "superposed" in results

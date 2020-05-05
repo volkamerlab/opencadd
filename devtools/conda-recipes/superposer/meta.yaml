@@ -24,7 +24,6 @@ requirements:
 
   run:
     - python
-    - atomium
     - biotite
     - MDAnalysis
     - superposer

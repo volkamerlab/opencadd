@@ -217,7 +217,7 @@ def fasta2select(
     """
     protein_gapped = Bio.Alphabet.Gapped(Bio.Alphabet.IUPAC.protein)
     if is_aligned:
-        logger.info("Using provided alignment %s", fastafilename)
+        logger.debug("Using provided alignment %s", fastafilename)
         with open(fastafilename) as fasta:
             alignment = Bio.AlignIO.read(fasta, "fasta", alphabet=protein_gapped)
     else:
@@ -245,8 +245,8 @@ def fasta2select(
             raise
         with open(alnfilename) as aln:
             alignment = Bio.AlignIO.read(aln, "clustal", alphabet=protein_gapped)
-        logger.info("Using clustalw sequence alignment {0!r}".format(alnfilename))
-        logger.info("ClustalW Newick guide tree was also produced: {0!r}".format(treefilename))
+        logger.debug("Using clustalw sequence alignment {0!r}".format(alnfilename))
+        logger.debug("ClustalW Newick guide tree was also produced: {0!r}".format(treefilename))
 
     nseq = len(alignment)
     if nseq != 2:
@@ -332,13 +332,7 @@ def fasta2select(
         aligned = list(alignment[:, ipos])
         if GAP in aligned:
             continue  # skip residue
-        template = "resid {:d} and segid {:s}"
-        if "G" not in aligned:
-            # can use CB
-            template += f" and ( {backbone_selection} )"
-        else:
-            template += " and backbone"
-        template = "( " + template + " )"
+        template = "( resid {:d} and segid {:s}" + f" and ( {backbone_selection} ) )"
 
         res_list.append([template.format(*resid(iseq, ipos)) for iseq in range(nseq)])
 

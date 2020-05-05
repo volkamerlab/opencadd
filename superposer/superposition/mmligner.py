@@ -28,8 +28,6 @@ from copy import deepcopy
 import logging
 
 import numpy as np
-
-# import atomium
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
@@ -71,7 +69,7 @@ class MMLignerAligner(BaseAligner):
         -------
         dict
             As returned by ``._parse_metadata(output)``.
-            - ``superposed`` ([atomium.model, atomium.model]): the superposed models
+            - ``superposed`` ([superposer.core.Structure, superposer.core.Structure]): the superposed models
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
@@ -186,23 +184,22 @@ class MMLignerAligner(BaseAligner):
 
     def _calculate_transformed(self, structures, metadata):
         """
-        Parse back output PDBs and construct updated atomium models.
+        Parse back output PDBs and construct updated Structure objects.
 
         Parameters
         ----------
-        structures: list of atomium.Model
+        structures: list of superposer.core.Structure
             Original input structures
 
         Returns
         -------
-        list of atomium.Model
+        list of superposer.core.Structure
             Input structures with updated coordinates
         """
         ref, original_mobile, *_ = structures
         translation = metadata["translation"]
         rotation = metadata["rotation"]
 
-        atomium_translation = original_mobile.center_of_mass - ref.center_of_mass
         original_mobile.translate(*translation)
         original_mobile.transform(rotation)
         original_mobile.translate(ref.center_of_mass - original_mobile.center_of_mass)
@@ -211,7 +208,7 @@ class MMLignerAligner(BaseAligner):
 
     def ivalue(self, structures, alignment):
         """
-        Parse back output PDBs and construct updated atomium models.
+        Parse back output PDBs and construct updated Structure models.
 
         Parameters
         ----------
@@ -231,7 +228,9 @@ class MMLignerAligner(BaseAligner):
         """
 
         with enter_temp_directory() as (cwd, tmpdir):
-            path1, path2 = self._edit_pdb(structures)
+            paths = "structure1.pdb", "structure2.pdb"
+            structures[0].write(paths[0])
+            structures[1].write(paths[1])
 
             fasta_file = fasta.FastaFile()
 
@@ -243,7 +242,7 @@ class MMLignerAligner(BaseAligner):
             self._edit_fasta("temp_alignment.afasta")
 
             output = subprocess.check_output(
-                [self.executable, path1, path2, "--ivalue", "temp_alignment.afasta"]
+                [self.executable, paths[0], paths[1], "--ivalue", "temp_alignment.afasta"]
             )
             # We need access to the temporary files at parse time!
             result = self._parse_scoring(output.decode())
@@ -252,7 +251,7 @@ class MMLignerAligner(BaseAligner):
 
     def _edit_pdb(self, structures, path=("structure1.pdb", "structure2.pdb")):
         """
-        Method to write atomium protein models to PDBs readable by MMLigner.
+        Method to write Structure protein models to PDBs readable by MMLigner.
 
         Parameters
         ----------
@@ -274,8 +273,8 @@ class MMLignerAligner(BaseAligner):
         """
         assert len(path) == 2
 
-        structures[0].save(path[0])
-        structures[1].save(path[1])
+        structures[0].write(path[0])
+        structures[1].write(path[1])
 
         for i in range(len(path)):
             pdb = []
@@ -291,7 +290,7 @@ class MMLignerAligner(BaseAligner):
 
     def _write_pdb(self, path, pdb):
         """
-        Method to write atomium protein models to PDBs readable by MMLigner.
+        Method to write Structure protein models to PDBs readable by MMLigner.
 
         Parameters
         ----------
