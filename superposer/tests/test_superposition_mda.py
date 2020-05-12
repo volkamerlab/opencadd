@@ -1,18 +1,18 @@
 """
-Tests for superposer.superposition.matchmaker
+Tests for superposer.superposition.mda
 """
 
 import pytest
 from superposer.api import Structure
-from superposer.superposition.matchmaker import MatchMakerAligner
+from superposer.superposition.mda import MDAnalysisAligner
 
 
-def test_matchmaker_instantiation():
-    aligner = MatchMakerAligner()
+def test_mda_instantiation():
+    aligner = MDAnalysisAligner()
 
 
-def test_matchmaker_calculation():
-    aligner = MatchMakerAligner()
+def test_mda_calculation():
+    aligner = MDAnalysisAligner()
     structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
     result = aligner.calculate(structures)
 

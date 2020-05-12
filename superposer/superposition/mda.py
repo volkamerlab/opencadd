@@ -1,9 +1,6 @@
 """
-Aligner based on UCSF Chimera's MatchMaker algorithms.
+Aligner based on MDAnalysis' superposition algorithms.
 """
-
-import uuid
-from copy import deepcopy
 
 import numpy as np
 from MDAnalysis.analysis import align as mda_align, rms
@@ -16,11 +13,11 @@ from ..sequences import sequence_alignment, fasta2select
 from ..utils import enter_temp_directory
 
 
-class MatchMakerAligner(BaseAligner):
+class MDAnalysisAligner(BaseAligner):
 
     """
     Factory to configure an aligner based on
-    UCSF Chimera's MatchMaker algorithms.
+    MDAnalysis' superposition algorithms.
 
     Roughly, the algorithm follows these steps:
 

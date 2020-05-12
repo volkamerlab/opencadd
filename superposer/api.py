@@ -4,14 +4,14 @@ Defines easy programmatic access for any entry point
 
 from .superposition.theseus import TheseusAligner
 from .superposition.mmligner import MMLignerAligner
-from .superposition.matchmaker import MatchMakerAligner
+from .superposition.mda import MDAnalysisAligner
 from .core import Structure
 
 
 METHODS = {
     "theseus": TheseusAligner,
     "mmligner": MMLignerAligner,
-    "matchmaker": MatchMakerAligner,
+    "mda": MDAnalysisAligner,
 }
 
 
