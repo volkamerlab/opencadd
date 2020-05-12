@@ -35,12 +35,12 @@ def parse_cli(argv=None, greet=False):
         help="Which alignment method to use",
         choices=[m.lower() for m in METHODS],
     )
-    p.add_argument(
-        "--method-options",
-        default={},
-        type=parse_method_options,
-        help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
-    )
+    # p.add_argument(
+    #     "--method-options",
+    #     default={},
+    #     type=parse_method_options,
+    #     help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
+    # )
 
     return p.parse_args()
 

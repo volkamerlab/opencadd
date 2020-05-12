@@ -59,7 +59,7 @@ class PerLevelFormatter(logging.Formatter):
 
 class EmojiPerLevelFormatter(PerLevelFormatter):
     FORMATS = {
-        logging.ERROR: "❌ ERROR! %(message)s",
+        logging.ERROR: "💥 ERROR! %(message)s",
         logging.WARNING: "⚠️ WARNING: %(message)s",
         logging.INFO: "ℹ️ %(message)s",
         logging.DEBUG: "⚙️ Debug: %(message)s",
