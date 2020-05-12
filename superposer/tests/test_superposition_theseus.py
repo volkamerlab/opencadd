@@ -20,8 +20,8 @@ def test_theseus_different_no_superposition():
     from superposer.superposition.theseus import TheseusAligner
 
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
-    aligner = TheseusAligner()
-    results = aligner.run_theseus_different_no_superposition(different_models)
+    aligner = TheseusAligner(statistics_only=True)
+    results = aligner.calculate(different_models)
     assert "scores" in results
     assert "rmsd" in results["scores"]
     assert "metadata" in results
@@ -132,24 +132,3 @@ I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
     aligner = TheseusAligner()
     r = aligner._parse_superposition(output)
     assert r["metadata"]["aic"] == -4610.73
-
-
-def test_parse_muscle():
-    output = """
-    MUSCLE v3.8.31 by Robert C. Edgar
-
-http://www.drive5.com/muscle
-This software is donated to the public domain.
-Please cite: Edgar, R.C. Nucleic Acids Res 32(5), 1792-97.
-
-theseus 2 seqs, max length 532, avg  length 531
-00:00:00    23 MB(-3%)  Iter   1  100.00%  K-mer dist pass 1
-00:00:00    23 MB(-3%)  Iter   1  100.00%  K-mer dist pass 2
-00:00:00    26 MB(-4%)  Iter   1  100.00%  Align node
-00:00:00    26 MB(-4%)  Iter   1  100.00%  Root alignment
-    """
-    from superposer.superposition.theseus import TheseusAligner
-
-    aligner = TheseusAligner()
-    r = aligner._parse_alignment(output)
-    assert r == output

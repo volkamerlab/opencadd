@@ -18,14 +18,13 @@ References
 * Accurate structural correlations from maximum likelihood superpositions.
   Theobald, Douglas L. & Wuttke, Deborah S. (2008) PLOS Computational Biology 4(2):e43
 """
-
+import os
 import subprocess
 import logging
 
 import numpy as np
 
 from superposer.superposition.base import BaseAligner
-from superposer.core import Structure
 from superposer.utils import enter_temp_directory
 
 
@@ -57,7 +56,7 @@ class TheseusAligner(BaseAligner):
         self._alignment_executable = "muscle"
         self._theseus_transformation_file = "theseus_transf.txt"
 
-    def _calculate(self, structures, **kwargs) -> dict:
+    def _calculate(self, structures, *args, **kwargs) -> dict:
         """
         Align the sequences with an alignment tool (``muscle``)
 
@@ -237,6 +236,8 @@ class TheseusAligner(BaseAligner):
             Rotation matrix and translation vector
         """
         translations, rotations = {}, {}
+        if not os.path.isfile(self._theseus_transformation_file):
+            return None
         with open(self._theseus_transformation_file, "r") as infile:
             lines = infile.readlines()
             for line in lines:
@@ -345,45 +346,3 @@ class TheseusAligner(BaseAligner):
                 "total_rounds": total_rounds,
             },
         }
-
-    def run_theseus_different_no_superposition(self, structures) -> dict:
-        """
-        Calculate statistics (don't superpose)
-
-        Parameters
-        ----------
-        structures : list
-            List of superposer.core.Structure
-
-        Returns
-        -------
-        dict
-            As returned by ``._parse_superposition(output)``.
-        """
-        with enter_temp_directory(remove=False) as (cwd, tmpdir):
-            _logger.debug("All files are located in: %s", tmpdir)
-
-            filenames = self._create_pdb(structures)
-            self._get_fasta(filenames)
-            self._concatenate_fasta(filenames)
-            self._filemap(filenames)
-            seq_alignment_output = self._run_alignment()
-
-            self._parse_alignment(seq_alignment_output)
-            _logger.info(seq_alignment_output)
-
-            output = subprocess.check_output(
-                [
-                    "theseus",
-                    "-I",
-                    "-f",
-                    "-M",
-                    self._filemap_file,
-                    "-A",
-                    self._alignment_file,
-                    *filenames,
-                ],
-                universal_newlines=True,
-            )
-        results = self._parse_superposition(output)
-        return results

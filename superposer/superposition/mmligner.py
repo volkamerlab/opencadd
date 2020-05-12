@@ -24,7 +24,6 @@ Bell Syst.Tech. J., 27, 379–423.
 
 import sys
 import subprocess
-from copy import deepcopy
 import logging
 
 import numpy as np

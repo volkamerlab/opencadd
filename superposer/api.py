@@ -35,6 +35,7 @@ def align(structures, method=TheseusAligner, **kwargs):
         metadata
     """
     aligner = method(**kwargs)
+    assert all(isinstance(s, Structure) for s in structures)
     reference, *mobiles = structures
     results = []
     for mobile in mobiles:
