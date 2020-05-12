@@ -139,7 +139,6 @@ jobs:
           conda activate
           conda install --yes conda-build
           conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/mmligner/
-          conda build --python=$PYVER -c conda-forge -c bioconda devtools/conda-recipes/theseus/
 
       - name: Create environment
         shell: bash

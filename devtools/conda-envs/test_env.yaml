@@ -1,9 +1,9 @@
 name: test
 channels:
+  - local
   - conda-forge
   - defaults
   - bioconda
-  - local
 dependencies:
   # Base depends
   - python
