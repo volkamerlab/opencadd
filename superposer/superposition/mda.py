@@ -2,6 +2,8 @@
 Aligner based on MDAnalysis' superposition algorithms.
 """
 
+import logging
+
 import numpy as np
 from MDAnalysis.analysis import align as mda_align, rms
 from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
@@ -11,6 +13,8 @@ from biotite.sequence.io.fasta import FastaFile
 from .base import BaseAligner
 from ..sequences import sequence_alignment, fasta2select
 from ..utils import enter_temp_directory
+
+_logger = logging.getLogger(__name__)
 
 
 class MDAnalysisAligner(BaseAligner):
@@ -41,7 +45,7 @@ class MDAnalysisAligner(BaseAligner):
     strict_superposition: bool, optional, default=False
         True: Will raise SelectionError if a single atom does not match between the two selections.
         False: Will try to prepare a matching selection by dropping residues with non-matching atoms.
-    superposition_selection: str or AtomGroup or None, optional, default=None
+    per_residue_selection: str or AtomGroup or None, optional, default=None
         None: Apply to mobile.universe.atoms (i.e., all atoms in the context of the selection from
         mobile such as the rest of a protein, ligands and the surrounding water)
         str: Apply to mobile.select_atoms(selection-string), e.g "protein and name CA"
@@ -66,7 +70,7 @@ class MDAnalysisAligner(BaseAligner):
         alignment_matrix: str = "BLOSUM62",
         alignment_gap: int = -10,
         strict_superposition: bool = False,
-        superposition_selection="name CA and not altloc B and not altloc C",
+        per_residue_selection="name CA and not altloc B and not altloc C",
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
@@ -86,18 +90,17 @@ class MDAnalysisAligner(BaseAligner):
 
         self.alignment_gap = alignment_gap
         self.strict_superposition = strict_superposition
-        self.superposition_selection = superposition_selection
+        self.per_residue_selection = per_residue_selection
         self.superposition_weights = superposition_weights
         self.superposition_delta_mass_tolerance = superposition_delta_mass_tolerance
 
-    # pylint: disable=arguments-differ
-    def _calculate(self, structures):
+    def _calculate(self, structures, *args, **kwargs):
         """
 
         Parameters
         ----------
         structures : list of superposer.core.Structure
-            First one will be the target (static structure). Following, will be mobile.
+            First one will be the target (static structure). Following ones will be mobile.
 
         Returns
         -------
@@ -112,26 +115,12 @@ class MDAnalysisAligner(BaseAligner):
             )
         ref_universe, mob_universe = structures
 
-        # Compute sequence alignment and matching atoms
-        ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(ref_universe)
-        mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mob_universe)
-        alignment = self._align(ref_sequence, mob_sequence)
-        with enter_temp_directory():
-            fasta = FastaFile()
-            fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
-            fasta.write("temp.fasta")
-            selection = fasta2select(
-                "temp.fasta",
-                ref_resids=ref_resids,
-                target_resids=mob_resids,
-                ref_segids=ref_segids,
-                target_segids=mob_segids,
-                backbone_selection=self.superposition_selection,
-            )
-
-        # Compute initial RMSD (no preprocessing)
+        # Get matching atoms
+        selection, alignment = self.matching_selection(*structures)
         ref_atoms = ref_universe.select_atoms(selection["reference"])
         mobile_atoms = mob_universe.select_atoms(selection["mobile"])
+
+        # Compute initial RMSD (no preprocessing)
         initial_rmsd = rms.rmsd(ref_atoms.positions, mobile_atoms.positions)
 
         # Compute centered RMSD (both structures share now the same center of mass)
@@ -157,8 +146,44 @@ class MDAnalysisAligner(BaseAligner):
                 "alignment": alignment,
                 "initial_rmsd": initial_rmsd,
                 "centered_rmsd": centered_rmsd,
+                "translation": ref_com,
+                "rotation": rotation,
             },
         }
+
+    def matching_selection(self, reference, mobile):
+        """
+        Compute best matching atom sets
+
+        Parameters
+        ----------
+        structures : list of superposer.core.Structure
+
+        Returns
+        -------
+        dict
+            Two-element dictionary with the selection string
+            to obtain the matching atoms on the original structures
+        alignment : biotite.Alignment
+            The sequence alignment
+        """
+        # Compute sequence alignment and matching atoms
+        ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(reference)
+        mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mobile)
+        alignment = self._align(ref_sequence, mob_sequence)
+        with enter_temp_directory():
+            fasta = FastaFile()
+            fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
+            fasta.write("temp.fasta")
+            selection = fasta2select(
+                "temp.fasta",
+                ref_resids=ref_resids,
+                target_resids=mob_resids,
+                ref_segids=ref_segids,
+                target_segids=mob_segids,
+                backbone_selection=self.per_residue_selection,
+            )
+        return selection, alignment
 
     @staticmethod
     def _retrieve_sequence(universe):
