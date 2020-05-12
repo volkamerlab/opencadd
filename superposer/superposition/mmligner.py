@@ -96,7 +96,7 @@ class MMLignerAligner(BaseAligner):
             # We need access to the temporary files at parse time!
             result = self._parse_metadata(output.decode())
             superposed_models = self._calculate_transformed(structures, result["metadata"])
-            result.update({"superposed": superposed_models})
+            result["superposed"] = superposed_models
         return result
 
     def _parse_metadata(self, output):
@@ -206,9 +206,12 @@ class MMLignerAligner(BaseAligner):
         translation = metadata["translation"]
         rotation = metadata["rotation"]
 
-        mobile.atoms.translate(translation)
+        mob_com = mobile.atoms.center_of_geometry()
+        ref_com = ref.atoms.center_of_geometry()
+
+        mobile.atoms.translate(-mob_com)
         mobile.atoms.rotate(rotation)
-        mobile.atoms.translate(ref.atoms.center_of_geometry() - mobile.atoms.center_of_geometry())
+        mobile.atoms.translate(ref_com)
 
         return ref, mobile
 
