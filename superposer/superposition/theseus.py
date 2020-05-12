@@ -39,86 +39,25 @@ class TheseusAligner(BaseAligner):
 
     Parameters
     ----------
-    max_iterations : int
-        number of iterations for muscle
+    alignment_max_iterations : int
+        number of iterations for alignment program (muscle)
+    statistics_only : bool
+        if True, add `-I` flag to just compute the statistics (no superposition)
     """
 
-    def __init__(self, max_iterations: int = 32) -> None:
-        self.max_iterations = max_iterations
+    def __init__(self, alignment_max_iterations: int = 32, statistics_only: bool = False) -> None:
+        self.alignment_max_iterations = alignment_max_iterations
+        self.statistics_only = statistics_only
 
-        self.fastafile = "theseus.fasta"
-        self.filemap_file = "theseus.filemap"
-        self.alignment_file = "theseus.aln"
-        self.alignment_file_biotite = "theseus_biotite.aln"
-        self.alignment_app = "muscle"
+        self._fastafile = "theseus.fasta"
+        self._filemap_file = "theseus.filemap"
+        self._alignment_file = "theseus.aln"
+        self._alignment_log = "muscle.log"
+        self._alignment_file_biotite = "theseus_biotite.aln"
+        self._alignment_executable = "muscle"
+        self._theseus_transformation_file = "theseus_transf.txt"
 
-    def _create_pdb(self, structures) -> list:
-        """
-        Create files with superposer.core.Structure models
-
-        Parameter
-        ---------
-        structures : list
-            list of superposer.core.Structure models
-
-        Returns
-        -------
-        list
-            list of pdb filenames
-        """
-        fetched_pdbs_filename = []
-        for index, pdbs in enumerate(structures):
-            pdb_filename = f"structure_{index}.pdb"
-            pdbs.write(pdb_filename)
-            fetched_pdbs_filename.append(pdb_filename)
-        return fetched_pdbs_filename
-
-    def _get_fasta(self, pdbs_filename) -> str:
-        """
-        Use Theseus to create fasta files
-
-        Parameter
-        ---------
-        pdbs_filename : list
-            list of pdb filenames
-
-        Returns
-        -------
-        str
-            Output of the created fasta filenames
-        """
-        return subprocess.check_output(["theseus", "-f", "-F", *pdbs_filename])
-
-    def _concatenate_fasta(self, pdbs_filename) -> None:
-        """
-        Concatenate the fasta files created with Theseus into one multiple sequence fasta file
-
-        Parameter
-        ---------
-        pdbs_filename : list
-            list of pdb filenames
-        """
-        with open(self.fastafile, "w") as outfile:
-            for fname in pdbs_filename:
-                with open(f"{fname}.fst") as infile:
-                    for line in infile:
-                        outfile.write(line)
-
-    def _filemap(self, pdbs_filename) -> None:
-        """
-        Create filemap for Theseus
-
-        Parameter
-        ---------
-        pdbs_filename : list
-            list of pdb filenames
-        """
-        with open(self.filemap_file, "w") as outfile:
-            for fname in pdbs_filename:
-                outfile.write(f"{fname} {fname}\n")
-
-    # pylint: disable=arguments-differ
-    def _calculate(self, structures, identical: bool = False, **kwargs) -> dict:
+    def _calculate(self, structures, **kwargs) -> dict:
         """
         Align the sequences with an alignment tool (``muscle``)
 
@@ -133,11 +72,8 @@ class TheseusAligner(BaseAligner):
         ----------
         structures : list
             list of superposer.core.Structures objects
-        identical : bool, optional, default=False
-            Whether to use sequence alignment to obtain an optimum pairing for
-            different length sequences or not (recommended: assume sequences are different).
         **kwargs : dict
-            optional parameter
+            optional parameters
 
         Returns
         -------
@@ -171,138 +107,125 @@ class TheseusAligner(BaseAligner):
                     ``total_rounds``: total rounds
         """
 
-        with enter_temp_directory(remove=False) as (cwd, tmpdir):
+        with enter_temp_directory(remove=True) as (cwd, tmpdir):
             _logger.debug("All files are located in: %s", tmpdir)
 
-            pdbs_filename = self._create_pdb(structures)
+            # 1st - Dump PDBs to disk
+            filenames = []
+            for index, structure in enumerate(structures):
+                filename = f"structure_{index}.pdb"
+                structure.write(filename)
+                filenames.append(filename)
 
-            if identical:
-                superposition_output = self._run_theseus_identical(pdbs_filename)
-            else:
-                superposition_output = self._run_theseus_different(pdbs_filename)
-                _logger.debug(superposition_output)
-            superposed_pdb_models = self._get_superposed_models(pdbs_filename)
-            transformation_matrix = self._get_transformation_matrix()
-        results = self._parse_superposition(superposition_output)
-        results["superposed"] = superposed_pdb_models
-        results["metadata"]["transformation"] = transformation_matrix
+            # 2nd - Prepare sequence alignment with MUSCLE
+            seq_alignment_output = self._run_alignment(filenames)
+            _logger.info(seq_alignment_output)
+
+            # 3rd - Run theseus superposition itself
+            theseus_output = subprocess.check_output(
+                ["theseus", "-f",]
+                + (["-I"] if self.statistics_only else [])
+                + [
+                    "-M",
+                    self._filemap_file,
+                    "-A",
+                    self._alignment_file,
+                    "-o",  # all matrices with respect to this file
+                    filenames[0],
+                    *filenames,
+                ],
+                universal_newlines=True,
+            )
+            _logger.debug(theseus_output)
+            results = self._parse_superposition(theseus_output)
+
+        # 4th reapply transformation to the mobile model
+        mobile = structures[1]
+        transformation = results["metadata"]["transformation"]
+        rotation = transformation[:, :3]
+        translation = transformation[:, 3:].reshape((3,))
+        mobile.atoms.translate(translation)
+        mobile.atoms.rotate(rotation)
+        results["superposed"] = structures
         return results
 
-    def _run_theseus_identical(self, pdbs_filename) -> str:
+    def _get_fasta(self, filenames) -> str:
         """
-        Superpose identical sequences with Theseus
+        Use Theseus to create fasta files
 
-        Parameters
-        ----------
-        pdbs_filename : list
+        Parameter
+        ---------
+        filenames : list
             list of pdb filenames
 
         Returns
         -------
         str
-            Theseus output
-
+            Output of the created fasta filenames
         """
-        output = subprocess.check_output(
-            ["theseus", *pdbs_filename], stderr=subprocess.PIPE, universal_newlines=True
-        )
-        return output
+        return subprocess.check_output(["theseus", "-f", "-F", *filenames])
 
-    def _run_alignment(self):
+    def _concatenate_fasta(self, filenames) -> None:
+        """
+        Concatenate the fasta files created with Theseus into one multiple sequence fasta file
+
+        Parameter
+        ---------
+        filenames : list
+            list of pdb filenames
+        """
+        with open(self._fastafile, "w") as outfile:
+            for fname in filenames:
+                with open(f"{fname}.fst") as infile:
+                    for line in infile:
+                        outfile.write(line)
+
+    def _filemap(self, filenames) -> None:
+        """
+        Create filemap for Theseus
+
+        Parameter
+        ---------
+        filenames : list
+            list of pdb filenames
+        """
+        with open(self._filemap_file, "w") as outfile:
+            for fname in filenames:
+                outfile.write(f"{fname} {fname}\n")
+
+    def _run_alignment(self, filenames):
         """
         Run MUSCLE
 
         Returns
         -------
+        filenames : list of str
+            Paths to PDB files containing the structures
         str
             Output of MUSCLE
         """
+        self._get_fasta(filenames)
+        self._concatenate_fasta(filenames)
+        self._filemap(filenames)
         output = subprocess.check_output(
             [
-                self.alignment_app,
+                self._alignment_executable,
                 "-maxiters",
-                str(self.max_iterations),
+                str(self.alignment_max_iterations),
                 "-in",
-                self.fastafile,
+                self._fastafile,
                 "-out",
-                self.alignment_file,
+                self._alignment_file,
                 "-clwstrict",
                 "-verbose",
                 "-log",
-                "muscle.log",
+                self._alignment_log,
             ],
             stderr=subprocess.PIPE,
             universal_newlines=True,
         )
         _logger.info(output)
         return output
-
-    def _run_theseus_different(self, pdbs_filename) -> str:
-        """
-        Superpose different sequences with Theseus based on the sequence alignment
-
-        Parameters
-        ----------
-        pdbs_filename : list
-            list of pdb filenames
-
-        Returns
-        -------
-        str
-            Theseus output
-        """
-        self._get_fasta(pdbs_filename)
-        self._concatenate_fasta(pdbs_filename)
-        self._filemap(pdbs_filename)
-        seq_alignment_output = self._run_alignment()
-
-        self._parse_alignment(seq_alignment_output)
-        _logger.info(seq_alignment_output)
-
-        return subprocess.check_output(
-            ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename,],
-            universal_newlines=True,
-        )
-
-    def _get_superposed_models(self, pdbs_filename) -> list:
-        """
-        Get the superposed models
-
-        Parameters
-        ----------
-        pdbs_filename : list
-            list of pdb filenames
-
-        Returns
-        -------
-        list
-            list of superposed pdb models
-        """
-        superposed_pdb_filename = []
-        for pdb in pdbs_filename:
-            superposed_pdb_filename.append(f"theseus_{pdb}")
-
-        self._strip_remark_lines(superposed_pdb_filename)
-
-        superposed_pdb_models = [Structure(fn) for fn in superposed_pdb_filename]
-        return superposed_pdb_models
-
-    def _strip_remark_lines(self, pdb_filenames) -> None:
-        """
-        Remove the "REMARK" lines in the pdb files
-
-        Parameters
-        ----------
-        pdbs_filename : list
-            list of pdb filenames
-        """
-        for pdb in pdb_filenames:
-            with open(pdb, "r") as infile:
-                lines = infile.readlines()
-            with open(pdb, "w") as outfile:
-                for line in lines:
-                    if not line.startswith("REMARK") or line.startswith("NUMMDL"):
-                        outfile.write(line)
 
     def _get_transformation_matrix(self) -> dict:
         """
@@ -314,7 +237,7 @@ class TheseusAligner(BaseAligner):
             Rotation matrix and translation vector
         """
         translations, rotations = {}, {}
-        with open("theseus_transf.txt", "r") as infile:
+        with open(self._theseus_transformation_file, "r") as infile:
             lines = infile.readlines()
             for line in lines:
                 if " R:" in line:  # rotation matrix
@@ -334,22 +257,7 @@ class TheseusAligner(BaseAligner):
             matrix[:, :3] = rotation
             matrix[:, 3:] = translation
             matrices[model_id] = matrix
-        return matrices
-
-    def _parse_alignment(self, output) -> str:
-        """
-        Parse the output from the MSA program (muscle, by default)
-
-        Parameters
-        ----------
-        output : bytes
-
-        Returns
-        -------
-        str
-            Output from MUSCLE
-        """
-        return output
+        return matrices[2]
 
     def _parse_superposition(self, output) -> dict:
         """
@@ -412,6 +320,7 @@ class TheseusAligner(BaseAligner):
         return {
             "scores": {"rmsd": rmsd},
             "metadata": {
+                "transformation": self._get_transformation_matrix(),
                 "least_squares": least_squares,
                 "maximum_likelihood": maximum_likelihood,
                 "log_marginal_likelihood": log_marginal_likelihood,
@@ -454,10 +363,10 @@ class TheseusAligner(BaseAligner):
         with enter_temp_directory(remove=False) as (cwd, tmpdir):
             _logger.debug("All files are located in: %s", tmpdir)
 
-            pdbs_filename = self._create_pdb(structures)
-            self._get_fasta(pdbs_filename)
-            self._concatenate_fasta(pdbs_filename)
-            self._filemap(pdbs_filename)
+            filenames = self._create_pdb(structures)
+            self._get_fasta(filenames)
+            self._concatenate_fasta(filenames)
+            self._filemap(filenames)
             seq_alignment_output = self._run_alignment()
 
             self._parse_alignment(seq_alignment_output)
@@ -469,10 +378,10 @@ class TheseusAligner(BaseAligner):
                     "-I",
                     "-f",
                     "-M",
-                    self.filemap_file,
+                    self._filemap_file,
                     "-A",
-                    self.alignment_file,
-                    *pdbs_filename,
+                    self._alignment_file,
+                    *filenames,
                 ],
                 universal_newlines=True,
             )
