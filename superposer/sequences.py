@@ -81,8 +81,6 @@ def fasta2select(
     ref_segids=None,
     target_resids=None,
     target_segids=None,
-    ref_offset=0,
-    target_offset=0,
     backbone_selection="backbone or name CB",
 ):
     """Return selection strings that will select equivalent residues.
@@ -98,17 +96,14 @@ def fasta2select(
     fastafilename : str, path to filename
         FASTA file with first sequence as reference and
         second the one to be aligned (ORDER IS IMPORTANT!)
-    ref_offset : int (optional)
-        add this number to the column number in the FASTA file
-        to get the original residue number, default: 0
-    target_offset : int (optional)
-        add this number to the column number in the FASTA file
-        to get the original residue number, default: 0
-    ref_resids : str (optional)
+    ref_resids : list (optional)
         sequence of resids as they appear in the reference structure
-    target_resids : str (optional)
+    target_resids : list (optional)
         sequence of resids as they appear in the target
-
+    ref_segids : list (optional)
+        sequence of segids as they appear in the reference structure
+    target_segids : list (optional)
+        sequence of segids as they appear in the target
     Returns
     -------
     dict
@@ -123,9 +118,7 @@ def fasta2select(
     if nseq != 2:
         raise ValueError("Only two sequences in the alignment can be processed.")
 
-    # implict assertion that we only have two sequences in the alignment
     orig_resids = [ref_resids, target_resids]
-    offsets = [ref_offset, target_offset]
     orig_segids = [np.asarray(ref_segids), np.asarray(target_segids)]
     for iseq, a in enumerate(alignment):
         # need iseq index to change orig_resids
@@ -137,13 +130,16 @@ def fasta2select(
             orig_resids[iseq] = np.arange(1, length + 1)
         else:
             orig_resids[iseq] = np.asarray(orig_resids[iseq])
-    # add offsets to the sequence <--> resid translation table
-    seq2resids = [
-        (resids + offset, segids)
-        for resids, offset, segids in zip(orig_resids, offsets, orig_segids)
-    ]
-    del orig_resids
-    del offsets
+        # repeat for segment ids
+        if orig_segids[iseq] is None:
+            # build default: assume consecutive numbering of all
+            # residues in the alignment
+            GAP = a.seq.alphabet.gap_char
+            length = len(a.seq) - a.seq.count(GAP)
+            orig_segids[iseq] = np.full(length, "")
+        else:
+            orig_segids[iseq] = np.asarray(orig_segids[iseq])
+    seq2resids = list(zip(orig_resids, orig_segids))
 
     def resid_factory(alignment, seq2resids):
         """Return a function that gives the resid for a position ipos in
@@ -189,11 +185,7 @@ def fasta2select(
         return resid
 
     resid = resid_factory(alignment, seq2resids)
-
     res_list = []  # collect individual selection string
-    # could collect just resid and type (with/without CB) and
-    # then post-process and use ranges for continuous stretches, eg
-    # ( resid 1:35 and ( backbone or name CB ) ) or ( resid 36 and backbone )
 
     # should be the same for both seqs
     GAP = alignment[0].seq.alphabet.gap_char
@@ -201,10 +193,10 @@ def fasta2select(
         raise ValueError("Different gap characters in sequence 'target' and 'mobile'.")
     for ipos in range(alignment.get_alignment_length()):
         aligned = list(alignment[:, ipos])
+        print(aligned)
         if GAP in aligned:
-            continue  # skip residue
+            continue  # skip residue if it's not matching any
         template = "( resid {:d} and segid {:s}" + f" and ( {backbone_selection} ) )"
-
         res_list.append([template.format(*resid(iseq, ipos)) for iseq in range(nseq)])
 
     sel = np.array(res_list).transpose()
