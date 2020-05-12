@@ -179,13 +179,27 @@ class MDAnalysisAligner(BaseAligner):
         sequences = []
         residue_ids = []
         segment_ids = []
-        protein = universe.select_atoms("protein")
-        for segment in protein.segments:
+        backbone_atom_names = {"C", "CA", "N", "O"}
+        incomplete_residues = []
+        for segment in universe.segments:
             for residue in segment.residues:
                 if residue.resname in canonical_inverse_aa_codes:
+                    residue_atom_names = set([a.name for a in residue.atoms])
+                    if not backbone_atom_names.issubset(residue_atom_names):
+                        incomplete_residues.append(residue)
                     sequences.append(convert_aa_code(residue.resname))
                     residue_ids.append(residue.resid)
                     segment_ids.append(residue.segid)
+        if incomplete_residues:
+            _logger.warning(
+                "%d residues in %s are missing backbone atoms. "
+                "If this system was obtained from a larger structure using a "
+                "selection, consider wrapping such selection with "
+                "`same residue as (<your original selection>)` "
+                "to avoid potential matching problems.",
+                len(incomplete_residues),
+                universe,
+            )
         return "".join(sequences), residue_ids, segment_ids
 
     def _align(self, sequence_1, sequence_2):
