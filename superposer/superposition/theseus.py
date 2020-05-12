@@ -259,11 +259,10 @@ class TheseusAligner(BaseAligner):
         self._parse_alignment(seq_alignment_output)
         _logger.info(seq_alignment_output)
 
-        output = subprocess.check_output(
-            ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename],
+        return subprocess.check_output(
+            ["theseus", "-f", "-M", self.filemap_file, "-A", self.alignment_file, *pdbs_filename,],
             universal_newlines=True,
         )
-        return output
 
     def _get_superposed_models(self, pdbs_filename) -> list:
         """

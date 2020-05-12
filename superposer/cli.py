@@ -93,6 +93,9 @@ def main():
     reference_model = Structure.from_string(reference_id)
 
     for i, mobile_id in enumerate(mobile_ids, 1):
+        if mobile_id == reference_id and args.method == "theseus":
+            _logger.error("Cannot align model `%s` against itself using theseus!", mobile_id)
+            continue
         _logger.debug("Fetching mobile model #%d `%s`", i, mobile_id)
         mobile_model = Structure.from_string(mobile_id)
         _logger.debug(
