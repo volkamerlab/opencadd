@@ -5,6 +5,7 @@ A Python library for molecular structural alignment and superposition
 
 # Handle versioneer
 from .api import align, METHODS
+from .core import Structure
 from ._version import get_versions
 
 versions = get_versions()
