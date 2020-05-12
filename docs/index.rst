@@ -17,7 +17,7 @@ Welcome to superposer's documentation!
    :maxdepth: 1
    :caption: Tutorials
 
-   tutorials/matchmaker
+   tutorials/mda
    tutorials/mmligner
    tutorials/theseus
 

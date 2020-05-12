@@ -11,7 +11,7 @@ API Documentation
    superposer.sequences
    superposer.superposition
    superposer.superposition.base
-   superposer.superposition.matchmaker
+   superposer.superposition.mda
    superposer.superposition.mmligner
    superposer.superposition.theseus
    superposer.utils
