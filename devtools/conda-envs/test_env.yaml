@@ -1,17 +1,17 @@
 name: test
 channels:
+  - local
   - conda-forge
   - defaults
   - bioconda
-  - local
 dependencies:
   # Base depends
   - python
   - pip
-  - atomium
+  - MDAnalysis
+  - nglview
   # Chimera reimplementation
   - biotite
-  - MDAnalysis
   # mmligner
   - mmligner
   # theseus
@@ -24,3 +24,4 @@ dependencies:
   # docs
   - sphinx
   - sphinx_rtd_theme
+  - nbsphinx

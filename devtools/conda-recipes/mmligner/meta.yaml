@@ -11,6 +11,7 @@ source:
   patches:
     - add_cli_h_flag.patch
     - makefile.patch
+    - matrices.patch
 
 build:
   number: 0

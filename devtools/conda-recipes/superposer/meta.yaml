@@ -1,0 +1,57 @@
+{% set name = "superposer" %}
+{% set version = "0.0.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../../../
+
+  # sha256: d58439c548433adcda98e695be53e526ba940a4b9c44fb9a05d92cd495cdd47f
+  # sha256 needs to be edited
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - superposer = superposer.cli:main
+
+requirements:
+  host:
+    - python
+    - pip
+
+  run:
+    - python
+    - biotite
+    - MDAnalysis
+    - superposer
+    - theseus
+    - mmligner
+    - muscle
+
+test:
+  imports:
+    - superposer
+  commands:
+    - superposer -h
+
+about:
+  home: https://github.com/volkamerlab/superposer
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: 'A Python library for molecular structural alignment and superposition'
+
+  description: |
+    superposer is a Python library for molecular alignmnet and
+    superposition with different methods like theseus, mmligner and
+    Chimera-Matchmaker.
+  doc_url: https://structural-alignment.readthedocs.io/en/latest/
+  dev_url: https://github.com/volkamerlab/superposer
+
+extra:
+  recipe-maintainers:
+    - pipaj97
+    - jaimergp

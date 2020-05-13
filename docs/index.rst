@@ -1,9 +1,9 @@
-.. structuralalignment documentation master file, created by
+.. superposer documentation master file, created by
    sphinx-quickstart on Thu Mar 15 13:55:56 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to StructuralAlignment's documentation!
+Welcome to superposer's documentation!
 =========================================================
 
 .. toctree::
@@ -12,7 +12,14 @@ Welcome to StructuralAlignment's documentation!
 
    installing
    getting_started
-   tutorial
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/mda
+   tutorials/mmligner
+   tutorials/theseus
 
 .. toctree::
    :maxdepth: 1

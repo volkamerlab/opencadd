@@ -1,3 +1,2 @@
-atomium
 biotite
 MDAnalysis

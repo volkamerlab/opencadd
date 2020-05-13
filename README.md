@@ -1,8 +1,8 @@
-# StructuralAlignment
+# superposer
 
 [//]: # (Badges)
-[![GH Actions Status](https://github.com/volkamerlab/structuralalignment/workflows/CI/badge.svg)](https://github.com/volkamerlab/structuralalignment/actions?query=branch%3Amaster)
-[![codecov](https://codecov.io/gh/volkamerlab/StructuralAlignment/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/StructuralAlignment/branch/master)
+[![GH Actions Status](https://github.com/volkamerlab/superposer/workflows/CI/badge.svg)](https://github.com/volkamerlab/superposer/actions?query=branch%3Amaster)
+[![codecov](https://codecov.io/gh/volkamerlab/superposer/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/superposer/branch/master)
 [![Documentation Status](https://readthedocs.org/projects/structural-alignment/badge/?version=latest)](https://structural-alignment.readthedocs.io/en/latest/?badge=latest)
 
 A Python library for molecular structural alignment and superposition
@@ -39,7 +39,7 @@ More detailed instructions can be found in the [documentation](https://structura
 
 ## Examples
 
-`structuralalignment 1lol 5XME --method mmligner --method-options something`
+`superposer 1lol 5XME --method mmligner --method-options something`
 <!-- need to add examples -->
 
 ## Copyright
@@ -48,14 +48,14 @@ Copyright (c) 2020, Volkamer Lab
 
 ## License
 
-`structuralalignment` is free software and is licensed under the MIT license.
+`superposer` is free software and is licensed under the MIT license.
 
 ## Authors
 
 * Jaime Rodríguez-Guerra <jaime.rodriguez@charite.de>
 * Dennis Köser
 * Annie Pham
-* Enes Kuni
+* Enes Kurnaz
 * Julian Pipart
 
 ## Acknowledgements
