@@ -193,7 +193,6 @@ def fasta2select(
         raise ValueError("Different gap characters in sequence 'target' and 'mobile'.")
     for ipos in range(alignment.get_alignment_length()):
         aligned = list(alignment[:, ipos])
-        print(aligned)
         if GAP in aligned:
             continue  # skip residue if it's not matching any
         template = "( resid {:d} and segid {:s}" + f" and ( {backbone_selection} ) )"
