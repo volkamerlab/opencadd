@@ -1,48 +1,6 @@
 For developers
 ==============
 
-Alignment API
--------------
-
-This sections defines our input and output parameters and their names.
-They should be consistent over all modules.
-
-**How does the API work?**
-
-The first 2 to ``n`` arguments are the structures to be superposed.
-If there are more than 2 structures, the first one will be considered the target
-structure and every other structure will be superposed on this creating multiple
-structural alignments.
-If the user does not give any other arguments, the method will be Theseus.
-The next argument is the method of choice. If available the user can give some
-more method-options.
-To get the current version of this lbrary, you can use ``--version``.
-For debugging information, you can give either of these two arguments: ``-v`` or ``verbose``.
-
-
-The structures are automaticaly transformed to `atomium.models
-<https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_.
-This means the input for all other alignment functions should be `atomium.models
-<https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_.
-
-**Example:**
-
-.. code-block:: bash
-
-    opencadd 1lol 5XME --method mmligner --method-options something
-
-
-**The aligment function should have the follwing parameters:**
-
-- Input parameters:
-    - list of `atomium Models
-      <https://atomium.samireland.com/api/structures.html#atomium.structures.Model>`_
-    - optional kwargs
-
-- Returns:
-    - superposed atomium Models/Molecules
-    - scores (RMSD)
-    - metadata
 
 How the package will be structured
 ----------------------------------
@@ -129,7 +87,7 @@ The actions are executed automatically for every Pull Request submitted,
 and for every commit pushed to ``master``. Steps run in Ubuntu and MacOS are:
 
 * Report additional information about the test-build.
-* Fixing conda in MacOS (to get the project)
+* Fixing conda in MacOS (to get the project).
 * Creating the environment and getting all necessary dependencies.
 * Installing the package in this environment.
 * Running the tests.
@@ -138,87 +96,5 @@ The formating check is done in ubuntu.
 
 * Checkout the code.
 * Installing the linter (pylint) and the formatter (black).
-* Running pylint (using  configuration at ``.pylintrc``
-* Running ``black -l 99`` in check mode
-
-Using Atomium
--------------
-
-This section gives you a quick overview of atomium.
-The library uses atomium to guarantee consistency over the different methods.
-Every method get a atomium.model as input.
-You can find the docs of atomium `here
-<https://atomium.samireland.com/>`_.
-
-**Opening a pdb file:**
-
-.. code-block:: python
-
-    pdb1 = atomium.open('../1LOL.pdb')
-    pdb2 = atomium.fetch('5XME.pdb')
-
-With "open" you can open a local pdb file.
-
-With "fetch" you can load a pdb file from the RCSB.
-
-
-**How to select a subset of the protein (all isoleucines, all isoleucines and all valines):**
-
-.. code-block:: python
-
-    model = pdb1.model
-    model.residues(name = "ISO")
-    model.residues(name__regex = "ISO|VAL")
-
-
-**Accessing all alpha carbons in the protein:**
-
-.. code-block:: python
-
-    model.atoms(name="CA")
-
-
-**Removing all waters:**
-
-.. code-block:: python
-
-    model.dehydrate()
-
-
-**Removing all ligands:**
-
-| There is no function for this in atomium.
-| There are to options how to handle this.
-
-**First** we write out one function an bound it to our model-object
-
-.. code-block:: python
-
-    import types
-
-    def remove_ligands(self):
-        self._ligands = atomium.base.StructureSet()
-
-    atomium.Model.remove_ligands = types.MethodType(remove_ligands, atomium.Model)
-
-    model.remove_ligands()
-
-
-**Second**, we can just do it manually
-
-.. code-block:: python
-
-        model._ligands = atomium.base.StructureSet()
-
-
-**If the pdb file provides a sequence, you can access it with (here for chain A):**
-
-.. code-block:: python
-
-    model.chain("A").sequence
-
-**Computing RMSD (works only, if the structures have the same amount of atoms):**
-
-.. code-block:: python
-
-    model1.rmsd_with(model2)
+* Running pylint (using  configuration at ``.pylintrc``).
+* Running ``black -l 99 --check`` (check mode).

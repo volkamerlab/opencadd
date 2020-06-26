@@ -3,20 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to opencadd's documentation!
+Welcome to OpenCADD's documentation!
 =========================================================
+
+OpenCADD is a Python package for structural cheminformatics!
 
 .. toctree::
    :maxdepth: 1
    :caption: User guide
 
    installing
-   getting_started
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorials
+   :caption: Superposition
 
+   superposition
    tutorials/mda
    tutorials/mmligner
    tutorials/theseus
@@ -27,6 +29,7 @@ Welcome to opencadd's documentation!
 
    developers
    api
+
 
 
 
