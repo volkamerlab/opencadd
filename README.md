@@ -1,8 +1,8 @@
-# superposer
+# OpenCADD
 
 [//]: # (Badges)
-[![GH Actions Status](https://github.com/volkamerlab/superposer/workflows/CI/badge.svg)](https://github.com/volkamerlab/superposer/actions?query=branch%3Amaster)
-[![codecov](https://codecov.io/gh/volkamerlab/superposer/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/superposer/branch/master)
+[![GH Actions Status](https://github.com/volkamerlab/opencadd/workflows/CI/badge.svg)](https://github.com/volkamerlab/opencadd/actions?query=branch%3Amaster)
+[![codecov](https://codecov.io/gh/volkamerlab/opencadd/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/opencadd/branch/master)
 [![Documentation Status](https://readthedocs.org/projects/structural-alignment/badge/?version=latest)](https://structural-alignment.readthedocs.io/en/latest/?badge=latest)
 
 A Python library for molecular structural alignment and superposition
@@ -48,7 +48,7 @@ Copyright (c) 2020, Volkamer Lab
 
 ## License
 
-`superposer` is free software and is licensed under the MIT license.
+`opencadd` is free software and is licensed under the MIT license.
 
 ## Authors
 

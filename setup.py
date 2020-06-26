@@ -1,5 +1,5 @@
 """
-superposer
+opencadd
 A Python library for molecular structural alignment and superposition
 """
 import sys
@@ -21,7 +21,7 @@ except:
 
 setup(
     # Self-descriptive entries which should always be present
-    name="superposer",
+    name="opencadd",
     author="Volkamer Lab",
     author_email="jaime.rodriguez@charite.de",
     description=short_description[0],

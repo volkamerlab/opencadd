@@ -4,15 +4,15 @@ API Documentation
 .. autosummary::
    :toctree: generated
 
-   superposer
-   superposer.api
-   superposer.cli
-   superposer.core
-   superposer.sequences
-   superposer.superposition
-   superposer.superposition.base
-   superposer.superposition.mda
-   superposer.superposition.mmligner
-   superposer.superposition.theseus
-   superposer.utils
+   opencadd
+   opencadd.api
+   opencadd.cli
+   opencadd.core
+   opencadd.sequences
+   opencadd.superposition
+   opencadd.superposition.base
+   opencadd.superposition.mda
+   opencadd.superposition.mmligner
+   opencadd.superposition.theseus
+   opencadd.utils
 

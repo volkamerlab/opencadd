@@ -8,7 +8,7 @@ conda activate
 conda info
 python create_conda_env.py -n=test -p=${{ matrix.python-version }} ../conda-envs/test_env.yaml
 conda activate test
-pytest -v --cov=superposer --cov-report=xml --color=yes superposer/tests/
+pytest -v --cov=opencadd --cov-report=xml --color=yes opencadd/tests/
 conda install -y pylint black
-pylint superposer/
-black --check -l 99 superposer/
+pylint opencadd/
+black --check -l 99 opencadd/

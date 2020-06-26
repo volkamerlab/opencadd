@@ -29,7 +29,7 @@ This means the input for all other alignment functions should be `atomium.models
 
 .. code-block:: bash
 
-    superposer 1lol 5XME --method mmligner --method-options something
+    opencadd 1lol 5XME --method mmligner --method-options something
 
 
 **The aligment function should have the follwing parameters:**
@@ -47,27 +47,27 @@ This means the input for all other alignment functions should be `atomium.models
 How the package will be structured
 ----------------------------------
 
-Contributing to superposer
+Contributing to opencadd
 -----------------------------------
 
 First of all, thank you for considering making this project better.
 
-You can help to make superposer better by raising an issue to report a bug or suggest a
+You can help to make opencadd better by raising an issue to report a bug or suggest a
 feature which is not implemented yet.
 You can also create a new feature and add it via a Pull Request.
 
 How Pull Requests work
 ----------------------
 
-1. Fork the ``superposer`` repository into your profile. Now you have your own copy of the repository.
-2. Clone the repository. Run ``clone https://github.com/<your_username>/superposer`` in your terminal.
+1. Fork the ``opencadd`` repository into your profile. Now you have your own copy of the repository.
+2. Clone the repository. Run ``clone https://github.com/<your_username>/opencadd`` in your terminal.
 3. Create a new branch to work on: ``git checkout -b meaningful-branch-name``.
 4. Make your changes.
 5. Add, commit and push your change to your forked repository.
 6. Click on ``Create pull request`` Button.
 7. Follow the template given there. Be aware of the requirements_.
 
-The ``superposer`` team will review the pull request and if there are no flaws it will be merged
+The ``opencadd`` team will review the pull request and if there are no flaws it will be merged
 to the ``master`` branch. If there are some flaws, the team will request you to fix them.
 
 .. _requirements:
@@ -97,7 +97,7 @@ Formatting with black
 
 * Apply "black -l 99" on your code before committing::
 
-        $> black -l 99 superposer/
+        $> black -l 99 opencadd/
 
 
 **2. Option:**

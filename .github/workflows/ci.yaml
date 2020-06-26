@@ -23,7 +23,7 @@ jobs:
     env:
       CI_OS: ${{ matrix.os }}
       PYVER: ${{ matrix.python-version }}
-      PACKAGE: "superposer"
+      PACKAGE: "opencadd"
 
     steps:
       - uses: actions/checkout@v2
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI_OS: ubuntu-latest
-      PACKAGE: "superposer"
+      PACKAGE: "opencadd"
       PYVER: "3.7"
 
     steps:
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI_OS: ubuntu-latest
-      PACKAGE: "superposer"
+      PACKAGE: "opencadd"
       PYVER: "3.7"
 
     steps:

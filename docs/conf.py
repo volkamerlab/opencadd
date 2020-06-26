@@ -18,12 +18,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-import superposer
+import opencadd
 
 
 # -- Project information -----------------------------------------------------
 
-project = "superposer"
+project = "opencadd"
 copyright = (
     "2020, Volkamer Lab. Project structure based on the "
     "Computational Molecular Science Python Cookiecutter version 1.1"
@@ -122,7 +122,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "superposerdoc"
+htmlhelp_basename = "opencadddoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -146,7 +146,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "superposer.tex", "superposer Documentation", "superposer", "manual",),
+    (master_doc, "opencadd.tex", "opencadd Documentation", "opencadd", "manual",),
 ]
 
 
@@ -154,7 +154,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "superposer", "superposer Documentation", [author], 1)]
+man_pages = [(master_doc, "opencadd", "opencadd Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -165,10 +165,10 @@ man_pages = [(master_doc, "superposer", "superposer Documentation", [author], 1)
 texinfo_documents = [
     (
         master_doc,
-        "superposer",
-        "superposer Documentation",
+        "opencadd",
+        "opencadd Documentation",
         author,
-        "superposer",
+        "opencadd",
         "A Python library for molecular structural alignment and superposition",
         "Miscellaneous",
     ),
