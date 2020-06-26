@@ -2,10 +2,10 @@
 Defines easy programmatic access for any entry point
 """
 
-from .superposition.theseus import TheseusAligner
-from .superposition.mmligner import MMLignerAligner
-from .superposition.mda import MDAnalysisAligner
-from .core import Structure
+from .engines.theseus import TheseusAligner
+from .engines.mmligner import MMLignerAligner
+from .engines.mda import MDAnalysisAligner
+from ..core import Structure
 
 
 METHODS = {

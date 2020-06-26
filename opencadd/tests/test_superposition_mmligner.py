@@ -3,8 +3,8 @@ Tests for opencadd.superposition.mmligner
 """
 
 import pytest
-from opencadd.api import Structure
-from opencadd.superposition.mmligner import MMLignerAligner
+from opencadd.structure.superposition.api import Structure
+from opencadd.structure.superposition.engines.mmligner import MMLignerAligner
 
 
 def test_mmligner_instantiation():

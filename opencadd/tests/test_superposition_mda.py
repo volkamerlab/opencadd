@@ -3,8 +3,8 @@ Tests for opencadd.superposition.mda
 """
 
 import pytest
-from opencadd.api import Structure
-from opencadd.superposition.mda import MDAnalysisAligner
+from opencadd.structure.core import Structure
+from opencadd.structure.superposition.engines.mda import MDAnalysisAligner
 
 
 def test_mda_instantiation():

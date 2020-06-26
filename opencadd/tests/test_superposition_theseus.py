@@ -3,12 +3,11 @@ Test opencadd.superposition.theseus
 """
 
 import pytest
-from opencadd.api import Structure
+from opencadd.structure.superposition.api import Structure
+from opencadd.structure.superposition.engines.theseus import TheseusAligner
 
 
 def test_theseus_instantiation():
-    from opencadd.superposition.theseus import TheseusAligner
-
     aligner = TheseusAligner()
 
 
@@ -17,8 +16,6 @@ def test_theseus_identical():
 
 
 def test_theseus_different_no_superposition():
-    from opencadd.superposition.theseus import TheseusAligner
-
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
     aligner = TheseusAligner(statistics_only=True)
     results = aligner.calculate(different_models)
@@ -50,8 +47,6 @@ def test_theseus_different_no_superposition():
 
 
 def test_theseus_different():
-    from opencadd.superposition.theseus import TheseusAligner
-
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
     aligner = TheseusAligner()
     results = aligner.calculate(different_models, identical=False)
@@ -127,7 +122,6 @@ I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
 I===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-===-==I
                             <  END THESEUS 3.3.0  >
     """
-    from opencadd.superposition.theseus import TheseusAligner
 
     aligner = TheseusAligner()
     r = aligner._parse_superposition(output)

@@ -3,7 +3,7 @@ Tests for opencadd.api
 """
 
 import pytest
-from opencadd.api import align, METHODS, Structure
+from opencadd.structure.superposition.api import align, METHODS, Structure
 
 
 @pytest.mark.parametrize("method", list(METHODS.values()))

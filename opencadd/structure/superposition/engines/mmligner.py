@@ -30,7 +30,7 @@ import numpy as np
 import biotite.sequence.io.fasta as fasta
 
 from .base import BaseAligner
-from ..utils import enter_temp_directory
+from ....utils import enter_temp_directory
 
 _logger = logging.getLogger(__name__)
 

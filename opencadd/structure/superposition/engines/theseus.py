@@ -24,8 +24,8 @@ import logging
 
 import numpy as np
 
-from opencadd.superposition.base import BaseAligner
-from opencadd.utils import enter_temp_directory
+from .base import BaseAligner
+from ....utils import enter_temp_directory
 
 
 _logger = logging.getLogger(__name__)

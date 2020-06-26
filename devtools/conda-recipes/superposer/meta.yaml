@@ -15,7 +15,7 @@ build:
   number: 0
   script: "{{ PYTHON }} -m pip install . -vv"
   entry_points:
-    - opencadd = opencadd.cli:main
+    - opencadd = opencadd.structure.superposition.cli:main
 
 requirements:
   host:
@@ -42,12 +42,10 @@ about:
   license: MIT
   license_family: MIT
   license_file: LICENSE
-  summary: 'A Python library for molecular structural alignment and superposition'
+  summary: 'A Python library for structural cheminformatics'
 
   description: |
-    opencadd is a Python library for molecular alignmnet and
-    superposition with different methods like theseus, mmligner and
-    Chimera-Matchmaker.
+    opencadd is a Python library for structural cheminformatics
   doc_url: https://structural-alignment.readthedocs.io/en/latest/
   dev_url: https://github.com/volkamerlab/opencadd
 

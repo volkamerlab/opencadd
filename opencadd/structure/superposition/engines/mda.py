@@ -12,7 +12,7 @@ from biotite.sequence.io.fasta import FastaFile
 
 from .base import BaseAligner
 from ..sequences import sequence_alignment, fasta2select
-from ..utils import enter_temp_directory
+from ....utils import enter_temp_directory
 
 _logger = logging.getLogger(__name__)
 

@@ -1,11 +1,9 @@
 """
 opencadd
-A Python library for molecular structural alignment and superposition
+A Python library for structural cheminformatics
 """
 
 # Handle versioneer
-from .api import align, METHODS
-from .core import Structure
 from ._version import get_versions
 
 versions = get_versions()

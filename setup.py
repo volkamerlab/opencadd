@@ -1,6 +1,6 @@
 """
 opencadd
-A Python library for molecular structural alignment and superposition
+A Python library for structural cheminformatics
 """
 import sys
 from setuptools import setup, find_packages
@@ -39,7 +39,7 @@ setup(
     # Comment out this line to prevent the files from being packaged with your software
     include_package_data=True,
     # Entry point
-    entry_points={"console_scripts": ["superposer = superposer.cli:main"]},
+    entry_points={"console_scripts": ["superposer = opencadd.structure.superposition.cli:main"]},
     # Allows `setup.py test` to work correctly with pytest
     setup_requires=[] + pytest_runner,
     # Additional entries you may want simply uncomment the lines you want and fill in the data

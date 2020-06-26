@@ -169,7 +169,7 @@ texinfo_documents = [
         "opencadd Documentation",
         author,
         "opencadd",
-        "A Python library for molecular structural alignment and superposition",
+        "A Python library for structural cheminformatics",
         "Miscellaneous",
     ),
 ]

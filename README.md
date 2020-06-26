@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/volkamerlab/opencadd/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/opencadd/branch/master)
 [![Documentation Status](https://readthedocs.org/projects/structural-alignment/badge/?version=latest)](https://structural-alignment.readthedocs.io/en/latest/?badge=latest)
 
-A Python library for molecular structural alignment and superposition
+A Python library for structural cheminformatics
 
 ## Documentation
 
