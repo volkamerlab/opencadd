@@ -1,4 +1,4 @@
-{% set name = "superposer" %}
+{% set name = "opencadd" %}
 {% set version = "0.0.1" %}
 
 package:
@@ -15,7 +15,7 @@ build:
   number: 0
   script: "{{ PYTHON }} -m pip install . -vv"
   entry_points:
-    - superposer = superposer.cli:main
+    - opencadd = opencadd.structure.superposition.cli:main
 
 requirements:
   host:
@@ -26,30 +26,28 @@ requirements:
     - python
     - biotite
     - MDAnalysis
-    - superposer
+    - opencadd
     - theseus
     - mmligner
     - muscle
 
 test:
   imports:
-    - superposer
+    - opencadd
   commands:
-    - superposer -h
+    - opencadd -h
 
 about:
-  home: https://github.com/volkamerlab/superposer
+  home: https://github.com/volkamerlab/opencadd
   license: MIT
   license_family: MIT
   license_file: LICENSE
-  summary: 'A Python library for molecular structural alignment and superposition'
+  summary: 'A Python library for structural cheminformatics'
 
   description: |
-    superposer is a Python library for molecular alignmnet and
-    superposition with different methods like theseus, mmligner and
-    Chimera-Matchmaker.
+    opencadd is a Python library for structural cheminformatics
   doc_url: https://structural-alignment.readthedocs.io/en/latest/
-  dev_url: https://github.com/volkamerlab/superposer
+  dev_url: https://github.com/volkamerlab/opencadd
 
 extra:
   recipe-maintainers:

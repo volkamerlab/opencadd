@@ -1,6 +1,5 @@
 name: test
 channels:
-  - local
   - conda-forge
   - defaults
   - bioconda

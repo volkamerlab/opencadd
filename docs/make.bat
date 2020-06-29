@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=superposer
+set SPHINXPROJ=opencadd
 
 if "%1" == "" goto help
 
