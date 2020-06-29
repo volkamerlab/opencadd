@@ -46,7 +46,7 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           show-channel-urls: true
-          mamba-version: "*"
+          # mamba-version: "*"
 
       # TODO: Remove this step when patched theseus makes it to CF
       - name: Build patched mmligner
@@ -98,7 +98,7 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           show-channel-urls: true
-          mamba-version: "*"
+          # mamba-version: "*"
 
       - name: Install linter and formatter
         shell: bash -l {0}
@@ -138,7 +138,7 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           show-channel-urls: true
-          mamba-version: "*"
+          # mamba-version: "*"
 
       - name: Run sphinx
         shell: bash
