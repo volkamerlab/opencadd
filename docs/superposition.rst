@@ -1,7 +1,8 @@
 Structural superposition
 ========================
 
-.. todo:
+.. todo::
+
     Consider using ``opencadd superpose`` as a subcommand.
 
 Once you have installed the package, you will have access to a ``superposer`` executable (among other utilities!). Some quick examples:
