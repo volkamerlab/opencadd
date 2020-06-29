@@ -59,7 +59,7 @@ jobs:
       - name: Install package
         shell: bash -l {0}
         run: |
-          conda install -c local mmligner
+          conda install -c local mmligner pip
           python -m pip install . --no-deps
           conda list
 
