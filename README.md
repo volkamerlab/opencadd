@@ -5,54 +5,26 @@
 [![codecov](https://codecov.io/gh/volkamerlab/opencadd/branch/master/graph/badge.svg)](https://codecov.io/gh/volkamerlab/opencadd/branch/master)
 [![Documentation Status](https://readthedocs.org/projects/structural-alignment/badge/?version=latest)](https://structural-alignment.readthedocs.io/en/latest/?badge=latest)
 
+
+![OpenCADD](/docs/_static/opencadd.png)
+
 A Python library for structural cheminformatics
 
 ## Documentation
 
-The Documentation is available at [readthedocs](https://structural-alignment.readthedocs.io/en/latest/ "Read the Docs").
-
-## Features
-
-The structural alignment and superposition can be performed with different methods like:
-
-* mmligner
-* theseus
-* Chimera-Matchmaker
-
-## How to install the library
-
-coming soon
-<!-- `conda install ...` -->
-
-## Requirements
-
-* Python 3.7 or later
-
-## How to use the library
-
-With this library you can superpose 2 or more proteinstructures.\
-If the input is more than 2 structures, the first will be considered the target structure and every other structure will be superposed with this one thereby creating multiple structural alignments.
-The sequence length has to be the same.
-More detailed instructions can be found in the [documentation](https://structural-alignment.readthedocs.io/en/latest/ "documentation").
-
-<!-- need to add how to use it -->
-
-## Examples
-
-`superposer 1lol 5XME --method mmligner --method-options something`
-<!-- need to add examples -->
-
-## Copyright
-
-Copyright (c) 2020, Volkamer Lab
+The Documentation will be available soon.
 
 ## License
 
-`opencadd` is free software and is licensed under the MIT license.
+`opencadd` is free software and is licensed under the MIT license. Copyright (c) 2020, Volkamer Lab
 
 ## Authors
 
-* Jaime Rodríguez-Guerra <jaime.rodriguez@charite.de>
+`opencadd` is the cumulative work of several members of the Volkamer Lab, as well as contributions from students that have participated in our lab. In no particular order:
+
+* Jaime Rodríguez-Guerra, PhD
+* Dominique Sydow
+* Franzis Fritz
 * Dennis Köser
 * Annie Pham
 * Enes Kurnaz
