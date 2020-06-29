@@ -1,5 +1,5 @@
 """
-Tests for opencadd.superposition.mda
+Tests for opencadd.structure.superposition.engines.mda
 """
 
 import pytest

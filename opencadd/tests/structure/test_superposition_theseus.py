@@ -1,7 +1,8 @@
 """
-Test opencadd.superposition.theseus
+Test opencadd.structure.superposition.theseus
 """
 
+import os
 import pytest
 from opencadd.structure.superposition.api import Structure
 from opencadd.structure.superposition.engines.theseus import TheseusAligner
@@ -11,10 +12,9 @@ def test_theseus_instantiation():
     aligner = TheseusAligner()
 
 
-def test_theseus_identical():
-    pass
-
-
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="FIXME: GH Actions segfaults with this test"
+)
 def test_theseus_different_no_superposition():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
     aligner = TheseusAligner(statistics_only=True)
