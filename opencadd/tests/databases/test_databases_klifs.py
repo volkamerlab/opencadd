@@ -7,6 +7,6 @@ import opencadd.databases.klifs
 import pytest
 import sys
 
-def test_klifs_utils_imported():
+def test_databases_klifs_imported():
     """Sample test, will always pass so long as import statement worked"""
-    assert "klifs_utils" in sys.modules
+    assert "opencadd.databases.klifs" in sys.modules
