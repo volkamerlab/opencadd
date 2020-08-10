@@ -39,9 +39,9 @@ def kinase_families(kinase_group=None):
         Kinase family names.
     """
 
-    return KLIFS_CLIENT.Information.get_kinase_families(
-        kinase_group=kinase_group
-    ).response().result
+    return (
+        KLIFS_CLIENT.Information.get_kinase_families(kinase_group=kinase_group).response().result
+    )
 
 
 def kinase_names(kinase_group=None, kinase_family=None, species=None):
@@ -64,11 +64,13 @@ def kinase_names(kinase_group=None, kinase_family=None, species=None):
         Kinase names with details (kinase KLIFS ID, kinase name (abbreviation and full), and species).
     """
 
-    results = KLIFS_CLIENT.Information.get_kinase_names(
-        kinase_group=kinase_group,
-        kinase_family=kinase_family,
-        species=species
-    ).response().result
+    results = (
+        KLIFS_CLIENT.Information.get_kinase_names(
+            kinase_group=kinase_group, kinase_family=kinase_family, species=species
+        )
+        .response()
+        .result
+    )
 
     return _abc_idlist_to_dataframe(results)
 
@@ -100,19 +102,20 @@ def kinases_from_kinase_names(kinase_names, species=None):
 
         try:
 
-            result = KLIFS_CLIENT.Information.get_kinase_ID(
-                kinase_name=kinase_name,
-                species=species
-            ).response().result
+            result = (
+                KLIFS_CLIENT.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
+                .response()
+                .result
+            )
             result_df = _abc_idlist_to_dataframe(result)
             results.append(result_df)
 
         except Exception as e:
-            print(f'Kinase {kinase_name}: {e}')
+            print(f"Kinase {kinase_name}: {e}")
 
     # Kinase IDs can occur multiple times if the input kinase names describe the same kinase, thus drop duplicates
     kinases = pd.concat(results)
-    kinases = kinases.drop_duplicates('kinase_ID').reset_index(drop=True)
+    kinases = kinases.drop_duplicates("kinase_ID").reset_index(drop=True)
 
     return kinases
 
@@ -140,9 +143,11 @@ def kinases_from_kinase_ids(kinase_ids):
 
     for kinase_id in kinase_ids:
 
-        result = KLIFS_CLIENT.Information.get_kinase_information(
-            kinase_ID=[kinase_id]
-        ).response().result
+        result = (
+            KLIFS_CLIENT.Information.get_kinase_information(kinase_ID=[kinase_id])
+            .response()
+            .result
+        )
         result_df = _abc_idlist_to_dataframe(result)
         results.append(result_df)
 

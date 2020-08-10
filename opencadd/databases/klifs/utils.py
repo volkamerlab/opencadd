@@ -13,12 +13,14 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-COORDINATES_ENTITIES = ['complex', 'ligand', 'pocket', 'protein', 'water']
-COORDINATES_INPUT_FORMATS = ['mol2', 'pdb']
-COORDINATES_OUTPUT_FORMATS = ['text', 'biopandas', 'rdkit']
+COORDINATES_ENTITIES = ["complex", "ligand", "pocket", "protein", "water"]
+COORDINATES_INPUT_FORMATS = ["mol2", "pdb"]
+COORDINATES_OUTPUT_FORMATS = ["text", "biopandas", "rdkit"]
 
 
-def file_path(path, species, kinase, pdb, alt, chain, entity='complex', format='mol2', in_dir=False):
+def file_path(
+    path, species, kinase, pdb, alt, chain, entity="complex", format="mol2", in_dir=False
+):
     """
     Get file path.
 
@@ -50,14 +52,16 @@ def file_path(path, species, kinase, pdb, alt, chain, entity='complex', format='
     """
 
     species = species.upper()
-    alt = alt.replace('-', '')
-    chain = chain.replace('-', '')
-    structure = f"{pdb}{f'_alt{alt}' if bool(alt) else ''}{f'_chain{chain}' if bool(chain) else ''}"
+    alt = alt.replace("-", "")
+    chain = chain.replace("-", "")
+    structure = (
+        f"{pdb}{f'_alt{alt}' if bool(alt) else ''}{f'_chain{chain}' if bool(chain) else ''}"
+    )
 
     if in_dir:
-        path = path / 'KLIFS_download' / species / kinase / structure / f'{entity}.{format}'
+        path = path / "KLIFS_download" / species / kinase / structure / f"{entity}.{format}"
     else:
-        path = path / f'{species}_{kinase}_{structure}_{entity}.{format}'
+        path = path / f"{species}_{kinase}_{structure}_{entity}.{format}"
 
     return path
 
@@ -80,17 +84,21 @@ def check_entity_format(entity, input_format, output_format=None):
     if entity not in COORDINATES_ENTITIES:
         raise ValueError(f'Invalid entity. Select from {", ".join(COORDINATES_ENTITIES)}.')
     if input_format not in COORDINATES_INPUT_FORMATS:
-        raise ValueError(f'Invalid input format. Select from {", ".join(COORDINATES_INPUT_FORMATS)}.')
+        raise ValueError(
+            f'Invalid input format. Select from {", ".join(COORDINATES_INPUT_FORMATS)}.'
+        )
     if output_format:
         if output_format not in COORDINATES_OUTPUT_FORMATS:
-            raise ValueError(f'Invalid output format. Select from {", ".join(COORDINATES_OUTPUT_FORMATS)}.')
+            raise ValueError(
+                f'Invalid output format. Select from {", ".join(COORDINATES_OUTPUT_FORMATS)}.'
+            )
 
     # Check if parameter combination is valid
-    if input_format == 'pdb' and entity != 'complex':
-        raise ValueError(f'Entity {entity} is only available in mol2 format.')
+    if input_format == "pdb" and entity != "complex":
+        raise ValueError(f"Entity {entity} is only available in mol2 format.")
     if output_format:
-        if output_format == 'rdkit' and entity != 'ligand':
-            raise ValueError(f'Only entity ligand can be fetched as rdkit molecule.')
+        if output_format == "rdkit" and entity != "ligand":
+            raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
 
 
 def _abc_idlist_to_dataframe(abc_idlist):

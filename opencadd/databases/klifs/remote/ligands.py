@@ -7,7 +7,7 @@ Ligand details.
 
 import pandas as pd
 
-from ..utils import  _abc_idlist_to_dataframe
+from ..utils import _abc_idlist_to_dataframe
 from ..klifs_client import KLIFS_CLIENT
 
 
@@ -34,7 +34,7 @@ def ligands_from_kinase_ids(kinase_ids):
     for kinase_id in kinase_ids:
         result = KLIFS_CLIENT.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
         result_df = _abc_idlist_to_dataframe(result)
-        result_df.insert(0, 'kinase_id', kinase_id, True)
+        result_df.insert(0, "kinase_id", kinase_id, True)
         results.append(result_df)
 
     return pd.concat(results)
@@ -65,11 +65,13 @@ def structures_from_ligand_ids(ligand_ids):
 
     for ligand_id in ligand_ids:
 
-        result = KLIFS_CLIENT.Ligands.get_ligands_list_structures(
-            ligand_ID=[ligand_id]
-        ).response().result
+        result = (
+            KLIFS_CLIENT.Ligands.get_ligands_list_structures(ligand_ID=[ligand_id])
+            .response()
+            .result
+        )
         result_df = _abc_idlist_to_dataframe(result)
-        result_df.insert(0, 'ligand_id', ligand_id, True)
+        result_df.insert(0, "ligand_id", ligand_id, True)
         results.append(result_df)
 
     return pd.concat(results)

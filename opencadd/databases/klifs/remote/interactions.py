@@ -5,7 +5,7 @@ Utility functions to work with KLIFS data (remote)
 Interaction details.
 """
 
-from ..utils import  _abc_idlist_to_dataframe
+from ..utils import _abc_idlist_to_dataframe
 from ..klifs_client import KLIFS_CLIENT
 
 
@@ -42,9 +42,11 @@ def interaction_fingerprint_from_structure_ids(structure_ids):
     if isinstance(structure_ids, int):
         structure_ids = [structure_ids]
 
-    result = KLIFS_CLIENT.Interactions.get_interactions_get_IFP(
-        structure_ID=structure_ids
-    ).response().result
+    result = (
+        KLIFS_CLIENT.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
+        .response()
+        .result
+    )
 
     return _abc_idlist_to_dataframe(result)
 
@@ -65,8 +67,10 @@ def klifs_pocket_numbering_from_structure_id(structure_id):
         (<structural element>.<residue index>)).
     """
 
-    result = KLIFS_CLIENT.Interactions.get_interactions_match_residues(
-        structure_ID=structure_id
-    ).response().result
+    result = (
+        KLIFS_CLIENT.Interactions.get_interactions_match_residues(structure_ID=structure_id)
+        .response()
+        .result
+    )
 
     return _abc_idlist_to_dataframe(result)

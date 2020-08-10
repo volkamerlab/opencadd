@@ -18,7 +18,9 @@ from ..utils import COORDINATES_ENTITIES, COORDINATES_INPUT_FORMATS, COORDINATES
 from ..utils import check_entity_format, file_path
 
 
-def fetch(structure_id, entity='complex', input_format='mol2', output_format='biopandas', compute2d=True):
+def fetch(
+    structure_id, entity="complex", input_format="mol2", output_format="biopandas", compute2d=True
+):
     """
     Fetch structural data from KLIFS database in different output formats.
 
@@ -41,23 +43,25 @@ def fetch(structure_id, entity='complex', input_format='mol2', output_format='bi
     # Fetch text from KLIFS
     text = _fetch_text(structure_id, entity, input_format)
     if not text:  # TODO Ask Albert why no remote water
-        raise ValueError(f'Entity {entity} is not available remotely but we could ask Albert to add this.')
+        raise ValueError(
+            f"Entity {entity} is not available remotely but we could ask Albert to add this."
+        )
 
     # Return different output formats
-    if output_format == 'text':
+    if output_format == "text":
         return text
 
-    elif output_format == 'rdkit':
+    elif output_format == "rdkit":
         return _mol2_text_to_rdkit_mol(text, compute2d)
 
-    elif output_format == 'biopandas':
-        if input_format == 'mol2':
+    elif output_format == "biopandas":
+        if input_format == "mol2":
             return _mol2_text_to_dataframe(text)
-        elif input_format == 'pdb':
+        elif input_format == "pdb":
             return _pdb_text_to_dataframe(text)
 
 
-def save(structure_id, output_path, entity='complex', input_format='mol2', in_dir=False):
+def save(structure_id, output_path, entity="complex", input_format="mol2", in_dir=False):
     """
     Save structural data to file.
 
@@ -81,30 +85,32 @@ def save(structure_id, output_path, entity='complex', input_format='mol2', in_di
 
     # Set up output path (metadata in the form of directory structure or file name)
     output_path = file_path(
-        output_path, 
-        metadata.species.upper(), 
-        metadata.kinase, 
-        metadata.pdb, 
-        metadata.alt, 
-        metadata.chain, 
-        entity, 
-        input_format, 
-        in_dir
+        output_path,
+        metadata.species.upper(),
+        metadata.kinase,
+        metadata.pdb,
+        metadata.alt,
+        metadata.chain,
+        entity,
+        input_format,
+        in_dir,
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Get text
-    text = fetch(structure_id, entity, input_format, output_format='text')
+    text = fetch(structure_id, entity, input_format, output_format="text")
     if not text:  # TODO Ask Albert why no remote water
-        raise ValueError(f'Entity {entity} is not available remotely but we could ask Albert to add this.')
+        raise ValueError(
+            f"Entity {entity} is not available remotely but we could ask Albert to add this."
+        )
 
     # Save text to file
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(text)
 
 
-def _fetch_text(structure_id, entity='complex', input_format='mol2'):
+def _fetch_text(structure_id, entity="complex", input_format="mol2"):
     """
     Get structural data content from KLIFS database as string (text).
 
@@ -122,27 +128,37 @@ def _fetch_text(structure_id, entity='complex', input_format='mol2'):
     str
         Structural data.
     """
-    
-    if entity == 'complex' and input_format == 'mol2':
-        return KLIFS_CLIENT.Structures.get_structure_get_complex(
-            structure_ID=structure_id
-        ).response().result
-    elif entity == 'complex' and input_format == 'pdb':
-        return KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(
-            structure_ID=structure_id
-        ).response().result
-    elif entity == 'ligand' and input_format == 'mol2':
-        return KLIFS_CLIENT.Structures.get_structure_get_ligand(
-            structure_ID=structure_id
-        ).response().result
-    elif entity == 'pocket' and input_format == 'mol2':
-        return KLIFS_CLIENT.Structures.get_structure_get_pocket(
-            structure_ID=structure_id
-        ).response().result
-    elif entity == 'protein' and input_format == 'mol2':
-        return KLIFS_CLIENT.Structures.get_structure_get_protein(
-            structure_ID=structure_id
-        ).response().result
+
+    if entity == "complex" and input_format == "mol2":
+        return (
+            KLIFS_CLIENT.Structures.get_structure_get_complex(structure_ID=structure_id)
+            .response()
+            .result
+        )
+    elif entity == "complex" and input_format == "pdb":
+        return (
+            KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
+            .response()
+            .result
+        )
+    elif entity == "ligand" and input_format == "mol2":
+        return (
+            KLIFS_CLIENT.Structures.get_structure_get_ligand(structure_ID=structure_id)
+            .response()
+            .result
+        )
+    elif entity == "pocket" and input_format == "mol2":
+        return (
+            KLIFS_CLIENT.Structures.get_structure_get_pocket(structure_ID=structure_id)
+            .response()
+            .result
+        )
+    elif entity == "protein" and input_format == "mol2":
+        return (
+            KLIFS_CLIENT.Structures.get_structure_get_protein(structure_ID=structure_id)
+            .response()
+            .result
+        )
 
 
 def _mol2_text_to_dataframe(mol2_text):
@@ -166,21 +182,34 @@ def _mol2_text_to_dataframe(mol2_text):
         mol2_df = pmol._construct_df(
             mol2_text.splitlines(True),
             col_names=[
-                'atom_id', 'atom_name', 'x', 'y', 'z', 'atom_type', 'subst_id', 'subst_name', 'charge', 'backbone'
+                "atom_id",
+                "atom_name",
+                "x",
+                "y",
+                "z",
+                "atom_type",
+                "subst_id",
+                "subst_name",
+                "charge",
+                "backbone",
             ],
-            col_types=[
-                int, str, float, float, float, str, int, str, float, str
-            ]
+            col_types=[int, str, float, float, float, str, int, str, float, str],
         )
     except ValueError:
         mol2_df = pmol._construct_df(
             mol2_text.splitlines(True),
             col_names=[
-                'atom_id', 'atom_name', 'x', 'y', 'z', 'atom_type', 'subst_id', 'subst_name', 'charge'
+                "atom_id",
+                "atom_name",
+                "x",
+                "y",
+                "z",
+                "atom_type",
+                "subst_id",
+                "subst_name",
+                "charge",
             ],
-            col_types=[
-                int, str, float, float, float, str, int, str, float
-            ]
+            col_types=[int, str, float, float, float, str, int, str, float],
         )
 
     return mol2_df
@@ -228,10 +257,8 @@ def _pdb_text_to_dataframe(pdb_text):
 
     ppdb = PandasPdb()
 
-    pdb_dict = ppdb._construct_df(
-        pdb_text.splitlines(True)
-    )
+    pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
 
-    print(f'Structural data keys: {pdb_dict.keys()}')
+    print(f"Structural data keys: {pdb_dict.keys()}")
 
     return pdb_dict

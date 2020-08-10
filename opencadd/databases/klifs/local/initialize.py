@@ -41,7 +41,7 @@ def from_files(klifs_overview_path, klifs_export_path):
     klifs_metadata = _merge_files(klifs_overview, klifs_export)
     klifs_metadata = _add_filepaths(klifs_metadata)
 
-    klifs_metadata.to_csv(klifs_overview_path.parent / 'klifs_metadata.csv', index=False)
+    klifs_metadata.to_csv(klifs_overview_path.parent / "klifs_metadata.csv", index=False)
 
     return klifs_metadata
 
@@ -66,21 +66,21 @@ def _from_klifs_export_file(klifs_export_path):
     # Unify column names with column names in overview.csv
     klifs_export.rename(
         columns={
-            'NAME': 'kinase',
-            'FAMILY': 'family',
-            'GROUPS': 'group',
-            'PDB': 'pdb_id',
-            'CHAIN': 'chain',
-            'ALTERNATE_MODEL': 'alternate_model',
-            'SPECIES': 'species',
-            'LIGAND': 'ligand_orthosteric_name',
-            'PDB_IDENTIFIER': 'ligand_orthosteric_pdb_id',
-            'ALLOSTERIC_NAME': 'ligand_allosteric_name',
-            'ALLOSTERIC_PDB': 'ligand_allosteric_pdb_id',
-            'DFG': 'dfg',
-            'AC_HELIX': 'ac_helix',
+            "NAME": "kinase",
+            "FAMILY": "family",
+            "GROUPS": "group",
+            "PDB": "pdb_id",
+            "CHAIN": "chain",
+            "ALTERNATE_MODEL": "alternate_model",
+            "SPECIES": "species",
+            "LIGAND": "ligand_orthosteric_name",
+            "PDB_IDENTIFIER": "ligand_orthosteric_pdb_id",
+            "ALLOSTERIC_NAME": "ligand_allosteric_name",
+            "ALLOSTERIC_PDB": "ligand_allosteric_pdb_id",
+            "DFG": "dfg",
+            "AC_HELIX": "ac_helix",
         },
-        inplace=True
+        inplace=True,
     )
 
     # Unify column 'kinase': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
@@ -88,11 +88,7 @@ def _from_klifs_export_file(klifs_export_path):
     # Column "kinase_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
     kinase_names = [_format_kinase_name(i) for i in klifs_export.kinase]
     klifs_export.kinase = [i[0] for i in kinase_names]
-    klifs_export.insert(
-        loc=1,
-        column='kinase_all',
-        value=kinase_names
-    )
+    klifs_export.insert(loc=1, column="kinase_all", value=kinase_names)
 
     return klifs_export
 
@@ -117,16 +113,16 @@ def _from_klifs_overview_file(klifs_overview_path):
     # Unify column names with column names in KLIFS_export.csv
     klifs_overview.rename(
         columns={
-            'pdb': 'pdb_id',
-            'alt': 'alternate_model',
-            'orthosteric_PDB': 'ligand_orthosteric_pdb_id',
-            'allosteric_PDB': 'ligand_allosteric_pdb_id',
+            "pdb": "pdb_id",
+            "alt": "alternate_model",
+            "orthosteric_PDB": "ligand_orthosteric_pdb_id",
+            "allosteric_PDB": "ligand_allosteric_pdb_id",
         },
-        inplace=True
+        inplace=True,
     )
 
     # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
-    klifs_overview.alternate_model.replace(' ', '-', inplace=True)
+    klifs_overview.alternate_model.replace(" ", "-", inplace=True)
 
     return klifs_overview
 
@@ -151,9 +147,9 @@ def _format_kinase_name(kinase_name):
         List of strings, here list of kinase name(s).
     """
 
-    kinase_name = kinase_name.replace('(', '')
-    kinase_name = kinase_name.replace(')', '')
-    kinase_name = kinase_name.replace(',', '')
+    kinase_name = kinase_name.replace("(", "")
+    kinase_name = kinase_name.replace(")", "")
+    kinase_name = kinase_name.replace(",", "")
     kinase_name = kinase_name.split()
 
     return kinase_name
@@ -181,52 +177,51 @@ def _merge_files(klifs_export, klifs_overview):
     not_in_overview = klifs_overview[~klifs_overview.pdb_id.isin(klifs_export.pdb_id)]
 
     if not_in_export.size > 0:
-        raise ValueError(f'Number of PDBs in overview but not in export table: {not_in_export.size}.\n')
+        raise ValueError(
+            f"Number of PDBs in overview but not in export table: {not_in_export.size}.\n"
+        )
     if not_in_overview.size > 0:
-        raise (f'Number of PDBs in export but not in overview table: {not_in_overview.size}.'
-               f'PDB codes are probably updated because structures are deprecated.')
+        raise (
+            f"Number of PDBs in export but not in overview table: {not_in_overview.size}."
+            f"PDB codes are probably updated because structures are deprecated."
+        )
 
     # Merge on mutual columns:
     # Species, kinase, PDB ID, chain, alternate model, orthosteric and allosteric ligand PDB ID
 
-    mutual_columns = [
-        'species',
-        'pdb_id',
-        'chain',
-        'alternate_model'
-    ]
+    mutual_columns = ["species", "pdb_id", "chain", "alternate_model"]
 
-    klifs_metadata = klifs_export.merge(
-        right=klifs_overview,
-        how='inner',
-        on=mutual_columns
-    )
+    klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
 
     klifs_metadata.drop(
-        columns=['ligand_orthosteric_pdb_id_y', 'ligand_allosteric_pdb_id_y', 'kinase_y'],
-        inplace=True
+        columns=["ligand_orthosteric_pdb_id_y", "ligand_allosteric_pdb_id_y", "kinase_y"],
+        inplace=True,
     )
 
     klifs_metadata.rename(
         columns={
-            'ligand_orthosteric_pdb_id_x': 'ligand_orthosteric_pdb_id',
-            'ligand_allosteric_pdb_id_x': 'ligand_allosteric_pdb_id',
-            'kinase_x': 'kinase'
+            "ligand_orthosteric_pdb_id_x": "ligand_orthosteric_pdb_id",
+            "ligand_allosteric_pdb_id_x": "ligand_allosteric_pdb_id",
+            "kinase_x": "kinase",
         },
-        inplace=True
+        inplace=True,
     )
 
     if not (klifs_overview.shape[1] + klifs_export.shape[1] - 7) == klifs_metadata.shape[1]:
-        raise ValueError(f'Output table has incorrect number of columns\n'
-                         f'KLIFS overview table has shape: {klifs_overview.shape}\n'
-                         f'KLIFS export table has shape: {klifs_export.shape}\n'
-                         f'KLIFS merged table has shape: {klifs_metadata.shape}')
+        raise ValueError(
+            f"Output table has incorrect number of columns\n"
+            f"KLIFS overview table has shape: {klifs_overview.shape}\n"
+            f"KLIFS export table has shape: {klifs_export.shape}\n"
+            f"KLIFS merged table has shape: {klifs_metadata.shape}"
+        )
 
     if not klifs_overview.shape[0] == klifs_export.shape[0] == klifs_metadata.shape[0]:
-        raise ValueError(f'Output table has incorrect number of rows:\n'
-                         f'KLIFS overview table has shape: {klifs_overview.shape}\n'
-                         f'KLIFS export table has shape: {klifs_export.shape}\n'
-                         f'KLIFS merged table has shape: {klifs_metadata.shape}')
+        raise ValueError(
+            f"Output table has incorrect number of rows:\n"
+            f"KLIFS overview table has shape: {klifs_overview.shape}\n"
+            f"KLIFS export table has shape: {klifs_export.shape}\n"
+            f"KLIFS merged table has shape: {klifs_metadata.shape}"
+        )
 
     return klifs_metadata
 
@@ -250,19 +245,21 @@ def _add_filepaths(klifs_metadata):
     for index, row in klifs_metadata.iterrows():
 
         # Depending on whether alternate model and chain ID is given build file path:
-        mol2_path = Path('.') / row.species.upper() / row.kinase
+        mol2_path = Path(".") / row.species.upper() / row.kinase
 
-        if row.alternate_model != '-' and row.chain != '-':
-            mol2_path = mol2_path / f'{row.pdb_id}_alt{row.alternate_model}_chain{row.chain}'
-        elif row.alternate_model == '-' and row.chain != '-':
-            mol2_path = mol2_path / f'{row.pdb_id}_chain{row.chain}'
-        elif row.alternate_model == '-' and row.chain == '-':
-            mol2_path = mol2_path / f'{row.pdb_id}'
+        if row.alternate_model != "-" and row.chain != "-":
+            mol2_path = mol2_path / f"{row.pdb_id}_alt{row.alternate_model}_chain{row.chain}"
+        elif row.alternate_model == "-" and row.chain != "-":
+            mol2_path = mol2_path / f"{row.pdb_id}_chain{row.chain}"
+        elif row.alternate_model == "-" and row.chain == "-":
+            mol2_path = mol2_path / f"{row.pdb_id}"
         else:
-            raise ValueError(f'Incorrect metadata entry {index}: {row.alternate_model}, {row.chain}')
+            raise ValueError(
+                f"Incorrect metadata entry {index}: {row.alternate_model}, {row.chain}"
+            )
 
         filepaths.append(mol2_path)
 
-    klifs_metadata['filepath'] = filepaths
+    klifs_metadata["filepath"] = filepaths
 
     return klifs_metadata

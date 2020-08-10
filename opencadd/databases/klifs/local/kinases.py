@@ -55,7 +55,9 @@ def kinase_names(klifs_metadata):
         Kinase names with details.
     """
 
-    klifs_metadata = klifs_metadata.drop_duplicates(subset=['kinase', 'species'])[['kinase', 'species']]
+    klifs_metadata = klifs_metadata.drop_duplicates(subset=["kinase", "species"])[
+        ["kinase", "species"]
+    ]
 
     return klifs_metadata
 

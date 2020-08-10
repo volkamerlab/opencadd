@@ -5,7 +5,7 @@ Utility functions to work with KLIFS data (remote)
 Structure details.
 """
 
-from ..utils import  _abc_idlist_to_dataframe
+from ..utils import _abc_idlist_to_dataframe
 from ..klifs_client import KLIFS_CLIENT
 
 
@@ -30,7 +30,9 @@ def structures_from_structure_ids(structure_ids):
     if isinstance(structure_ids, int):
         structure_ids = [structure_ids]
 
-    result = KLIFS_CLIENT.Structures.get_structure_list(structure_ID=structure_ids).response().result
+    result = (
+        KLIFS_CLIENT.Structures.get_structure_list(structure_ID=structure_ids).response().result
+    )
     result_df = _abc_idlist_to_dataframe(result)
 
     return result_df
@@ -88,9 +90,9 @@ def structures_from_pdb_ids(pdb_ids, alt=None, chain=None):
     # Ignore alternate model and chain input (set to None) in these two cases:
     # - If multiple PDB IDs are given
     # - If alternate model or chain indicate that no alternate model or chain is selected
-    if alt in ['', ' ', '-', '_'] or isinstance(pdb_ids, list):
+    if alt in ["", " ", "-", "_"] or isinstance(pdb_ids, list):
         alt = None
-    if chain in ['', ' ', '-', '_'] or isinstance(pdb_ids, list):
+    if chain in ["", " ", "-", "_"] or isinstance(pdb_ids, list):
         chain = None
 
     if isinstance(pdb_ids, str):

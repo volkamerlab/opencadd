@@ -17,7 +17,7 @@ from ..utils import COORDINATES_ENTITIES, COORDINATES_INPUT_FORMATS
 from ..utils import check_entity_format
 
 
-def load(file_path, output_format='biopandas', compute2d=True):
+def load(file_path, output_format="biopandas", compute2d=True):
     """
     Load structural data from KLIFS file in different output formats.
 
@@ -33,7 +33,7 @@ def load(file_path, output_format='biopandas', compute2d=True):
 
     file_path = Path(file_path)
     if not file_path.exists():
-        raise FileNotFoundError(f'File does not exist: {file_path}.')
+        raise FileNotFoundError(f"File does not exist: {file_path}.")
 
     # Check if parameters are valid
     entity = file_path.stem
@@ -41,14 +41,15 @@ def load(file_path, output_format='biopandas', compute2d=True):
     check_entity_format(entity, input_format, output_format)
 
     # Return different output formats
-    if output_format == 'rdkit':
+    if output_format == "rdkit":
         return _mol2_file_to_rdkit_mol(str(file_path), compute2d)
 
-    elif output_format == 'biopandas':
-        if input_format == 'mol2':
+    elif output_format == "biopandas":
+        if input_format == "mol2":
             return _mol2_file_to_dataframe(file_path).df
-        elif input_format == 'pdb':
+        elif input_format == "pdb":
             pass
+
 
 def _mol2_file_to_dataframe(mol2_file):
     """
@@ -73,23 +74,21 @@ def _mol2_file_to_dataframe(mol2_file):
         mol2_df = pmol.read_mol2(
             str(mol2_file),
             columns={
-                0: ('atom_id', int),
-                1: ('atom_name', str),
-                2: ('x', float),
-                3: ('y', float),
-                4: ('z', float),
-                5: ('atom_type', str),
-                6: ('subst_id', int),
-                7: ('subst_name', str),
-                8: ('charge', float),
-                9: ('backbone', str)
-            }
+                0: ("atom_id", int),
+                1: ("atom_name", str),
+                2: ("x", float),
+                3: ("y", float),
+                4: ("z", float),
+                5: ("atom_type", str),
+                6: ("subst_id", int),
+                7: ("subst_name", str),
+                8: ("charge", float),
+                9: ("backbone", str),
+            },
         )
 
     except ValueError:
-        mol2_df = pmol.read_mol2(
-            str(mol2_file)
-        )
+        mol2_df = pmol.read_mol2(str(mol2_file))
 
     return mol2_df
 
