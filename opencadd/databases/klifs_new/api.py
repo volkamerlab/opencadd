@@ -3,6 +3,7 @@ api.py
 
 Defines opencadd.databases.klifs API (local and remote).
 """
+import logging
 
 from bravado.client import SwaggerClient
 
@@ -14,6 +15,8 @@ KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
 KLIFS_CLIENT = SwaggerClient.from_url(
     KLIFS_API_DEFINITIONS, config={"validate_responses": False}
 )
+
+_logger = logging.getLogger(__name__)
 
 
 class Session:
