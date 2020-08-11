@@ -12,21 +12,16 @@ class KinasesFactory:
         pass
 
     @property
-    def kinase_groups(self):
+    def all_kinase_groups(self):
         """Return all kinase groups available remotely or locally."""
         pass
 
-    def kinase_families(self, groups=None):
+    def all_kinase_families(self, groups=None):
         """Return all kinase families available remotely or locally."""
         pass
 
-    def kinase_names(self, groups=None, families=None, species=None):
+    def all_kinase_names(self, groups=None, families=None, species=None):
         """Return all kinase names available remotely or locally."""
-        pass
-
-    @property
-    def all(self):
-        """Return all kinases available remotely or locally."""
         pass
 
     def from_kinase_ids(self, kinase_ids):
