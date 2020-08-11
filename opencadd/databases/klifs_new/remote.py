@@ -21,6 +21,10 @@ class Kinases(KinasesFactory):
         super().__init__()
         self.__client = client
 
+    @property
+    def all_kinase_groups(self):
+        return self.__client.Information.get_kinase_groups().response().result
+
 
 class Ligands(LigandsFactory):
     def __init__(self, client):

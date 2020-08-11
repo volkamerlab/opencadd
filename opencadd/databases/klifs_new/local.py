@@ -290,6 +290,19 @@ class Kinases(KinasesFactory):
         super().__init__()
         self.__database = database
 
+    @property
+    def all_kinase_groups(self):
+        """
+        Get all kinase groups.
+
+        Returns
+        -------
+        list of str
+            Kinase group names.
+        """
+        kinase_groups = self.__database.group.unique().tolist()
+        return kinase_groups
+
 
 class Ligands(LigandsFactory):
     def __init__(self, database):
