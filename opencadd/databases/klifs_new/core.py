@@ -14,27 +14,27 @@ class KinasesProvider:
     Class for kinases requests.
 
     Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) following attributes (columns):
-    kinase_ID : int
+    kinase.id : int
         Kinase ID.
-    name : str
+    kinase.name : str
         Kinase name according to KLIFS.
-    HGNC : str
+    kinase.hgnc : str
         Kinase name according to the HUGO Gene Nomenclature Committee.
-    family : str
+    kinase.family : str
         Kinase family.
-    group : str
+    kinase.group : str
         Kinase group.
-    kinase_class : str
+    kinase.class : str
         Kinase class. TODO: Where does this come from?
     species : str
         Species.
-    full_name : str
+    kinase.name_full : str
         Full kinase name.
-    uniprot : str
+    kinase.uniprot : str
         UniProt ID.
-    iuphar : int
+    kinase.iuphar : int
         IUPHAR ID.
-    pocket : str
+    kinase.pocket : str
         One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
     """
 
@@ -125,15 +125,15 @@ class LigandsProvider:
     Class for ligands requests.
 
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) following attributes (columns):
-    ligand_ID : int
+    ligand.id : int
         Ligand ID.
-    PDB-code : str
+    ligand.pdb : str
         Ligand PDB name.
-    Name : str
+    ligand.name : str
         Ligand name.
-    SMILES : str
+    ligand.smiles : str
         Ligand SMILES.
-    InChIKey : str
+    ligand.inchikey : str
         InChI key.
     """
 
@@ -201,77 +201,77 @@ class StructuresProvider:
     Class for structures requests.
 
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) following attributes (columns):
-    structure_ID : int
+    structure.id : int
         Structure ID.
-    kinase : str
+    kinase.name : str
         Kinase name according to KLIFS.
     species : str
         Species.
-    kinase_ID : int
+    kinase.id : int
         Kinase ID.
-    pdb : str
-        Complex PDB ID.
-    alt : str
+    structure.pdb : str
+        Structure PDB ID.
+    structure.alternate_model : str
         Alternate model. If no alternate model, empty string.
-    chain : str
+    structure.chain : str
         Chain.
-    rmsd1 : float
+    structure.rmsd1 : float
         RMSD
-    rmsd2 : float
+    structure.rmsd2 : float
         RMSD
-    pocket : str
+    kinase.pocket : str
         One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
-    resolution : float
+    structure.resolution : float
         Structure resolution in Angström.
-    quality_score : float
+    structure.qualityscore : float
         KLIFS quality score.
-    missing_residues : int
+    structure.missing_residues : int
         Number of missing residues.
-    missing_atoms : int
+    structure.missing_atoms : int
         Number of missing atoms.
-    ligand : str or int (0)
+    ligand.pdb : str or int (0)
         Orthosteric ligand PDB ID. If no ligand, 0.
-    allosteric_ligand : str or 
+    ligand.pdb_allosteric : str or 
         Allosteric ligand PDB ID. If no ligand, 0.
-    DFG : str
+    structure.DFG : str
         DFG conformation (in, out, out-like, na).
-    aC_helix : str
+    structure.ac_helix : str
         aC helix conformation (in, out, out-like, na).
-    Grich_distance : float
+    structure.grich_distance : float
         G-rich loop conformation annotation: Distance between the catalytic loop and the G-rich loop.
-    Grich_angle : float
+    structure.grich_angle : float
         G-rich loop conformation annotation: Angle of loop compared to hinge reagion and catalytic loop.
-    Grich_rotation : float
+    structure.grich_rotation : float
         G-rich loop conformation annotation: Rotation of the G-rich loop compared to the catalytic loop
-    front : bool
+    structure.front : bool
         Orthosteric ligand occupies KLIFS front cleft.
-    gate : bool
+    structure.gate : bool
         Orthosteric ligand occupies gate area.
-    back : bool
+    structure.back : bool
         Orthosteric ligand occupies KLIFS back cleft.
-    fp_I : bool
+    structure.fp_i : bool
         Orthosteric ligand occupies KLIFS front pocket I (FP-I).
-    fp_II : bool
+    structure.fp_ii : bool
         Orthosteric ligand occupies KLIFS front pocket II (FP-II).
-    bp_I_A : bool
+    structure.bp_i_a : bool
         Orthosteric ligand occupies KLIFS back pocket I-A (BP-I-A).
-    bp_I_B : bool
+    structure.bp_i_b : bool
         Orthosteric ligand occupies KLIFS back pocket I-B (BP-I-B).
-    bp_II_in : bool
+    structure.bp_ii_in : bool
         Orthosteric ligand occupies KLIFS back pocket II DFG-in (BP-II-in).
-    bp_II_A_in : bool
+    structure.bp_ii_a_in : bool
         Orthosteric ligand occupies KLIFS back pocket II-A DFG-in (BP-II-A-in).
-    bp_II_B_in : bool
+    structure.bp_ii_b_in : bool
         Orthosteric ligand occupies KLIFS back pocket II-B DFG-in (BP-II-B-in).
-    bp_II_out : bool
+    structure.bp_ii_out : bool
         Orthosteric ligand occupies KLIFS back pocket II DFG-out (BP-II-out).
-    bp_II_B : bool
+    structure.bp_ii_b : bool
         Orthosteric ligand occupies KLIFS back pocket II-B (BP-II-B).
-    bp_III : bool
+    structure.bp_iii : bool
         Orthosteric ligand occupies KLIFS back pocket III (BP-III).
-    bp_IV : bool
+    structure.bp_iv : bool
         Orthosteric ligand occupies KLIFS back pocket IV (BP-IV).
-    bp_V : bool
+    structure.bp_v : bool
         Orthosteric ligand occupies KLIFS back pocket V (BP-V).
     """
 

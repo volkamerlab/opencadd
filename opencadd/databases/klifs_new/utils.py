@@ -65,6 +65,53 @@ RENAME_COLUMNS_REMOTE_KINASE = {
     "iuphar": "kinase.iuphar",
     "pocket": "kinase.pocket",
 }
+RENAME_COLUMNS_REMOTE_STRUCTURE = {
+    "structure_ID" : "structure.id",
+    "kinase" : "kinase.name",
+    "species" : "species",
+    "kinase_ID" : "kinase.id",
+    "pdb" : "structure.pdb",
+    "alt" : "structure.alternate_model",
+    "chain" : "structure.chain",
+    "rmsd1" : "structure.rmsd1",
+    "rmsd2" : "structure.rmsd2",
+    "pocket" : "kinase.pocket",
+    "resolution" : "structure.resolution",
+    "quality_score" : "structure.qualityscore",
+    "missing_residues" : "structure.missing_residues",
+    "missing_atoms" : "structure.missing_atoms",
+    "ligand" : "ligand.name",
+    "allosteric_ligand" : "ligand.name_allosteric",
+    "DFG" : "structure.dfg",
+    "aC_helix" : "structure.ac_helix",
+    "Grich_distance" : "structure.grich_distance",
+    "Grich_angle" : "structure.grich_angle",
+    "Grich_rotation" : "structure.grich_rotation",
+    "front" : "structure.front",
+    "gate" : "structure.gate",
+    "back" : "structure.back",
+    "fp_I" : "structure.fp_i",
+    "fp_II" : "structure.fp_ii",
+    "bp_I_A" : "structure.bp_i_a",
+    "bp_I_B" : "structure.bp_i_b",
+    "bp_II_in" : "structure.bp_ii_in",
+    "bp_II_A_in" : "structure.bp_ii_a_in",
+    "bp_II_B_in" : "structure.bp_ii_b_in",
+    "bp_II_out" : "structure.bp_ii_out",
+    "bp_II_B" : "structure.bp_ii_b",
+    "bp_III" : "structure.bp_iii,
+    "bp_IV" : "structure.bp_iv",
+    "bp_V" : "structure.bp_v",
+}
+RENAME_COLUMNS_REMOTE_LIGAND = {
+    "ligand_ID": "ligand.id",
+    "PDB-code": "ligand.pdb",
+    "Name": "ligand.name",
+    "SMILES": "ligand.smiles",
+    "InChIKey": "ligand.inchikey",
+}
+RENAME_COLUMNS_REMOTE_INTERACTION = {}
+RENAME_COLUMNS_REMOTE_BIOACTIVITY = {}
 
 
 def file_path(
