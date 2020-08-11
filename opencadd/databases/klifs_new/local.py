@@ -4,18 +4,26 @@ local.py
 Defines local KLIFS session.
 """
 
+import logging
 from pathlib import Path
 
 import pandas as pd
 
 from .core import (
-    KinasesFactory,
-    LigandsFactory,
-    StructuresFactory,
-    BioactivitiesFactory,
-    InteractionsFactory,
-    CoordinatesFactory,
+    KinasesProvider,
+    LigandsProvider,
+    StructuresProvider,
+    BioactivitiesProvider,
+    InteractionsProvider,
+    CoordinatesProvider,
 )
+from .utils import (
+    RENAME_COLUMNS_LOCAL_KLIFS_EXPORT,
+    RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW,
+    file_path,
+)
+
+_logger = logging.getLogger(__name__)
 
 
 class SessionInitializer:
@@ -70,32 +78,20 @@ class SessionInitializer:
         """
 
         klifs_export = pd.read_csv(self.klifs_export_path)
+        print(klifs_export.columns)
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns={
-                "NAME": "kinase",
-                "FAMILY": "family",
-                "GROUPS": "group",
-                "PDB": "pdb_id",
-                "CHAIN": "chain",
-                "ALTERNATE_MODEL": "alternate_model",
-                "SPECIES": "species",
-                "LIGAND": "ligand_orthosteric_name",
-                "PDB_IDENTIFIER": "ligand_orthosteric_pdb_id",
-                "ALLOSTERIC_NAME": "ligand_allosteric_name",
-                "ALLOSTERIC_PDB": "ligand_allosteric_pdb_id",
-                "DFG": "dfg",
-                "AC_HELIX": "ac_helix",
-            },
-            inplace=True,
+            columns=RENAME_COLUMNS_LOCAL_KLIFS_EXPORT, inplace=True,
         )
 
         # Unify column 'kinase': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase": Retain only first kinase name, e.g. EPHA7
         # Column "kinase_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_name(i) for i in klifs_export.kinase]
-        klifs_export.kinase = [i[0] for i in kinase_names]
+        kinase_names = [
+            self._format_kinase_name(i) for i in klifs_export["kinase.name"]
+        ]
+        klifs_export["kinase.name"] = [i[0] for i in kinase_names]
         klifs_export.insert(loc=1, column="kinase_all", value=kinase_names)
 
         return klifs_export
@@ -111,20 +107,15 @@ class SessionInitializer:
         """
 
         klifs_overview = pd.read_csv(self.klifs_overview_path)
+        print(klifs_overview.columns)
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns={
-                "pdb": "pdb_id",
-                "alt": "alternate_model",
-                "orthosteric_PDB": "ligand_orthosteric_pdb_id",
-                "allosteric_PDB": "ligand_allosteric_pdb_id",
-            },
-            inplace=True,
+            columns=RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW, inplace=True,
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
-        klifs_overview.alternate_model.replace(" ", "-", inplace=True)
+        klifs_overview["structure.alternate_model"].replace(" ", "-", inplace=True)
 
         return klifs_overview
 
@@ -175,9 +166,11 @@ class SessionInitializer:
         """
 
         # Check if PDB IDs occur in one file but not the other
-        not_in_export = klifs_export[~klifs_export.pdb_id.isin(klifs_overview.pdb_id)]
+        not_in_export = klifs_export[
+            ~klifs_export["structure.pdb"].isin(klifs_overview["structure.pdb"])
+        ]
         not_in_overview = klifs_overview[
-            ~klifs_overview.pdb_id.isin(klifs_export.pdb_id)
+            ~klifs_overview["structure.pdb"].isin(klifs_export["structure.pdb"])
         ]
 
         if not_in_export.size > 0:
@@ -193,7 +186,12 @@ class SessionInitializer:
         # Merge on mutual columns:
         # Species, kinase, PDB ID, chain, alternate model, orthosteric and allosteric ligand PDB ID
 
-        mutual_columns = ["species", "pdb_id", "chain", "alternate_model"]
+        mutual_columns = [
+            "species",
+            "structure.pdb",
+            "structure.chain",
+            "structure.alternate_model",
+        ]
 
         klifs_metadata = klifs_export.merge(
             right=klifs_overview, how="inner", on=mutual_columns
@@ -201,18 +199,18 @@ class SessionInitializer:
 
         klifs_metadata.drop(
             columns=[
-                "ligand_orthosteric_pdb_id_y",
-                "ligand_allosteric_pdb_id_y",
-                "kinase_y",
+                "ligand.orthosteric.pdb_y",
+                "ligand.allosteric.pdb_y",
+                "kinase.name_y",
             ],
             inplace=True,
         )
 
         klifs_metadata.rename(
             columns={
-                "ligand_orthosteric_pdb_id_x": "ligand_orthosteric_pdb_id",
-                "ligand_allosteric_pdb_id_x": "ligand_allosteric_pdb_id",
-                "kinase_x": "kinase",
+                "ligand.orthosteric.pdb_x": "ligand.orthosteric.pdb",
+                "ligand.allosteric.pdb_x": "ligand.allosteric.pdb",
+                "kinase.name_x": "kinase.name",
             },
             inplace=True,
         )
@@ -262,22 +260,17 @@ class SessionInitializer:
         for index, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
-            mol2_path = Path(".") / row.species.upper() / row.kinase
-
-            if row.alternate_model != "-" and row.chain != "-":
-                mol2_path = (
-                    mol2_path
-                    / f"{row.pdb_id}_alt{row.alternate_model}_chain{row.chain}"
-                )
-            elif row.alternate_model == "-" and row.chain != "-":
-                mol2_path = mol2_path / f"{row.pdb_id}_chain{row.chain}"
-            elif row.alternate_model == "-" and row.chain == "-":
-                mol2_path = mol2_path / f"{row.pdb_id}"
-            else:
-                raise ValueError(
-                    f"Incorrect metadata entry {index}: {row.alternate_model}, {row.chain}"
-                )
-
+            mol2_path = file_path(
+                ".",
+                row["species"],
+                row["kinase.name"],
+                row["structure.pdb"],
+                row["structure.alternate_model"],
+                row["structure.chain"],
+                entity="",
+                format="",
+                in_dir=True,
+            )
             filepaths.append(mol2_path)
 
         klifs_metadata["filepath"] = filepaths
@@ -285,52 +278,70 @@ class SessionInitializer:
         return klifs_metadata
 
 
-class Kinases(KinasesFactory):
+class Kinases(KinasesProvider):
     def __init__(self, database):
+
         super().__init__()
         self.__database = database
 
-    @property
     def all_kinase_groups(self):
-        """
-        Get all kinase groups.
 
-        Returns
-        -------
-        list of str
-            Kinase group names.
-        """
-        kinase_groups = self.__database.group.unique().tolist()
+        kinase_groups = pd.DataFrame(self.__database["kinase.group"].drop_duplicates())
         return kinase_groups
 
+    def all_kinase_families(self, group=None):
 
-class Ligands(LigandsFactory):
+        if group:
+            try:
+                database = self.__database.groupby(["kinase.group"]).get_group(group)
+            except KeyError:
+                _logger.error(f"Kinase group {group} not known in local dataset.")
+                return None
+        else:
+            database = self.__database
+
+        kinase_families = pd.DataFrame(
+            self.__database["kinase.family"].drop_duplicates()
+        )
+        return kinase_families
+
+    def all_kinases(self, group=None, family=None, species=None):
+
+        kinases = self.__database.drop_duplicates(subset=["kinase.name", "species"])[
+            ["kinase.name", "species"]
+        ]
+        return kinases
+
+    def from_kinases_names(self, kinase_names, species=None):
+
+        self.__database.kinase
+
+
+class Ligands(LigandsProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
 
 
-class Bioactivities(BioactivitiesFactory):
-    """Not available locally. Let's return this from remote?"""
-
+class Bioactivities(BioactivitiesProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
 
 
-class Structures(StructuresFactory):
+class Structures(StructuresProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
 
 
-class Interactions(InteractionsFactory):
+class Interactions(InteractionsProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
 
 
-class Coordinates(CoordinatesFactory):
+class Coordinates(CoordinatesProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
