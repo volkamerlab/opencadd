@@ -20,8 +20,8 @@ from .core import (
 from .utils import (
     RENAME_COLUMNS_LOCAL_KLIFS_EXPORT,
     RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW,
-    file_path,
 )
+from .utils import file_path, _log_error_empty_query_results
 
 _logger = logging.getLogger(__name__)
 
@@ -78,7 +78,6 @@ class SessionInitializer:
         """
 
         klifs_export = pd.read_csv(self.klifs_export_path)
-        print(klifs_export.columns)
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
@@ -107,7 +106,6 @@ class SessionInitializer:
         """
 
         klifs_overview = pd.read_csv(self.klifs_overview_path)
-        print(klifs_overview.columns)
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
@@ -187,7 +185,7 @@ class SessionInitializer:
         # Species, kinase, PDB ID, chain, alternate model, orthosteric and allosteric ligand PDB ID
 
         mutual_columns = [
-            "species",
+            "species.klifs",
             "structure.pdb",
             "structure.chain",
             "structure.alternate_model",
@@ -262,7 +260,7 @@ class SessionInitializer:
             # Depending on whether alternate model and chain ID is given build file path:
             mol2_path = file_path(
                 ".",
-                row["species"],
+                row["species.klifs"],
                 row["kinase.name"],
                 row["structure.pdb"],
                 row["structure.alternate_model"],
@@ -307,14 +305,45 @@ class Kinases(KinasesProvider):
 
     def all_kinases(self, group=None, family=None, species=None):
 
-        kinases = self.__database.drop_duplicates(subset=["kinase.name", "species"])[
-            ["kinase.name", "species"]
+        # Filter database if filtering parameters are set
+        database = self.__database
+        if group:
+            database = database[database["kinase.group"] == group].copy()
+        if family:
+            database = database[database["kinase.family"] == family].copy()
+        if species:
+            database = database[database["species.klifs"] == species].copy()
+
+        # From (filtered) database get unique kinase names
+        kinases = database.drop_duplicates("kinase.name")[
+            ["kinase.name", "species.klifs"]
         ]
-        return kinases
 
-    def from_kinases_names(self, kinase_names, species=None):
+        if kinases.shape[0] > 0:
+            return kinases
+        else:
+            _log_error_empty_query_results()
 
-        self.__database.kinase
+    def from_kinase_names(self, kinase_names, species=None):
+
+        if isinstance(kinase_names, str):
+            kinase_names = [kinase_names]
+
+        # Filter database if filtering parameters are set
+        database = self.__database
+        database = database[database["kinase.name"].isin(kinase_names)]
+        if species:
+            database = database[database["species.klifs"] == species].copy()
+
+        # From (filtered) database get unique kinase names
+        kinases = database.drop_duplicates("kinase.name")[
+            ["kinase.name", "species.klifs"]
+        ]
+
+        if kinases.shape[0] > 0:
+            return kinases
+        else:
+            _log_error_empty_query_results()
 
 
 class Ligands(LigandsProvider):
