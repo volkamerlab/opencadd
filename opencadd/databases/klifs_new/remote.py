@@ -346,53 +346,65 @@ class Bioactivities(BioactivitiesProvider):
         self.__client = client
 
     def all_bioactivities(self):
-        """
-        Get all bioactivities available.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Bioactivities (rows) with columns as described in the class docstring.
-        """
-        raise NotImplementedError("Implement in your subclass!")
+        # Get all kinase IDs
+        ligands_remote = Ligands(KLIFS_CLIENT)
+        ligand_ids = ligands_remote.all_ligands()["ligand.id"].to_list()
+        # Get all bioactivities from these ligand IDs
+        bioactivities = self.from_ligand_ids(ligand_ids)
+        return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
-        """
-        Get bioactivities by one or more kinase IDs.
+        if isinstance(kinase_ids, int):
+            kinase_ids = [kinase_ids]
 
-        Returns
-        -------
-        pandas.DataFrame
-            Bioactivities (rows) with columns as described in the class docstring.
-        """
-        raise NotImplementedError("Implement in your subclass!")
+        # Get all kinase IDs
+        ligands_remote = Ligands(KLIFS_CLIENT)
+        ligands = ligands_remote.from_kinase_ids(kinase_ids)
+        # Get all bioactivities from these ligand IDs
+        if ligands is not None:
+            bioactivities = self.from_ligand_ids(ligands["ligand.id"].to_list())
+            return bioactivities
 
     def from_ligand_ids(self, ligand_ids):
-
         if isinstance(ligand_ids, int):
             ligand_ids = [ligand_ids]
 
-        bioactivity_list = []
-        for ligand_id in ligand_ids:
-            try:
-                bioactivity_result = (
-                    self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id)
-                    .response()
-                    .result
-                )
-                bioactivity_df = _abc_idlist_to_dataframe(bioactivity_result)
-                bioactivity_df.rename(
-                    columns=RENAME_COLUMNS_REMOTE_BIOACTIVITY, inplace=True
-                )
-                bioactivity_df["ligand.id (query)"] = ligand_id
-                bioactivity_list.append(bioactivity_df)
-            except SwaggerMappingError as e:
-                _logger.error(f"Ligand ID {ligand_ids}: {e}")
+        # Get bioactivities for each ligand ID
+        bioactivity_list = [self._from_ligand_id(ligand_id) for ligand_id in ligand_ids]
 
         if len(bioactivity_list) > 0:
             bioactivities = pd.concat(bioactivity_list)
             bioactivities.reset_index(drop=True, inplace=True)
             return bioactivities
+
+    def _from_ligand_id(self, ligand_id):
+        """
+        Get bioactivities by ligand ID.
+
+        Parameters
+        ----------
+        ligand_id : int
+            Ligand ID.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Bioactivities (rows) with columns as described in the class docstring.
+        """
+        try:
+            bioactivity_result = (
+                self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id)
+                .response()
+                .result
+            )
+            bioactivity_df = _abc_idlist_to_dataframe(bioactivity_result)
+            bioactivity_df.rename(
+                columns=RENAME_COLUMNS_REMOTE_BIOACTIVITY, inplace=True
+            )
+            bioactivity_df["ligand.id (query)"] = ligand_id
+            return bioactivity_df
+        except SwaggerMappingError as e:
+            _logger.error(f"Ligand ID {ligand_id}: {e}")
 
 
 class Interactions(InteractionsProvider):
