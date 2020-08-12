@@ -196,18 +196,14 @@ class SessionInitializer:
         )
 
         klifs_metadata.drop(
-            columns=[
-                "ligand.orthosteric.pdb_y",
-                "ligand.allosteric.pdb_y",
-                "kinase.name_y",
-            ],
+            columns=["ligand.pdb_y", "ligand.pdb_allosteric_y", "kinase.name_y",],
             inplace=True,
         )
 
         klifs_metadata.rename(
             columns={
-                "ligand.orthosteric.pdb_x": "ligand.orthosteric.pdb",
-                "ligand.allosteric.pdb_x": "ligand.allosteric.pdb",
+                "ligand.pdb_x": "ligand.pdb",
+                "ligand.pdb_allosteric_x": "ligand.pdb_allosteric",
                 "kinase.name_x": "kinase.name",
             },
             inplace=True,
@@ -350,6 +346,42 @@ class Ligands(LigandsProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
+
+    def all_ligands(self):
+        ligands = self.__database[["ligand.pdb", "ligand.name"]].drop_duplicates(
+            "ligand.pdb"
+        )
+        ligands.reset_index(drop=True, inplace=True)
+        return ligands
+
+    def from_kinase_names(self, kinase_names):
+
+        if isinstance(kinase_names, str):
+            kinase_names = [kinase_names]
+
+        ligands = self.__database[self.__database["kinase.name"].isin(kinase_names)]
+        ligands = ligands[["ligand.pdb", "ligand.name", "kinase.name", "species.klifs"]]
+        ligands.rename(
+            columns={
+                "kinase.name": "kinase.name (query)",
+                "species.klifs": "species.klifs (query)",
+            },
+            inplace=True,
+        )
+        ligands.drop_duplicates(inplace=True)
+        ligands.reset_index(drop=True, inplace=True)
+        return ligands
+
+    def from_ligand_pdbs(self, ligand_pdbs):
+
+        if isinstance(ligand_pdbs, str):
+            ligand_pdbs = [ligand_pdbs]
+
+        ligands = self.__database[self.__database["ligand.pdb"].isin(ligand_pdbs)]
+        ligands = ligands[["ligand.pdb", "ligand.name"]]
+        ligands.drop_duplicates(inplace=True)
+        ligands.reset_index(drop=True, inplace=True)
+        return ligands
 
 
 class Bioactivities(BioactivitiesProvider):
