@@ -84,14 +84,14 @@ class SessionInitializer:
             columns=RENAME_COLUMNS_LOCAL_KLIFS_EXPORT, inplace=True,
         )
 
-        # Unify column 'kinase': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
-        # Column "kinase": Retain only first kinase name, e.g. EPHA7
-        # Column "kinase_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
+        # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
+        # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
+        # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
         kinase_names = [
             self._format_kinase_name(i) for i in klifs_export["kinase.name"]
         ]
         klifs_export["kinase.name"] = [i[0] for i in kinase_names]
-        klifs_export.insert(loc=1, column="kinase_all", value=kinase_names)
+        klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
 
         return klifs_export
 
@@ -387,7 +387,49 @@ class Ligands(LigandsProvider):
 class Structures(StructuresProvider):
     def __init__(self, database):
         super().__init__()
-        self.__database = database
+        self.__database = database  # TODO sort/filter columns
+
+    def all_structures(self):
+        return self.__database
+
+    def from_structure_pdbs(self, structure_pdbs):
+
+        if isinstance(structure_pdbs, str):
+            structure_pdbs = [structure_pdbs]
+
+        database = self.__database.copy()
+        database = database[database["structure.pdb"].isin(structure_pdbs)]
+
+        return database
+
+    def from_ligand_pdbs(self, ligand_pdbs):
+
+        if isinstance(ligand_pdbs, str):
+            ligand_pdbs = [ligand_pdbs]
+
+        database = self.__database
+        database = database[database["ligand.pdb"].isin(ligand_pdbs)]
+
+        return database
+
+    def from_kinase_names(self, kinase_names):
+
+        if isinstance(kinase_names, str):
+            kinase_names = [kinase_names]
+
+        database = self.__database
+        database = database[
+            database.apply(
+                lambda x: any(
+                    [
+                        kinase_name in kinase_names
+                        for kinase_name in x["kinase.name_all"]
+                    ]
+                ),
+                axis=1,
+            )
+        ]
+        return database
 
 
 class Bioactivities(BioactivitiesProvider):
