@@ -293,7 +293,6 @@ class StructuresProvider:
     def __init__(self):
         """Empty init."""
 
-    @property
     def all_structures(self):
         """
         Get all structures available.
