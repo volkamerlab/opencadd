@@ -384,13 +384,13 @@ class Ligands(LigandsProvider):
         return ligands
 
 
-class Bioactivities(BioactivitiesProvider):
+class Structures(StructuresProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database
 
 
-class Structures(StructuresProvider):
+class Bioactivities(BioactivitiesProvider):
     def __init__(self, database):
         super().__init__()
         self.__database = database

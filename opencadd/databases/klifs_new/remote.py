@@ -238,13 +238,13 @@ class Ligands(LigandsProvider):
             return ligands
 
 
-class Bioactivities(BioactivitiesProvider):
+class Structures(StructuresProvider):
     def __init__(self, client):
         super().__init__()
         self.__client = client
 
 
-class Structures(StructuresProvider):
+class Bioactivities(BioactivitiesProvider):
     def __init__(self, client):
         super().__init__()
         self.__client = client
