@@ -25,10 +25,10 @@ RENAME_COLUMNS_LOCAL_KLIFS_EXPORT = {
     "CHAIN": "structure.chain",
     "ALTERNATE_MODEL": "structure.alternate_model",
     "SPECIES": "species.klifs",
-    "LIGAND": "ligand.orthosteric.name",
-    "PDB_IDENTIFIER": "ligand.orthosteric.pdb",
-    "ALLOSTERIC_NAME": "ligand.allosteric.name",
-    "ALLOSTERIC_PDB": "ligand.allosteric.pdb",
+    "LIGAND": "ligand.name",
+    "PDB_IDENTIFIER": "ligand.pdb",
+    "ALLOSTERIC_NAME": "ligand.name_allosteric",
+    "ALLOSTERIC_PDB": "ligand.pdb_allosteric",
     "DFG": "structure.dfg",
     "AC_HELIX": "structure.ac_helix",
 }
@@ -38,8 +38,8 @@ RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW = {
     "pdb": "structure.pdb",
     "alt": "structure.alternate_model",
     "chain": "structure.chain",
-    "orthosteric_PDB": "ligand.orthosteric.pdb",
-    "allosteric_PDB": "ligand.allosteric.pdb",
+    "orthosteric_PDB": "ligand.pdb",
+    "allosteric_PDB": "ligand.pdb_allosteric",
     "rmsd1": "structure.rmsd1",
     "rmsd2": "structure.rmsd2",
     "qualityscore": "structure.qualityscore",
@@ -231,3 +231,39 @@ def _abc_idlist_to_dataframe(abc_idlist):
             results_dict[key].append(result[key])
 
     return pd.DataFrame(results_dict)
+
+
+def _log_error_empty_query_results():
+    """
+    Log error: Empty results.
+    """
+    _logger.error(
+        "No query results: One or more input parameter values or the combination thereof are invalid or not in the dataset."
+    )
+
+
+def accept_integer(func):
+    """
+    Decorator function: Convert integer to [integer].
+    """
+
+    def new_func(self, integer_or_not):
+        if isinstance(integer_or_not, int):
+            integer_or_not = [integer_or_not]
+        return func(self, integer_or_not)
+
+    return new_func
+
+
+def accept_string(func):
+    """
+    Decorator function: Convert string to [string].
+    """
+
+    def new_func(self, string_or_not):
+        if isinstance(string_or_not, str):
+            string_or_not = str(string_or_not)
+        return func(self, string_or_not)
+
+    return new_func
+
