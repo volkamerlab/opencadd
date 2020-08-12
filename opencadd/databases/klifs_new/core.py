@@ -114,11 +114,6 @@ class KinasesProvider:
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def _rename_remote_columns(kinases):
-        """
-        
-        """
-
 
 class LigandsProvider:
     """
@@ -155,16 +150,10 @@ class LigandsProvider:
         """
         Get ligands by one or more kinase IDs.
 
-        Returns
-        -------
-        pandas.DataFrame
-            Ligands (rows) with columns as described in the class docstring.
-        """
-        raise NotImplementedError("Implement in your subclass!")
-
-    def from_ligand_ids(self, ligand_ids):
-        """
-        Get ligands by one or more ligand IDs.
+        Parameters
+        ----------
+        kinase_ids : int or list of int
+            Kinase ID(s).
 
         Returns
         -------
@@ -177,6 +166,27 @@ class LigandsProvider:
         """
         Get ligands by one or more kinase names (KLIFS or HGNC name).
 
+        Parameters
+        ----------
+        kinase_names : str or list of str
+            Kinase names(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Ligands (rows) with columns as described in the class docstring.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def from_ligand_ids(self, ligand_ids):
+        """
+        Get ligands by one or more ligand IDs.
+
+        Parameters
+        ----------
+        ligand_ids : int or list of int
+            Ligand ID(s).
+
         Returns
         -------
         pandas.DataFrame
@@ -187,6 +197,11 @@ class LigandsProvider:
     def from_ligand_pdbs(self, ligand_pdbs):
         """
         Get ligands by one or more ligand PDB IDs.
+
+        Parameters
+        ----------
+        ligand.pdb : str or list of str
+            Ligand PDB ID(s).
 
         Returns
         -------
