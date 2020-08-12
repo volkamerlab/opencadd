@@ -23,6 +23,8 @@ from .utils import (
     RENAME_COLUMNS_REMOTE_KINASE,
     RENAME_COLUMNS_REMOTE_LIGAND,
     RENAME_COLUMNS_REMOTE_STRUCTURE,
+    RENAME_COLUMNS_REMOTE_INTERACTION,
+    RENAME_COLUMNS_REMOTE_BIOACTIVITY,
 )
 
 _logger = logging.getLogger(__name__)
@@ -289,7 +291,7 @@ class Structures(StructuresProvider):
 
         try:
             structures_result = (
-                KLIFS_CLIENT.Structures.get_structures_list(kinase_ID=kinase_ids)
+                self.__client.Structures.get_structures_list(kinase_ID=kinase_ids)
                 .response()
                 .result
             )
@@ -305,7 +307,7 @@ class Structures(StructuresProvider):
 
         try:
             structures_result = (
-                KLIFS_CLIENT.Structures.get_structures_pdb_list(
+                self.__client.Structures.get_structures_pdb_list(
                     pdb_codes=structure_pdbs
                 )
                 .response()
@@ -343,11 +345,122 @@ class Bioactivities(BioactivitiesProvider):
         super().__init__()
         self.__client = client
 
+    def all_bioactivities(self):
+        """
+        Get all bioactivities available.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Bioactivities (rows) with columns as described in the class docstring.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def from_kinase_ids(self, kinase_ids):
+        """
+        Get bioactivities by one or more kinase IDs.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Bioactivities (rows) with columns as described in the class docstring.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def from_ligand_ids(self, ligand_ids):
+
+        if isinstance(ligand_ids, int):
+            ligand_ids = [ligand_ids]
+
+        bioactivity_list = []
+        for ligand_id in ligand_ids:
+            try:
+                bioactivity_result = (
+                    self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id)
+                    .response()
+                    .result
+                )
+                bioactivity_df = _abc_idlist_to_dataframe(bioactivity_result)
+                bioactivity_df.rename(
+                    columns=RENAME_COLUMNS_REMOTE_BIOACTIVITY, inplace=True
+                )
+                bioactivity_df["ligand.id (query)"] = ligand_id
+                bioactivity_list.append(bioactivity_df)
+            except SwaggerMappingError as e:
+                _logger.error(f"Ligand ID {ligand_ids}: {e}")
+
+        if len(bioactivity_list) > 0:
+            bioactivities = pd.concat(bioactivity_list)
+            bioactivities.reset_index(drop=True, inplace=True)
+            return bioactivities
+
 
 class Interactions(InteractionsProvider):
     def __init__(self, client):
         super().__init__()
         self.__client = client
+
+    @property
+    def interaction_types(self):
+        interaction_types_result = (
+            self.__client.Interactions.get_interactions_get_types().response().result
+        )
+        interaction_types_df = _abc_idlist_to_dataframe(interaction_types_result)
+        interaction_types_df.rename(
+            columns=RENAME_COLUMNS_REMOTE_INTERACTION, inplace=True
+        )
+        return interaction_types_df
+
+    def all_interactions(self):
+        # Get all structure IDs
+        structures_remote = Structures(KLIFS_CLIENT)
+        structure_ids = structures_remote.all_structures()["structure.id"].to_list()
+        # Get all interactions from these structures IDs
+        interactions = self.from_structure_ids(structure_ids)
+        return interactions
+
+    def from_structure_ids(self, structure_ids):
+        if isinstance(structure_ids, int):
+            structure_ids = [structure_ids]
+        try:
+            interactions_result = (
+                KLIFS_CLIENT.Interactions.get_interactions_get_IFP(
+                    structure_ID=structure_ids
+                )
+                .response()
+                .result
+            )
+            interactions_df = _abc_idlist_to_dataframe(interactions_result)
+            interactions_df.rename(
+                columns=RENAME_COLUMNS_REMOTE_INTERACTION, inplace=True
+            )
+            return interactions_df
+        except (SwaggerMappingError, ValueError) as e:
+            _logger.error(f"Structure ID {structure_ids}: {e}")
+
+    def from_ligand_ids(self, ligand_ids):
+        if isinstance(ligand_ids, int):
+            ligand_ids = [ligand_ids]
+
+        # Get structure IDs from ligand IDs
+        structures_remote = Structures(KLIFS_CLIENT)
+        structures = structures_remote.from_ligand_ids(ligand_ids)
+        # Get interactions from these structure IDs
+        if structures is not None:
+            interactions = self.from_structure_ids(structures["structure.id"].to_list())
+            return interactions
+
+    def from_kinase_ids(self, kinase_ids):
+        if isinstance(kinase_ids, int):
+            kinase_ids = [kinase_ids]
+
+        # Get structure IDs from ligand IDs
+        structures_remote = Structures(KLIFS_CLIENT)
+        structures = structures_remote.from_kinase_ids(kinase_ids)
+        # Get interactions from these structure IDs
+        if structures is not None:
+            interactions = self.from_structure_ids(structures["structure.id"].to_list())
+            return interactions
 
 
 class Coordinates(CoordinatesProvider):
