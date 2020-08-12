@@ -6,6 +6,7 @@ Defines opencadd.databases.klifs API (local and remote).
 import logging
 
 from bravado.client import SwaggerClient
+import pandas as pd
 
 from . import remote
 from . import local
@@ -17,6 +18,7 @@ KLIFS_CLIENT = SwaggerClient.from_url(
 )
 
 _logger = logging.getLogger(__name__)
+pd.set_option("display.max_columns", 100)
 
 
 class Session:
