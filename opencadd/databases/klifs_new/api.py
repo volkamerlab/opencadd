@@ -5,20 +5,47 @@ Defines opencadd.databases.klifs API (local and remote).
 """
 import logging
 
-from bravado.client import SwaggerClient
 import pandas as pd
 
 from . import remote
 from . import local
-
-
-KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(
-    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-)
+from .utils import KLIFS_CLIENT
 
 _logger = logging.getLogger(__name__)
 pd.set_option("display.max_columns", 100)
+
+
+def setup_remote():
+    """
+    Set up remote session to work with KLIFS data remotely.
+
+    Returns
+    -------
+    opencadd.databases.klifs.api.Session
+        Remote session.
+    """
+    session = Session()
+    session.from_remote()
+    return session
+
+
+def setup_local(path_to_klifs_download):
+    """
+    Set up local session to work with KLIFS data locally.
+
+    Parameter
+    ---------
+    path_to_klifs_download : pathlib.Path or str
+        Path to folder with KLIFS download files.
+    
+    Returns
+    -------
+    opencadd.databases.klifs.api.Session
+        Remote session.
+    """
+    session = Session()
+    session.from_local(path_to_klifs_download)
+    return session
 
 
 class Session:

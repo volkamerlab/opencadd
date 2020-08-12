@@ -4,9 +4,18 @@ opencadd.databases.klifs.utils
 Defines utility functions.
 """
 
+import logging
 from pathlib import Path
 
+from bravado.client import SwaggerClient
 import pandas as pd
+
+_logger = logging.getLogger(__name__)
+
+KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
+KLIFS_CLIENT = SwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)
 
 RENAME_COLUMNS_LOCAL_KLIFS_EXPORT = {
     "NAME": "kinase.name",
@@ -66,45 +75,45 @@ RENAME_COLUMNS_REMOTE_KINASE = {
     "pocket": "kinase.pocket",
 }
 RENAME_COLUMNS_REMOTE_STRUCTURE = {
-    "structure_ID" : "structure.id",
-    "kinase" : "kinase.name",
-    "species" : "species.klifs",
-    "kinase_ID" : "kinase.id",
-    "pdb" : "structure.pdb",
-    "alt" : "structure.alternate_model",
-    "chain" : "structure.chain",
-    "rmsd1" : "structure.rmsd1",
-    "rmsd2" : "structure.rmsd2",
-    "pocket" : "kinase.pocket",
-    "resolution" : "structure.resolution",
-    "quality_score" : "structure.qualityscore",
-    "missing_residues" : "structure.missing_residues",
-    "missing_atoms" : "structure.missing_atoms",
-    "ligand" : "ligand.name",
-    "allosteric_ligand" : "ligand.name_allosteric",
-    "DFG" : "structure.dfg",
-    "aC_helix" : "structure.ac_helix",
-    "Grich_distance" : "structure.grich_distance",
-    "Grich_angle" : "structure.grich_angle",
-    "Grich_rotation" : "structure.grich_rotation",
-    "front" : "structure.front",
-    "gate" : "structure.gate",
-    "back" : "structure.back",
-    "fp_I" : "structure.fp_i",
-    "fp_II" : "structure.fp_ii",
-    "bp_I_A" : "structure.bp_i_a",
-    "bp_I_B" : "structure.bp_i_b",
-    "bp_II_in" : "structure.bp_ii_in",
-    "bp_II_A_in" : "structure.bp_ii_a_in",
-    "bp_II_B_in" : "structure.bp_ii_b_in",
-    "bp_II_out" : "structure.bp_ii_out",
-    "bp_II_B" : "structure.bp_ii_b",
-    "bp_III" : "structure.bp_iii,
-    "bp_IV" : "structure.bp_iv",
-    "bp_V" : "structure.bp_v",
+    "structure_ID": "structure.id",
+    "kinase": "kinase.name",
+    "species": "species.klifs",
+    "kinase_ID": "kinase.id",
+    "pdb": "structure.pdb",
+    "alt": "structure.alternate_model",
+    "chain": "structure.chain",
+    "rmsd1": "structure.rmsd1",
+    "rmsd2": "structure.rmsd2",
+    "pocket": "kinase.pocket",
+    "resolution": "structure.resolution",
+    "quality_score": "structure.qualityscore",
+    "missing_residues": "structure.missing_residues",
+    "missing_atoms": "structure.missing_atoms",
+    "ligand": "ligand.name",
+    "allosteric_ligand": "ligand.name_allosteric",
+    "DFG": "structure.dfg",
+    "aC_helix": "structure.ac_helix",
+    "Grich_distance": "structure.grich_distance",
+    "Grich_angle": "structure.grich_angle",
+    "Grich_rotation": "structure.grich_rotation",
+    "front": "structure.front",
+    "gate": "structure.gate",
+    "back": "structure.back",
+    "fp_I": "structure.fp_i",
+    "fp_II": "structure.fp_ii",
+    "bp_I_A": "structure.bp_i_a",
+    "bp_I_B": "structure.bp_i_b",
+    "bp_II_in": "structure.bp_ii_in",
+    "bp_II_A_in": "structure.bp_ii_a_in",
+    "bp_II_B_in": "structure.bp_ii_b_in",
+    "bp_II_out": "structure.bp_ii_out",
+    "bp_II_B": "structure.bp_ii_b",
+    "bp_III": "structure.bp_iii",
+    "bp_IV": "structure.bp_iv",
+    "bp_V": "structure.bp_v",
     "index": "structure.pocket_klifs_numbering",  # Interactions.get_interactions_match_residues()
     "Xray_position": "structure.pocket_pdb_numbering",  # Interactions.get_interactions_match_residues()
-    "KLIFS_position": "structure.pocket_regions_klifs"  # Interactions.get_interactions_match_residues()
+    "KLIFS_position": "structure.pocket_regions_klifs",  # Interactions.get_interactions_match_residues()
 }
 RENAME_COLUMNS_REMOTE_LIGAND = {
     "ligand_ID": "ligand.id",
@@ -117,7 +126,7 @@ RENAME_COLUMNS_REMOTE_INTERACTION = {
     "position": "interaction.position",  # Interactions.get_interactions_get_types()
     "name": "interaction.name",  # Interactions.get_interactions_get_types()
     "structure_ID": "structure.id",  # Interactions.get_interactions_get_IFP()
-    "IFP": "interaction.fingerprint" # Interactions.get_interactions_get_IFP()
+    "IFP": "interaction.fingerprint",  # Interactions.get_interactions_get_IFP()
 }
 RENAME_COLUMNS_REMOTE_BIOACTIVITY = {
     "pref_name": "kinase.pref_name",
@@ -127,7 +136,7 @@ RENAME_COLUMNS_REMOTE_BIOACTIVITY = {
     "standard_relation": "ligand.bioactivity_relation",
     "standard_value": "ligand.bioactivity_value",
     "standard_units": "ligand.bioactivity_units",
-    "pchembl_value": "ligand.bioactivity_value_pchembl"
+    "pchembl_value": "ligand.bioactivity_value_pchembl",
 }
 
 
@@ -192,8 +201,6 @@ def file_path(
             path_to_klifs_download
             / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
         )
-
-    print(path)
 
     return path
 
