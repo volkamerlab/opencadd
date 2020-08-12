@@ -89,7 +89,7 @@ RENAME_COLUMNS_REMOTE_STRUCTURE = {
     "quality_score": "structure.qualityscore",
     "missing_residues": "structure.missing_residues",
     "missing_atoms": "structure.missing_atoms",
-    "ligand": "ligand.name",
+    "ligand": "ligand.pdb",
     "allosteric_ligand": "ligand.name_allosteric",
     "DFG": "structure.dfg",
     "aC_helix": "structure.ac_helix",
