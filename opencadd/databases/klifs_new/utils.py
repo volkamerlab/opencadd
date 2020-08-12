@@ -47,7 +47,7 @@ RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW = {
     "resolution": "structure.resolution",
     "missing_residues": "structure.missing_residues",
     "missing_atoms": "structure.missing_atoms",
-    "full_ifp": "structure.ifp",
+    "full_ifp": "interaction.fingerprint",
     "fp_i": "structure.fp_i",
     "fp_ii": "structure.fp_ii",
     "bp_i_a": "structure.bp_i_a",
@@ -138,6 +138,10 @@ RENAME_COLUMNS_REMOTE_BIOACTIVITY = {
     "standard_units": "ligand.bioactivity_units",
     "pchembl_value": "ligand.bioactivity_value_pchembl",
 }
+
+COORDINATES_ENTITIES = ["complex", "ligand", "pocket", "protein", "water"]
+COORDINATES_INPUT_FORMATS = ["mol2", "pdb"]
+COORDINATES_OUTPUT_FORMATS = ["text", "biopandas", "rdkit"]
 
 
 def file_path(
@@ -240,6 +244,43 @@ def _log_error_empty_query_results():
     _logger.error(
         "No query results: One or more input parameter values or the combination thereof are invalid or not in the dataset."
     )
+
+
+def check_entity_format(entity, input_format, output_format=None):
+    """
+    Check if entity and format (and their combinations) are available.
+
+    Parameters
+    ----------
+    entity : str
+        Structural entity: complex, ligand, pocket, protein, or water (only in local module).
+    input_format : str
+        File input format: mol2 or pdb (only for entity=complex).
+    output_format : str or None
+        Output format: text (only in remote module), biopandas, or rdkit (only for entity=ligand).
+    """
+
+    # Check if parameters are valid
+    if entity not in COORDINATES_ENTITIES:
+        raise ValueError(
+            f'Invalid entity. Select from {", ".join(COORDINATES_ENTITIES)}.'
+        )
+    if input_format not in COORDINATES_INPUT_FORMATS:
+        raise ValueError(
+            f'Invalid input format. Select from {", ".join(COORDINATES_INPUT_FORMATS)}.'
+        )
+    if output_format:
+        if output_format not in COORDINATES_OUTPUT_FORMATS:
+            raise ValueError(
+                f'Invalid output format. Select from {", ".join(COORDINATES_OUTPUT_FORMATS)}.'
+            )
+
+    # Check if parameter combination is valid
+    if input_format == "pdb" and entity != "complex":
+        raise ValueError(f"Entity {entity} is only available in mol2 format.")
+    if output_format:
+        if output_format == "rdkit" and entity != "ligand":
+            raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
 
 
 def accept_integer(func):

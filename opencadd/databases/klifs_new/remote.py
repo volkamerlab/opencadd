@@ -7,9 +7,12 @@ Defines remote KLIFS session.
 import logging
 
 from bravado_core.exception import SwaggerMappingError
+from biopandas.mol2 import PandasMol2
+from biopandas.pdb import PandasPdb
 import pandas as pd
+from rdkit import Chem
+from rdkit.Chem import AllChem
 
-from .utils import KLIFS_CLIENT
 from .core import (
     KinasesProvider,
     LigandsProvider,
@@ -18,7 +21,11 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import _abc_idlist_to_dataframe, _log_error_empty_query_results
+from .utils import (
+    _abc_idlist_to_dataframe,
+    _log_error_empty_query_results,
+    check_entity_format,
+)
 from .utils import (
     RENAME_COLUMNS_REMOTE_KINASE,
     RENAME_COLUMNS_REMOTE_LIGAND,
@@ -131,7 +138,7 @@ class Ligands(LigandsProvider):
     def all_ligands(self):
 
         # Get all kinase IDs
-        kinases_remote = Kinases(KLIFS_CLIENT)
+        kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.all_kinases()
         # Get ligand results using the swagger API
         ligands_result = (
@@ -202,7 +209,7 @@ class Ligands(LigandsProvider):
             kinase_names = [kinase_names]
         # Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
-        kinases_remote = Kinases(KLIFS_CLIENT)
+        kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.from_kinase_names("BMX")[
             ["kinase.id", "kinase.name", "species.klifs"]
         ]
@@ -249,7 +256,7 @@ class Structures(StructuresProvider):
 
     def all_structures(self):
         # Get all kinase IDs
-        kinases_remote = Kinases(KLIFS_CLIENT)
+        kinases_remote = Kinases(self.__client)
         kinase_ids = kinases_remote.all_kinases()["kinase.id"].to_list()
         # Get all structures from these kinase IDs
         structures = self.from_kinase_ids(kinase_ids)
@@ -272,12 +279,11 @@ class Structures(StructuresProvider):
             _logger.error(f"Structure ID {structure_ids}: {e}")
 
     def from_ligand_ids(self, ligand_ids):
-
         if isinstance(ligand_ids, int):
             ligand_ids = [ligand_ids]
 
         # Get ligand PDB IDs for ligand IDs
-        remote_ligands = Ligands(KLIFS_CLIENT)
+        remote_ligands = Ligands(self.__client)
         ligands = remote_ligands.from_ligand_ids(ligand_ids)
         ligand_pdbs = ligands["ligand.pdb"].to_list()
 
@@ -320,7 +326,6 @@ class Structures(StructuresProvider):
             _logger.error(f"Structure PDB {structure_pdbs}: {e}")
 
     def from_ligand_pdbs(self, ligand_pdbs):
-
         if isinstance(ligand_pdbs, str):
             ligand_pdbs = [ligand_pdbs]
 
@@ -330,7 +335,6 @@ class Structures(StructuresProvider):
         return structures
 
     def from_kinase_names(self, kinase_names):
-
         if isinstance(kinase_names, str):
             kinase_names = [kinase_names]
 
@@ -347,7 +351,7 @@ class Bioactivities(BioactivitiesProvider):
 
     def all_bioactivities(self):
         # Get all kinase IDs
-        ligands_remote = Ligands(KLIFS_CLIENT)
+        ligands_remote = Ligands(self.__client)
         ligand_ids = ligands_remote.all_ligands()["ligand.id"].to_list()
         # Get all bioactivities from these ligand IDs
         bioactivities = self.from_ligand_ids(ligand_ids)
@@ -358,7 +362,7 @@ class Bioactivities(BioactivitiesProvider):
             kinase_ids = [kinase_ids]
 
         # Get all kinase IDs
-        ligands_remote = Ligands(KLIFS_CLIENT)
+        ligands_remote = Ligands(self.__client)
         ligands = ligands_remote.from_kinase_ids(kinase_ids)
         # Get all bioactivities from these ligand IDs
         if ligands is not None:
@@ -371,6 +375,12 @@ class Bioactivities(BioactivitiesProvider):
 
         # Get bioactivities for each ligand ID
         bioactivity_list = [self._from_ligand_id(ligand_id) for ligand_id in ligand_ids]
+        # Remove None values
+        bioactivity_list = [
+            bioactivity_df
+            for bioactivity_df in bioactivity_list
+            if bioactivity_df is not None
+        ]
 
         if len(bioactivity_list) > 0:
             bioactivities = pd.concat(bioactivity_list)
@@ -425,7 +435,7 @@ class Interactions(InteractionsProvider):
 
     def all_interactions(self):
         # Get all structure IDs
-        structures_remote = Structures(KLIFS_CLIENT)
+        structures_remote = Structures(self.__client)
         structure_ids = structures_remote.all_structures()["structure.id"].to_list()
         # Get all interactions from these structures IDs
         interactions = self.from_structure_ids(structure_ids)
@@ -436,7 +446,7 @@ class Interactions(InteractionsProvider):
             structure_ids = [structure_ids]
         try:
             interactions_result = (
-                KLIFS_CLIENT.Interactions.get_interactions_get_IFP(
+                self.__client.Interactions.get_interactions_get_IFP(
                     structure_ID=structure_ids
                 )
                 .response()
@@ -455,7 +465,7 @@ class Interactions(InteractionsProvider):
             ligand_ids = [ligand_ids]
 
         # Get structure IDs from ligand IDs
-        structures_remote = Structures(KLIFS_CLIENT)
+        structures_remote = Structures(self.__client)
         structures = structures_remote.from_ligand_ids(ligand_ids)
         # Get interactions from these structure IDs
         if structures is not None:
@@ -467,7 +477,7 @@ class Interactions(InteractionsProvider):
             kinase_ids = [kinase_ids]
 
         # Get structure IDs from ligand IDs
-        structures_remote = Structures(KLIFS_CLIENT)
+        structures_remote = Structures(self.__client)
         structures = structures_remote.from_kinase_ids(kinase_ids)
         # Get interactions from these structure IDs
         if structures is not None:
@@ -479,3 +489,268 @@ class Coordinates(CoordinatesProvider):
     def __init__(self, client):
         super().__init__()
         self.__client = client
+
+    def fetch(
+        self,
+        structure_id,
+        entity="complex",
+        input_format="mol2",
+        output_format="biopandas",
+        compute2d=True,
+    ):
+        """
+        Fetch structural data from KLIFS database in different output formats.
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+        input_format : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
+        output_format : str
+            Output format: text, biopandas (default), or rdkit (only for entity=ligand).
+        compute2d : bool
+            For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
+        """
+
+        check_entity_format(entity, input_format, output_format)
+
+        # Fetch text from KLIFS
+        text = self._fetch_text(structure_id, entity, input_format)
+        if not text:  # TODO Ask Albert why no remote water
+            raise ValueError(
+                f"Entity {entity} is not available remotely but we could ask Albert to add this."
+            )
+
+        # Return different output formats
+        if output_format == "text":
+            return text
+
+        elif output_format == "rdkit":
+            return self._mol2_text_to_rdkit_mol(text, compute2d)
+
+        elif output_format == "biopandas":
+            if input_format == "mol2":
+                return self._mol2_text_to_dataframe(text)
+            elif input_format == "pdb":
+                return self._pdb_text_to_dataframe(text)
+
+    def save(
+        self,
+        structure_id,
+        output_path,
+        entity="complex",
+        input_format="mol2",
+        in_dir=False,
+    ):
+        """
+        Save structural data to file.
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+        input_format : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
+        in_dir : bool
+            Save file in KLIFS directory structure (default: False).
+        """
+
+        check_entity_format(entity, input_format)
+        output_path = Path(output_path)
+
+        # Get metadata
+        metadata = structures_from_structure_ids(structure_id).iloc[0]
+
+        # Set up output path (metadata in the form of directory structure or file name)
+        output_path = file_path(
+            output_path,
+            metadata.species.upper(),
+            metadata.kinase,
+            metadata.pdb,
+            metadata.alt,
+            metadata.chain,
+            entity,
+            input_format,
+            in_dir,
+        )
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Get text
+        text = self.fetch(structure_id, entity, input_format, output_format="text")
+        if not text:  # TODO Ask Albert why no remote water
+            raise ValueError(
+                f"Entity {entity} is not available remotely but we could ask Albert to add this."
+            )
+
+        # Save text to file
+        with open(output_path, "w") as f:
+            f.write(text)
+
+    def _fetch_text(self, structure_id, entity="complex", input_format="mol2"):
+        """
+        Get structural data content from KLIFS database as string (text).
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+        input_format : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
+
+        Returns
+        -------
+        str
+            Structural data.
+        """
+
+        if entity == "complex" and input_format == "mol2":
+            return (
+                self.__client.Structures.get_structure_get_complex(
+                    structure_ID=structure_id
+                )
+                .response()
+                .result
+            )
+        elif entity == "complex" and input_format == "pdb":
+            return (
+                self.__client.Structures.get_structure_get_pdb_complex(
+                    structure_ID=structure_id
+                )
+                .response()
+                .result
+            )
+        elif entity == "ligand" and input_format == "mol2":
+            return (
+                self.__client.Structures.get_structure_get_ligand(
+                    structure_ID=structure_id
+                )
+                .response()
+                .result
+            )
+        elif entity == "pocket" and input_format == "mol2":
+            return (
+                self.__client.Structures.get_structure_get_pocket(
+                    structure_ID=structure_id
+                )
+                .response()
+                .result
+            )
+        elif entity == "protein" and input_format == "mol2":
+            return (
+                self.__client.Structures.get_structure_get_protein(
+                    structure_ID=structure_id
+                )
+                .response()
+                .result
+            )
+
+    @staticmethod
+    def _mol2_text_to_dataframe(mol2_text):
+        """
+        Get structural data from mol2 text.
+
+        Parameters
+        ----------
+        mol2_text : str
+        Mol2 file content from KLIFS database.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structural data.
+        """
+
+        pmol = PandasMol2()
+
+        try:
+            mol2_df = pmol._construct_df(
+                mol2_text.splitlines(True),
+                col_names=[
+                    "atom_id",
+                    "atom_name",
+                    "x",
+                    "y",
+                    "z",
+                    "atom_type",
+                    "subst_id",
+                    "subst_name",
+                    "charge",
+                    "backbone",
+                ],
+                col_types=[int, str, float, float, float, str, int, str, float, str],
+            )
+        except ValueError:
+            mol2_df = pmol._construct_df(
+                mol2_text.splitlines(True),
+                col_names=[
+                    "atom_id",
+                    "atom_name",
+                    "x",
+                    "y",
+                    "z",
+                    "atom_type",
+                    "subst_id",
+                    "subst_name",
+                    "charge",
+                ],
+                col_types=[int, str, float, float, float, str, int, str, float],
+            )
+
+        return mol2_df
+
+    @staticmethod
+    def _mol2_text_to_rdkit_mol(mol2_text, compute2d=True):
+        """
+        Get structural data from mol2 text.
+
+        Parameters
+        ----------
+        mol2_text : str
+        Mol2 file content from KLIFS database.
+        compute2d : bool
+            Compute 2D coordinates for ligand (default).
+
+        Returns
+        -------
+        rdkit.Chem.rdchem.Mol
+            Molecule.
+        """
+
+        mol = Chem.MolFromMol2Block(mol2_text)
+
+        if compute2d:
+            AllChem.Compute2DCoords(mol)
+
+        return mol
+
+    @staticmethod
+    def _pdb_text_to_dataframe(pdb_text):
+        """
+        Get structural data from pdb text.
+
+        Parameters
+        ----------
+        pdb_text : str
+        Pdb file content from KLIFS database.
+
+        Returns
+        -------
+        dict of pandas.DataFrame
+            Structural data
+        """
+
+        ppdb = PandasPdb()
+
+        pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
+
+        print(f"Structural data keys: {pdb_dict.keys()}")
+
+        return pdb_dict
