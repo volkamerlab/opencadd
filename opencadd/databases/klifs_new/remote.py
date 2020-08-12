@@ -19,7 +19,11 @@ from .core import (
     CoordinatesProvider,
 )
 from .utils import _abc_idlist_to_dataframe, _log_error_empty_query_results
-from .utils import RENAME_COLUMNS_REMOTE_KINASE, RENAME_COLUMNS_REMOTE_LIGAND
+from .utils import (
+    RENAME_COLUMNS_REMOTE_KINASE,
+    RENAME_COLUMNS_REMOTE_LIGAND,
+    RENAME_COLUMNS_REMOTE_STRUCTURE,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -223,8 +227,7 @@ class Ligands(LigandsProvider):
         ligands_all = self.all_ligands()
         ligands = ligands_all[ligands_all["ligand.id"].isin(ligand_ids)]
 
-        if ligands.shape[0] > 0:
-            return ligands
+        return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
@@ -234,14 +237,105 @@ class Ligands(LigandsProvider):
         ligands_all = self.all_ligands()
         ligands = ligands_all[ligands_all["ligand.pdb"].isin(ligand_pdbs)]
 
-        if ligands.shape[0] > 0:
-            return ligands
+        return ligands
 
 
 class Structures(StructuresProvider):
     def __init__(self, client):
         super().__init__()
         self.__client = client
+
+    def all_structures(self):
+        # Get all kinase IDs
+        kinases_remote = Kinases(KLIFS_CLIENT)
+        kinase_ids = kinases_remote.all_kinases()["kinase.id"].to_list()
+        # Get all structures from these kinase IDs
+        structures = self.from_kinase_ids(kinase_ids)
+        return structures
+
+    def from_structure_ids(self, structure_ids):
+        if isinstance(structure_ids, int):
+            structure_ids = [structure_ids]
+
+        try:
+            structures_result = (
+                self.__client.Structures.get_structure_list(structure_ID=structure_ids)
+                .response()
+                .result
+            )
+            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            return structures_df
+        except (SwaggerMappingError, ValueError) as e:
+            _logger.error(f"Structure ID {structure_ids}: {e}")
+
+    def from_ligand_ids(self, ligand_ids):
+
+        if isinstance(ligand_ids, int):
+            ligand_ids = [ligand_ids]
+
+        # Get ligand PDB IDs for ligand IDs
+        remote_ligands = Ligands(KLIFS_CLIENT)
+        ligands = remote_ligands.from_ligand_ids(ligand_ids)
+        ligand_pdbs = ligands["ligand.pdb"].to_list()
+
+        structures = self.from_ligand_pdbs(ligand_pdbs)
+
+        return structures
+
+    def from_kinase_ids(self, kinase_ids):
+        if isinstance(kinase_ids, int):
+            kinase_ids = [kinase_ids]
+
+        try:
+            structures_result = (
+                KLIFS_CLIENT.Structures.get_structures_list(kinase_ID=kinase_ids)
+                .response()
+                .result
+            )
+            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            return structures_df
+        except (SwaggerMappingError, ValueError) as e:
+            _logger.error(f"Kinase ID {kinase_ids}: {e}")
+
+    def from_structure_pdbs(self, structure_pdbs):
+        if isinstance(structure_pdbs, str):
+            structure_pdbs = [structure_pdbs]
+
+        try:
+            structures_result = (
+                KLIFS_CLIENT.Structures.get_structures_pdb_list(
+                    pdb_codes=structure_pdbs
+                )
+                .response()
+                .result
+            )
+            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            return structures_df
+        except (SwaggerMappingError, ValueError) as e:
+            _logger.error(f"Structure PDB {structure_pdbs}: {e}")
+
+    def from_ligand_pdbs(self, ligand_pdbs):
+
+        if isinstance(ligand_pdbs, str):
+            ligand_pdbs = [ligand_pdbs]
+
+        structures_all = self.all_structures()
+        structures = structures_all[structures_all["ligand.pdb"].isin(ligand_pdbs)]
+
+        return structures
+
+    def from_kinase_names(self, kinase_names):
+
+        if isinstance(kinase_names, str):
+            kinase_names = [kinase_names]
+
+        structures_all = self.all_structures()
+        structures = structures_all[structures_all["kinase.name"].isin(kinase_names)]
+
+        return structures
 
 
 class Bioactivities(BioactivitiesProvider):
