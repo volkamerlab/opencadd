@@ -15,7 +15,7 @@ RENAME_COLUMNS_LOCAL_KLIFS_EXPORT = {
     "PDB": "structure.pdb",
     "CHAIN": "structure.chain",
     "ALTERNATE_MODEL": "structure.alternate_model",
-    "SPECIES": "species",
+    "SPECIES": "species.klifs",
     "LIGAND": "ligand.orthosteric.name",
     "PDB_IDENTIFIER": "ligand.orthosteric.pdb",
     "ALLOSTERIC_NAME": "ligand.allosteric.name",
@@ -24,7 +24,7 @@ RENAME_COLUMNS_LOCAL_KLIFS_EXPORT = {
     "AC_HELIX": "structure.ac_helix",
 }
 RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW = {
-    "species": "species",
+    "species": "species.klifs",
     "kinase": "kinase.name",
     "pdb": "structure.pdb",
     "alt": "structure.alternate_model",
@@ -59,7 +59,7 @@ RENAME_COLUMNS_REMOTE_KINASE = {
     "family": "kinase.family",
     "group": "kinase.group",
     "kinase_class": "kinase.class",
-    "species": "species",
+    "species": "species.klifs",
     "full_name": "kinase.name_full",
     "uniprot": "kinase.uniprot",
     "iuphar": "kinase.iuphar",
@@ -68,7 +68,7 @@ RENAME_COLUMNS_REMOTE_KINASE = {
 RENAME_COLUMNS_REMOTE_STRUCTURE = {
     "structure_ID" : "structure.id",
     "kinase" : "kinase.name",
-    "species" : "species",
+    "species" : "species.klifs",
     "kinase_ID" : "kinase.id",
     "pdb" : "structure.pdb",
     "alt" : "structure.alternate_model",
@@ -102,6 +102,9 @@ RENAME_COLUMNS_REMOTE_STRUCTURE = {
     "bp_III" : "structure.bp_iii,
     "bp_IV" : "structure.bp_iv",
     "bp_V" : "structure.bp_v",
+    "index": "structure.pocket_klifs_numbering",  # Interactions.get_interactions_match_residues()
+    "Xray_position": "structure.pocket_pdb_numbering",  # Interactions.get_interactions_match_residues()
+    "KLIFS_position": "structure.pocket_regions_klifs"  # Interactions.get_interactions_match_residues()
 }
 RENAME_COLUMNS_REMOTE_LIGAND = {
     "ligand_ID": "ligand.id",
@@ -110,8 +113,22 @@ RENAME_COLUMNS_REMOTE_LIGAND = {
     "SMILES": "ligand.smiles",
     "InChIKey": "ligand.inchikey",
 }
-RENAME_COLUMNS_REMOTE_INTERACTION = {}
-RENAME_COLUMNS_REMOTE_BIOACTIVITY = {}
+RENAME_COLUMNS_REMOTE_INTERACTION = {
+    "position": "interaction.position",  # Interactions.get_interactions_get_types()
+    "name": "interaction.name",  # Interactions.get_interactions_get_types()
+    "structure_ID": "structure.id",  # Interactions.get_interactions_get_IFP()
+    "IFP": "interaction.fingerprint" # Interactions.get_interactions_get_IFP()
+}
+RENAME_COLUMNS_REMOTE_BIOACTIVITY = {
+    "pref_name": "kinase.pref_name",
+    "accession": "kinase.uniprot",
+    "organism": "species.chembl",
+    "standard_type": "ligand.bioactivity_type",
+    "standard_relation": "ligand.bioactivity_relation",
+    "standard_value": "ligand.bioactivity_value",
+    "standard_units": "ligand.bioactivity_units",
+    "pchembl_value": "ligand.bioactivity_value_pchembl"
+}
 
 
 def file_path(
