@@ -30,7 +30,13 @@ _logger = logging.getLogger(__name__)
 
 
 class Kinases(KinasesProvider):
+    """
+    Extends KinasesProvider to provide remote kinases requests.
+    Refer to KinasesProvider documentation for more information.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 
@@ -123,7 +129,13 @@ class Kinases(KinasesProvider):
 
 
 class Ligands(LigandsProvider):
+    """
+    Extends LigandsProvider to provide remote ligands requests.
+    Refer to LigandsProvider documentation for more information.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 
@@ -242,11 +254,18 @@ class Ligands(LigandsProvider):
 
 
 class Structures(StructuresProvider):
+    """
+    Extends StructuresProvider to provide remote structures requests.
+    Refer to StructuresProvider documentation for more information.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 
     def all_structures(self):
+
         # Get all kinase IDs
         kinases_remote = Kinases(self.__client)
         kinase_ids = kinases_remote.all_kinases()["kinase.id"].to_list()
@@ -255,6 +274,7 @@ class Structures(StructuresProvider):
         return structures
 
     def from_structure_ids(self, structure_ids):
+
         if isinstance(structure_ids, int):
             structure_ids = [structure_ids]
 
@@ -273,6 +293,7 @@ class Structures(StructuresProvider):
             _logger.error(f"Structure ID {structure_ids}: {e}")
 
     def from_ligand_ids(self, ligand_ids):
+
         if isinstance(ligand_ids, int):
             ligand_ids = [ligand_ids]
 
@@ -286,6 +307,7 @@ class Structures(StructuresProvider):
         return structures
 
     def from_kinase_ids(self, kinase_ids):
+
         if isinstance(kinase_ids, int):
             kinase_ids = [kinase_ids]
 
@@ -304,6 +326,7 @@ class Structures(StructuresProvider):
             _logger.error(f"Kinase ID {kinase_ids}: {e}")
 
     def from_structure_pdbs(self, structure_pdbs):
+
         if isinstance(structure_pdbs, str):
             structure_pdbs = [structure_pdbs]
 
@@ -324,6 +347,7 @@ class Structures(StructuresProvider):
             _logger.error(f"Structure PDB {structure_pdbs}: {e}")
 
     def from_ligand_pdbs(self, ligand_pdbs):
+
         if isinstance(ligand_pdbs, str):
             ligand_pdbs = [ligand_pdbs]
 
@@ -333,6 +357,7 @@ class Structures(StructuresProvider):
         return structures
 
     def from_kinase_names(self, kinase_names):
+
         if isinstance(kinase_names, str):
             kinase_names = [kinase_names]
 
@@ -343,11 +368,18 @@ class Structures(StructuresProvider):
 
 
 class Bioactivities(BioactivitiesProvider):
+    """
+    Extends BioactivitiesProvider to provide remote bioactivities requests.
+    Refer to BioactivitiesProvider documentation for more information.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 
     def all_bioactivities(self):
+
         # Get all kinase IDs
         ligands_remote = Ligands(self.__client)
         ligand_ids = ligands_remote.all_ligands()["ligand.id"].to_list()
@@ -356,6 +388,7 @@ class Bioactivities(BioactivitiesProvider):
         return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
+
         if isinstance(kinase_ids, int):
             kinase_ids = [kinase_ids]
 
@@ -368,6 +401,7 @@ class Bioactivities(BioactivitiesProvider):
             return bioactivities
 
     def from_ligand_ids(self, ligand_ids):
+
         if isinstance(ligand_ids, int):
             ligand_ids = [ligand_ids]
 
@@ -416,12 +450,19 @@ class Bioactivities(BioactivitiesProvider):
 
 
 class Interactions(InteractionsProvider):
+    """
+    Extends InteractionsProvider to provide remote kinases requests.
+    Refer to InteractionsProvider documentation for more information.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 
     @property
     def interaction_types(self):
+
         interaction_types_result = (
             self.__client.Interactions.get_interactions_get_types().response().result
         )
@@ -432,6 +473,7 @@ class Interactions(InteractionsProvider):
         return interaction_types_df
 
     def all_interactions(self):
+
         # Get all structure IDs
         structures_remote = Structures(self.__client)
         structure_ids = structures_remote.all_structures()["structure.id"].to_list()
@@ -440,6 +482,7 @@ class Interactions(InteractionsProvider):
         return interactions
 
     def from_structure_ids(self, structure_ids):
+
         if isinstance(structure_ids, int):
             structure_ids = [structure_ids]
         try:
@@ -459,6 +502,7 @@ class Interactions(InteractionsProvider):
             _logger.error(f"Structure ID {structure_ids}: {e}")
 
     def from_ligand_ids(self, ligand_ids):
+
         if isinstance(ligand_ids, int):
             ligand_ids = [ligand_ids]
 
@@ -471,6 +515,7 @@ class Interactions(InteractionsProvider):
             return interactions
 
     def from_kinase_ids(self, kinase_ids):
+
         if isinstance(kinase_ids, int):
             kinase_ids = [kinase_ids]
 
@@ -484,7 +529,20 @@ class Interactions(InteractionsProvider):
 
 
 class Coordinates(CoordinatesProvider):
+    """
+    Extends CoordinatesProvider to provide remote coordinates requests, 
+    i.e. fetching and saving structural data (coordinates).
+    
+    Methods
+    -------
+    fetch(structure_id, entity=, input_format, output_format, compute2d)
+        Fetch structural data from KLIFS database in different output formats.
+    save(structure_id, output_path, entity, input_format, in_dir)
+        Save structural data to file.
+    """
+
     def __init__(self, client):
+
         super().__init__()
         self.__client = client
 

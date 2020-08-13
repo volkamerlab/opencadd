@@ -28,9 +28,12 @@ _logger = logging.getLogger(__name__)
 
 
 class SessionInitializer:
-    """Class for local session initialization."""
+    """
+    Class for local session initialization.
+    """
 
     def __init__(self, path_to_klifs_download):
+
         self.path_to_klifs_download = Path(path_to_klifs_download)
         self.klifs_overview_path = self.path_to_klifs_download / "overview.csv"
         self.klifs_export_path = self.path_to_klifs_download / "KLIFS_export.csv"
@@ -238,6 +241,7 @@ class SessionInitializer:
     @staticmethod
     def _add_filepaths(klifs_metadata):
         """
+        Add paths to structural data files to DataFrame.
 
         Parameters
         ----------
@@ -274,6 +278,11 @@ class SessionInitializer:
 
 
 class Kinases(KinasesProvider):
+    """
+    Extends KinasesProvider to provide local kinases requests.
+    Refer to KinasesProvider documentation for more information.
+    """
+
     def __init__(self, database):
 
         super().__init__()
@@ -344,11 +353,18 @@ class Kinases(KinasesProvider):
 
 
 class Ligands(LigandsProvider):
+    """
+    Extends LigandsProvider to provide local ligands requests.
+    Refer to LigandsProvider documentation for more information.
+    """
+
     def __init__(self, database):
+
         super().__init__()
         self.__database = database
 
     def all_ligands(self):
+
         ligands = self.__database[["ligand.pdb", "ligand.name"]].drop_duplicates(
             "ligand.pdb"
         )
@@ -386,11 +402,18 @@ class Ligands(LigandsProvider):
 
 
 class Structures(StructuresProvider):
+    """
+    Extends StructuresProvider to provide local structures requests.
+    Refer to StructuresProvider documentation for more information.
+    """
+
     def __init__(self, database):
+
         super().__init__()
         self.__database = database  # TODO sort/filter columns
 
     def all_structures(self):
+
         return self.__database
 
     def from_structure_pdbs(self, structure_pdbs):
@@ -434,17 +457,30 @@ class Structures(StructuresProvider):
 
 
 class Bioactivities(BioactivitiesProvider):
+    """
+    Extends BioactivitiesProvider to provide local bioactivities requests.
+    Refer to BioactivitiesProvider documentation for more information.
+    """
+
     def __init__(self, database):
+
         super().__init__()
         self.__database = database
 
 
 class Interactions(InteractionsProvider):
+    """
+    Extends InteractionsProvider to provide local kinases requests.
+    Refer to InteractionsProvider documentation for more information.
+    """
+
     def __init__(self, database):
+
         super().__init__()
         self.__database = database
 
     def all_interactions(self):
+
         interactions = self.__database[
             [
                 "structure.pdb",
@@ -457,7 +493,18 @@ class Interactions(InteractionsProvider):
 
 
 class Coordinates(CoordinatesProvider):
+    """
+    Extends CoordinatesProvider to provide local coordinates requests, 
+    i.e. loading structural data (coordinates).
+    
+    Methods
+    -------
+    load(file_path, output_format, compute2d)
+        Load structural data from KLIFS file in different output formats.
+    """
+
     def __init__(self, database):
+
         super().__init__()
         self.__database = database
 

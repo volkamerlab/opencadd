@@ -58,10 +58,24 @@ class KinasesProvider(BaseProvider):
     """
     Class for kinases requests.
 
+    Methods
+    -------
+    all_kinase_groups()
+        Get all available kinase groups.
+    all_kinase_families(group=None)
+        Get all available kinase groups.
+    all_kinases(groups=None, families=None, species=None)
+        Get all available kinase names (optional: select kinase group, family and/or species).
+    from_kinase_ids(kinase_ids)
+        Get kinases by one or more kinase IDs.
+    from_kinase_names(kinase_names)
+        Get kinases by one or more kinase names (KLIFS or HGNC name).
+
     Notes
     -----
     Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) 
     following attributes (columns):
+
     kinase.id : int
         Kinase ID.
     kinase.name : str
@@ -69,15 +83,15 @@ class KinasesProvider(BaseProvider):
     kinase.hgnc : str
         Kinase name according to the HUGO Gene Nomenclature Committee.
     kinase.family : str
-        Kinase family. TODO: Where does this come from?
+        Kinase family.
     kinase.group : str
-        Kinase group. TODO: Where does this come from?
+        Kinase group.
     kinase.class : str
-        Kinase class. TODO: Where does this come from?
+        Kinase class.
     species.klifs : str
         Species (KLIFS notation).
     kinase.name_full : str
-        Full kinase name. TODO: Where does this come from?
+        Full kinase name.
     kinase.uniprot : str
         UniProt ID.
     kinase.iuphar : int
@@ -87,11 +101,12 @@ class KinasesProvider(BaseProvider):
     """
 
     def __init__(self):
+
         super().__init__()
 
     def all_kinase_groups(self):
         """
-        Get all kinase groups available.
+        Get all available kinase groups.
         
         Returns
         -------
@@ -103,7 +118,7 @@ class KinasesProvider(BaseProvider):
 
     def all_kinase_families(self, group=None):
         """
-        Get all kinase families available.
+        Get all available kinase families (optional: select kinase group).
 
         Parameters
         ----------
@@ -120,7 +135,7 @@ class KinasesProvider(BaseProvider):
 
     def all_kinases(self, groups=None, families=None, species=None):
         """
-        Get all kinase names available. 
+        Get all available kinase names (optional: select kinase group, family and/or species). 
         
         Parameters
         ----------
@@ -166,10 +181,24 @@ class LigandsProvider(BaseProvider):
     """
     Class for ligands requests.
 
+    Methods
+    -------
+    all_ligands()
+        Get all available ligands.
+    from_kinase_ids(kinase_ids)
+        Get ligands by one or more kinase IDs.
+    from_kinase_names(kinase_names)
+        Get ligands by one or more kinase names (KLIFS or HGNC name).
+    from_ligand_ids(ligand_ids)
+        Get ligands by one or more ligand IDs.
+    from_ligand_pdbs(ligand_pdbs)
+        Get ligands by one or more ligand PDB IDs.
+
     Notes
     -----
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
     following attributes (columns):
+
     ligand.id : int
         Ligand ID.
     ligand.pdb : str
@@ -183,11 +212,12 @@ class LigandsProvider(BaseProvider):
     """
 
     def __init__(self):
+
         super().__init__()
 
     def all_ligands(self):
         """
-        Get all ligands available.
+        Get all available ligands.
 
         Returns
         -------
@@ -265,10 +295,28 @@ class StructuresProvider(BaseProvider):
     """
     Class for structures requests.
 
+    Methods
+    -------
+    all_structures()
+        Get all available structures.
+    from_structure_ids(structure_ids)
+        Get structures by one or more structure IDs.
+    from_ligand_ids(ligand_ids)
+        Get structures by one or more ligand IDs.
+    from_kinase_ids(kinase_ids)
+        Get structures by one or more kinase IDs.
+    from_structure_pdbs(structure_pdbs)
+        Get structures by one or more structure PDB IDs.
+    from_ligand_pdbs(ligand_pdbs)
+        Get structures by one or more ligand PDB IDs.
+    from_kinase_names(kinase_names)
+        Get structures by one or more kinase names (KLIFS or HGNC name).
+
     Notes
     -----
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
     following attributes (columns):
+
     structure.id : int
         Structure ID.
     kinase.name : str
@@ -348,7 +396,7 @@ class StructuresProvider(BaseProvider):
 
     def all_structures(self):
         """
-        Get all structures available.
+        Get all available structures.
 
         Returns
         -------
@@ -428,6 +476,15 @@ class BioactivitiesProvider(BaseProvider):
     """
     Class for bioactivities requests (ChEMBL data linked to KLIFS data).
     
+    Methods
+    -------
+    all_bioactivities()
+        Get all available bioactivities.
+    from_kinase_ids(kinase_ids)
+        Get bioactivities by one or more kinase IDs.
+    from_ligand_ids(ligand_ids)
+        Get bioactivities by one or more ligand IDs.
+
     Notes
     -----
     Class methods all return a pandas.DataFrame of bioactivities (rows) with the (or a subset of 
@@ -453,7 +510,7 @@ class BioactivitiesProvider(BaseProvider):
 
     def all_bioactivities(self):
         """
-        Get all bioactivities available.
+        Get all available bioactivities.
 
         Returns
         -------
@@ -475,7 +532,7 @@ class BioactivitiesProvider(BaseProvider):
 
     def from_ligand_ids(self, ligand_ids):
         """
-        Get structures by one or more ligand IDs.
+        Get bioactivities by one or more ligand IDs.
 
         Returns
         -------
@@ -489,8 +546,24 @@ class InteractionsProvider(BaseProvider):
     """
     Class for interactions requests.
 
+    Methods
+    -------
+    interaction_types()
+        Get all available interaction types.
+    all_interactions()
+        Get all available interaction fingerprints.
+    from_structure_ids(structure_ids)
+        Get interactions by one or more structure IDs.
+    from_ligand_ids(ligand_ids)
+        Get interactions by one or more ligand IDs.
+    from_kinase_ids(kinase_ids)
+        Get interactions by one or more kinase IDs.
+    
+    Notes
+    -----
     Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of 
     the) following attributes (columns):
+
     structure.id : int
         Structure ID.
     ineraction.fingerprint : str
@@ -508,7 +581,7 @@ class InteractionsProvider(BaseProvider):
     @property
     def interaction_types(self):
         """
-        Get all interaction types available in KLIFS.
+        Get all available interaction types.
 
         Returns
         -------
@@ -521,7 +594,7 @@ class InteractionsProvider(BaseProvider):
 
     def all_interactions(self):
         """
-        Get all interactions available in KLIFS.
+        Get all available interaction fingerprints.
 
         Returns
         -------
@@ -582,9 +655,6 @@ class CoordinatesProvider(BaseProvider):
 
     def __init__(self):
         super().__init__()
-
-    def from_structure_id(self, structure_id, entity, input_format, output_format):
-        raise NotImplementedError("Implement in your subclass!")
 
     @staticmethod
     def _fetch_text(structure_id, entity="complex", input_format="mol2"):
