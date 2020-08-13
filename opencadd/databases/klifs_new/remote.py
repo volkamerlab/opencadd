@@ -5,6 +5,7 @@ Defines remote KLIFS session.
 """
 
 import logging
+from pathlib import Path
 
 from bravado_core.exception import SwaggerMappingError
 from biopandas.mol2 import PandasMol2
@@ -21,8 +22,9 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import _log_error_empty_query_results
 from .utils import RENAME_COLUMNS_REMOTE
+from .utils import get_file_path, _log_error_empty_query_results
+
 
 _logger = logging.getLogger(__name__)
 
@@ -559,17 +561,18 @@ class Coordinates(CoordinatesProvider):
         self.check_parameter_validity(entity, input_format)
         output_path = Path(output_path)
 
-        # Get metadata
-        metadata = structures_from_structure_ids(structure_id).iloc[0]
+        # Get structure metadata
+        structures_remote = Structures(self.__client)
+        metadata = structures_remote.from_structure_ids(structure_id).iloc[0]
 
         # Set up output path (metadata in the form of directory structure or file name)
-        output_path = file_path(
+        output_path = get_file_path(
             output_path,
-            metadata.species.upper(),
-            metadata.kinase,
-            metadata.pdb,
-            metadata.alt,
-            metadata.chain,
+            metadata["species.klifs"].upper(),
+            metadata["kinase.name"],
+            metadata["structure.pdb"],
+            metadata["structure.alternate_model"],
+            metadata["structure.chain"],
             entity,
             input_format,
             in_dir,

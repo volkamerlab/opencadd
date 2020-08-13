@@ -137,7 +137,7 @@ RENAME_COLUMNS_REMOTE = {
 }
 
 
-def file_path(
+def get_file_path(
     path_to_klifs_download,
     species,
     kinase_name,

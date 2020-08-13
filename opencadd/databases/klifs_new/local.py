@@ -22,7 +22,7 @@ from .core import (
     CoordinatesProvider,
 )
 from .utils import RENAME_COLUMNS_LOCAL
-from .utils import file_path, _log_error_empty_query_results
+from .utils import get_file_path, _log_error_empty_query_results
 
 _logger = logging.getLogger(__name__)
 
@@ -255,7 +255,7 @@ class SessionInitializer:
         for index, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
-            mol2_path = file_path(
+            mol2_path = get_file_path(
                 ".",
                 row["species.klifs"],
                 row["kinase.name"],
