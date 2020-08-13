@@ -119,7 +119,7 @@ RENAME_COLUMNS_REMOTE = {
         "InChIKey": "ligand.inchikey",
     },
     "interactions": {
-        "position": "interaction.position",  # Interactions.get_interactions_get_types()
+        "position": "interaction.id",  # Interactions.get_interactions_get_types()
         "name": "interaction.name",  # Interactions.get_interactions_get_types()
         "structure_ID": "structure.id",  # Interactions.get_interactions_get_IFP()
         "IFP": "interaction.fingerprint",  # Interactions.get_interactions_get_IFP()
@@ -128,11 +128,11 @@ RENAME_COLUMNS_REMOTE = {
         "pref_name": "kinase.pref_name",
         "accession": "kinase.uniprot",
         "organism": "species.chembl",
-        "standard_type": "ligand.bioactivity_type",
-        "standard_relation": "ligand.bioactivity_relation",
-        "standard_value": "ligand.bioactivity_value",
-        "standard_units": "ligand.bioactivity_units",
-        "pchembl_value": "ligand.bioactivity_value_pchembl",
+        "standard_type": "ligand.bioactivity_standard_type",
+        "standard_relation": "ligand.bioactivity_standard_relation",
+        "standard_value": "ligand.bioactivity_standard_value",
+        "standard_units": "ligand.bioactivity_standard_units",
+        "pchembl_value": "ligand.bioactivity_pchembl_value",
     },
 }
 
