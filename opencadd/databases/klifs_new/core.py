@@ -835,19 +835,16 @@ class CoordinatesProvider(BaseProvider):
         # Check if parameters are valid
         if entity not in COORDINATES_PARAMETERS["entities"]:
             raise ValueError(
-                f"Invalid entity. 
-                Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
+                f"Invalid entity. Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
             )
         if input_format not in COORDINATES_PARAMETERS["input_formats"]:
             raise ValueError(
-                f"Invalid input format. 
-                Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
+                f"Invalid input format. Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
             )
         if output_format:
             if output_format not in COORDINATES_PARAMETERS["output_formats"]:
                 raise ValueError(
-                    f"Invalid output format. 
-                    Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
+                    f"Invalid output format. Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
                 )
 
         # Check if parameter combination is valid
