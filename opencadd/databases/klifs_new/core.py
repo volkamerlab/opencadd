@@ -6,6 +6,8 @@ Defines core classes and functions.
 
 import logging
 
+import pandas as pd
+
 _logger = logging.getLogger(__name__)
 
 COORDINATES_PARAMETERS = {
@@ -15,7 +17,44 @@ COORDINATES_PARAMETERS = {
 }
 
 
-class KinasesProvider:
+class BaseProvider:
+    """
+    Base class for KLIFS requests (local and remote).
+    """
+
+    def __init__(self):
+        """Empty init."""
+
+    @staticmethod
+    def _abc_to_dataframe(abc_object):
+        """
+        Transform ABC object into a DataFrame (needed for KLIFS API results).
+
+        Parameters
+        ----------
+        abc_object : list of abc.IDList or abc.KinaseInformation or abc.ligandDetails or abc.structureDetails
+            List of labeled list objects from abstract base classes module.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Table with list labels as column names.
+        """
+
+        result = abc_object
+
+        keys = list(result[0])
+
+        results_dict = {key: [] for key in keys}
+
+        for result in abc_object:
+            for key in keys:
+                results_dict[key].append(result[key])
+
+        return pd.DataFrame(results_dict)
+
+
+class KinasesProvider(BaseProvider):
     """
     Class for kinases requests.
 
@@ -45,7 +84,7 @@ class KinasesProvider:
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     def all_kinase_groups(self):
         """
@@ -121,7 +160,7 @@ class KinasesProvider:
         raise NotImplementedError("Implement in your subclass!")
 
 
-class LigandsProvider:
+class LigandsProvider(BaseProvider):
     """
     Class for ligands requests.
 
@@ -139,7 +178,7 @@ class LigandsProvider:
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     def all_ligands(self):
         """
@@ -217,7 +256,7 @@ class LigandsProvider:
         raise NotImplementedError("Implement in your subclass!")
 
 
-class StructuresProvider:
+class StructuresProvider(BaseProvider):
     """
     Class for structures requests.
 
@@ -297,7 +336,7 @@ class StructuresProvider:
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     def all_structures(self):
         """
@@ -377,7 +416,7 @@ class StructuresProvider:
         raise NotImplementedError("Implement in your subclass!")
 
 
-class BioactivitiesProvider:
+class BioactivitiesProvider(BaseProvider):
     """
     Class for bioactivities requests (ChEMBL data linked to KLIFS data).
     
@@ -399,7 +438,7 @@ class BioactivitiesProvider:
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     def all_bioactivities(self):
         """
@@ -435,7 +474,7 @@ class BioactivitiesProvider:
         raise NotImplementedError("Implement in your subclass!")
 
 
-class InteractionsProvider:
+class InteractionsProvider(BaseProvider):
     """
     Class for interactions requests.
 
@@ -447,7 +486,7 @@ class InteractionsProvider:
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     @property
     def interaction_types(self):
@@ -514,13 +553,13 @@ class InteractionsProvider:
         raise NotImplementedError("Implement in your subclass!")
 
 
-class CoordinatesProvider:
+class CoordinatesProvider(BaseProvider):
     """
     Class for coordinates requests: Get coordinates for different entities for different input formats in the form of different output formats.
     """
 
     def __init__(self):
-        """Empty init."""
+        super().__init__()
 
     def from_structure_id(self, structure_id, entity, input_format, output_format):
         raise NotImplementedError("Implement in your subclass!")

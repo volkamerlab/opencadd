@@ -21,7 +21,7 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import _abc_idlist_to_dataframe, _log_error_empty_query_results
+from .utils import _log_error_empty_query_results
 from .utils import RENAME_COLUMNS_REMOTE
 
 _logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ class Kinases(KinasesProvider):
                 .response()
                 .result
             )
-            results = _abc_idlist_to_dataframe(results)
+            results = self._abc_to_dataframe(results)
             results.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
             return results
         except SwaggerMappingError as e:
@@ -84,7 +84,7 @@ class Kinases(KinasesProvider):
                     .response()
                     .result
                 )
-                result_df = _abc_idlist_to_dataframe(result)
+                result_df = self._abc_to_dataframe(result)
                 results.append(result_df)
             results = pd.concat(results)
             results.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
@@ -107,7 +107,7 @@ class Kinases(KinasesProvider):
                     .response()
                     .result
                 )
-                result_df = _abc_idlist_to_dataframe(result)
+                result_df = self._abc_to_dataframe(result)
                 results.append(result_df)
             except SwaggerMappingError as e:
                 _logger.error(f"Kinase name {kinase_name}: {e}")
@@ -139,7 +139,7 @@ class Ligands(LigandsProvider):
             .result
         )
         # Convert list of abstract base classes to DataFrame
-        ligands_df = _abc_idlist_to_dataframe(ligands_result)
+        ligands_df = self._abc_to_dataframe(ligands_result)
         # Rename columns
         ligands_df.rename(columns=RENAME_COLUMNS_REMOTE["ligands"], inplace=True)
         return ligands_df
@@ -184,7 +184,7 @@ class Ligands(LigandsProvider):
                 .result
             )
             # Convert list of abstract base classes to DataFrame
-            ligands_df = _abc_idlist_to_dataframe(ligands_result)
+            ligands_df = self._abc_to_dataframe(ligands_result)
             # Rename columns
             ligands_df.rename(columns=RENAME_COLUMNS_REMOTE["ligands"], inplace=True)
             # Add kinase ID to indicate which query was used to retrieve the results
@@ -262,7 +262,7 @@ class Structures(StructuresProvider):
                 .response()
                 .result
             )
-            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df = self._abc_to_dataframe(structures_result)
             structures_df.rename(
                 columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
             )
@@ -293,7 +293,7 @@ class Structures(StructuresProvider):
                 .response()
                 .result
             )
-            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df = self._abc_to_dataframe(structures_result)
             structures_df.rename(
                 columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
             )
@@ -313,7 +313,7 @@ class Structures(StructuresProvider):
                 .response()
                 .result
             )
-            structures_df = _abc_idlist_to_dataframe(structures_result)
+            structures_df = self._abc_to_dataframe(structures_result)
             structures_df.rename(
                 columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
             )
@@ -403,7 +403,7 @@ class Bioactivities(BioactivitiesProvider):
                 .response()
                 .result
             )
-            bioactivity_df = _abc_idlist_to_dataframe(bioactivity_result)
+            bioactivity_df = self._abc_to_dataframe(bioactivity_result)
             bioactivity_df.rename(
                 columns=RENAME_COLUMNS_REMOTE["bioactivities"], inplace=True
             )
@@ -423,7 +423,7 @@ class Interactions(InteractionsProvider):
         interaction_types_result = (
             self.__client.Interactions.get_interactions_get_types().response().result
         )
-        interaction_types_df = _abc_idlist_to_dataframe(interaction_types_result)
+        interaction_types_df = self._abc_to_dataframe(interaction_types_result)
         interaction_types_df.rename(
             columns=RENAME_COLUMNS_REMOTE["interactions"], inplace=True
         )
@@ -448,7 +448,7 @@ class Interactions(InteractionsProvider):
                 .response()
                 .result
             )
-            interactions_df = _abc_idlist_to_dataframe(interactions_result)
+            interactions_df = self._abc_to_dataframe(interactions_result)
             interactions_df.rename(
                 columns=RENAME_COLUMNS_REMOTE["interactions"], inplace=True
             )

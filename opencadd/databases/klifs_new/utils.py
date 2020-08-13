@@ -7,8 +7,6 @@ Defines utility functions.
 import logging
 from pathlib import Path
 
-import pandas as pd
-
 _logger = logging.getLogger(__name__)
 
 RENAME_COLUMNS_LOCAL = {
@@ -202,34 +200,6 @@ def file_path(
         )
 
     return path
-
-
-def _abc_idlist_to_dataframe(abc_idlist):
-    """
-    Transform ABC IDList object into DataFrame.
-
-    Parameters
-    ----------
-    abc_idlist : list of acb.IDList
-        List of labeled list objects from abstract base classes module.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Table with list labels as column names.
-    """
-
-    result = abc_idlist
-
-    keys = list(result[0])
-
-    results_dict = {key: [] for key in keys}
-
-    for result in abc_idlist:
-        for key in keys:
-            results_dict[key].append(result[key])
-
-    return pd.DataFrame(results_dict)
 
 
 def _log_error_empty_query_results():
