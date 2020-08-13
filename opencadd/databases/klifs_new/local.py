@@ -21,12 +21,8 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import (
-    RENAME_COLUMNS_LOCAL_KLIFS_EXPORT,
-    RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW,
-)
-from .utils import file_path, _log_error_empty_query_results, check_entity_format
-from .utils import COORDINATES_ENTITIES, COORDINATES_INPUT_FORMATS
+from .utils import RENAME_COLUMNS_LOCAL
+from .utils import file_path, _log_error_empty_query_results
 
 _logger = logging.getLogger(__name__)
 
@@ -86,7 +82,7 @@ class SessionInitializer:
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns=RENAME_COLUMNS_LOCAL_KLIFS_EXPORT, inplace=True,
+            columns=RENAME_COLUMNS_LOCAL["klifs_export"], inplace=True,
         )
 
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
@@ -114,7 +110,7 @@ class SessionInitializer:
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns=RENAME_COLUMNS_LOCAL_KLIFS_OVERVIEW, inplace=True,
+            columns=RENAME_COLUMNS_LOCAL["klifs_overview"], inplace=True,
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
@@ -486,7 +482,7 @@ class Coordinates(CoordinatesProvider):
         # Check if parameters are valid
         entity = file_path.stem
         input_format = file_path.suffix[1:]
-        check_entity_format(entity, input_format, output_format)
+        self.check_parameter_validity(entity, input_format, output_format)
 
         # Return different output formats
         if output_format == "rdkit":

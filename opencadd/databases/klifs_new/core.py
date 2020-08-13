@@ -8,6 +8,12 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+COORDINATES_PARAMETERS = {
+    "entities": ["complex", "ligand", "pocket", "protein", "water"],
+    "input_formats": ["mol2", "pdb"],
+    "output_formats": ["text", "biopandas", "rdkit"],
+}
+
 
 class KinasesProvider:
     """
@@ -749,3 +755,43 @@ class CoordinatesProvider:
             AllChem.Compute2DCoords(mol)
 
         return mol
+
+    @staticmethod
+    def check_parameter_validity(entity, input_format, output_format=None):
+        """
+        Check if entity and input/output format (and their combinations) are valid.
+
+        Parameters
+        ----------
+        entity : str
+            Structural entity: complex, ligand, pocket, protein, or water (only in local module).
+        input_format : str
+            File input format: mol2 or pdb (only for entity=complex).
+        output_format : str or None
+            Output format: text (only in remote module), biopandas, or rdkit (only for entity=ligand).
+        """
+
+        # Check if parameters are valid
+        if entity not in COORDINATES_PARAMETERS["entities"]:
+            raise ValueError(
+                f"Invalid entity. Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
+            )
+        if input_format not in COORDINATES_PARAMETERS["input_formats"]:
+            raise ValueError(
+                f"Invalid input format. Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
+            )
+        if output_format:
+            if output_format not in COORDINATES_PARAMETERS["output_formats"]:
+                raise ValueError(
+                    f"Invalid output format. Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
+                )
+
+        # Check if parameter combination is valid
+        if input_format == "pdb" and entity != "complex":
+            raise ValueError(f"Entity {entity} is only available in mol2 format.")
+        if output_format:
+            if output_format == "rdkit" and entity != "ligand":
+                raise ValueError(
+                    f"Only entity ligand can be fetched as rdkit molecule."
+                )
+

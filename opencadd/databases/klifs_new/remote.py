@@ -21,18 +21,8 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import (
-    _abc_idlist_to_dataframe,
-    _log_error_empty_query_results,
-    check_entity_format,
-)
-from .utils import (
-    RENAME_COLUMNS_REMOTE_KINASE,
-    RENAME_COLUMNS_REMOTE_LIGAND,
-    RENAME_COLUMNS_REMOTE_STRUCTURE,
-    RENAME_COLUMNS_REMOTE_INTERACTION,
-    RENAME_COLUMNS_REMOTE_BIOACTIVITY,
-)
+from .utils import _abc_idlist_to_dataframe, _log_error_empty_query_results
+from .utils import RENAME_COLUMNS_REMOTE
 
 _logger = logging.getLogger(__name__)
 
@@ -46,7 +36,7 @@ class Kinases(KinasesProvider):
 
         results = self.__client.Information.get_kinase_groups().response().result
         kinase_groups = pd.DataFrame(results, columns=["kinase.group"])
-        kinase_groups.rename(columns=RENAME_COLUMNS_REMOTE_KINASE, inplace=True)
+        kinase_groups.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -58,7 +48,7 @@ class Kinases(KinasesProvider):
                 .result
             )
             results = pd.DataFrame(results, columns=["kinase.family"])
-            results.rename(columns=RENAME_COLUMNS_REMOTE_KINASE, inplace=True)
+            results.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
             return results
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -74,7 +64,7 @@ class Kinases(KinasesProvider):
                 .result
             )
             results = _abc_idlist_to_dataframe(results)
-            results.rename(columns=RENAME_COLUMNS_REMOTE_KINASE, inplace=True)
+            results.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
             return results
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -97,7 +87,7 @@ class Kinases(KinasesProvider):
                 result_df = _abc_idlist_to_dataframe(result)
                 results.append(result_df)
             results = pd.concat(results)
-            results.rename(columns=RENAME_COLUMNS_REMOTE_KINASE, inplace=True)
+            results.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
             return results
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -126,7 +116,7 @@ class Kinases(KinasesProvider):
             kinases = pd.concat(results)
             # Kinase IDs can occur multiple times if the input kinase names describe the same kinase, thus drop duplicates
             kinases = kinases.drop_duplicates("kinase_ID").reset_index(drop=True)
-            kinases.rename(columns=RENAME_COLUMNS_REMOTE_KINASE, inplace=True)
+            kinases.rename(columns=RENAME_COLUMNS_REMOTE["kinases"], inplace=True)
             return kinases
 
 
@@ -151,7 +141,7 @@ class Ligands(LigandsProvider):
         # Convert list of abstract base classes to DataFrame
         ligands_df = _abc_idlist_to_dataframe(ligands_result)
         # Rename columns
-        ligands_df.rename(columns=RENAME_COLUMNS_REMOTE_LIGAND, inplace=True)
+        ligands_df.rename(columns=RENAME_COLUMNS_REMOTE["ligands"], inplace=True)
         return ligands_df
 
     def from_kinase_ids(self, kinase_ids):
@@ -196,7 +186,7 @@ class Ligands(LigandsProvider):
             # Convert list of abstract base classes to DataFrame
             ligands_df = _abc_idlist_to_dataframe(ligands_result)
             # Rename columns
-            ligands_df.rename(columns=RENAME_COLUMNS_REMOTE_LIGAND, inplace=True)
+            ligands_df.rename(columns=RENAME_COLUMNS_REMOTE["ligands"], inplace=True)
             # Add kinase ID to indicate which query was used to retrieve the results
             ligands_df["kinase.id (query)"] = kinase_id
             return ligands_df
@@ -273,7 +263,9 @@ class Structures(StructuresProvider):
                 .result
             )
             structures_df = _abc_idlist_to_dataframe(structures_result)
-            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            structures_df.rename(
+                columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
+            )
             return structures_df
         except (SwaggerMappingError, ValueError) as e:
             _logger.error(f"Structure ID {structure_ids}: {e}")
@@ -302,7 +294,9 @@ class Structures(StructuresProvider):
                 .result
             )
             structures_df = _abc_idlist_to_dataframe(structures_result)
-            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            structures_df.rename(
+                columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
+            )
             return structures_df
         except (SwaggerMappingError, ValueError) as e:
             _logger.error(f"Kinase ID {kinase_ids}: {e}")
@@ -320,7 +314,9 @@ class Structures(StructuresProvider):
                 .result
             )
             structures_df = _abc_idlist_to_dataframe(structures_result)
-            structures_df.rename(columns=RENAME_COLUMNS_REMOTE_STRUCTURE, inplace=True)
+            structures_df.rename(
+                columns=RENAME_COLUMNS_REMOTE["structures"], inplace=True
+            )
             return structures_df
         except (SwaggerMappingError, ValueError) as e:
             _logger.error(f"Structure PDB {structure_pdbs}: {e}")
@@ -409,7 +405,7 @@ class Bioactivities(BioactivitiesProvider):
             )
             bioactivity_df = _abc_idlist_to_dataframe(bioactivity_result)
             bioactivity_df.rename(
-                columns=RENAME_COLUMNS_REMOTE_BIOACTIVITY, inplace=True
+                columns=RENAME_COLUMNS_REMOTE["bioactivities"], inplace=True
             )
             bioactivity_df["ligand.id (query)"] = ligand_id
             return bioactivity_df
@@ -429,7 +425,7 @@ class Interactions(InteractionsProvider):
         )
         interaction_types_df = _abc_idlist_to_dataframe(interaction_types_result)
         interaction_types_df.rename(
-            columns=RENAME_COLUMNS_REMOTE_INTERACTION, inplace=True
+            columns=RENAME_COLUMNS_REMOTE["interactions"], inplace=True
         )
         return interaction_types_df
 
@@ -454,7 +450,7 @@ class Interactions(InteractionsProvider):
             )
             interactions_df = _abc_idlist_to_dataframe(interactions_result)
             interactions_df.rename(
-                columns=RENAME_COLUMNS_REMOTE_INTERACTION, inplace=True
+                columns=RENAME_COLUMNS_REMOTE["interactions"], inplace=True
             )
             return interactions_df
         except (SwaggerMappingError, ValueError) as e:
@@ -515,7 +511,7 @@ class Coordinates(CoordinatesProvider):
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
         """
 
-        check_entity_format(entity, input_format, output_format)
+        self.check_parameter_validity(entity, input_format, output_format)
 
         # Fetch text from KLIFS
         text = self._fetch_text(structure_id, entity, input_format)
@@ -560,7 +556,7 @@ class Coordinates(CoordinatesProvider):
             Save file in KLIFS directory structure (default: False).
         """
 
-        check_entity_format(entity, input_format)
+        self.check_parameter_validity(entity, input_format)
         output_path = Path(output_path)
 
         # Get metadata
