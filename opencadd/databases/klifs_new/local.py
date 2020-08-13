@@ -8,7 +8,6 @@ import logging
 from pathlib import Path
 
 from biopandas.mol2 import PandasMol2
-from biopandas.pdb import PandasPdb
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -442,20 +441,6 @@ class Structures(StructuresProvider):
 
         database = self.__database
         structures = database
-
-        """ 
-        TODO Unify remote/local column names
-        # Get all column names as per class documentation
-        column_names = list(RENAME_COLUMNS_REMOTE["structures"].values())
-        # Remove column names that are not in database
-        column_names = [
-            column_name
-            for column_name in column_names
-            if column_name in database.columns
-        ]
-        # Filter and sort by column names
-        database = database[column_names]
-        """
 
         if structures.shape[0] > 0:
             return structures

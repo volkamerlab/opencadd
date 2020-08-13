@@ -128,6 +128,7 @@ class BaseProvider:
             result_list = [function(i, *additional_parameters) for i in iterator]
         else:
             result_list = [function(i) for i in iterator]
+
         # Remove None values
         result_list = [result_df for result_df in result_list if result_df is not None]
 

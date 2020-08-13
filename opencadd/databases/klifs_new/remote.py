@@ -23,7 +23,7 @@ from .core import (
     CoordinatesProvider,
 )
 from .schema import REMOTE_COLUMNS_MAPPING, MOL2_COLUMNS
-from .utils import get_file_path
+from .utils import get_file_path, silence_logging
 
 
 _logger = logging.getLogger(__name__)
@@ -191,7 +191,10 @@ class Ligands(LigandsProvider):
     def from_kinase_ids(self, kinase_ids):
 
         ligands = self._iterate_over_function(
-            self._from_kinase_id, kinase_ids, iterator_isinstance_check=int
+            self._from_kinase_id,
+            kinase_ids,
+            additional_parameters=None,
+            iterator_isinstance_check=int,
         )
 
         return ligands
@@ -443,7 +446,11 @@ class Bioactivities(BioactivitiesProvider):
         # Use KLIFS API: Get all bioactivities from these ligand IDs
         if ligands is not None:
             ligand_ids = ligands["ligand.id"].to_list()
-            bioactivities = self.from_ligand_ids(ligand_ids)
+
+            # Many ligands do not have bioactivities in ChEMBL,
+            # Thus, disable logging messages for this query
+            with silence_logging():
+                bioactivities = self.from_ligand_ids(ligand_ids)
             return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
@@ -464,7 +471,10 @@ class Bioactivities(BioactivitiesProvider):
     def from_ligand_ids(self, ligand_ids):
 
         bioactivities = self._iterate_over_function(
-            self._from_ligand_id, ligand_ids, iterator_isinstance_check=int
+            self._from_ligand_id,
+            ligand_ids,
+            additional_parameters=None,
+            iterator_isinstance_check=int,
         )
 
         return bioactivities

@@ -4,6 +4,7 @@ utils.py
 Defines utility functions.
 """
 
+from contextlib import contextmanager
 import logging
 from pathlib import Path
 
@@ -73,3 +74,37 @@ def get_file_path(
         )
 
     return path
+
+
+@contextmanager
+def silence_logging(highest_level=logging.CRITICAL):
+    """
+    A context manager that will prevent any logging messages
+    triggered during the body from being processed.
+    
+    Parameters
+    ----------
+    highest_level : 
+        The maximum logging level in use.
+        This would only need to be changed if a custom level greater than CRITICAL is defined.
+
+    Notes
+    -----
+    Two kind-of hacks here:
+    - Can't get the highest logging level in effect => delegate to the user.
+    - Can't get the current module-level override => use an undocumented (but non-private!) 
+      interface.
+
+    References
+    ----------
+    Code taken from: https://gist.github.com/simon-weber/7853144
+    """
+
+    previous_level = logging.root.manager.disable
+
+    logging.disable(highest_level)
+
+    try:
+        yield
+    finally:
+        logging.disable(previous_level)
