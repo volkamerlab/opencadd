@@ -21,7 +21,7 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import RENAME_COLUMNS_LOCAL
+from .schema import RENAME_COLUMNS_LOCAL
 from .utils import get_file_path, _log_error_empty_query_results
 
 _logger = logging.getLogger(__name__)

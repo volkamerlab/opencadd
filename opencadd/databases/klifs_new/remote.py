@@ -22,7 +22,7 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .utils import RENAME_COLUMNS_REMOTE
+from .schema import RENAME_COLUMNS_REMOTE
 from .utils import get_file_path, _log_error_empty_query_results
 
 
