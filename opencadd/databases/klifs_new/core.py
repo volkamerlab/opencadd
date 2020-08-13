@@ -410,78 +410,98 @@ class StructuresProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
     following attributes (columns):
 
-    structure.id : int
-        Structure ID.
-    kinase.name : str
-        Kinase name according to KLIFS.
-    species.klifs : str
-        Species (KLIFS notation).
-    kinase.id : int
-        Kinase ID.
-    structure.pdb : str
-        Structure PDB ID.
-    structure.alternate_model : str
-        Alternate model. None if no alternate model.
-    structure.chain : str
-        Chain.
-    structure.rmsd1 : float
-        RMSD between structure and reference structures based on full kinase domain.
-    structure.rmsd2 : float
-        RMSD between structure and reference structures based on kinase pocket residues.
-    kinase.pocket : str
-        One-letter amino acid sequence for the 85 residue KLIFS pocket. Gaps are notated with "-".
-    structure.resolution : float
-        Structure resolution in Angström.
-    structure.qualityscore : float
-        KLIFS quality score (considering missing residues/atoms and RMSD1/RMSD2).
-    structure.missing_residues : int
-        Number of missing residues.
-    structure.missing_atoms : int
-        Number of missing atoms.
-    ligand.pdb : str or int (0)
-        Orthosteric ligand PDB ID. None if no ligand.
-    ligand.pdb_allosteric : str or 
-        Allosteric ligand PDB ID.  None if no ligand.
-    structure.DFG : str
-        DFG conformation (in, out, out-like, na).
-    structure.ac_helix : str
-        aC helix conformation (in, out, out-like, na).
-    structure.grich_distance : float
-        G-rich loop conformation: Distance between the catalytic loop and the G-rich loop.
-    structure.grich_angle : float
-        G-rich loop conformation: Angle of loop compared to hinge reagion and catalytic loop.
-    structure.grich_rotation : float
-        G-rich loop conformation: Rotation of the G-rich loop compared to the catalytic loop
-    structure.front : bool
-        Orthosteric ligand occupies KLIFS front cleft.
-    structure.gate : bool
-        Orthosteric ligand occupies gate area.
-    structure.back : bool
-        Orthosteric ligand occupies KLIFS back cleft.
-    structure.fp_i : bool
-        Orthosteric ligand occupies KLIFS front pocket I (FP-I).
-    structure.fp_ii : bool
-        Orthosteric ligand occupies KLIFS front pocket II (FP-II).
-    structure.bp_i_a : bool
-        Orthosteric ligand occupies KLIFS back pocket I-A (BP-I-A).
-    structure.bp_i_b : bool
-        Orthosteric ligand occupies KLIFS back pocket I-B (BP-I-B).
-    structure.bp_ii_in : bool
-        Orthosteric ligand occupies KLIFS back pocket II DFG-in (BP-II-in).
-    structure.bp_ii_a_in : bool
-        Orthosteric ligand occupies KLIFS back pocket II-A DFG-in (BP-II-A-in).
-    structure.bp_ii_b_in : bool
-        Orthosteric ligand occupies KLIFS back pocket II-B DFG-in (BP-II-B-in).
-    structure.bp_ii_out : bool
-        Orthosteric ligand occupies KLIFS back pocket II DFG-out (BP-II-out).
-    structure.bp_ii_b : bool
-        Orthosteric ligand occupies KLIFS back pocket II-B (BP-II-B).
-    structure.bp_iii : bool
-        Orthosteric ligand occupies KLIFS back pocket III (BP-III).
-    structure.bp_iv : bool
-        Orthosteric ligand occupies KLIFS back pocket IV (BP-IV).
-    structure.bp_v : bool
-        Orthosteric ligand occupies KLIFS back pocket V (BP-V).
+    Remote only:
+
+        structure.id : int
+            Structure ID.
+        kinase.id : int
+            Kinase ID.
+        structure.front : bool
+            Orthosteric ligand occupies KLIFS front cleft.
+        structure.gate : bool
+            Orthosteric ligand occupies gate area.
+        structure.back : bool
+            Orthosteric ligand occupies KLIFS back cleft.
+        structure.grich_distance : float
+            G-rich loop conformation: Distance between the catalytic loop and the G-rich loop.
+        structure.grich_angle : float
+            G-rich loop conformation: Angle of loop compared to hinge reagion and catalytic loop.
+        structure.grich_rotation : float
+            G-rich loop conformation: Rotation of the G-rich loop compared to the catalytic loop
+
+    Local only:
+
+        structure.filepath : str
+            Path to folder with the structure's coordinate files.
+        kinase.family : str
+            Kinase family.
+        kinase.group : str
+            Kinase group.
+        kinase.name_full : str
+            Full kinase name.
+        ligand.name : str
+            Orthosteric ligand name. None if no ligand.
+        ligand.name_allosteric : str
+            Allosteric ligand name. None if no ligand.
+    
+    Both remote and local:
+
+        kinase.name : str
+            Kinase name according to KLIFS.
+        species.klifs : str
+            Species (KLIFS notation).
+        structure.pdb : str
+            Structure PDB ID.
+        structure.alternate_model : str
+            Alternate model. None if no alternate model.
+        structure.chain : str
+            Chain.
+        structure.rmsd1 : float
+            RMSD between structure and reference structures based on full kinase domain.
+        structure.rmsd2 : float
+            RMSD between structure and reference structures based on kinase pocket residues.
+        kinase.pocket : str
+            One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps "-").
+        structure.resolution : float
+            Structure resolution in Angström.
+        structure.qualityscore : float
+            KLIFS quality score (considering missing residues/atoms and RMSD1/RMSD2).
+        structure.missing_residues : int
+            Number of missing residues.
+        structure.missing_atoms : int
+            Number of missing atoms.
+        ligand.pdb : str or int (0)
+            Orthosteric ligand PDB ID. None if no ligand.
+        ligand.pdb_allosteric : str or 
+            Allosteric ligand PDB ID.  None if no ligand.
+        structure.DFG : str
+            DFG conformation (in, out, out-like, na).
+        structure.ac_helix : str
+            aC helix conformation (in, out, out-like, na).
+        structure.fp_i : bool
+            Orthosteric ligand occupies KLIFS front pocket I (FP-I).
+        structure.fp_ii : bool
+            Orthosteric ligand occupies KLIFS front pocket II (FP-II).
+        structure.bp_i_a : bool
+            Orthosteric ligand occupies KLIFS back pocket I-A (BP-I-A).
+        structure.bp_i_b : bool
+            Orthosteric ligand occupies KLIFS back pocket I-B (BP-I-B).
+        structure.bp_ii_in : bool
+            Orthosteric ligand occupies KLIFS back pocket II DFG-in (BP-II-in).
+        structure.bp_ii_a_in : bool
+            Orthosteric ligand occupies KLIFS back pocket II-A DFG-in (BP-II-A-in).
+        structure.bp_ii_b_in : bool
+            Orthosteric ligand occupies KLIFS back pocket II-B DFG-in (BP-II-B-in).
+        structure.bp_ii_out : bool
+            Orthosteric ligand occupies KLIFS back pocket II DFG-out (BP-II-out).
+        structure.bp_ii_b : bool
+            Orthosteric ligand occupies KLIFS back pocket II-B (BP-II-B).
+        structure.bp_iii : bool
+            Orthosteric ligand occupies KLIFS back pocket III (BP-III).
+        structure.bp_iv : bool
+            Orthosteric ligand occupies KLIFS back pocket IV (BP-IV).
+        structure.bp_v : bool
+            Orthosteric ligand occupies KLIFS back pocket V (BP-V).
     """
 
     def __init__(self):
