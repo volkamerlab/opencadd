@@ -58,7 +58,8 @@ def setup_local(path_to_klifs_download):
 
 class Session:
     """
-    Class to set up remote or local session. Class attributes are None upon initialization but will be updated when remote or local session is called.
+    Class to set up remote or local session. Class attributes are None upon initialization but will
+    be updated when remote or local session is called.
 
     Attributes
     ----------
@@ -68,17 +69,17 @@ class Session:
         KLIFS client (set if session type is remote).
     database : None or pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    kinases : None or opencadd.databases.klifs.remote.Kinases or opencadd.databases.klifs.local.Kinases
+    kinases : None or opencadd.databases.klifs.remote.Kinases/local.Kinases
         Kinases object for kinases requests.
-    ligands : None or opencadd.databases.klifs.remote.Ligands or opencadd.databases.klifs.local.Ligands
+    ligands : None or opencadd.databases.klifs.remote.Ligands/local.Ligands
         Ligands object for ligand requests.
-    structures: None or opencadd.databases.klifs.remote.Structures or opencadd.databases.klifs.local.Structures
+    structures: None or opencadd.databases.klifs.remote.Structures/local.Structures
         Structures object for structure requests.
-    bioactivities : None or opencadd.databases.klifs.remote.Bioactivities or opencadd.databases.klifs.local.Bioactivities
+    bioactivities : None or opencadd.databases.klifs.remote.Bioactivities/local.Bioactivities
         Bioactivities object for bioactivity requests.
-    interactions : None or opencadd.databases.klifs.remote.Interactions or opencadd.databases.klifs.local.Interactions
+    interactions : None or opencadd.databases.klifs.remote.Interactions/local.Interactions
         Interactions object for interaction requests.
-    coordinates : None or opencadd.databases.klifs.remote.Coordinates or opencadd.databases.klifs.local.Coordinates
+    coordinates : None or opencadd.databases.klifs.remote.Coordinates/local.Coordinates
         Coordinates object for coordinates requests.
     """
 
