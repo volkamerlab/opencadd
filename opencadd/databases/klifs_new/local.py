@@ -22,7 +22,7 @@ from .core import (
     CoordinatesProvider,
 )
 from .schema import RENAME_COLUMNS_LOCAL
-from .utils import get_file_path, _log_error_empty_query_results
+from .utils import get_file_path
 
 _logger = logging.getLogger(__name__)
 
@@ -281,6 +281,11 @@ class Kinases(KinasesProvider):
     """
     Extends KinasesProvider to provide local kinases requests.
     Refer to KinasesProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
     """
 
     def __init__(self, database):
@@ -290,8 +295,12 @@ class Kinases(KinasesProvider):
 
     def all_kinase_groups(self):
 
-        kinase_groups = pd.DataFrame(self.__database["kinase.group"].drop_duplicates())
-        return kinase_groups
+        kinase_groups = self.__database["kinase.group"].drop_duplicates()
+        kinase_groups = pd.DataFrame(kinase_groups)
+        kinase_groups.reset_index(drop=True, inplace=True)
+
+        if kinase_groups.shape[0] > 0:
+            return kinase_groups
 
     def all_kinase_families(self, group=None):
 
@@ -307,28 +316,29 @@ class Kinases(KinasesProvider):
         kinase_families = pd.DataFrame(
             self.__database["kinase.family"].drop_duplicates()
         )
-        return kinase_families
+        kinase_families.reset_index(drop=True, inplace=True)
+        if kinase_families.shape[0] > 0:
+            return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
 
         # Filter database if filtering parameters are set
         database = self.__database
         if group:
-            database = database[database["kinase.group"] == group].copy()
+            database = database[database["kinase.group"] == group]
         if family:
-            database = database[database["kinase.family"] == family].copy()
+            database = database[database["kinase.family"] == family]
         if species:
-            database = database[database["species.klifs"] == species].copy()
+            database = database[database["species.klifs"] == species]
 
         # From (filtered) database get unique kinase names
         kinases = database.drop_duplicates("kinase.name")[
             ["kinase.name", "species.klifs"]
         ]
+        kinases.reset_index(drop=True, inplace=True)
 
         if kinases.shape[0] > 0:
             return kinases
-        else:
-            _log_error_empty_query_results()
 
     def from_kinase_names(self, kinase_names, species=None):
 
@@ -339,17 +349,16 @@ class Kinases(KinasesProvider):
         database = self.__database
         database = database[database["kinase.name"].isin(kinase_names)]
         if species:
-            database = database[database["species.klifs"] == species].copy()
+            database = database[database["species.klifs"] == species]
 
         # From (filtered) database get unique kinase names
         kinases = database.drop_duplicates("kinase.name")[
             ["kinase.name", "species.klifs"]
         ]
+        kinases.reset_index(drop=True, inplace=True)
 
         if kinases.shape[0] > 0:
             return kinases
-        else:
-            _log_error_empty_query_results()
 
 
 class Ligands(LigandsProvider):
@@ -365,19 +374,27 @@ class Ligands(LigandsProvider):
 
     def all_ligands(self):
 
-        ligands = self.__database[["ligand.pdb", "ligand.name"]].drop_duplicates(
-            "ligand.pdb"
-        )
+        ligands = self.__database.drop_duplicates("ligand.pdb")[
+            ["ligand.pdb", "ligand.name"]
+        ]
         ligands.reset_index(drop=True, inplace=True)
-        return ligands
+
+        if ligands.shape[0] > 0:
+            return ligands
 
     def from_kinase_names(self, kinase_names):
 
         if isinstance(kinase_names, str):
             kinase_names = [kinase_names]
 
-        ligands = self.__database[self.__database["kinase.name"].isin(kinase_names)]
+        database = self.__database
+
+        # Select ligands by kinase names
+        ligands = database[database["kinase.name"].isin(kinase_names)]
+        # Keep only columns as per class docstring
         ligands = ligands[["ligand.pdb", "ligand.name", "kinase.name", "species.klifs"]]
+
+        # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={
                 "kinase.name": "kinase.name (query)",
@@ -387,18 +404,27 @@ class Ligands(LigandsProvider):
         )
         ligands.drop_duplicates(inplace=True)
         ligands.reset_index(drop=True, inplace=True)
-        return ligands
+
+        if ligands.shape[0] > 0:
+            return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
         if isinstance(ligand_pdbs, str):
             ligand_pdbs = [ligand_pdbs]
 
-        ligands = self.__database[self.__database["ligand.pdb"].isin(ligand_pdbs)]
+        database = self.__database
+
+        # Select ligands by ligand PDB IDs
+        ligands = database[database["ligand.pdb"].isin(ligand_pdbs)]
+        # Keep only columns as per class docstring
         ligands = ligands[["ligand.pdb", "ligand.name"]]
+
         ligands.drop_duplicates(inplace=True)
         ligands.reset_index(drop=True, inplace=True)
-        return ligands
+
+        if ligands.shape[0] > 0:
+            return ligands
 
 
 class Structures(StructuresProvider):
@@ -410,21 +436,42 @@ class Structures(StructuresProvider):
     def __init__(self, database):
 
         super().__init__()
-        self.__database = database  # TODO sort/filter columns
+        self.__database = database
 
     def all_structures(self):
 
-        return self.__database
+        database = self.__database
+        structures = database
+
+        """ 
+        TODO Unify remote/local column names
+        # Get all column names as per class documentation
+        column_names = list(RENAME_COLUMNS_REMOTE["structures"].values())
+        # Remove column names that are not in database
+        column_names = [
+            column_name
+            for column_name in column_names
+            if column_name in database.columns
+        ]
+        # Filter and sort by column names
+        database = database[column_names]
+        """
+
+        if structures.shape[0] > 0:
+            return structures
 
     def from_structure_pdbs(self, structure_pdbs):
 
         if isinstance(structure_pdbs, str):
             structure_pdbs = [structure_pdbs]
 
-        database = self.__database.copy()
-        database = database[database["structure.pdb"].isin(structure_pdbs)]
+        database = self.__database
 
-        return database
+        # Select structures by structure PDB IDs
+        structures = database[database["structure.pdb"].isin(structure_pdbs)]
+
+        if structures.shape[0] > 0:
+            return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
@@ -432,9 +479,12 @@ class Structures(StructuresProvider):
             ligand_pdbs = [ligand_pdbs]
 
         database = self.__database
-        database = database[database["ligand.pdb"].isin(ligand_pdbs)]
 
-        return database
+        # Select structures by ligand PDB IDs
+        structures = database[database["ligand.pdb"].isin(ligand_pdbs)]
+
+        if structures.shape[0] > 0:
+            return structures
 
     def from_kinase_names(self, kinase_names):
 
@@ -442,7 +492,9 @@ class Structures(StructuresProvider):
             kinase_names = [kinase_names]
 
         database = self.__database
-        database = database[
+
+        # Select structures by kinase name (search in all available kinase names)
+        structures = database[
             database.apply(
                 lambda x: any(
                     [
@@ -453,7 +505,9 @@ class Structures(StructuresProvider):
                 axis=1,
             )
         ]
-        return database
+
+        if structures.shape[0] > 0:
+            return structures
 
 
 class Bioactivities(BioactivitiesProvider):
@@ -481,7 +535,10 @@ class Interactions(InteractionsProvider):
 
     def all_interactions(self):
 
-        interactions = self.__database[
+        database = self.__database
+
+        # Keep columns as per class docstring
+        interactions = database[
             [
                 "structure.pdb",
                 "structure.alternate_model",
@@ -489,7 +546,8 @@ class Interactions(InteractionsProvider):
                 "interaction.fingerprint",
             ]
         ]
-        return interactions
+        if interactions.shape[0] > 0:
+            return interactions
 
 
 class Coordinates(CoordinatesProvider):

@@ -73,12 +73,3 @@ def get_file_path(
         )
 
     return path
-
-
-def _log_error_empty_query_results():
-    """
-    Log error: Empty results.
-    """
-    _logger.error(
-        "No query results: One or more input parameter values or the combination thereof are invalid or not in the dataset."
-    )

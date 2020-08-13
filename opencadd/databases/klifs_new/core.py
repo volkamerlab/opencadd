@@ -53,6 +53,89 @@ class BaseProvider:
 
         return pd.DataFrame(results_dict)
 
+    @staticmethod
+    def _format_dataframe(dataframe, columns_mapping):
+        """
+        Format a DataFrame: Rename columns, reset index.
+
+        columns_mapping : dict
+            Mapping of old to new column names.
+        """
+
+        dataframe.rename(columns=columns_mapping, inplace=True)
+        dataframe.reset_index(drop=True, inplace=True)
+
+        return dataframe
+
+    @staticmethod
+    def _from_ids(ids, function_from_id, id_isinstance=int):
+        """
+        Wraps remote requests using multiple IDs, where KLIFS API only allows singe IDs
+        (or where for some reason single ID requests are preferred over using the KLIFS API
+        for multiple IDs requests).
+
+        Parameters
+        ----------
+        ids : int/str or list of int/str
+            ID(s).
+        function_from_id : function
+            Function that returns result for a single ID.
+        id_isinstance : type
+            Type that needs to be cast to list.
+        """
+
+        if isinstance(ids, id_isinstance):
+            ids = [ids]
+
+        # Get result for each ID
+        result_list = [function_from_id(id) for id in ids]
+        # Remove None values
+        result_list = [result_df for result_df in result_list if result_df is not None]
+
+        if len(result_list) > 0:
+            result_df = pd.concat(result_list)
+            result_df.reset_index(drop=True, inplace=True)
+            return result_df
+
+    @staticmethod
+    def _iterate_over_function(
+        function, iterator, additional_parameters=None, iterator_isinstance_check=int
+    ):
+        """
+        Wrap remote requests using multiple inputs, where KLIFS API only allows a single input
+        or where for some reason - in this package - single input requests are preferred over 
+        using the KLIFS API for multiple input requests.
+        
+        Parameters
+        ----------
+        function : function
+            Function that returns result for a single input.
+        iterator : int/str or list of int/str
+            Iterator, here IDs or names. 
+            If single input is given (thus no iterator), it will be cast to a list.
+        additional_parameters : None or list
+            List of additional parameters (not iterated) that are needed for function.
+            None if no additional parameters.
+        iterator_isinstance_check : type
+            Iterator type that needs to be cast to list.
+        """
+
+        if isinstance(iterator, iterator_isinstance_check):
+            iterator = [iterator]
+
+        # Get result for each iterator element
+        if additional_parameters is not None:
+            result_list = [function(i, *additional_parameters) for i in iterator]
+        else:
+            result_list = [function(i) for i in iterator]
+        # Remove None values
+        result_list = [result_df for result_df in result_list if result_df is not None]
+
+        if len(result_list) > 0:
+            result_df = pd.concat(result_list)
+            result_df.reset_index(drop=True, inplace=True)
+            return result_df
+
 
 class KinasesProvider(BaseProvider):
     """
@@ -110,9 +193,10 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Kinase groups (rows) with the following column: "kinase.group". Check class docstring 
             for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -127,9 +211,10 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Kinase families (rows) with the following column: "kinase.family". Check class 
             docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -148,9 +233,10 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_", 
             "species.klifs". Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -160,8 +246,9 @@ class KinasesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Kinases (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -171,8 +258,9 @@ class KinasesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Kinases (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -221,8 +309,9 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -237,8 +326,9 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -253,8 +343,9 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -269,8 +360,9 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -285,8 +377,9 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -400,8 +493,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -411,8 +505,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -422,8 +517,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -433,8 +529,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -444,8 +541,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -455,8 +553,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -466,8 +565,9 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -514,8 +614,9 @@ class BioactivitiesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -525,8 +626,9 @@ class BioactivitiesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -536,8 +638,9 @@ class BioactivitiesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -585,10 +688,11 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             7 interaction types (rows) with the following columns: 
             "interaction.id", "interaction.name". 
             Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -598,10 +702,11 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -611,10 +716,11 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -624,10 +730,11 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -637,10 +744,11 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame
+        pandas.DataFrame or None
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
+            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
