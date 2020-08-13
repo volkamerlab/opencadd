@@ -21,7 +21,7 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .schema import RENAME_COLUMNS_LOCAL
+from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS
 from .utils import get_file_path
 
 _logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ class SessionInitializer:
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns=RENAME_COLUMNS_LOCAL["klifs_export"], inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_export"], inplace=True,
         )
 
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
@@ -113,7 +113,7 @@ class SessionInitializer:
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns=RENAME_COLUMNS_LOCAL["klifs_overview"], inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"], inplace=True,
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
@@ -272,7 +272,7 @@ class SessionInitializer:
             )
             filepaths.append(mol2_path)
 
-        klifs_metadata["filepath"] = filepaths
+        klifs_metadata["structure.filepath"] = filepaths
 
         return klifs_metadata
 
@@ -620,24 +620,10 @@ class Coordinates(CoordinatesProvider):
         pmol = PandasMol2()
 
         try:
-            mol2_df = pmol.read_mol2(
-                str(mol2_file),
-                columns={
-                    0: ("atom_id", int),
-                    1: ("atom_name", str),
-                    2: ("x", float),
-                    3: ("y", float),
-                    4: ("z", float),
-                    5: ("atom_type", str),
-                    6: ("subst_id", int),
-                    7: ("subst_name", str),
-                    8: ("charge", float),
-                    9: ("backbone", str),
-                },
-            )
+            mol2_df = pmol.read_mol2(str(mol2_file), columns=MOL2_COLUMNS["n_cols_10"])
 
         except ValueError:
-            mol2_df = pmol.read_mol2(str(mol2_file))
+            mol2_df = pmol.read_mol2(str(mol2_file), columns=MOL2_COLUMNS["n_cols_9"])
 
         return mol2_df
 

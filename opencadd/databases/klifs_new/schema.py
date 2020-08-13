@@ -4,7 +4,7 @@ schema.py
 Defines schema used accross the klifs module.
 """
 
-RENAME_COLUMNS_LOCAL = {
+LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {
         "NAME": "kinase.name",
         "FAMILY": "kinase.family",
@@ -51,7 +51,7 @@ RENAME_COLUMNS_LOCAL = {
     },
 }
 
-RENAME_COLUMNS_REMOTE = {
+REMOTE_COLUMNS_MAPPING = {
     "kinases": {
         "kinase_ID": "kinase.id",
         "name": "kinase.name",
@@ -81,7 +81,7 @@ RENAME_COLUMNS_REMOTE = {
         "missing_residues": "structure.missing_residues",
         "missing_atoms": "structure.missing_atoms",
         "ligand": "ligand.pdb",
-        "allosteric_ligand": "ligand.name_allosteric",
+        "allosteric_ligand": "ligand.pdb_allosteric",
         "DFG": "structure.dfg",
         "aC_helix": "structure.ac_helix",
         "Grich_distance": "structure.grich_distance",
@@ -128,5 +128,31 @@ RENAME_COLUMNS_REMOTE = {
         "standard_value": "ligand.bioactivity_standard_value",
         "standard_units": "ligand.bioactivity_standard_units",
         "pchembl_value": "ligand.bioactivity_pchembl_value",
+    },
+}
+
+MOL2_COLUMNS = {
+    "n_cols_10": {
+        0: ("atom_id", int),
+        1: ("atom_name", str),
+        2: ("x", float),
+        3: ("y", float),
+        4: ("z", float),
+        5: ("atom_type", str),
+        6: ("subst_id", int),
+        7: ("subst_name", str),
+        8: ("charge", float),
+        9: ("backbone", str),
+    },
+    "n_cols_9": {
+        0: ("atom_id", int),
+        1: ("atom_name", str),
+        2: ("x", float),
+        3: ("y", float),
+        4: ("z", float),
+        5: ("atom_type", str),
+        6: ("subst_id", int),
+        7: ("subst_name", str),
+        8: ("charge", float),
     },
 }

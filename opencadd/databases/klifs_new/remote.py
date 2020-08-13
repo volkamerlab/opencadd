@@ -22,7 +22,7 @@ from .core import (
     InteractionsProvider,
     CoordinatesProvider,
 )
-from .schema import RENAME_COLUMNS_REMOTE
+from .schema import REMOTE_COLUMNS_MAPPING, MOL2_COLUMNS
 from .utils import get_file_path
 
 
@@ -84,7 +84,7 @@ class Kinases(KinasesProvider):
             )
             # Convert list of ABC objects to DataFrame and formatting
             kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, RENAME_COLUMNS_REMOTE["kinases"])
+            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
             return kinases
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -103,7 +103,7 @@ class Kinases(KinasesProvider):
             )
             # Convert list of ABC objects to DataFrame and formatting
             kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, RENAME_COLUMNS_REMOTE["kinases"])
+            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
             return kinases
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -149,7 +149,7 @@ class Kinases(KinasesProvider):
             )
             # Convert list of ABC objects to DataFrame and formatting
             kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, RENAME_COLUMNS_REMOTE["kinases"])
+            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
             return kinases
         except SwaggerMappingError as e:
             _logger.error(f"Kinase name {kinase_name}: {e}")
@@ -183,7 +183,7 @@ class Ligands(LigandsProvider):
             )
             # Convert list of ABC objects to DataFrame and formatting
             ligands = self._abc_to_dataframe(result)
-            ligands = self._format_dataframe(ligands, RENAME_COLUMNS_REMOTE["ligands"])
+            ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
             return ligands
         except SwaggerMappingError as e:
             _logger.error(e)
@@ -219,7 +219,7 @@ class Ligands(LigandsProvider):
             )
             # Convert list of ABC objects to DataFrame and formatting
             ligands = self._abc_to_dataframe(result)
-            ligands = self._format_dataframe(ligands, RENAME_COLUMNS_REMOTE["ligands"])
+            ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
             ligands["kinase.id (query)"] = kinase_id
             return ligands
         except (SwaggerMappingError, ValueError) as e:
@@ -235,27 +235,27 @@ class Ligands(LigandsProvider):
         kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.from_kinase_names(kinase_names)
 
+        # Select and rename columns to indicate columns involved in query
+        kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
+        kinases.rename(
+            columns={
+                "kinase.id": "kinase.id (query)",
+                "kinase.name": "kinase.name (query)",
+                "species.klifs": "species.klifs (query)",
+            },
+            inplace=True,
+        )
+
         if kinases is not None:
 
             # Use KLIFS API: Get ligands by kinase IDs
-            kinase_ids = kinases["kinase.id"].to_list()
+            kinase_ids = kinases["kinase.id (query)"].to_list()
             ligands = self.from_kinase_ids(kinase_ids)
 
-            # Select and rename columns to indicate columns involved in query
-            kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
-            kinases.rename(
-                columns={
-                    "kinase.id": "kinase.id (query)",
-                    "kinase.name": "kinase.name (query)",
-                    "species.klifs": "species.klifs (query)",
-                },
-                inplace=True,
-            )
+            if ligands is not None:
 
-            # Add kinase name and species details to rationalize kinase IDs
-            ligands = ligands.merge(kinases, on="kinase.id (query)", how="left")
-
-            if ligands.shape[0] > 0:
+                # Add kinase name and species details to rationalize kinase IDs
+                ligands = ligands.merge(kinases, on="kinase.id (query)", how="left")
                 return ligands
 
     def from_ligand_ids(self, ligand_ids):
@@ -310,9 +310,7 @@ class Structures(StructuresProvider):
         if kinases is not None:
             kinase_ids = kinases["kinase.id"].to_list()
             structures = self.from_kinase_ids(kinase_ids)
-
-            if structures.shape[0] > 0:
-                return structures
+            return structures
 
     def from_structure_ids(self, structure_ids):
 
@@ -329,7 +327,7 @@ class Structures(StructuresProvider):
             # Convert list of ABC objects to DataFrame and formatting
             structures = self._abc_to_dataframe(result)
             structures = self._format_dataframe(
-                structures, RENAME_COLUMNS_REMOTE["structures"]
+                structures, REMOTE_COLUMNS_MAPPING["structures"]
             )
             return structures
         except (SwaggerMappingError, ValueError) as e:
@@ -348,9 +346,7 @@ class Structures(StructuresProvider):
         if ligands is not None:
             ligand_pdbs = ligands["ligand.pdb"].to_list()
             structures = self.from_ligand_pdbs(ligand_pdbs)
-
-            if structures.shape[0] > 0:
-                return structures
+            return structures
 
     def from_kinase_ids(self, kinase_ids):
 
@@ -367,7 +363,7 @@ class Structures(StructuresProvider):
             # Convert list of ABC objects to DataFrame and formatting
             structures = self._abc_to_dataframe(result)
             structures = self._format_dataframe(
-                structures, RENAME_COLUMNS_REMOTE["structures"]
+                structures, REMOTE_COLUMNS_MAPPING["structures"]
             )
             return structures
         except (SwaggerMappingError, ValueError) as e:
@@ -390,7 +386,7 @@ class Structures(StructuresProvider):
             # Convert list of ABC objects to DataFrame and formatting
             structures = self._abc_to_dataframe(result)
             structures = self._format_dataframe(
-                structures, RENAME_COLUMNS_REMOTE["structures"]
+                structures, REMOTE_COLUMNS_MAPPING["structures"]
             )
             return structures
         except (SwaggerMappingError, ValueError) as e:
@@ -448,9 +444,7 @@ class Bioactivities(BioactivitiesProvider):
         if ligands is not None:
             ligand_ids = ligands["ligand.id"].to_list()
             bioactivities = self.from_ligand_ids(ligand_ids)
-
-            if bioactivities.shape[0] > 0:
-                return bioactivities
+            return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
 
@@ -465,9 +459,7 @@ class Bioactivities(BioactivitiesProvider):
         if ligands is not None:
             ligand_ids = ligands["ligand.id"].to_list()
             bioactivities = self.from_ligand_ids(ligand_ids)
-
-            if bioactivities.shape[0] > 0:
-                return bioactivities
+            return bioactivities
 
     def from_ligand_ids(self, ligand_ids):
 
@@ -502,7 +494,7 @@ class Bioactivities(BioactivitiesProvider):
             # Convert list of ABC objects to DataFrame and formatting
             bioactivities = self._abc_to_dataframe(result)
             bioactivities = self._format_dataframe(
-                bioactivities, RENAME_COLUMNS_REMOTE["bioactivities"]
+                bioactivities, REMOTE_COLUMNS_MAPPING["bioactivities"]
             )
             bioactivities["ligand.id (query)"] = ligand_id
             return bioactivities
@@ -535,7 +527,7 @@ class Interactions(InteractionsProvider):
             # Convert list of ABC objects to DataFrame and formatting
             interaction_types = self._abc_to_dataframe(result)
             interaction_types = self._format_dataframe(
-                interaction_types, RENAME_COLUMNS_REMOTE["interactions"]
+                interaction_types, REMOTE_COLUMNS_MAPPING["interactions"]
             )
             return interaction_types
         except SwaggerMappingError as e:
@@ -545,15 +537,13 @@ class Interactions(InteractionsProvider):
 
         # Use KLIFS API: Get all structure IDs
         structures_remote = Structures(self.__client)
-        structure_ids = structures_remote.all_structures()
+        structures = structures_remote.all_structures()
 
         # Use KLIFS API: Get all interactions from these structures IDs
         if structures is not None:
             structure_ids = structures["structure.id"].to_list()
             interactions = self.from_structure_ids(structure_ids)
-
-            if interactions.shape[0] > 0:
-                return interactions
+            return interactions
 
     def from_structure_ids(self, structure_ids):
 
@@ -572,7 +562,7 @@ class Interactions(InteractionsProvider):
             # Convert list of ABC objects to DataFrame and formatting
             interactions = self._abc_to_dataframe(result)
             interactions = self._format_dataframe(
-                interactions, RENAME_COLUMNS_REMOTE["interactions"]
+                interactions, REMOTE_COLUMNS_MAPPING["interactions"]
             )
             return interactions
         except (SwaggerMappingError, ValueError) as e:
@@ -591,9 +581,7 @@ class Interactions(InteractionsProvider):
         if structures is not None:
             structure_ids = structures["structure.id"].to_list()
             interactions = self.from_structure_ids(structure_ids)
-
-            if interactions.shape[0] > 0:
-                return interactions
+            return interactions
 
     def from_kinase_ids(self, kinase_ids):
 
@@ -608,9 +596,7 @@ class Interactions(InteractionsProvider):
         if structures is not None:
             structure_ids = structures["structure.id"].to_list()
             interactions = self.from_structure_ids(structure_ids)
-
-            if interactions.shape[0] > 0:
-                return interactions
+            return interactions
 
 
 class Coordinates(CoordinatesProvider):
@@ -660,10 +646,6 @@ class Coordinates(CoordinatesProvider):
 
         # Fetch text from KLIFS
         text = self._fetch_text(structure_id, entity, input_format)
-        if not text:  # TODO Ask Albert why no remote water
-            raise ValueError(
-                f"Entity {entity} is not available remotely but we could ask Albert to add this."
-            )
 
         # Return different output formats
         if output_format == "text":
@@ -704,7 +686,7 @@ class Coordinates(CoordinatesProvider):
         self.check_parameter_validity(entity, input_format)
         output_path = Path(output_path)
 
-        # Get structure metadata
+        # Use KLIFS API: Get structure metadata
         structures_remote = Structures(self.__client)
         metadata = structures_remote.from_structure_ids(structure_id).iloc[0]
 
@@ -721,14 +703,11 @@ class Coordinates(CoordinatesProvider):
             in_dir,
         )
 
+        # Create output directory if needed
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Get text
         text = self.fetch(structure_id, entity, input_format, output_format="text")
-        if not text:  # TODO Ask Albert why no remote water
-            raise ValueError(
-                f"Entity {entity} is not available remotely but we could ask Albert to add this."
-            )
 
         # Save text to file
         with open(output_path, "w") as f:
@@ -754,7 +733,7 @@ class Coordinates(CoordinatesProvider):
         """
 
         if entity == "complex" and input_format == "mol2":
-            return (
+            text = (
                 self.__client.Structures.get_structure_get_complex(
                     structure_ID=structure_id
                 )
@@ -762,7 +741,7 @@ class Coordinates(CoordinatesProvider):
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
-            return (
+            text = (
                 self.__client.Structures.get_structure_get_pdb_complex(
                     structure_ID=structure_id
                 )
@@ -770,7 +749,7 @@ class Coordinates(CoordinatesProvider):
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
-            return (
+            text = (
                 self.__client.Structures.get_structure_get_ligand(
                     structure_ID=structure_id
                 )
@@ -778,7 +757,7 @@ class Coordinates(CoordinatesProvider):
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
-            return (
+            text = (
                 self.__client.Structures.get_structure_get_pocket(
                     structure_ID=structure_id
                 )
@@ -786,13 +765,20 @@ class Coordinates(CoordinatesProvider):
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
-            return (
+            text = (
                 self.__client.Structures.get_structure_get_protein(
                     structure_ID=structure_id
                 )
                 .response()
                 .result
             )
+        else:
+            raise ValueError(f"Entity {entity} is not available remotely.")
+
+        if text is not None:
+            return text
+        else:
+            raise ValueError(f"Data could not be fetched (returned None).")
 
     @staticmethod
     def _mol2_text_to_dataframe(mol2_text):
@@ -815,35 +801,14 @@ class Coordinates(CoordinatesProvider):
         try:
             mol2_df = pmol._construct_df(
                 mol2_text.splitlines(True),
-                col_names=[
-                    "atom_id",
-                    "atom_name",
-                    "x",
-                    "y",
-                    "z",
-                    "atom_type",
-                    "subst_id",
-                    "subst_name",
-                    "charge",
-                    "backbone",
-                ],
-                col_types=[int, str, float, float, float, str, int, str, float, str],
+                col_names=[i[0] for i in MOL2_COLUMNS["n_cols_10"].values()],
+                col_types=[i[1] for i in MOL2_COLUMNS["n_cols_10"].values()],
             )
         except ValueError:
             mol2_df = pmol._construct_df(
                 mol2_text.splitlines(True),
-                col_names=[
-                    "atom_id",
-                    "atom_name",
-                    "x",
-                    "y",
-                    "z",
-                    "atom_type",
-                    "subst_id",
-                    "subst_name",
-                    "charge",
-                ],
-                col_types=[int, str, float, float, float, str, int, str, float],
+                col_names=[i[0] for i in MOL2_COLUMNS["n_cols_9"].values()],
+                col_types=[i[1] for i in MOL2_COLUMNS["n_cols_9"].values()],
             )
 
         return mol2_df
