@@ -32,7 +32,7 @@ class BaseProvider:
 
         Parameters
         ----------
-        abc_object : list of abc.IDList or abc.KinaseInformation or abc.ligandDetails or abc.structureDetails
+        abc_object : list of abc.IDList/KinaseInformation/ligandDetails/structureDetails
             List of labeled list objects from abstract base classes module.
 
         Returns
@@ -58,7 +58,10 @@ class KinasesProvider(BaseProvider):
     """
     Class for kinases requests.
 
-    Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) following attributes (columns):
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) 
+    following attributes (columns):
     kinase.id : int
         Kinase ID.
     kinase.name : str
@@ -66,15 +69,15 @@ class KinasesProvider(BaseProvider):
     kinase.hgnc : str
         Kinase name according to the HUGO Gene Nomenclature Committee.
     kinase.family : str
-        Kinase family.
+        Kinase family. TODO: Where does this come from?
     kinase.group : str
-        Kinase group.
+        Kinase group. TODO: Where does this come from?
     kinase.class : str
         Kinase class. TODO: Where does this come from?
-    species : str
-        Species.
+    species.klifs : str
+        Species (KLIFS notation).
     kinase.name_full : str
-        Full kinase name.
+        Full kinase name. TODO: Where does this come from?
     kinase.uniprot : str
         UniProt ID.
     kinase.iuphar : int
@@ -93,8 +96,8 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinase groups (rows) with the following column: group. 
-            Check class docstring for more information on columns.
+            Kinase groups (rows) with the following column: "kinase.group". Check class docstring 
+            for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -110,15 +113,14 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinase families (rows) with the following column: family.
-            Check class docstring for more information on columns.
+            Kinase families (rows) with the following column: "kinase.family". Check class 
+            docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
 
     def all_kinases(self, groups=None, families=None, species=None):
         """
         Get all kinase names available. 
-        TODO Format input strings: species capitalized, groups (Other?) and families upper/lower?
         
         Parameters
         ----------
@@ -132,8 +134,8 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinases (rows) with the following columns: kinase_ID, name, full_name, species.
-            Check class docstring for more information on columns.
+            Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_", 
+            "species.klifs". Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -164,7 +166,10 @@ class LigandsProvider(BaseProvider):
     """
     Class for ligands requests.
 
-    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) following attributes (columns):
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
+    following attributes (columns):
     ligand.id : int
         Ligand ID.
     ligand.pdb : str
@@ -174,7 +179,7 @@ class LigandsProvider(BaseProvider):
     ligand.smiles : str
         Ligand SMILES.
     ligand.inchikey : str
-        InChI key.
+        Ligand InChI key.
     """
 
     def __init__(self):
@@ -260,49 +265,52 @@ class StructuresProvider(BaseProvider):
     """
     Class for structures requests.
 
-    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) following attributes (columns):
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
+    following attributes (columns):
     structure.id : int
         Structure ID.
     kinase.name : str
         Kinase name according to KLIFS.
-    species : str
-        Species.
+    species.klifs : str
+        Species (KLIFS notation).
     kinase.id : int
         Kinase ID.
     structure.pdb : str
         Structure PDB ID.
     structure.alternate_model : str
-        Alternate model. If no alternate model, empty string.
+        Alternate model. None if no alternate model.
     structure.chain : str
         Chain.
     structure.rmsd1 : float
-        RMSD
+        RMSD between structure and reference structures based on full kinase domain.
     structure.rmsd2 : float
-        RMSD
+        RMSD between structure and reference structures based on kinase pocket residues.
     kinase.pocket : str
-        One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
+        One-letter amino acid sequence for the 85 residue KLIFS pocket. Gaps are notated with "-".
     structure.resolution : float
         Structure resolution in Angström.
     structure.qualityscore : float
-        KLIFS quality score.
+        KLIFS quality score (considering missing residues/atoms and RMSD1/RMSD2).
     structure.missing_residues : int
         Number of missing residues.
     structure.missing_atoms : int
         Number of missing atoms.
     ligand.pdb : str or int (0)
-        Orthosteric ligand PDB ID. If no ligand, 0.
+        Orthosteric ligand PDB ID. None if no ligand.
     ligand.pdb_allosteric : str or 
-        Allosteric ligand PDB ID. If no ligand, 0.
+        Allosteric ligand PDB ID.  None if no ligand.
     structure.DFG : str
         DFG conformation (in, out, out-like, na).
     structure.ac_helix : str
         aC helix conformation (in, out, out-like, na).
     structure.grich_distance : float
-        G-rich loop conformation annotation: Distance between the catalytic loop and the G-rich loop.
+        G-rich loop conformation: Distance between the catalytic loop and the G-rich loop.
     structure.grich_angle : float
-        G-rich loop conformation annotation: Angle of loop compared to hinge reagion and catalytic loop.
+        G-rich loop conformation: Angle of loop compared to hinge reagion and catalytic loop.
     structure.grich_rotation : float
-        G-rich loop conformation annotation: Rotation of the G-rich loop compared to the catalytic loop
+        G-rich loop conformation: Rotation of the G-rich loop compared to the catalytic loop
     structure.front : bool
         Orthosteric ligand occupies KLIFS front cleft.
     structure.gate : bool
@@ -420,21 +428,24 @@ class BioactivitiesProvider(BaseProvider):
     """
     Class for bioactivities requests (ChEMBL data linked to KLIFS data).
     
-    Class methods all return a pandas.DataFrame of bioactivities (rows) with the (or a subset of the) following attributes (columns):
-    pref_name : str
-        Target name from ChEMBL.
-    accession : str
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of bioactivities (rows) with the (or a subset of 
+    the) following attributes (columns):
+    kinase.pref_name : str
+        Target name (ChEMBL notation).
+    kinase.uniprot : str
         UniProt ID.
-    organism : str
-        Organism from ChEMBL.
-    standard_type : str
+    species.chembl : str
+        Species (ChEMBL notation).
+    ligand.bioactivity_standard_value : str
         Standard bioactivity type (observation model) from ChEMBL.
-    standard_relation : str
+    ligand.bioactivity_standard_relation : str
         Standard bioactivity relation from ChEMBL.
-    standard_units : str
+    ligand.bioactivity_standard_units : str
         Standard bioactivity unit from ChEMBL.
-    pchembl_value : str
-        pChEMBL value from ChEMBL, defined as -Log(molar IC50, XC50, EC50, AC50, Ki, Kd or Potency).
+    ligand.bioactivity_pchembl_value : str
+        pChEMBL value from ChEMBL: -Log(molar IC50, XC50, EC50, AC50, Ki, Kd or Potency).
     """
 
     def __init__(self):
@@ -478,11 +489,17 @@ class InteractionsProvider(BaseProvider):
     """
     Class for interactions requests.
 
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of the) following attributes (columns):
-    structure_ID : int
+    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of 
+    the) following attributes (columns):
+    structure.id : int
         Structure ID.
-    IFP : str
-        Interaction fingerpint, a string of 595 zeros and ones for 85 (pocket residues) * 7 (interaction features).
+    ineraction.fingerprint : str
+        Interaction fingerprint, a string of 595 zeros and ones for 
+        85 (pocket residues) * 7 (interaction features).
+    interaction.id : int
+        Interaction ID (1-7).
+    interaction.name : str
+        Interaction name (KLIFS notation).
     """
 
     def __init__(self):
@@ -496,22 +513,21 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            7 interaction types (rows) with the following columns:
-            position : int TODO
-                Position 1-7.
-            name : str
-                Interaction type name.
+            7 interaction types (rows) with the following columns: 
+            "interaction.id", "interaction.name". 
+            Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
 
     def all_interactions(self):
         """
-        Get all interactions available.
+        Get all interactions available in KLIFS.
 
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: structure_ID, IFP.
+            Interactions (rows) with the following columns: 
+            "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
@@ -523,7 +539,8 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: structure_ID, IFP.
+            Interactions (rows) with the following columns: 
+            "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
@@ -535,7 +552,8 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: structure_ID, IFP.
+            Interactions (rows) with the following columns: 
+            "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
@@ -547,7 +565,8 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: structure_ID, IFP.
+            Interactions (rows) with the following columns: 
+            "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
@@ -555,7 +574,10 @@ class InteractionsProvider(BaseProvider):
 
 class CoordinatesProvider(BaseProvider):
     """
-    Class for coordinates requests: Get coordinates for different entities for different input formats in the form of different output formats.
+    Class for coordinates requests: 
+    Get coordinates for different entities (complex, ligand, pocket, protein, water) and 
+    input formats (mol2, pdb)
+    in the form of different output formats (text, biopandas, rdkit).
     """
 
     def __init__(self):
@@ -576,7 +598,7 @@ class CoordinatesProvider(BaseProvider):
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
         input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
+            Input file format (fetched from KLIFS): mol2 (default) or pdb (only if entity=complex).
 
         Returns
         -------
@@ -633,7 +655,7 @@ class CoordinatesProvider(BaseProvider):
         Parameters
         ----------
         mol2_text : str
-        Mol2 file content from KLIFS database.
+            Mol2 file content from KLIFS database.
 
         Returns
         -------
@@ -687,7 +709,7 @@ class CoordinatesProvider(BaseProvider):
         Parameters
         ----------
         mol2_text : str
-        Mol2 file content from KLIFS database.
+            Mol2 file content from KLIFS database.
         compute2d : bool
             Compute 2D coordinates for ligand (default).
 
@@ -712,12 +734,12 @@ class CoordinatesProvider(BaseProvider):
         Parameters
         ----------
         pdb_text : str
-        Pdb file content from KLIFS database.
+            Pdb file content from KLIFS database.
 
         Returns
         -------
         dict of pandas.DataFrame
-            Structural data
+            Structural data.
         """
 
         ppdb = PandasPdb()
@@ -736,7 +758,7 @@ class CoordinatesProvider(BaseProvider):
         Parameters
         ----------
         mol2_file : pathlib.Path or str
-        Path to mol2 file.
+            Path to mol2 file.
 
         Returns
         -------
@@ -778,7 +800,7 @@ class CoordinatesProvider(BaseProvider):
         Parameters
         ----------
         mol2_file : pathlib.Path or str
-        Path to mol2 file.
+            Path to mol2 file.
         compute2d : bool
             Compute 2D coordinates for ligand (default).
 
@@ -813,16 +835,19 @@ class CoordinatesProvider(BaseProvider):
         # Check if parameters are valid
         if entity not in COORDINATES_PARAMETERS["entities"]:
             raise ValueError(
-                f"Invalid entity. Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
+                f"Invalid entity. 
+                Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
             )
         if input_format not in COORDINATES_PARAMETERS["input_formats"]:
             raise ValueError(
-                f"Invalid input format. Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
+                f"Invalid input format. 
+                Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
             )
         if output_format:
             if output_format not in COORDINATES_PARAMETERS["output_formats"]:
                 raise ValueError(
-                    f"Invalid output format. Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
+                    f"Invalid output format. 
+                    Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
                 )
 
         # Check if parameter combination is valid
