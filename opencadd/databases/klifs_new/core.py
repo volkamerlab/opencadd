@@ -7,6 +7,7 @@ Defines core classes and functions.
 import logging
 
 import pandas as pd
+from tqdm import tqdm
 
 _logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ class BaseProvider:
 
     @staticmethod
     def _iterate_over_function(
-        function, iterator, additional_parameters=None, iterator_isinstance_check=int
+        function, iterator, additional_parameters=None, iterator_isinstance_check=int,
     ):
         """
         Wrap remote requests using multiple inputs, where KLIFS API only allows a single input
@@ -124,10 +125,22 @@ class BaseProvider:
             iterator = [iterator]
 
         # Get result for each iterator element
-        if additional_parameters is not None:
-            result_list = [function(i, *additional_parameters) for i in iterator]
+        # If more than 10 requests, print progress bar
+        if len(iterator) > 10:
+            progressbar = tqdm(iterator, desc="Processing...")
+            result_list = []
+            for i in progressbar:
+                progressbar.set_description(f"Processing {i}...")
+                if additional_parameters is not None:
+                    result = function(i, *additional_parameters)
+                else:
+                    result = function(i)
+                result_list.append(result)
         else:
-            result_list = [function(i) for i in iterator]
+            if additional_parameters is not None:
+                result_list = [function(i, *additional_parameters) for i in iterator]
+            else:
+                result_list = [function(i) for i in iterator]
 
         # Remove None values
         result_list = [result_df for result_df in result_list if result_df is not None]
