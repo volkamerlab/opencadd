@@ -193,10 +193,7 @@ LOCAL_REMOTE_COLUMNS = {
         "local": ["ligand.pdb", "ligand.name"],
         "remote": list(REMOTE_COLUMNS_MAPPING["ligands"].values()),
     },
-    "structures": {
-        "local": [],
-        "remote": list(REMOTE_COLUMNS_MAPPING["structures"].values()),
-    },
+    "structures": {"local": [], "remote": list(REMOTE_COLUMNS_MAPPING["structures"].values()),},
     "bioactivities": {
         "local": [],
         "remote": list(REMOTE_COLUMNS_MAPPING["bioactivities"].values()),
@@ -209,10 +206,6 @@ LOCAL_REMOTE_COLUMNS = {
         "local": [],
         "remote": list(REMOTE_COLUMNS_MAPPING["interaction_types"].values()),
     },
-    "pockets": {
-        "local": [],
-        "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
-    },
+    "pockets": {"local": [], "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),},
     "coordinates": {"local": [], "remote": [],},
 }
-

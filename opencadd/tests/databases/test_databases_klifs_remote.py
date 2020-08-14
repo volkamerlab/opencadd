@@ -68,13 +68,10 @@ class TestsAllQueries:
 
         kinases = session.kinases.all_kinases(group, family, species)
         assert isinstance(kinases, pd.DataFrame)
-        assert (
-            kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"]
-        )
+        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"]
 
     @pytest.mark.parametrize(
-        "group, family, species",
-        [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
+        "group, family, species", [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
     )
     def test_all_kinases_raise(self, group, family, species):
         """
@@ -102,9 +99,7 @@ class TestsAllQueries:
 
         structures = session.structures.all_structures()
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
     def test_interaction_types(self):
         """
@@ -127,10 +122,7 @@ class TestsAllQueries:
 
         interactions = session.interactions.all_interactions()
         assert isinstance(interactions, pd.DataFrame)
-        assert (
-            interactions.columns.to_list()
-            == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
-        )
+        assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
     def test_all_bioactivities(self):
 
@@ -168,16 +160,14 @@ class TestsFromKinaseIds:
         # Ligands
         ligands = session.ligands.from_kinase_ids(kinase_ids)
         assert isinstance(ligands, pd.DataFrame)
-        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"][
-            "remote"
-        ] + ["kinase.id (query)"]
+        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"] + [
+            "kinase.id (query)"
+        ]
 
         # Structures
         structures = session.structures.from_kinase_ids(kinase_ids)
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
         # Bioactivities
         bioactivities = session.bioactivities.from_kinase_ids(kinase_ids)
@@ -191,9 +181,7 @@ class TestsFromKinaseIds:
         assert isinstance(interactions, pd.DataFrame)
         assert (
             interactions.columns.to_list()
-            == LOCAL_REMOTE_COLUMNS["interactions"][
-                "remote"
-            ]  # TODO Add "kinase.id (query)"?
+            == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]  # TODO Add "kinase.id (query)"?
         )
 
     @pytest.mark.parametrize("kinase_ids", [10000, "XXX"])
@@ -233,9 +221,7 @@ class TestsFromLigandIds:
         assert isinstance(ligands, pd.DataFrame)
         assert (
             structures.columns.to_list()
-            == LOCAL_REMOTE_COLUMNS["structures"][
-                "remote"
-            ]  # TODO Add "ligand.id (query)"?
+            == LOCAL_REMOTE_COLUMNS["structures"]["remote"]  # TODO Add "ligand.id (query)"?
         )
 
         # Bioactivities
@@ -250,9 +236,7 @@ class TestsFromLigandIds:
         assert isinstance(interactions, pd.DataFrame)
         assert (
             interactions.columns.to_list()
-            == LOCAL_REMOTE_COLUMNS["interactions"][
-                "remote"
-            ]  # TODO Add "ligand.id (query)"?
+            == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]  # TODO Add "ligand.id (query)"?
         )
 
     @pytest.mark.parametrize("ligand_ids", [10000, "XXX"])
@@ -284,17 +268,12 @@ class TestsFromStructureIds:
         # Structures
         structures = session.structures.from_structure_ids(structure_ids)
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
         # Interactions
         interactions = session.interactions.from_structure_ids(structure_ids)
         assert isinstance(interactions, pd.DataFrame)
-        assert (
-            interactions.columns.to_list()
-            == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
-        )
+        assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
         # Pockets (takes only one structure ID as input!)
         if isinstance(structure_ids, int):
@@ -338,20 +317,18 @@ class TestsFromKinaseNames:
         # Ligands
         ligands = session.ligands.from_kinase_names(kinase_names)
         assert isinstance(ligands, pd.DataFrame)
-        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"][
-            "remote"
-        ] + ["kinase.id (query)", "kinase.name (query)", "species.klifs (query)",]
+        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"] + [
+            "kinase.id (query)",
+            "kinase.name (query)",
+            "species.klifs (query)",
+        ]
 
         # Structures
         structures = session.structures.from_kinase_names(kinase_names)
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
-    @pytest.mark.parametrize(
-        "kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")]
-    )
+    @pytest.mark.parametrize("kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")])
     def test_from_kinase_names_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?
@@ -383,9 +360,7 @@ class TestsFromLigandPdbs:
         # Structure
         structures = session.structures.from_ligand_pdbs(ligand_pdbs)
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
     @pytest.mark.parametrize("ligand_pdbs", [1, "XXX"])
     def test_from_ligand_pdbs_raise(self, ligand_pdbs):
@@ -414,9 +389,7 @@ class TestsFromStructurePdbs:
         # Structure
         structures = session.structures.from_structure_pdbs(structure_pdbs)
         assert isinstance(structures, pd.DataFrame)
-        assert (
-            structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
-        )
+        assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
     @pytest.mark.parametrize("structure_pdbs", [1, "xxxx"])
     def test_from_structure_pdbs_raise(self, structure_pdbs):

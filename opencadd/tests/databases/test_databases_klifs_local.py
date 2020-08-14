@@ -31,8 +31,7 @@ class TestsAllQueries:
         assert kinases["kinase.group"].to_list() == result_groups
 
     @pytest.mark.parametrize(
-        "group, result_families",
-        [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
+        "group, result_families", [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
     )
     def test_all_kinase_families(self, group, result_families):
         """
@@ -77,8 +76,7 @@ class TestsAllQueries:
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
 
     @pytest.mark.parametrize(
-        "group, family, species",
-        [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
+        "group, family, species", [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
     )
     def test_all_kinases_raise(self, group, family, species):
         """
@@ -164,9 +162,7 @@ class TestsFromKinaseNames:
     Test class methods with kinase names as input.
     """
 
-    @pytest.mark.parametrize(
-        "kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)]
-    )
+    @pytest.mark.parametrize("kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)])
     def test_from_kinase_names(self, kinase_names, species):
         """
         Test class methods with kinase names as input.
@@ -178,9 +174,7 @@ class TestsFromKinaseNames:
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["local"]
 
-    @pytest.mark.parametrize(
-        "kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")]
-    )
+    @pytest.mark.parametrize("kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")])
     def test_from_kinase_names_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?

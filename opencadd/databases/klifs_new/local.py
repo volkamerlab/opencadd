@@ -78,9 +78,7 @@ class SessionInitializer:
         klifs_metadata = self._merge_files(klifs_overview, klifs_export)
         klifs_metadata = self._add_filepaths(klifs_metadata)
 
-        klifs_metadata.to_csv(
-            self.path_to_klifs_download / "klifs_metadata.csv", index=False
-        )
+        klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
 
         return klifs_metadata
 
@@ -104,9 +102,7 @@ class SessionInitializer:
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [
-            self._format_kinase_name(i) for i in klifs_export["kinase.name"]
-        ]
+        kinase_names = [self._format_kinase_name(i) for i in klifs_export["kinase.name"]]
         klifs_export["kinase.name"] = [i[0] for i in kinase_names]
         klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
 
@@ -208,13 +204,10 @@ class SessionInitializer:
             "structure.alternate_model",
         ]
 
-        klifs_metadata = klifs_export.merge(
-            right=klifs_overview, how="inner", on=mutual_columns
-        )
+        klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
 
         klifs_metadata.drop(
-            columns=["ligand.pdb_y", "ligand.pdb_allosteric_y", "kinase.name_y",],
-            inplace=True,
+            columns=["ligand.pdb_y", "ligand.pdb_allosteric_y", "kinase.name_y",], inplace=True,
         )
 
         klifs_metadata.rename(
@@ -226,10 +219,7 @@ class SessionInitializer:
             inplace=True,
         )
 
-        if (
-            not (klifs_overview.shape[1] + klifs_export.shape[1] - 7)
-            == klifs_metadata.shape[1]
-        ):
+        if not (klifs_overview.shape[1] + klifs_export.shape[1] - 7) == klifs_metadata.shape[1]:
             raise ValueError(
                 f"Output table has incorrect number of columns\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -237,11 +227,7 @@ class SessionInitializer:
                 f"KLIFS merged table has shape: {klifs_metadata.shape}"
             )
 
-        if (
-            not klifs_overview.shape[0]
-            == klifs_export.shape[0]
-            == klifs_metadata.shape[0]
-        ):
+        if not klifs_overview.shape[0] == klifs_export.shape[0] == klifs_metadata.shape[0]:
             raise ValueError(
                 f"Output table has incorrect number of rows:\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -329,9 +315,7 @@ class Kinases(KinasesProvider):
         if kinase_families.shape[0] > 0:
             return kinase_families
         else:
-            raise KeyError(
-                f"None of the input values exist, thus no results are returned."
-            )
+            raise KeyError(f"None of the input values exist, thus no results are returned.")
 
     def all_kinases(self, group=None, family=None, species=None):
 
@@ -353,9 +337,7 @@ class Kinases(KinasesProvider):
         if kinases.shape[0] > 0:
             return kinases
         else:
-            raise KeyError(
-                f"None of the input values exist, thus no results are returned."
-            )
+            raise KeyError(f"None of the input values exist, thus no results are returned.")
 
     def from_kinase_names(self, kinase_names, species=None):
 
@@ -369,17 +351,13 @@ class Kinases(KinasesProvider):
             database = database[database["species.klifs"] == species]
 
         # From (filtered) database get unique kinase names
-        kinases = database.drop_duplicates("kinase.name")[
-            LOCAL_REMOTE_COLUMNS["kinases"]["local"]
-        ]
+        kinases = database.drop_duplicates("kinase.name")[LOCAL_REMOTE_COLUMNS["kinases"]["local"]]
         kinases.reset_index(drop=True, inplace=True)
 
         if kinases.shape[0] > 0:
             return kinases
         else:
-            raise KeyError(
-                f"None of the input values exist, thus no results are returned."
-            )
+            raise KeyError(f"None of the input values exist, thus no results are returned.")
 
 
 class Ligands(LigandsProvider):
@@ -506,10 +484,7 @@ class Structures(StructuresProvider):
         structures = database[
             database.apply(
                 lambda x: any(
-                    [
-                        kinase_name in kinase_names
-                        for kinase_name in x["kinase.name_all"]
-                    ]
+                    [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
                 ),
                 axis=1,
             )

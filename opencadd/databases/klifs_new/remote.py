@@ -51,23 +51,17 @@ class Kinases(KinasesProvider):
         # Use KLIFS API
         result = self.__client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
-        kinase_groups = pd.DataFrame(
-            result, columns=LOCAL_REMOTE_COLUMNS["kinase_groups"]
-        )
+        kinase_groups = pd.DataFrame(result, columns=LOCAL_REMOTE_COLUMNS["kinase_groups"])
         return kinase_groups
 
     def all_kinase_families(self, group=None):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_families(kinase_group=group)
-            .response()
-            .result
+            self.__client.Information.get_kinase_families(kinase_group=group).response().result
         )
         # Convert list to DataFrame (1 column)
-        kinase_families = pd.DataFrame(
-            result, columns=LOCAL_REMOTE_COLUMNS["kinase_families"]
-        )
+        kinase_families = pd.DataFrame(result, columns=LOCAL_REMOTE_COLUMNS["kinase_families"])
         return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
@@ -126,9 +120,7 @@ class Kinases(KinasesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_ID(
-                kinase_name=kinase_name, species=species
-            )
+            self.__client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
             .response()
             .result
         )
@@ -157,9 +149,7 @@ class Ligands(LigandsProvider):
 
         # Use KLIFS API: Get ligands
         result = (
-            self.__client.Ligands.get_ligands_list(
-                kinase_ID=kinases["kinase.id"].to_list()
-            )
+            self.__client.Ligands.get_ligands_list(kinase_ID=kinases["kinase.id"].to_list())
             .response()
             .result
         )
@@ -192,11 +182,7 @@ class Ligands(LigandsProvider):
         """
 
         # Use KLIFS API
-        result = (
-            self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id])
-            .response()
-            .result
-        )
+        result = self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
         # Convert list of ABC objects to DataFrame and formatting
         ligands = self._abc_to_dataframe(result)
         ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
@@ -303,9 +289,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and formatting
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         return structures
 
     def from_ligand_ids(self, ligand_ids):
@@ -330,15 +314,11 @@ class Structures(StructuresProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids)
-            .response()
-            .result
+            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
         )
         # Convert list of ABC objects to DataFrame and formatting
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         return structures
 
     def from_structure_pdbs(self, structure_pdbs):
@@ -354,9 +334,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and formatting
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -495,9 +473,7 @@ class Interactions(InteractionsProvider):
     def interaction_types(self):
 
         # Use KLIFS API
-        result = (
-            self.__client.Interactions.get_interactions_get_types().response().result
-        )
+        result = self.__client.Interactions.get_interactions_get_types().response().result
 
         # Convert list of ABC objects to DataFrame and formatting
         interaction_types = self._abc_to_dataframe(result)
@@ -525,17 +501,13 @@ class Interactions(InteractionsProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_get_IFP(
-                structure_ID=structure_ids
-            )
+            self.__client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
             .response()
             .result
         )
         # Convert list of ABC objects to DataFrame and formatting
         interactions = self._abc_to_dataframe(result)
-        interactions = self._format_dataframe(
-            interactions, REMOTE_COLUMNS_MAPPING["interactions"]
-        )
+        interactions = self._format_dataframe(interactions, REMOTE_COLUMNS_MAPPING["interactions"])
         return interactions
 
     def from_ligand_ids(self, ligand_ids):
@@ -583,9 +555,7 @@ class Pockets(PocketsProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_match_residues(
-                structure_ID=structure_id
-            )
+            self.__client.Interactions.get_interactions_match_residues(structure_ID=structure_id)
             .response()
             .result
         )
@@ -658,12 +628,7 @@ class Coordinates(CoordinatesProvider):
                 return self._pdb_text_to_dataframe(text)
 
     def save(
-        self,
-        structure_id,
-        output_path,
-        entity="complex",
-        input_format="mol2",
-        in_dir=False,
+        self, structure_id, output_path, entity="complex", input_format="mol2", in_dir=False,
     ):
         """
         Save structural data to file.
@@ -731,41 +696,31 @@ class Coordinates(CoordinatesProvider):
 
         if entity == "complex" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_complex(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
             text = (
-                self.__client.Structures.get_structure_get_pdb_complex(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_ligand(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_ligand(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_pocket(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_pocket(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_protein(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_protein(structure_ID=structure_id)
                 .response()
                 .result
             )

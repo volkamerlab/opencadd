@@ -68,10 +68,7 @@ def get_file_path(
             / f"{entity}.{format}"
         )
     else:
-        path = (
-            path_to_klifs_download
-            / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
-        )
+        path = path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
 
     return path
 

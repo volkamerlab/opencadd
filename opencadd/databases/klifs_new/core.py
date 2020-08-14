@@ -948,41 +948,31 @@ class CoordinatesProvider(BaseProvider):
 
         if entity == "complex" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_complex(
-                    structure_ID=structure_id
-                )
+                KLIFS_CLIENT.Structures.get_structure_get_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(
-                    structure_ID=structure_id
-                )
+                KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_ligand(
-                    structure_ID=structure_id
-                )
+                KLIFS_CLIENT.Structures.get_structure_get_ligand(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_pocket(
-                    structure_ID=structure_id
-                )
+                KLIFS_CLIENT.Structures.get_structure_get_pocket(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_protein(
-                    structure_ID=structure_id
-                )
+                KLIFS_CLIENT.Structures.get_structure_get_protein(structure_ID=structure_id)
                 .response()
                 .result
             )
@@ -1192,7 +1182,4 @@ class CoordinatesProvider(BaseProvider):
             raise ValueError(f"Entity {entity} is only available in mol2 format.")
         if output_format:
             if output_format == "rdkit" and entity != "ligand":
-                raise ValueError(
-                    f"Only entity ligand can be fetched as rdkit molecule."
-                )
-
+                raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
