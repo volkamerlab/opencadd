@@ -89,7 +89,6 @@ class Session:
         self.client = None
         self.database = None
         self.kinases = None
-        self.kinases = None
         self.ligands = None
         self.structures = None
         self.bioactivities = None
@@ -99,6 +98,11 @@ class Session:
     def from_local(self, path_to_klifs_download):
         """
         Set up local session by initializing a local metadata database from KLIFS download.
+
+        Parameters
+        ----------
+        path_to_klifs_download : pathlib.Path or str
+            Path to folder with KLIFS download files.
         """
 
         # Session type

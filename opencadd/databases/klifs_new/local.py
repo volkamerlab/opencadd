@@ -29,6 +29,19 @@ _logger = logging.getLogger(__name__)
 class SessionInitializer:
     """
     Class for local session initialization.
+
+    Attributes
+    ----------
+    path_to_klifs_download : pathlib.Path or str
+        Path to folder with KLIFS download files, including 
+        - `overview.csv`, containing mainly KLIFS alignment-related metadata, and
+        - `KLIFS_export.csv` containing mainly structure-related metadata.
+    klifs_overview_path : pathlib.Path
+        Path to `overview.csv` file.
+    klifs_export_path : pathlib.Path
+        Path to `KLIFS_export.csv` file.
+    klifs_metadata : pandas.DataFrame
+        Metadata of KLIFS download, merged from two KLIFS metadata files.
     """
 
     def __init__(self, path_to_klifs_download):
