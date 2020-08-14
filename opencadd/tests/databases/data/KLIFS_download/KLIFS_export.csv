@@ -1,0 +1,3 @@
+"NAME","FAMILY","GROUPS","PDB","CHAIN","ALTERNATE_MODEL","SPECIES","LIGAND","PDB_IDENTIFIER","ALLOSTERIC_NAME","ALLOSTERIC_PDB","DFG","AC_HELIX"
+"BMX","Tec","TK","3sxr","A","-","Human","N-(2-CHLORO-6-METHYLPHENYL)-2-({6-[4-(2-HYDROXYETHYL)PIPERAZIN-1-YL]-2-METHYLPYRIMIDIN-4-YL}AMINO)-1,3-THIAZOLE-5-CARBOXAMIDE","1N1","-","-","out-like","in"
+"BRAF","RAF","TKL","6uuo","A","-","Human","1-[4-{[1-(3-{[dihydroxy(propyl)-lambda~4~-sulfanyl]amino}-2,6-difluorophenyl)-3-(pyrimidin-5-yl)-1H-pyrrolo[3,2-b]pyridin-5-yl](methyl)amino}pyridin-1(4H)-yl]ethan-1-one","QH1","-","-","in","out-like"
