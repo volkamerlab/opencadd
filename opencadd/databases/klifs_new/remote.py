@@ -20,9 +20,10 @@ from .core import (
     StructuresProvider,
     BioactivitiesProvider,
     InteractionsProvider,
+    PocketsProvider,
     CoordinatesProvider,
 )
-from .schema import REMOTE_COLUMNS_MAPPING, MOL2_COLUMNS
+from .schema import REMOTE_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
 from .utils import get_file_path, silence_logging
 
 
@@ -47,81 +48,65 @@ class Kinases(KinasesProvider):
 
     def all_kinase_groups(self):
 
-        try:
-            # Use KLIFS API
-            result = self.__client.Information.get_kinase_groups().response().result
-            # Convert list to DataFrame (1 column)
-            kinase_groups = pd.DataFrame(result, columns=["kinase.group"])
-            return kinase_groups
-        except SwaggerMappingError as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = self.__client.Information.get_kinase_groups().response().result
+        # Convert list to DataFrame (1 column)
+        kinase_groups = pd.DataFrame(
+            result, columns=LOCAL_REMOTE_COLUMNS["kinase_groups"]
+        )
+        return kinase_groups
 
     def all_kinase_families(self, group=None):
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Information.get_kinase_families(kinase_group=group)
-                .response()
-                .result
-            )
-            # Convert list to DataFrame (1 column)
-            kinase_families = pd.DataFrame(result, columns=["kinase.family"])
-            return kinase_families
-        except SwaggerMappingError as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = (
+            self.__client.Information.get_kinase_families(kinase_group=group)
+            .response()
+            .result
+        )
+        # Convert list to DataFrame (1 column)
+        kinase_families = pd.DataFrame(
+            result, columns=LOCAL_REMOTE_COLUMNS["kinase_families"]
+        )
+        return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Information.get_kinase_names(
-                    kinase_group=group, kinase_family=family, species=species
-                )
-                .response()
-                .result
+        # Use KLIFS API
+        result = (
+            self.__client.Information.get_kinase_names(
+                kinase_group=group, kinase_family=family, species=species
             )
-            # Convert list of ABC objects to DataFrame and formatting
-            kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
-            return kinases
-        except SwaggerMappingError as e:
-            _logger.error(e)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        kinases = self._abc_to_dataframe(result)
+        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        return kinases
 
     def from_kinase_ids(self, kinase_ids):
 
-        if isinstance(kinase_ids, int):
+        if not isinstance(kinase_ids, list):
             kinase_ids = [kinase_ids]
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Information.get_kinase_information(kinase_ID=kinase_ids)
-                .response()
-                .result
-            )
-            # Convert list of ABC objects to DataFrame and formatting
-            kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
-            return kinases
-        except SwaggerMappingError as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = (
+            self.__client.Information.get_kinase_information(kinase_ID=kinase_ids)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        kinases = self._abc_to_dataframe(result)
+        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
 
-        kinases = self._iterate_over_function(
-            self._from_kinase_name,
-            kinase_names,
-            additional_parameters=[species],
-            iterator_isinstance_check=str,
+        kinases = self._multiple_remote_requests(
+            self._from_kinase_name, kinase_names, additional_parameters=[species]
         )
-
-        if kinases is not None:
-            # Kinase IDs can occur multiple times if the input kinase names
-            # describe the same kinase, thus drop duplicates
-            kinases = kinases.drop_duplicates("kinase.id").reset_index(drop=True)
-
+        kinases = kinases.drop_duplicates("kinase.id").reset_index(drop=True)
         return kinases
 
     def _from_kinase_name(self, kinase_name, species=None):
@@ -138,21 +123,19 @@ class Kinases(KinasesProvider):
         pandas.DataFrame or None
             Kinases (rows) with columns as described in the class docstring.
         """
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Information.get_kinase_ID(
-                    kinase_name=kinase_name, species=species
-                )
-                .response()
-                .result
+
+        # Use KLIFS API
+        result = (
+            self.__client.Information.get_kinase_ID(
+                kinase_name=kinase_name, species=species
             )
-            # Convert list of ABC objects to DataFrame and formatting
-            kinases = self._abc_to_dataframe(result)
-            kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
-            return kinases
-        except SwaggerMappingError as e:
-            _logger.error(f"Kinase name {kinase_name}: {e}")
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        kinases = self._abc_to_dataframe(result)
+        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        return kinases
 
 
 class Ligands(LigandsProvider):
@@ -172,29 +155,23 @@ class Ligands(LigandsProvider):
         kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.all_kinases()
 
-        try:
-            # Use KLIFS API: Get ligands
-            result = (
-                self.__client.Ligands.get_ligands_list(
-                    kinase_ID=kinases["kinase.id"].to_list()
-                )
-                .response()
-                .result
+        # Use KLIFS API: Get ligands
+        result = (
+            self.__client.Ligands.get_ligands_list(
+                kinase_ID=kinases["kinase.id"].to_list()
             )
-            # Convert list of ABC objects to DataFrame and formatting
-            ligands = self._abc_to_dataframe(result)
-            ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
-            return ligands
-        except SwaggerMappingError as e:
-            _logger.error(e)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        ligands = self._abc_to_dataframe(result)
+        ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        return ligands
 
     def from_kinase_ids(self, kinase_ids):
 
-        ligands = self._iterate_over_function(
-            self._from_kinase_id,
-            kinase_ids,
-            additional_parameters=None,
-            iterator_isinstance_check=int,
+        ligands = self._multiple_remote_requests(
+            self._from_kinase_id, kinase_ids, additional_parameters=None
         )
 
         return ligands
@@ -213,24 +190,22 @@ class Ligands(LigandsProvider):
         pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
         """
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id])
-                .response()
-                .result
-            )
-            # Convert list of ABC objects to DataFrame and formatting
-            ligands = self._abc_to_dataframe(result)
-            ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
-            ligands["kinase.id (query)"] = kinase_id
-            return ligands
-        except (SwaggerMappingError, ValueError) as e:
-            _logger.error(f"Kinase ID {kinase_id}: {e}")
+
+        # Use KLIFS API
+        result = (
+            self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id])
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        ligands = self._abc_to_dataframe(result)
+        ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        ligands["kinase.id (query)"] = kinase_id
+        return ligands
 
     def from_kinase_names(self, kinase_names):
 
-        if isinstance(kinase_names, str):
+        if not isinstance(kinase_names, list):
             kinase_names = [kinase_names]
 
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
@@ -263,7 +238,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
-        if isinstance(ligand_ids, int):
+        if not isinstance(ligand_ids, list):
             ligand_ids = [ligand_ids]
 
         # Use KLIFS API: Get all ligands
@@ -278,7 +253,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if isinstance(ligand_pdbs, str):
+        if not isinstance(ligand_pdbs, list):
             ligand_pdbs = [ligand_pdbs]
 
         # Use KLIFS API: Get all ligands
@@ -317,28 +292,25 @@ class Structures(StructuresProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        if isinstance(structure_ids, int):
+        if not isinstance(structure_ids, list):
             structure_ids = [structure_ids]
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Structures.get_structure_list(structure_ID=structure_ids)
-                .response()
-                .result
-            )
-            # Convert list of ABC objects to DataFrame and formatting
-            structures = self._abc_to_dataframe(result)
-            structures = self._format_dataframe(
-                structures, REMOTE_COLUMNS_MAPPING["structures"]
-            )
-            return structures
-        except (SwaggerMappingError, ValueError) as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = (
+            self.__client.Structures.get_structure_list(structure_ID=structure_ids)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        structures = self._abc_to_dataframe(result)
+        structures = self._format_dataframe(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        return structures
 
     def from_ligand_ids(self, ligand_ids):
 
-        if isinstance(ligand_ids, int):
+        if not isinstance(ligand_ids, list):
             ligand_ids = [ligand_ids]
 
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
@@ -353,51 +325,43 @@ class Structures(StructuresProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        if isinstance(kinase_ids, int):
+        if not isinstance(kinase_ids, list):
             kinase_ids = [kinase_ids]
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Structures.get_structures_list(kinase_ID=kinase_ids)
-                .response()
-                .result
-            )
-            # Convert list of ABC objects to DataFrame and formatting
-            structures = self._abc_to_dataframe(result)
-            structures = self._format_dataframe(
-                structures, REMOTE_COLUMNS_MAPPING["structures"]
-            )
-            return structures
-        except (SwaggerMappingError, ValueError) as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = (
+            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        structures = self._abc_to_dataframe(result)
+        structures = self._format_dataframe(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        return structures
 
     def from_structure_pdbs(self, structure_pdbs):
 
-        if isinstance(structure_pdbs, str):
+        if not isinstance(structure_pdbs, list):
             structure_pdbs = [structure_pdbs]
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Structures.get_structures_pdb_list(
-                    pdb_codes=structure_pdbs
-                )
-                .response()
-                .result
-            )
-            # Convert list of ABC objects to DataFrame and formatting
-            structures = self._abc_to_dataframe(result)
-            structures = self._format_dataframe(
-                structures, REMOTE_COLUMNS_MAPPING["structures"]
-            )
-            return structures
-        except (SwaggerMappingError, ValueError) as e:
-            _logger.error(e)
+        # Use KLIFS API
+        result = (
+            self.__client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        structures = self._abc_to_dataframe(result)
+        structures = self._format_dataframe(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if isinstance(ligand_pdbs, str):
+        if not isinstance(ligand_pdbs, list):
             ligand_pdbs = [ligand_pdbs]
 
         # Use KLIFS API: Get all structures
@@ -409,10 +373,14 @@ class Structures(StructuresProvider):
 
             if structures.shape[0] > 0:
                 return structures
+            else:
+                raise SwaggerMappingError(
+                    f"None of the input values exist, thus no results are returned."
+                )
 
     def from_kinase_names(self, kinase_names):
 
-        if isinstance(kinase_names, str):
+        if not isinstance(kinase_names, list):
             kinase_names = [kinase_names]
 
         # Use KLIFS API: Get all structures
@@ -437,11 +405,14 @@ class Bioactivities(BioactivitiesProvider):
         super().__init__()
         self.__client = client
 
-    def all_bioactivities(self):
+    def all_bioactivities(self, n=None):
 
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self.__client)
         ligands = ligands_remote.all_ligands()
+
+        if n:
+            ligands = ligands[:n]
 
         # Use KLIFS API: Get all bioactivities from these ligand IDs
         if ligands is not None:
@@ -455,7 +426,7 @@ class Bioactivities(BioactivitiesProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        if isinstance(kinase_ids, int):
+        if not isinstance(kinase_ids, list):
             kinase_ids = [kinase_ids]
 
         # Use KLIFS API: Get all kinase IDs
@@ -470,11 +441,8 @@ class Bioactivities(BioactivitiesProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
-        bioactivities = self._iterate_over_function(
-            self._from_ligand_id,
-            ligand_ids,
-            additional_parameters=None,
-            iterator_isinstance_check=int,
+        bioactivities = self._multiple_remote_requests(
+            self._from_ligand_id, ligand_ids, additional_parameters=None
         )
 
         return bioactivities
@@ -526,22 +494,17 @@ class Interactions(InteractionsProvider):
     @property
     def interaction_types(self):
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Interactions.get_interactions_get_types()
-                .response()
-                .result
-            )
+        # Use KLIFS API
+        result = (
+            self.__client.Interactions.get_interactions_get_types().response().result
+        )
 
-            # Convert list of ABC objects to DataFrame and formatting
-            interaction_types = self._abc_to_dataframe(result)
-            interaction_types = self._format_dataframe(
-                interaction_types, REMOTE_COLUMNS_MAPPING["interactions"]
-            )
-            return interaction_types
-        except SwaggerMappingError as e:
-            _logger.error(e)
+        # Convert list of ABC objects to DataFrame and formatting
+        interaction_types = self._abc_to_dataframe(result)
+        interaction_types = self._format_dataframe(
+            interaction_types, REMOTE_COLUMNS_MAPPING["interaction_types"]
+        )
+        return interaction_types
 
     def all_interactions(self):
 
@@ -557,30 +520,27 @@ class Interactions(InteractionsProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        if isinstance(structure_ids, int):
+        if not isinstance(structure_ids, list):
             structure_ids = [structure_ids]
 
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Interactions.get_interactions_get_IFP(
-                    structure_ID=structure_ids
-                )
-                .response()
-                .result
+        # Use KLIFS API
+        result = (
+            self.__client.Interactions.get_interactions_get_IFP(
+                structure_ID=structure_ids
             )
-            # Convert list of ABC objects to DataFrame and formatting
-            interactions = self._abc_to_dataframe(result)
-            interactions = self._format_dataframe(
-                interactions, REMOTE_COLUMNS_MAPPING["interactions"]
-            )
-            return interactions
-        except (SwaggerMappingError, ValueError) as e:
-            _logger.error(e)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame and formatting
+        interactions = self._abc_to_dataframe(result)
+        interactions = self._format_dataframe(
+            interactions, REMOTE_COLUMNS_MAPPING["interactions"]
+        )
+        return interactions
 
     def from_ligand_ids(self, ligand_ids):
 
-        if isinstance(ligand_ids, int):
+        if not isinstance(ligand_ids, list):
             ligand_ids = [ligand_ids]
 
         # Use KLIFS API: Get structure IDs from ligand IDs
@@ -595,7 +555,7 @@ class Interactions(InteractionsProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        if isinstance(kinase_ids, int):
+        if not isinstance(kinase_ids, list):
             kinase_ids = [kinase_ids]
 
         # Use KLIFS API: Get structure IDs from ligand IDs
@@ -607,6 +567,33 @@ class Interactions(InteractionsProvider):
             structure_ids = structures["structure.id"].to_list()
             interactions = self.from_structure_ids(structure_ids)
             return interactions
+
+
+class Pockets(PocketsProvider):
+    """
+    Extends PocketsProvider to provide remote pocket requests.
+    """
+
+    def __init__(self, client):
+
+        super().__init__()
+        self.__client = client
+
+    def from_structure_id(self, structure_id):
+
+        # Use KLIFS API
+        result = (
+            self.__client.Interactions.get_interactions_match_residues(
+                structure_ID=structure_id
+            )
+            .response()
+            .result
+        )
+        # Convert to DataFrame and formatting
+        pocket = pd.DataFrame(result)
+        pocket = self._format_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
+
+        return pocket
 
 
 class Coordinates(CoordinatesProvider):

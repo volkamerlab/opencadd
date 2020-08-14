@@ -18,9 +18,10 @@ from .core import (
     StructuresProvider,
     BioactivitiesProvider,
     InteractionsProvider,
+    PocketsProvider,
     CoordinatesProvider,
 )
-from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS
+from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
 from .utils import get_file_path
 
 _logger = logging.getLogger(__name__)
@@ -316,21 +317,21 @@ class Kinases(KinasesProvider):
 
     def all_kinase_families(self, group=None):
 
-        if group:
-            try:
-                database = self.__database.groupby(["kinase.group"]).get_group(group)
-            except KeyError:
-                _logger.error(f"Kinase group {group} not known in local dataset.")
-                return None
-        else:
-            database = self.__database
+        database = self.__database
 
-        kinase_families = pd.DataFrame(
-            self.__database["kinase.family"].drop_duplicates()
-        )
+        if group:
+            database = database[database["kinase.group"] == group]
+
+        kinase_families = database["kinase.family"].drop_duplicates()
+        kinase_families = pd.DataFrame(kinase_families)
         kinase_families.reset_index(drop=True, inplace=True)
+
         if kinase_families.shape[0] > 0:
             return kinase_families
+        else:
+            raise KeyError(
+                f"None of the input values exist, thus no results are returned."
+            )
 
     def all_kinases(self, group=None, family=None, species=None):
 
@@ -341,20 +342,24 @@ class Kinases(KinasesProvider):
         if family:
             database = database[database["kinase.family"] == family]
         if species:
-            database = database[database["species.klifs"] == species]
+            database = database[database["species.klifs"] == species.capitalize()]
 
         # From (filtered) database get unique kinase names
         kinases = database.drop_duplicates("kinase.name")[
-            ["kinase.name", "species.klifs"]
+            LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
         ]
         kinases.reset_index(drop=True, inplace=True)
 
         if kinases.shape[0] > 0:
             return kinases
+        else:
+            raise KeyError(
+                f"None of the input values exist, thus no results are returned."
+            )
 
     def from_kinase_names(self, kinase_names, species=None):
 
-        if isinstance(kinase_names, str):
+        if not isinstance(kinase_names, list):
             kinase_names = [kinase_names]
 
         # Filter database if filtering parameters are set
@@ -365,12 +370,16 @@ class Kinases(KinasesProvider):
 
         # From (filtered) database get unique kinase names
         kinases = database.drop_duplicates("kinase.name")[
-            ["kinase.name", "species.klifs"]
+            LOCAL_REMOTE_COLUMNS["kinases"]["local"]
         ]
         kinases.reset_index(drop=True, inplace=True)
 
         if kinases.shape[0] > 0:
             return kinases
+        else:
+            raise KeyError(
+                f"None of the input values exist, thus no results are returned."
+            )
 
 
 class Ligands(LigandsProvider):
@@ -387,7 +396,7 @@ class Ligands(LigandsProvider):
     def all_ligands(self):
 
         ligands = self.__database.drop_duplicates("ligand.pdb")[
-            ["ligand.pdb", "ligand.name"]
+            LOCAL_REMOTE_COLUMNS["ligands"]["local"]
         ]
         ligands.reset_index(drop=True, inplace=True)
 
@@ -396,7 +405,7 @@ class Ligands(LigandsProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        if isinstance(kinase_names, str):
+        if not isinstance(kinase_names, list):
             kinase_names = [kinase_names]
 
         database = self.__database
@@ -404,7 +413,9 @@ class Ligands(LigandsProvider):
         # Select ligands by kinase names
         ligands = database[database["kinase.name"].isin(kinase_names)]
         # Keep only columns as per class docstring
-        ligands = ligands[["ligand.pdb", "ligand.name", "kinase.name", "species.klifs"]]
+        ligands = ligands[
+            LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"]
+        ]
 
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -422,7 +433,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if isinstance(ligand_pdbs, str):
+        if not isinstance(ligand_pdbs, list):
             ligand_pdbs = [ligand_pdbs]
 
         database = self.__database
@@ -430,7 +441,7 @@ class Ligands(LigandsProvider):
         # Select ligands by ligand PDB IDs
         ligands = database[database["ligand.pdb"].isin(ligand_pdbs)]
         # Keep only columns as per class docstring
-        ligands = ligands[["ligand.pdb", "ligand.name"]]
+        ligands = ligands[LOCAL_REMOTE_COLUMNS["ligands"]["local"]]
 
         ligands.drop_duplicates(inplace=True)
         ligands.reset_index(drop=True, inplace=True)
@@ -460,7 +471,7 @@ class Structures(StructuresProvider):
 
     def from_structure_pdbs(self, structure_pdbs):
 
-        if isinstance(structure_pdbs, str):
+        if not isinstance(structure_pdbs, list):
             structure_pdbs = [structure_pdbs]
 
         database = self.__database
@@ -473,7 +484,7 @@ class Structures(StructuresProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if isinstance(ligand_pdbs, str):
+        if not isinstance(ligand_pdbs, list):
             ligand_pdbs = [ligand_pdbs]
 
         database = self.__database
@@ -486,7 +497,7 @@ class Structures(StructuresProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        if isinstance(kinase_names, str):
+        if not isinstance(kinase_names, list):
             kinase_names = [kinase_names]
 
         database = self.__database
@@ -546,6 +557,17 @@ class Interactions(InteractionsProvider):
         ]
         if interactions.shape[0] > 0:
             return interactions
+
+
+class Pockets(PocketsProvider):
+    """
+    Extends PocketsProvider to provide local pocket requests.
+    """
+
+    def __init__(self, client):
+
+        super().__init__()
+        self.__client = client
 
 
 class Coordinates(CoordinatesProvider):

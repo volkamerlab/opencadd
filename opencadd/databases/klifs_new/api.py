@@ -93,6 +93,7 @@ class Session:
         self.structures = None
         self.bioactivities = None
         self.interactions = None
+        self.pockets = None
         self.coordinates = None
 
     def from_local(self, path_to_klifs_download):
@@ -118,6 +119,7 @@ class Session:
         self.structures = local.Structures(self.database)
         self.bioactivities = local.Bioactivities(self.client)
         self.interactions = local.Interactions(self.database)
+        self.pockets = local.Pockets(self.database)
         self.coordinates = local.Coordinates(self.database)
 
     def from_remote(self):
@@ -137,4 +139,5 @@ class Session:
         self.structures = remote.Structures(self.client)
         self.bioactivities = remote.Bioactivities(self.client)
         self.interactions = remote.Interactions(self.client)
+        self.pockets = remote.Pockets(self.client)
         self.coordinates = remote.Coordinates(self.client)

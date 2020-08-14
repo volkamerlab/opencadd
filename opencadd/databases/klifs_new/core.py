@@ -6,6 +6,7 @@ Defines core classes and functions.
 
 import logging
 
+from bravado_core.exception import SwaggerMappingError
 import pandas as pd
 from tqdm import tqdm
 
@@ -69,38 +70,8 @@ class BaseProvider:
         return dataframe
 
     @staticmethod
-    def _from_ids(ids, function_from_id, id_isinstance=int):
-        """
-        Wraps remote requests using multiple IDs, where KLIFS API only allows singe IDs
-        (or where for some reason single ID requests are preferred over using the KLIFS API
-        for multiple IDs requests).
-
-        Parameters
-        ----------
-        ids : int/str or list of int/str
-            ID(s).
-        function_from_id : function
-            Function that returns result for a single ID.
-        id_isinstance : type
-            Type that needs to be cast to list.
-        """
-
-        if isinstance(ids, id_isinstance):
-            ids = [ids]
-
-        # Get result for each ID
-        result_list = [function_from_id(id) for id in ids]
-        # Remove None values
-        result_list = [result_df for result_df in result_list if result_df is not None]
-
-        if len(result_list) > 0:
-            result_df = pd.concat(result_list)
-            result_df.reset_index(drop=True, inplace=True)
-            return result_df
-
-    @staticmethod
-    def _iterate_over_function(
-        function, iterator, additional_parameters=None, iterator_isinstance_check=int,
+    def _multiple_remote_requests(
+        function, iterator, additional_parameters=None,
     ):
         """
         Wrap remote requests using multiple inputs, where KLIFS API only allows a single input
@@ -117,38 +88,56 @@ class BaseProvider:
         additional_parameters : None or list
             List of additional parameters (not iterated) that are needed for function.
             None if no additional parameters.
-        iterator_isinstance_check : type
-            Iterator type that needs to be cast to list.
         """
 
-        if isinstance(iterator, iterator_isinstance_check):
+        if not isinstance(iterator, list):
             iterator = [iterator]
+
+        # If single request fails, error will be raised. Catch errors in list.
+        errors = []
 
         # Get result for each iterator element
         # If more than 10 requests, print progress bar
-        if len(iterator) > 10:
-            progressbar = tqdm(iterator, desc="Processing...")
-            result_list = []
-            for i in progressbar:
-                progressbar.set_description(f"Processing {i}...")
-                if additional_parameters is not None:
-                    result = function(i, *additional_parameters)
-                else:
-                    result = function(i)
-                result_list.append(result)
-        else:
+        progressbar = tqdm(iterator, desc="Processing...")
+        result_list = []
+
+        for i in progressbar:
+            progressbar.set_description(f"Processing {i}...")
+
             if additional_parameters is not None:
-                result_list = [function(i, *additional_parameters) for i in iterator]
+                try:
+                    result = function(i, *additional_parameters)
+                    result_list.append(result)
+                except Exception as e:
+                    errors.append(f"Error for {i}: {e}")
+
             else:
-                result_list = [function(i) for i in iterator]
+                try:
+                    result = function(i)
+                    result_list.append(result)
+                except Exception as e:
+                    errors.append(f"Error for {i}: {e}")
 
         # Remove None values
         result_list = [result_df for result_df in result_list if result_df is not None]
 
+        # Log failed requests
+        if len(errors) > 0:
+            _logger.error(
+                f"There was (were) {len(errors)}/{len(iterator)} failed request(s).\n"
+                f"Show error messages (up to 5 messages only):"
+            )
+            _logger.error("\n".join([e for e in errors]))
+
+        # If request returned any results, return as DataFrame, else raise SwaggerMappingError
         if len(result_list) > 0:
             result_df = pd.concat(result_list)
             result_df.reset_index(drop=True, inplace=True)
             return result_df
+        else:
+            raise SwaggerMappingError(
+                f"None of the input values exist, thus no results are returned."
+            )
 
 
 class KinasesProvider(BaseProvider):
@@ -173,28 +162,37 @@ class KinasesProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) 
     following attributes (columns):
 
-    kinase.id : int
-        Kinase ID.
-    kinase.name : str
-        Kinase name according to KLIFS.
-    kinase.hgnc : str
-        Kinase name according to the HUGO Gene Nomenclature Committee.
-    kinase.family : str
-        Kinase family.
-    kinase.group : str
-        Kinase group.
-    kinase.class : str
-        Kinase class.
-    species.klifs : str
-        Species (KLIFS notation).
-    kinase.name_full : str
-        Full kinase name.
-    kinase.uniprot : str
-        UniProt ID.
-    kinase.iuphar : int
-        IUPHAR ID.
-    kinase.pocket : str
-        One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
+    Remote only:
+
+        kinase.id : int
+            Kinase ID.
+        kinase.hgnc : str
+            Kinase name according to the HUGO Gene Nomenclature Committee.
+        kinase.class : str
+            Kinase class.
+        kinase.name_full : str
+            Full kinase name.
+        kinase.uniprot : str
+            UniProt ID.
+        kinase.iuphar : int
+            IUPHAR ID.
+
+    Local only:
+
+        -
+
+    Both local and remote:
+        
+        kinase.name : str
+            Kinase name according to KLIFS.
+        kinase.family : str
+            Kinase family.
+        kinase.group : str
+            Kinase group.
+        species.klifs : str
+            Species (KLIFS notation).
+        kinase.pocket : str
+            One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
     """
 
     def __init__(self):
@@ -207,10 +205,9 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Kinase groups (rows) with the following column: "kinase.group". Check class docstring 
             for more information on columns.
-            None if no data available or request failed.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -228,11 +225,15 @@ class KinasesProvider(BaseProvider):
         pandas.DataFrame or None
             Kinase families (rows) with the following column: "kinase.family". Check class 
             docstring for more information on columns.
-            None if no data available or request failed.
+        
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If group does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def all_kinases(self, groups=None, families=None, species=None):
+    def all_kinases(self, group=None, family=None, species=None):
         """
         Get all available kinase names (optional: select kinase group, family and/or species). 
         
@@ -250,7 +251,11 @@ class KinasesProvider(BaseProvider):
         pandas.DataFrame or None
             Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_", 
             "species.klifs". Check class docstring for more information on columns.
-            None if no data available or request failed.
+        
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If group or family or species do not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -262,7 +267,11 @@ class KinasesProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Kinases (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+        
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If None of the kinase IDs exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -274,7 +283,11 @@ class KinasesProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Kinases (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+        
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If None of the kinase names exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -301,16 +314,27 @@ class LigandsProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
     following attributes (columns):
 
-    ligand.id : int
-        Ligand ID.
-    ligand.pdb : str
-        Ligand PDB name.
-    ligand.name : str
-        Ligand name.
-    ligand.smiles : str
-        Ligand SMILES.
-    ligand.inchikey : str
-        Ligand InChI key.
+    Remote only:
+
+        ligand.id : int
+            Ligand ID.
+        ligand.smiles : str
+            Ligand SMILES.
+        ligand.inchikey : str
+            Ligand InChI key.
+
+    Local only:
+
+        -
+
+    Both local and remote:
+    
+        ligand.pdb : str
+            Ligand PDB name.
+        ligand.name : str
+            Ligand name.
+
+
     """
 
     def __init__(self):
@@ -323,9 +347,12 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -342,7 +369,10 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -359,7 +389,10 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -376,7 +409,10 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -393,7 +429,10 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Ligands (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -529,7 +568,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -541,7 +583,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -553,7 +598,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -565,7 +613,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -577,7 +628,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -589,7 +643,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -601,7 +658,10 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Structures (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -642,15 +702,25 @@ class BioactivitiesProvider(BaseProvider):
     def __init__(self):
         super().__init__()
 
-    def all_bioactivities(self):
+    def all_bioactivities(self, n=None):
         """
         Get all available bioactivities.
+
+        Parameters
+        ----------
+        n : None or int
+            If None, bioactivities for all ligands are returned (takes a few minutes).
+            If set to n, bioactivities for the top n ligands are returned. This parameter
+            is used for testing.
 
         Returns
         -------
         pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -662,7 +732,10 @@ class BioactivitiesProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -674,7 +747,10 @@ class BioactivitiesProvider(BaseProvider):
         -------
         pandas.DataFrame or None
             Bioactivities (rows) with columns as described in the class docstring.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -726,7 +802,10 @@ class InteractionsProvider(BaseProvider):
             7 interaction types (rows) with the following columns: 
             "interaction.id", "interaction.name". 
             Check class docstring for more information on columns.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -740,7 +819,10 @@ class InteractionsProvider(BaseProvider):
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -754,7 +836,10 @@ class InteractionsProvider(BaseProvider):
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -768,7 +853,10 @@ class InteractionsProvider(BaseProvider):
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -782,7 +870,47 @@ class InteractionsProvider(BaseProvider):
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
-            None if no data available or request failed.
+            
+        Raises
+        ------
+        TODO
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class PocketsProvider(BaseProvider):
+    """
+    Class for pocket requests.
+    Get PDB and KLIFS pocket residues numbering (plus kinase region label for each residue).
+
+    Methods
+    -------
+    from_structure_id()
+        Get a structure's residue numbering in PDB and KLIFS by structure ID
+        (plus kinase region label for each residue).
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def from_structure_id(structure_id):
+        """
+        Get a structure's residue numbering in PDB and KLIFS by structure ID
+        (plus kinase region label for each residue).
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Residue numbering details.
+
+        Raises
+        ------
+        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 

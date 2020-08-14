@@ -12,7 +12,7 @@ from opencadd.databases.klifs_new import local
 from opencadd.databases.klifs_new import remote
 from opencadd.databases.klifs_new.api import setup_local, setup_remote
 
-PATH_TEST_DATA = Path(__file__).parent / "data"
+PATH_TEST_DATA = Path(__file__).parent / "data" / "KLIFS_download"
 
 
 def test_api_remote():
@@ -31,7 +31,7 @@ def test_api_remote():
     assert isinstance(session.coordinates, remote.Coordinates)
 
 
-@pytest.mark.parametrize("path_to_klifs_download", [PATH_TEST_DATA / "KLIFS_download"])
+@pytest.mark.parametrize("path_to_klifs_download", [PATH_TEST_DATA])
 def test_api_local(path_to_klifs_download):
     """
     Test Session attributes for local session.

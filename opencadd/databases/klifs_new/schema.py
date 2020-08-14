@@ -4,6 +4,17 @@ schema.py
 Defines schema used accross the klifs module.
 """
 
+KINASE_GROUPS = [
+    "AGC",
+    "CAMK",
+    "CK1",
+    "CMGC",
+    "Other",
+    "STE",
+    "TK",
+    "TKL",
+]
+
 LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {
         "NAME": "kinase.name",
@@ -102,6 +113,8 @@ REMOTE_COLUMNS_MAPPING = {
         "bp_III": "structure.bp_iii",
         "bp_IV": "structure.bp_iv",
         "bp_V": "structure.bp_v",
+    },
+    "pockets": {
         "index": "structure.pocket_klifs_numbering",  # Interactions.get_interactions_match_residues()
         "Xray_position": "structure.pocket_pdb_numbering",  # Interactions.get_interactions_match_residues()
         "KLIFS_position": "structure.pocket_regions_klifs",  # Interactions.get_interactions_match_residues()
@@ -114,10 +127,12 @@ REMOTE_COLUMNS_MAPPING = {
         "InChIKey": "ligand.inchikey",
     },
     "interactions": {
-        "position": "interaction.id",  # Interactions.get_interactions_get_types()
-        "name": "interaction.name",  # Interactions.get_interactions_get_types()
         "structure_ID": "structure.id",  # Interactions.get_interactions_get_IFP()
         "IFP": "interaction.fingerprint",  # Interactions.get_interactions_get_IFP()
+    },
+    "interaction_types": {
+        "position": "interaction.id",  # Interactions.get_interactions_get_types()
+        "name": "interaction.name",  # Interactions.get_interactions_get_types()
     },
     "bioactivities": {
         "pref_name": "kinase.pref_name",
@@ -156,3 +171,48 @@ MOL2_COLUMNS = {
         8: ("charge", float),
     },
 }
+
+LOCAL_REMOTE_COLUMNS = {
+    "kinase_groups": ["kinase.group"],
+    "kinase_families": ["kinase.family"],
+    "kinases_all": {
+        "local": ["kinase.name", "species.klifs"],
+        "remote": ["kinase.id", "kinase.name", "kinase.name_full", "species.klifs",],
+    },
+    "kinases": {
+        "local": [
+            "kinase.name",
+            "kinase.group",
+            "kinase.family",
+            "species.klifs",
+            "kinase.pocket",
+        ],
+        "remote": list(REMOTE_COLUMNS_MAPPING["kinases"].values()),
+    },
+    "ligands": {
+        "local": ["ligand.pdb", "ligand.name"],
+        "remote": list(REMOTE_COLUMNS_MAPPING["ligands"].values()),
+    },
+    "structures": {
+        "local": [],
+        "remote": list(REMOTE_COLUMNS_MAPPING["structures"].values()),
+    },
+    "bioactivities": {
+        "local": [],
+        "remote": list(REMOTE_COLUMNS_MAPPING["bioactivities"].values()),
+    },
+    "interactions": {
+        "local": [],
+        "remote": list(REMOTE_COLUMNS_MAPPING["interactions"].values()),
+    },
+    "interaction_types": {
+        "local": [],
+        "remote": list(REMOTE_COLUMNS_MAPPING["interaction_types"].values()),
+    },
+    "pockets": {
+        "local": [],
+        "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
+    },
+    "coordinates": {"local": [], "remote": [],},
+}
+
