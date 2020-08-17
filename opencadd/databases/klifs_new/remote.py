@@ -26,7 +26,6 @@ from .core import (
 from .schema import REMOTE_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
 from .utils import get_file_path, silence_logging
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -51,7 +50,9 @@ class Kinases(KinasesProvider):
         # Use KLIFS API
         result = self.__client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
-        kinase_groups = pd.DataFrame(result, columns=LOCAL_REMOTE_COLUMNS["kinase_groups"])
+        kinase_groups = pd.DataFrame(
+            result, columns=LOCAL_REMOTE_COLUMNS["kinase_groups"]["remote"]
+        )
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -61,7 +62,9 @@ class Kinases(KinasesProvider):
             self.__client.Information.get_kinase_families(kinase_group=group).response().result
         )
         # Convert list to DataFrame (1 column)
-        kinase_families = pd.DataFrame(result, columns=LOCAL_REMOTE_COLUMNS["kinase_families"])
+        kinase_families = pd.DataFrame(
+            result, columns=LOCAL_REMOTE_COLUMNS["kinase_families"]["remote"]
+        )
         return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
@@ -74,33 +77,38 @@ class Kinases(KinasesProvider):
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        kinases = self._rename_dataframe_columns(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
 
-        if not isinstance(kinase_ids, list):
-            kinase_ids = [kinase_ids]
-
+        kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API
         result = (
             self.__client.Information.get_kinase_information(kinase_ID=kinase_ids)
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        kinases = self._rename_dataframe_columns(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
 
+        kinase_names = self._cast_to_list(kinase_names)
+        # Use KLIFS API (send requests iteratively)
         kinases = self._multiple_remote_requests(
             self._from_kinase_name, kinase_names, additional_parameters=[species]
         )
-        kinases = kinases.drop_duplicates("kinase.id").reset_index(drop=True)
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
         return kinases
 
     def _from_kinase_name(self, kinase_name, species=None):
@@ -124,9 +132,12 @@ class Kinases(KinasesProvider):
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._format_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        kinases = self._rename_dataframe_columns(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
+
         return kinases
 
 
@@ -146,24 +157,26 @@ class Ligands(LigandsProvider):
         # Use KLIFS API: Get all kinase IDs
         kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.all_kinases()
-
         # Use KLIFS API: Get ligands
-        result = (
-            self.__client.Ligands.get_ligands_list(kinase_ID=kinases["kinase.id"].to_list())
-            .response()
-            .result
-        )
-        # Convert list of ABC objects to DataFrame and formatting
+        kinase_ids = kinases["kinase.id"].to_list()
+        result = self.__client.Ligands.get_ligands_list(kinase_ID=kinase_ids).response().result
+        # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        ligands = self._rename_dataframe_columns(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
 
+        # Use KLIFS API (send requests iteratively)
         ligands = self._multiple_remote_requests(
             self._from_kinase_id, kinase_ids, additional_parameters=None
         )
-
+        # Format DataFrame
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"] + ["kinase.id (query)"]
+        )
         return ligands
 
     def _from_kinase_id(self, kinase_id):
@@ -183,22 +196,22 @@ class Ligands(LigandsProvider):
 
         # Use KLIFS API
         result = self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._format_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        ligands = self._rename_dataframe_columns(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
+        # Rename column to indicate query key
         ligands["kinase.id (query)"] = kinase_id
         return ligands
 
     def from_kinase_names(self, kinase_names):
 
-        if not isinstance(kinase_names, list):
-            kinase_names = [kinase_names]
-
+        kinase_names = self._cast_to_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
         kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.from_kinase_names(kinase_names)
-
         # Select and rename columns to indicate columns involved in query
         kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
         kinases.rename(
@@ -209,48 +222,34 @@ class Ligands(LigandsProvider):
             },
             inplace=True,
         )
-
-        if kinases is not None:
-
-            # Use KLIFS API: Get ligands by kinase IDs
-            kinase_ids = kinases["kinase.id (query)"].to_list()
-            ligands = self.from_kinase_ids(kinase_ids)
-
-            if ligands is not None:
-
-                # Add kinase name and species details to rationalize kinase IDs
-                ligands = ligands.merge(kinases, on="kinase.id (query)", how="left")
-                return ligands
+        # Use KLIFS API: Get ligands by kinase IDs
+        kinase_ids = kinases["kinase.id (query)"].to_list()
+        ligands = self.from_kinase_ids(kinase_ids)
+        # Add kinase name and species details to rationalize kinase IDs
+        ligands = ligands.merge(kinases, on="kinase.id (query)", how="left")
+        return ligands
 
     def from_ligand_ids(self, ligand_ids):
 
-        if not isinstance(ligand_ids, list):
-            ligand_ids = [ligand_ids]
-
+        ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
-
         # Select ligands by ligand IDs
-        if ligands is not None:
-            ligands = ligands[ligands["ligand.id"].isin(ligand_ids)]
-
-            if ligands.shape[0] > 0:
-                return ligands
+        ligands = ligands[ligands["ligand.id"].isin(ligand_ids)]
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
+        return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if not isinstance(ligand_pdbs, list):
-            ligand_pdbs = [ligand_pdbs]
-
+        ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
-
         # Select ligands by ligand PDB IDs
-        if ligands is not None:
-            ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
-
-            if ligands.shape[0] > 0:
-                return ligands
+        ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
+        return ligands
 
 
 class Structures(StructuresProvider):
@@ -269,107 +268,113 @@ class Structures(StructuresProvider):
         # Use KLIFS API: Get all kinase IDs
         kinases_remote = Kinases(self.__client)
         kinases = kinases_remote.all_kinases()
-
         # Use KLIFS API: Get all structures from these kinase IDs
-        if kinases is not None:
-            kinase_ids = kinases["kinase.id"].to_list()
-            structures = self.from_kinase_ids(kinase_ids)
-            return structures
+        kinase_ids = kinases["kinase.id"].to_list()
+        structures = self.from_kinase_ids(kinase_ids)
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
+        return structures
 
     def from_structure_ids(self, structure_ids):
 
-        if not isinstance(structure_ids, list):
-            structure_ids = [structure_ids]
-
+        structure_ids = self._cast_to_list(structure_ids)
         # Use KLIFS API
         result = (
             self.__client.Structures.get_structure_list(structure_ID=structure_ids)
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
+        structures = self._rename_dataframe_columns(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
         return structures
 
     def from_ligand_ids(self, ligand_ids):
 
-        if not isinstance(ligand_ids, list):
-            ligand_ids = [ligand_ids]
-
+        ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
         remote_ligands = Ligands(self.__client)
         ligands = remote_ligands.from_ligand_ids(ligand_ids)
-
         # Use KLIFS API: Get structures from ligand PDBs
-        if ligands is not None:
-            ligand_pdbs = ligands["ligand.pdb"].to_list()
-            structures = self.from_ligand_pdbs(ligand_pdbs)
-            return structures
+        ligand_pdbs = ligands["ligand.pdb"].to_list()
+        structures = self.from_ligand_pdbs(ligand_pdbs)
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
+        return structures
 
     def from_kinase_ids(self, kinase_ids):
 
-        if not isinstance(kinase_ids, list):
-            kinase_ids = [kinase_ids]
-
+        kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API
         result = (
             self.__client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
+        structures = self._rename_dataframe_columns(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
         return structures
 
     def from_structure_pdbs(self, structure_pdbs):
 
-        if not isinstance(structure_pdbs, list):
-            structure_pdbs = [structure_pdbs]
-
+        structure_pdbs = self._cast_to_list(structure_pdbs)
         # Use KLIFS API
         result = (
             self.__client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._format_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
+        structures = self._rename_dataframe_columns(
+            structures, REMOTE_COLUMNS_MAPPING["structures"]
+        )
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if not isinstance(ligand_pdbs, list):
-            ligand_pdbs = [ligand_pdbs]
-
+        ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
-
         # Select structures by ligand PDB IDs
-        if structures is not None:
-            structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
-
-            if structures.shape[0] > 0:
-                return structures
-            else:
-                raise SwaggerMappingError(
-                    f"None of the input values exist, thus no results are returned."
-                )
+        structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
+        return structures
 
     def from_kinase_names(self, kinase_names):
 
-        if not isinstance(kinase_names, list):
-            kinase_names = [kinase_names]
-
+        kinase_names = self._cast_to_list(kinase_names)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
-
         # Select structures by kinase names
-        if structures is not None:
-            structures = structures[structures["kinase.name"].isin(kinase_names)]
-
-            if structures.shape[0] > 0:
-                return structures
+        structures = structures[structures["kinase.name"].isin(kinase_names)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
+        )
+        return structures
 
 
 class Bioactivities(BioactivitiesProvider):
@@ -388,41 +393,46 @@ class Bioactivities(BioactivitiesProvider):
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self.__client)
         ligands = ligands_remote.all_ligands()
-
+        # Optional: Select top n ligands for bioactivity query!
         if n:
             ligands = ligands[:n]
-
         # Use KLIFS API: Get all bioactivities from these ligand IDs
-        if ligands is not None:
-            ligand_ids = ligands["ligand.id"].to_list()
-
-            # Many ligands do not have bioactivities in ChEMBL,
-            # Thus, disable logging messages for this query
-            with silence_logging():
-                bioactivities = self.from_ligand_ids(ligand_ids)
-            return bioactivities
+        ligand_ids = ligands["ligand.id"].to_list()
+        # Many ligands do not have bioactivities in ChEMBL,
+        # Thus, disable logging messages for this query
+        with silence_logging():
+            bioactivities = self.from_ligand_ids(ligand_ids)
+        # Format DataFrame
+        bioactivities = self._format_dataframe(
+            bioactivities, LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
+        )
+        return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
 
-        if not isinstance(kinase_ids, list):
-            kinase_ids = [kinase_ids]
-
+        kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self.__client)
         ligands = ligands_remote.from_kinase_ids(kinase_ids)
-
         # Use KLIFS API: Get all bioactivities from these ligand IDs
-        if ligands is not None:
-            ligand_ids = ligands["ligand.id"].to_list()
-            bioactivities = self.from_ligand_ids(ligand_ids)
-            return bioactivities
+        ligand_ids = ligands["ligand.id"].to_list()
+        bioactivities = self.from_ligand_ids(ligand_ids)
+        # Format DataFrame
+        bioactivities = self._format_dataframe(
+            bioactivities, LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
+        )
+        return bioactivities
 
     def from_ligand_ids(self, ligand_ids):
 
+        # Use KLIFS API (send requests iteratively)
         bioactivities = self._multiple_remote_requests(
             self._from_ligand_id, ligand_ids, additional_parameters=None
         )
-
+        # Format DataFrame
+        bioactivities = self._format_dataframe(
+            bioactivities, LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
+        )
         return bioactivities
 
     def _from_ligand_id(self, ligand_id):
@@ -439,23 +449,23 @@ class Bioactivities(BioactivitiesProvider):
         pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
         """
-        try:
-            # Use KLIFS API
-            result = (
-                self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id)
-                .response()
-                .result
-            )
 
-            # Convert list of ABC objects to DataFrame and formatting
-            bioactivities = self._abc_to_dataframe(result)
-            bioactivities = self._format_dataframe(
-                bioactivities, REMOTE_COLUMNS_MAPPING["bioactivities"]
-            )
-            bioactivities["ligand.id (query)"] = ligand_id
-            return bioactivities
-        except SwaggerMappingError as e:
-            _logger.error(f"Ligand ID {ligand_id}: {e}")
+        # Use KLIFS API
+        result = (
+            self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id).response().result
+        )
+        # Convert list of ABC objects to DataFrame and rename columns
+        bioactivities = self._abc_to_dataframe(result)
+        bioactivities = self._rename_dataframe_columns(
+            bioactivities, REMOTE_COLUMNS_MAPPING["bioactivities"]
+        )
+        # Format DataFrame
+        bioactivities = self._format_dataframe(
+            bioactivities, LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
+        )
+        # Rename column to indicate query key
+        bioactivities["ligand.id (query)"] = ligand_id
+        return bioactivities
 
 
 class Interactions(InteractionsProvider):
@@ -474,11 +484,14 @@ class Interactions(InteractionsProvider):
 
         # Use KLIFS API
         result = self.__client.Interactions.get_interactions_get_types().response().result
-
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         interaction_types = self._abc_to_dataframe(result)
-        interaction_types = self._format_dataframe(
+        interaction_types = self._rename_dataframe_columns(
             interaction_types, REMOTE_COLUMNS_MAPPING["interaction_types"]
+        )
+        # Format DataFrame
+        interaction_types = self._format_dataframe(
+            interaction_types, LOCAL_REMOTE_COLUMNS["interaction_types"]["remote"]
         )
         return interaction_types
 
@@ -487,58 +500,64 @@ class Interactions(InteractionsProvider):
         # Use KLIFS API: Get all structure IDs
         structures_remote = Structures(self.__client)
         structures = structures_remote.all_structures()
-
         # Use KLIFS API: Get all interactions from these structures IDs
-        if structures is not None:
-            structure_ids = structures["structure.id"].to_list()
-            interactions = self.from_structure_ids(structure_ids)
-            return interactions
+        structure_ids = structures["structure.id"].to_list()
+        interactions = self.from_structure_ids(structure_ids)
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
+        )
+        return interactions
 
     def from_structure_ids(self, structure_ids):
 
-        if not isinstance(structure_ids, list):
-            structure_ids = [structure_ids]
-
+        structure_ids = self._cast_to_list(structure_ids)
         # Use KLIFS API
         result = (
             self.__client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
             .response()
             .result
         )
-        # Convert list of ABC objects to DataFrame and formatting
+        # Convert list of ABC objects to DataFrame and rename columns
         interactions = self._abc_to_dataframe(result)
-        interactions = self._format_dataframe(interactions, REMOTE_COLUMNS_MAPPING["interactions"])
+        interactions = self._rename_dataframe_columns(
+            interactions, REMOTE_COLUMNS_MAPPING["interactions"]
+        )
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
+        )
         return interactions
 
     def from_ligand_ids(self, ligand_ids):
 
-        if not isinstance(ligand_ids, list):
-            ligand_ids = [ligand_ids]
-
+        ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self.__client)
         structures = structures_remote.from_ligand_ids(ligand_ids)
-
         # Use KLIFS API: Get interactions from these structure IDs
-        if structures is not None:
-            structure_ids = structures["structure.id"].to_list()
-            interactions = self.from_structure_ids(structure_ids)
-            return interactions
+        structure_ids = structures["structure.id"].to_list()
+        interactions = self.from_structure_ids(structure_ids)
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
+        )
+        return interactions
 
     def from_kinase_ids(self, kinase_ids):
 
-        if not isinstance(kinase_ids, list):
-            kinase_ids = [kinase_ids]
-
+        kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self.__client)
         structures = structures_remote.from_kinase_ids(kinase_ids)
-
         # Use KLIFS API: Get interactions from these structure IDs
-        if structures is not None:
-            structure_ids = structures["structure.id"].to_list()
-            interactions = self.from_structure_ids(structure_ids)
-            return interactions
+        structure_ids = structures["structure.id"].to_list()
+        interactions = self.from_structure_ids(structure_ids)
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
+        )
+        return interactions
 
 
 class Pockets(PocketsProvider):
@@ -561,8 +580,9 @@ class Pockets(PocketsProvider):
         )
         # Convert to DataFrame and formatting
         pocket = pd.DataFrame(result)
-        pocket = self._format_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
-
+        pocket = self._rename_dataframe_columns(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
+        # Format DataFrame
+        pocket = self._format_dataframe(pocket, LOCAL_REMOTE_COLUMNS["pockets"]["remote"])
         return pocket
 
 

@@ -28,6 +28,16 @@ class BaseProvider:
         """Empty init."""
 
     @staticmethod
+    def _cast_to_list(value):
+        """
+        Cast value to list if it is not a list, else return as-is.
+        """
+        if not isinstance(value, list):
+            return [value]
+        else:
+            return value
+
+    @staticmethod
     def _abc_to_dataframe(abc_object):
         """
         Transform ABC object into a DataFrame (needed for KLIFS API results).
@@ -56,18 +66,51 @@ class BaseProvider:
         return pd.DataFrame(results_dict)
 
     @staticmethod
-    def _format_dataframe(dataframe, columns_mapping):
+    def _rename_dataframe_columns(dataframe, columns_mapping):
         """
-        Format a DataFrame: Rename columns, reset index.
+        Rename DataFrame columns.
 
+        Parameters
+        ----------
         columns_mapping : dict
             Mapping of old to new column names.
         """
 
+        # Rename columns
         dataframe.rename(columns=columns_mapping, inplace=True)
-        dataframe.reset_index(drop=True, inplace=True)
 
         return dataframe
+
+    @staticmethod
+    def _format_dataframe(dataframe, column_names):
+        """
+        Format a DataFrame: Sort columns, drop duplicate rows, and reset index.
+
+        Parameters
+        ----------
+        column_names : list of str
+            Column names in the order of interest for output.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+
+        # Select and sort columns
+        dataframe = dataframe[column_names].copy()
+
+        # Drop duplicate rows
+        dataframe.drop_duplicates(inplace=True)
+
+        # Reset index
+        dataframe.reset_index(drop=True, inplace=True)
+
+        # Handy empty results
+        if dataframe.shape[0] > 0:
+            return dataframe
+        else:
+            raise ValueError(f"Input values yield no results.")
 
     @staticmethod
     def _multiple_remote_requests(
@@ -208,6 +251,11 @@ class KinasesProvider(BaseProvider):
         pandas.DataFrame
             Kinase groups (rows) with the following column: "kinase.group". Check class docstring 
             for more information on columns.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -230,6 +278,8 @@ class KinasesProvider(BaseProvider):
         ------
         bravado_core.exception.SwaggerMappingError
             Remote module: If group does not exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -256,6 +306,8 @@ class KinasesProvider(BaseProvider):
         ------
         bravado_core.exception.SwaggerMappingError
             Remote module: If group or family or species do not exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -271,7 +323,9 @@ class KinasesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If None of the kinase IDs exist.
+            Remote module: If none of the kinase IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -287,7 +341,9 @@ class KinasesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If None of the kinase names exist.
+            Remote module: If none of the kinase names exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -333,8 +389,6 @@ class LigandsProvider(BaseProvider):
             Ligand PDB name.
         ligand.name : str
             Ligand name.
-
-
     """
 
     def __init__(self):
@@ -352,7 +406,8 @@ class LigandsProvider(BaseProvider):
 
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -372,7 +427,10 @@ class LigandsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the kinase IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -392,7 +450,10 @@ class LigandsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the kinase names exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -412,7 +473,8 @@ class LigandsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -432,7 +494,8 @@ class LigandsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -571,7 +634,8 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -586,7 +650,10 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the structure IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -601,7 +668,10 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the ligand IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -616,7 +686,10 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the kinase IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -631,7 +704,10 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the structure PDB IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -646,7 +722,8 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -661,7 +738,8 @@ class StructuresProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -720,7 +798,8 @@ class BioactivitiesProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -735,7 +814,10 @@ class BioactivitiesProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the kinase IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -750,7 +832,10 @@ class BioactivitiesProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the ligand IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -779,7 +864,7 @@ class InteractionsProvider(BaseProvider):
 
     structure.id : int
         Structure ID.
-    ineraction.fingerprint : str
+    interaction.fingerprint : str
         Interaction fingerprint, a string of 595 zeros and ones for 
         85 (pocket residues) * 7 (interaction features).
     interaction.id : int
@@ -802,10 +887,6 @@ class InteractionsProvider(BaseProvider):
             7 interaction types (rows) with the following columns: 
             "interaction.id", "interaction.name". 
             Check class docstring for more information on columns.
-            
-        Raises
-        ------
-        TODO
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -822,7 +903,8 @@ class InteractionsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -839,7 +921,10 @@ class InteractionsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the structure IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -856,7 +941,8 @@ class InteractionsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -873,7 +959,10 @@ class InteractionsProvider(BaseProvider):
             
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the kinase IDs exist.
+        ValueError
+            If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -893,7 +982,7 @@ class PocketsProvider(BaseProvider):
     def __init__(self):
         super().__init__()
 
-    def from_structure_id(structure_id):
+    def from_structure_id(self, structure_id):
         """
         Get a structure's residue numbering in PDB and KLIFS by structure ID
         (plus kinase region label for each residue).
@@ -910,7 +999,8 @@ class PocketsProvider(BaseProvider):
 
         Raises
         ------
-        TODO
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 

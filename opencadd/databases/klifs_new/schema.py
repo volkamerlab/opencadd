@@ -63,6 +63,7 @@ LOCAL_COLUMNS_MAPPING = {
 }
 
 REMOTE_COLUMNS_MAPPING = {
+    # Information.get_kinase_information()
     "kinases": {
         "kinase_ID": "kinase.id",
         "name": "kinase.name",
@@ -76,6 +77,16 @@ REMOTE_COLUMNS_MAPPING = {
         "iuphar": "kinase.iuphar",
         "pocket": "kinase.pocket",
     },
+    # Ligands.get_ligands_list
+    "ligands": {
+        "ligand_ID": "ligand.id",
+        "PDB-code": "ligand.pdb",
+        "Name": "ligand.name",
+        "SMILES": "ligand.smiles",
+        "InChIKey": "ligand.inchikey",
+    },
+    # Structures.get_structure_list()
+    # Structures.get_structure_lists()
     "structures": {
         "structure_ID": "structure.id",
         "kinase": "kinase.name",
@@ -114,26 +125,7 @@ REMOTE_COLUMNS_MAPPING = {
         "bp_IV": "structure.bp_iv",
         "bp_V": "structure.bp_v",
     },
-    "pockets": {
-        "index": "structure.pocket_klifs_numbering",  # Interactions.get_interactions_match_residues()
-        "Xray_position": "structure.pocket_pdb_numbering",  # Interactions.get_interactions_match_residues()
-        "KLIFS_position": "structure.pocket_regions_klifs",  # Interactions.get_interactions_match_residues()
-    },
-    "ligands": {
-        "ligand_ID": "ligand.id",
-        "PDB-code": "ligand.pdb",
-        "Name": "ligand.name",
-        "SMILES": "ligand.smiles",
-        "InChIKey": "ligand.inchikey",
-    },
-    "interactions": {
-        "structure_ID": "structure.id",  # Interactions.get_interactions_get_IFP()
-        "IFP": "interaction.fingerprint",  # Interactions.get_interactions_get_IFP()
-    },
-    "interaction_types": {
-        "position": "interaction.id",  # Interactions.get_interactions_get_types()
-        "name": "interaction.name",  # Interactions.get_interactions_get_types()
-    },
+    # Ligands.get_bioactivity_list_id()
     "bioactivities": {
         "pref_name": "kinase.pref_name",
         "accession": "kinase.uniprot",
@@ -143,6 +135,16 @@ REMOTE_COLUMNS_MAPPING = {
         "standard_value": "ligand.bioactivity_standard_value",
         "standard_units": "ligand.bioactivity_standard_units",
         "pchembl_value": "ligand.bioactivity_pchembl_value",
+    },
+    # Interactions.get_interactions_get_IFP()
+    "interactions": {"structure_ID": "structure.id", "IFP": "interaction.fingerprint",},
+    # Interactions.get_interactions_get_types()
+    "interaction_types": {"position": "interaction.id", "name": "interaction.name",},
+    # Interactions.get_interactions_match_residues()
+    "pockets": {
+        "index": "structure.pocket_klifs_numbering",
+        "Xray_position": "structure.pocket_pdb_numbering",
+        "KLIFS_position": "structure.pocket_regions_klifs",
     },
 }
 
@@ -173,8 +175,8 @@ MOL2_COLUMNS = {
 }
 
 LOCAL_REMOTE_COLUMNS = {
-    "kinase_groups": ["kinase.group"],
-    "kinase_families": ["kinase.family"],
+    "kinase_groups": {"local": ["kinase.group"], "remote": ["kinase.group"]},
+    "kinase_families": {"local": ["kinase.family"], "remote": ["kinase.family"]},
     "kinases_all": {
         "local": ["kinase.name", "species.klifs"],
         "remote": ["kinase.id", "kinase.name", "kinase.name_full", "species.klifs",],
@@ -193,19 +195,65 @@ LOCAL_REMOTE_COLUMNS = {
         "local": ["ligand.pdb", "ligand.name"],
         "remote": list(REMOTE_COLUMNS_MAPPING["ligands"].values()),
     },
-    "structures": {"local": [], "remote": list(REMOTE_COLUMNS_MAPPING["structures"].values()),},
+    "structures": {
+        "local": [
+            "kinase.name",
+            # "kinase.name_all",
+            "kinase.family",
+            "kinase.group",
+            "species.klifs",
+            "structure.pdb",
+            "structure.alternate_model",
+            "structure.chain",
+            "structure.rmsd1",
+            "structure.rmsd2",
+            "kinase.pocket",
+            "structure.resolution",
+            "structure.qualityscore",
+            "structure.missing_residues",
+            "structure.missing_atoms",
+            "ligand.pdb",
+            "ligand.pdb_allosteric",
+            "ligand.name",
+            "ligand.name_allosteric",
+            "structure.dfg",
+            "structure.ac_helix",
+            "structure.fp_i",
+            "structure.fp_ii",
+            "structure.bp_i_a",
+            "structure.bp_i_b",
+            "structure.bp_ii_in",
+            "structure.bp_ii_a_in",
+            "structure.bp_ii_b_in",
+            "structure.bp_ii_out",
+            "structure.bp_ii_b",
+            "structure.bp_iii",
+            "structure.bp_iv",
+            "structure.bp_v",
+            "structure.filepath",
+        ],
+        "remote": list(REMOTE_COLUMNS_MAPPING["structures"].values()),
+    },
     "bioactivities": {
-        "local": [],
+        "local": [],  # Not available locally
         "remote": list(REMOTE_COLUMNS_MAPPING["bioactivities"].values()),
     },
     "interactions": {
-        "local": [],
+        "local": [
+            "structure.pdb",
+            "structure.alternate_model",
+            "structure.chain",
+            "interaction.fingerprint",
+        ],
         "remote": list(REMOTE_COLUMNS_MAPPING["interactions"].values()),
     },
     "interaction_types": {
-        "local": [],
+        "local": [],  # Not available locally
         "remote": list(REMOTE_COLUMNS_MAPPING["interaction_types"].values()),
     },
-    "pockets": {"local": [], "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),},
+    "pockets": {
+        "local": [],  # Not available locally
+        "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
+    },
     "coordinates": {"local": [], "remote": [],},
 }

@@ -48,8 +48,17 @@ class SessionInitializer:
     def __init__(self, path_to_klifs_download):
 
         self.path_to_klifs_download = Path(path_to_klifs_download)
+        if not self.path_to_klifs_download.exists():
+            raise FileNotFoundError(f"No such directory: {self.path_to_klifs_download}")
+
         self.klifs_overview_path = self.path_to_klifs_download / "overview.csv"
+        if not self.klifs_overview_path.exists():
+            raise FileNotFoundError(f"No such file: {self.klifs_overview_path}")
+
         self.klifs_export_path = self.path_to_klifs_download / "KLIFS_export.csv"
+        if not self.klifs_export_path.exists():
+            raise FileNotFoundError(f"No such file: {self.klifs_export_path}")
+
         self.klifs_metadata = self.from_files()
 
     def from_files(self):
@@ -127,6 +136,8 @@ class SessionInitializer:
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
         klifs_overview["structure.alternate_model"].replace(" ", "-", inplace=True)
+        # Drop column for kinase name; will be taken from KLIFS_export.csv file upon table merge
+        klifs_overview.drop(columns=["kinase.name"], inplace=True)
 
         return klifs_overview
 
@@ -189,37 +200,27 @@ class SessionInitializer:
                 f"Number of PDBs in overview but not in export table: {not_in_export.size}.\n"
             )
         if not_in_overview.size > 0:
-            raise (
+            raise ValueError(
                 f"Number of PDBs in export but not in overview table: {not_in_overview.size}."
                 f"PDB codes are probably updated because structures are deprecated."
             )
 
-        # Merge on mutual columns:
-        # Species, kinase, PDB ID, chain, alternate model, orthosteric and allosteric ligand PDB ID
-
+        # Merge on mutual columns
         mutual_columns = [
             "species.klifs",
             "structure.pdb",
             "structure.chain",
             "structure.alternate_model",
+            "ligand.pdb",
+            "ligand.pdb_allosteric",
         ]
 
         klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
 
-        klifs_metadata.drop(
-            columns=["ligand.pdb_y", "ligand.pdb_allosteric_y", "kinase.name_y",], inplace=True,
-        )
-
-        klifs_metadata.rename(
-            columns={
-                "ligand.pdb_x": "ligand.pdb",
-                "ligand.pdb_allosteric_x": "ligand.pdb_allosteric",
-                "kinase.name_x": "kinase.name",
-            },
-            inplace=True,
-        )
-
-        if not (klifs_overview.shape[1] + klifs_export.shape[1] - 7) == klifs_metadata.shape[1]:
+        if (
+            not (klifs_overview.shape[1] + klifs_export.shape[1] - len(mutual_columns))
+            == klifs_metadata.shape[1]
+        ):
             raise ValueError(
                 f"Output table has incorrect number of columns\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -294,70 +295,51 @@ class Kinases(KinasesProvider):
 
     def all_kinase_groups(self):
 
-        kinase_groups = self.__database["kinase.group"].drop_duplicates()
-        kinase_groups = pd.DataFrame(kinase_groups)
-        kinase_groups.reset_index(drop=True, inplace=True)
-
-        if kinase_groups.shape[0] > 0:
-            return kinase_groups
+        # Get local database and select rows
+        kinase_groups = self.__database
+        # Format DataFrame
+        kinase_groups = self._format_dataframe(
+            kinase_groups, LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
+        )
+        return kinase_groups
 
     def all_kinase_families(self, group=None):
 
-        database = self.__database
-
+        # Get local database and select rows
+        kinase_families = self.__database
         if group:
-            database = database[database["kinase.group"] == group]
-
-        kinase_families = database["kinase.family"].drop_duplicates()
-        kinase_families = pd.DataFrame(kinase_families)
-        kinase_families.reset_index(drop=True, inplace=True)
-
-        if kinase_families.shape[0] > 0:
-            return kinase_families
-        else:
-            raise KeyError(f"None of the input values exist, thus no results are returned.")
+            kinase_families = kinase_families[kinase_families["kinase.group"] == group]
+        # Format DataFrame
+        kinase_families = self._format_dataframe(
+            kinase_families, LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
+        )
+        return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
 
-        # Filter database if filtering parameters are set
-        database = self.__database
+        # Get local database and select rows
+        kinases = self.__database
         if group:
-            database = database[database["kinase.group"] == group]
+            kinases = kinases[kinases["kinase.group"] == group]
         if family:
-            database = database[database["kinase.family"] == family]
+            kinases = kinases[kinases["kinase.family"] == family]
         if species:
-            database = database[database["species.klifs"] == species.capitalize()]
-
-        # From (filtered) database get unique kinase names
-        kinases = database.drop_duplicates("kinase.name")[
-            LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
-        ]
-        kinases.reset_index(drop=True, inplace=True)
-
-        if kinases.shape[0] > 0:
-            return kinases
-        else:
-            raise KeyError(f"None of the input values exist, thus no results are returned.")
+            kinases = kinases[kinases["species.klifs"] == species.capitalize()]
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
+        return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
 
-        if not isinstance(kinase_names, list):
-            kinase_names = [kinase_names]
-
-        # Filter database if filtering parameters are set
-        database = self.__database
-        database = database[database["kinase.name"].isin(kinase_names)]
+        kinase_names = self._cast_to_list(kinase_names)
+        # Get local database and select rows
+        kinases = self.__database
+        kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
         if species:
-            database = database[database["species.klifs"] == species]
-
-        # From (filtered) database get unique kinase names
-        kinases = database.drop_duplicates("kinase.name")[LOCAL_REMOTE_COLUMNS["kinases"]["local"]]
-        kinases.reset_index(drop=True, inplace=True)
-
-        if kinases.shape[0] > 0:
-            return kinases
-        else:
-            raise KeyError(f"None of the input values exist, thus no results are returned.")
+            kinases = kinases[kinases["species.klifs"] == species]
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        return kinases
 
 
 class Ligands(LigandsProvider):
@@ -373,28 +355,22 @@ class Ligands(LigandsProvider):
 
     def all_ligands(self):
 
-        ligands = self.__database.drop_duplicates("ligand.pdb")[
-            LOCAL_REMOTE_COLUMNS["ligands"]["local"]
-        ]
-        ligands.reset_index(drop=True, inplace=True)
-
-        if ligands.shape[0] > 0:
-            return ligands
+        # Get local database and select rows
+        ligands = self.__database
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
+        return ligands
 
     def from_kinase_names(self, kinase_names):
 
-        if not isinstance(kinase_names, list):
-            kinase_names = [kinase_names]
-
-        database = self.__database
-
-        # Select ligands by kinase names
-        ligands = database[database["kinase.name"].isin(kinase_names)]
-        # Keep only columns as per class docstring
-        ligands = ligands[
-            LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"]
-        ]
-
+        kinase_names = self._cast_to_list(kinase_names)
+        # Get local database and select rows
+        ligands = self.__database
+        ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
+        # Format DataFrame
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
+        )
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={
@@ -403,29 +379,17 @@ class Ligands(LigandsProvider):
             },
             inplace=True,
         )
-        ligands.drop_duplicates(inplace=True)
-        ligands.reset_index(drop=True, inplace=True)
-
-        if ligands.shape[0] > 0:
-            return ligands
+        return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if not isinstance(ligand_pdbs, list):
-            ligand_pdbs = [ligand_pdbs]
-
-        database = self.__database
-
-        # Select ligands by ligand PDB IDs
-        ligands = database[database["ligand.pdb"].isin(ligand_pdbs)]
-        # Keep only columns as per class docstring
-        ligands = ligands[LOCAL_REMOTE_COLUMNS["ligands"]["local"]]
-
-        ligands.drop_duplicates(inplace=True)
-        ligands.reset_index(drop=True, inplace=True)
-
-        if ligands.shape[0] > 0:
-            return ligands
+        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        # Get local database and select rows
+        ligands = self.__database
+        ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
+        # Format DataFrame
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],)
+        return ligands
 
 
 class Structures(StructuresProvider):
@@ -441,57 +405,56 @@ class Structures(StructuresProvider):
 
     def all_structures(self):
 
-        database = self.__database
-        structures = database
-
-        if structures.shape[0] > 0:
-            return structures
+        # Get local database and select rows
+        structures = self.__database
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        return structures
 
     def from_structure_pdbs(self, structure_pdbs):
 
-        if not isinstance(structure_pdbs, list):
-            structure_pdbs = [structure_pdbs]
-
-        database = self.__database
-
-        # Select structures by structure PDB IDs
-        structures = database[database["structure.pdb"].isin(structure_pdbs)]
-
-        if structures.shape[0] > 0:
-            return structures
+        structure_pdbs = self._cast_to_list(structure_pdbs)
+        # Get local database and select rows
+        structures = self.__database
+        structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        if not isinstance(ligand_pdbs, list):
-            ligand_pdbs = [ligand_pdbs]
-
-        database = self.__database
-
-        # Select structures by ligand PDB IDs
-        structures = database[database["ligand.pdb"].isin(ligand_pdbs)]
-
-        if structures.shape[0] > 0:
-            return structures
+        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        # Get local database and select rows
+        structures = self.__database
+        structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        return structures
 
     def from_kinase_names(self, kinase_names):
 
-        if not isinstance(kinase_names, list):
-            kinase_names = [kinase_names]
-
-        database = self.__database
-
-        # Select structures by kinase name (search in all available kinase names)
-        structures = database[
-            database.apply(
+        kinase_names = self._cast_to_list(kinase_names)
+        # Get local database and select rows (search in all available kinase names)
+        structures = self.__database
+        structures = structures[
+            structures.apply(
                 lambda x: any(
                     [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
                 ),
                 axis=1,
             )
         ]
-
-        if structures.shape[0] > 0:
-            return structures
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        return structures
 
 
 class Bioactivities(BioactivitiesProvider):
@@ -519,10 +482,9 @@ class Interactions(InteractionsProvider):
 
     def all_interactions(self):
 
-        database = self.__database
-
-        # Keep columns as per class docstring
-        interactions = database[
+        # Get local database and select rows
+        interactions = self.__database
+        interactions = interactions[
             [
                 "structure.pdb",
                 "structure.alternate_model",
@@ -530,8 +492,11 @@ class Interactions(InteractionsProvider):
                 "interaction.fingerprint",
             ]
         ]
-        if interactions.shape[0] > 0:
-            return interactions
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
+        )
+        return interactions
 
 
 class Pockets(PocketsProvider):
@@ -539,10 +504,10 @@ class Pockets(PocketsProvider):
     Extends PocketsProvider to provide local pocket requests.
     """
 
-    def __init__(self, client):
+    def __init__(self, database):
 
         super().__init__()
-        self.__client = client
+        self.__database = database
 
 
 class Coordinates(CoordinatesProvider):
