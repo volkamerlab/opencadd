@@ -27,7 +27,7 @@ class TestsAllQueries:
 
         kinases = session.kinases.all_kinase_groups()
         assert isinstance(kinases, pd.DataFrame)
-        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]
+        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
         assert kinases["kinase.group"].to_list() == result_groups
 
     @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ class TestsAllQueries:
 
         kinases = session.kinases.all_kinase_families(group)
         assert isinstance(kinases, pd.DataFrame)
-        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_families"]
+        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
         assert kinases["kinase.family"].to_list() == result_families
 
     @pytest.mark.parametrize("group", ["XXX"])
@@ -51,7 +51,7 @@ class TestsAllQueries:
         """
         session = setup_local(PATH_TEST_DATA)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             session.kinases.all_kinase_families(group)
 
     @pytest.mark.parametrize(
@@ -84,7 +84,7 @@ class TestsAllQueries:
         """
         session = setup_local(PATH_TEST_DATA)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             session.kinases.all_kinases(group, family, species)
 
     def test_all_ligands(self):
@@ -180,7 +180,7 @@ class TestsFromKinaseNames:
         Test class methods with kinase names as input: Error raised if input invalid?
         """
         session = setup_local(PATH_TEST_DATA)
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             session.kinases.from_kinase_names(kinase_names, species)
 
 
