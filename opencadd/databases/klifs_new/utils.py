@@ -7,6 +7,7 @@ Defines utility functions.
 from contextlib import contextmanager
 import logging
 from pathlib import Path
+import re
 
 from bravado.client import SwaggerClient
 
@@ -18,7 +19,7 @@ KLIFS_CLIENT = SwaggerClient.from_url(
 )
 
 
-def get_file_path(
+def get_file_path(  # Rename function metadata_to_filepath TODO
     path_to_klifs_download,
     species,
     kinase_name,
@@ -81,6 +82,44 @@ def get_file_path(
         )
 
     return path
+
+
+def filepath_to_metadata(filepath):
+    """
+    Write docs TODO
+    """
+
+    # Split filepath
+    metadata = re.split("/|_|\.", filepath)
+    # Assign list elements to detail type
+    if ("chain" in filepath) and ("alt" in filepath):
+        metadata = {
+            "species": metadata[-7].capitalize(),
+            "kinase_name": metadata[-6],
+            "structure_pdb": metadata[-5],
+            "structure_alternate_model": metadata[-4][-1],
+            "structure_chain": metadata[-3][-1],
+            "entity": metadata[-2],
+            "input_format": metadata[-1],
+        }
+    elif ("chain" in filepath) and ("alt" not in filepath):
+        metadata = {
+            "species": metadata[-6].capitalize(),
+            "kinase_name": metadata[-5],
+            "structure_pdb": metadata[-4],
+            "structure_chain": metadata[-3][-1],
+            "entity": metadata[-2],
+            "input_format": metadata[-1],
+        }
+    else:
+        metadata = {
+            "species": metadata[-5].capitalize(),
+            "kinase_name": metadata[-4],
+            "structure_pdb": metadata[-3],
+            "entity": metadata[-2],
+            "input_format": metadata[-1],
+        }
+    return metadata
 
 
 @contextmanager
