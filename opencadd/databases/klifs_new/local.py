@@ -13,7 +13,6 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 from . import remote
-from .utils import KLIFS_CLIENT
 from .core import (
     KinasesProvider,
     LigandsProvider,
@@ -24,7 +23,7 @@ from .core import (
     CoordinatesProvider,
 )
 from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
-from .utils import get_file_path
+from .utils import KLIFS_CLIENT, get_file_path, filepath_to_metadata
 
 PATH_TO_KLIFS_IDS = (
     Path(__file__).parent
@@ -637,6 +636,7 @@ class Coordinates(CoordinatesProvider):
             if input_format == "mol2":
                 mol2_df = self._mol2_file_to_dataframe(file_path).df
                 mol2_df = self._split_mol2_subst_names(mol2_df)
+                # mol2_df = self._add_residue_klifs_ids(mol2_df, structure_id)
                 return mol2_df
             elif input_format == "pdb":
                 pass
@@ -694,32 +694,38 @@ class Coordinates(CoordinatesProvider):
 
         return mol
 
-    @staticmethod
-    def _add_residue_klifs_ids(mol2_dataframe, klifs_metadata_entry):
+    def _add_residue_klifs_ids(self, mol2_dataframe, filepath):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
-        ----------
-        TODO
+        ---------- TODO
 
         Returns
-        -------
-        TODO
+        ------- TODO
         """
 
+        # Get metadata for structure by structure ID
+        metadata = filepath_to_metadata(filepath)
+        structures_local = Structures(self.__database)
+        structure = from_structure_pdbs(
+            structure_pdb, structure_alternate_model, structure_chain
+        )
+        structure_id = structure["structure.id"][0]
         # List of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
             index
-            for index, residue in enumerate(klifs_metadata_entry["kinase.pocket"], 1)
+            for index, residue in enumerate(structure["kinase.pocket"], 1)
             if residue != "_"
         ]
+        print(len(klifs_ids))
 
         # Number of atoms per residue in molecule (mol2file)
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
         number_of_atoms_per_residue = mol2_dataframe.groupby(
             by="residue.subst_name", sort=False
         ).size()
+        print(len(number_of_atoms_per_residue))
 
         # Get KLIFS position IDs for each atom in molecule
         klifs_ids_per_atom = []
@@ -728,5 +734,9 @@ class Coordinates(CoordinatesProvider):
             klifs_ids_per_atom = klifs_ids_per_atom + [klifs_id] * n
 
         # Add column for KLIFS position IDs to molecule
-        molecule.df["klifs_id"] = klifs_ids_per_atom
+        print(mol2_dataframe.shape[0])
+        print(len(klifs_ids_per_atom))
+        mol2_dataframe["residue.klifs_id"] = klifs_ids_per_atom
+
+        return mol2_dataframe
 
