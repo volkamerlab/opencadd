@@ -142,9 +142,9 @@ REMOTE_COLUMNS_MAPPING = {
     "interaction_types": {"position": "interaction.id", "name": "interaction.name",},
     # Interactions.get_interactions_match_residues()
     "pockets": {
-        "index": "structure.pocket_klifs_numbering",
-        "Xray_position": "structure.pocket_pdb_numbering",
-        "KLIFS_position": "structure.pocket_klifs_regions",
+        "index": "residue.klifs_id",
+        "Xray_position": "residue.pdb_id",
+        "KLIFS_position": "residue.klifs_regions",
     },
 }
 
