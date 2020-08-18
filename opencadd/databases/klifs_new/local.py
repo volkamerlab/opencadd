@@ -12,6 +12,8 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
+from . import remote
+from .utils import KLIFS_CLIENT
 from .core import (
     KinasesProvider,
     LigandsProvider,
@@ -23,6 +25,15 @@ from .core import (
 )
 from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
 from .utils import get_file_path
+
+PATH_TO_KLIFS_IDS = (
+    Path(__file__).parent
+    / ".."
+    / ".."
+    / "data"
+    / "klifs_ids.csv"
+    # Path(__name__).parent / "opencadd" / "data" / "klifs_ids.csv"
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -81,11 +92,17 @@ class SessionInitializer:
             Metadata of KLIFS download, merged from two KLIFS metadata files.
         """
 
+        _logger.info(f"Load overview.csv...")
         klifs_overview = self._from_klifs_overview_file()
+        _logger.info(f"Load KLIFS_export.csv...")
         klifs_export = self._from_klifs_export_file()
 
+        _logger.info(f"Merge both csv files...")
         klifs_metadata = self._merge_files(klifs_overview, klifs_export)
+        _logger.info(f"Add paths to coordinate folders to structures...")
         klifs_metadata = self._add_filepaths(klifs_metadata)
+        _logger.info(f"Add KLIFS IDs to structures...")
+        klifs_metadata = self._add_klifs_ids(klifs_metadata)
 
         klifs_metadata.to_csv(
             self.path_to_klifs_download / "klifs_metadata.csv", index=False
@@ -285,6 +302,44 @@ class SessionInitializer:
         klifs_metadata["structure.filepath"] = filepaths
 
         return klifs_metadata
+
+    @staticmethod
+    def _add_klifs_ids(klifs_metadata):
+        """
+        Add KLIFS kinase and structure IDs to KLIFS metadata (from local copy of KLIFS IDs
+        and if not found there from remote). Remove local structures that have no structure ID.
+        """
+
+        # Load local copy of KLIFS IDs
+        klifs_ids = pd.read_csv(PATH_TO_KLIFS_IDS)
+        # Merge KLIFS metadata with local copy of KLIFS IDs
+        klifs_metadata_with_ids = klifs_metadata.merge(
+            klifs_ids.drop(["kinase.name", "ligand.pdb"], axis=1),
+            on=["structure.pdb", "structure.alternate_model", "structure.chain"],
+            how="left",
+        )
+        if klifs_metadata_with_ids.shape[0] != klifs_metadata.shape[0]:
+            raise ValueError(f"Adding KLIFS IDs failed: Number of structures changed.")
+        # If KLIFS IDs are missing (not in local copy), fetch individual structures from remote
+        remote_structures = remote.Structures(KLIFS_CLIENT)
+        for index, row in klifs_metadata_with_ids[
+            klifs_metadata_with_ids["structure.id"].isna()
+        ].iterrows():
+            # Get IDs from remote
+            structure = remote_structures.from_structure_pdbs(
+                row["structure.pdb"],
+                row["structure.alternate_model"],
+                row["structure.chain"],
+            )
+            structure_id = structure["structure.id"][0]
+            kinase_id = structure["kinase.id"][0]
+            # Set IDs locally
+            klifs_metadata_with_ids.loc[index, "structure.id"] = structure_id
+            klifs_metadata_with_ids.loc[index, "kinase.id"] = kinase_id
+        # Remove structures that have no KLIFS ID
+        klifs_metadata_with_ids.dropna(subset="structure.id", inplace=True)
+
+        return klifs_metadata_with_ids
 
 
 class Kinases(KinasesProvider):
