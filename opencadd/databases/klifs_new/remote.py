@@ -890,7 +890,7 @@ class Coordinates(CoordinatesProvider):
         Parameters
         ----------
         pdb_text : str
-        Pdb file content from KLIFS database.
+            Pdb file content from KLIFS database.
 
         Returns
         -------
