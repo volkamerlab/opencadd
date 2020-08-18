@@ -7,6 +7,7 @@ Defines core classes and functions.
 import logging
 
 from bravado_core.exception import SwaggerMappingError
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -66,9 +67,9 @@ class BaseProvider:
         return pd.DataFrame(results_dict)
 
     @staticmethod
-    def _rename_dataframe_columns(dataframe, columns_mapping):
+    def _standardize_dataframe(dataframe, columns_mapping):
         """
-        Rename DataFrame columns.
+        Standardize DataFrame: Rename columns and replace column values.
 
         Parameters
         ----------
@@ -80,6 +81,20 @@ class BaseProvider:
 
         # Rename columns
         dataframe.rename(columns=columns_mapping, inplace=True)
+
+        # Change remote column values
+        if "structure.alternate_model" in dataframe.columns:
+            # Remote
+            dataframe["structure.alternate_model"].replace("", "-", inplace=True)
+        if "ligand.pdb" in dataframe.columns:
+            # Remote
+            dataframe["ligand.pdb"].replace(0, "-", inplace=True)
+        if "ligand.pdb_allosteric" in dataframe.columns:
+            # Remote
+            dataframe["ligand.pdb_allosteric"].replace(0, "-", inplace=True)
+        if "structure.resolution" in dataframe.columns:
+            # Remote
+            dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
 
         return dataframe
 
@@ -110,7 +125,7 @@ class BaseProvider:
         # Reset index
         dataframe.reset_index(drop=True, inplace=True)
 
-        # Handy empty results
+        # Handle empty results
         if dataframe.shape[0] > 0:
             return dataframe
         else:
@@ -583,7 +598,7 @@ class StructuresProvider(BaseProvider):
         structure.pdb : str
             Structure PDB ID.
         structure.alternate_model : str
-            Alternate model. None if no alternate model.
+            Alternate model. "-" if no alternate model.
         structure.chain : str
             Chain.
         structure.rmsd1 : float

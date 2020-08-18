@@ -81,7 +81,7 @@ class Kinases(KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._rename_dataframe_columns(
+        kinases = self._standardize_dataframe(
             kinases, REMOTE_COLUMNS_MAPPING["kinases"]
         )
         # Format DataFrame
@@ -101,7 +101,7 @@ class Kinases(KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._rename_dataframe_columns(
+        kinases = self._standardize_dataframe(
             kinases, REMOTE_COLUMNS_MAPPING["kinases"]
         )
         # Format DataFrame
@@ -148,7 +148,7 @@ class Kinases(KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._rename_dataframe_columns(
+        kinases = self._standardize_dataframe(
             kinases, REMOTE_COLUMNS_MAPPING["kinases"]
         )
         # Format DataFrame
@@ -184,7 +184,7 @@ class Ligands(LigandsProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._rename_dataframe_columns(
+        ligands = self._standardize_dataframe(
             ligands, REMOTE_COLUMNS_MAPPING["ligands"]
         )
         # Format DataFrame
@@ -228,7 +228,7 @@ class Ligands(LigandsProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._rename_dataframe_columns(
+        ligands = self._standardize_dataframe(
             ligands, REMOTE_COLUMNS_MAPPING["ligands"]
         )
         # Format DataFrame
@@ -326,7 +326,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._rename_dataframe_columns(
+        structures = self._standardize_dataframe(
             structures, REMOTE_COLUMNS_MAPPING["structures"]
         )
         # Format DataFrame
@@ -361,7 +361,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._rename_dataframe_columns(
+        structures = self._standardize_dataframe(
             structures, REMOTE_COLUMNS_MAPPING["structures"]
         )
         # Format DataFrame
@@ -383,7 +383,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._rename_dataframe_columns(
+        structures = self._standardize_dataframe(
             structures, REMOTE_COLUMNS_MAPPING["structures"]
         )
         # If only one structure PDB ID is given, check alternate model and chain filters
@@ -505,7 +505,7 @@ class Bioactivities(BioactivitiesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         bioactivities = self._abc_to_dataframe(result)
-        bioactivities = self._rename_dataframe_columns(
+        bioactivities = self._standardize_dataframe(
             bioactivities, REMOTE_COLUMNS_MAPPING["bioactivities"]
         )
         # Format DataFrame
@@ -537,7 +537,7 @@ class Interactions(InteractionsProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         interaction_types = self._abc_to_dataframe(result)
-        interaction_types = self._rename_dataframe_columns(
+        interaction_types = self._standardize_dataframe(
             interaction_types, REMOTE_COLUMNS_MAPPING["interaction_types"]
         )
         # Format DataFrame
@@ -573,7 +573,7 @@ class Interactions(InteractionsProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         interactions = self._abc_to_dataframe(result)
-        interactions = self._rename_dataframe_columns(
+        interactions = self._standardize_dataframe(
             interactions, REMOTE_COLUMNS_MAPPING["interactions"]
         )
         # Format DataFrame
@@ -635,9 +635,7 @@ class Pockets(PocketsProvider):
         )
         # Convert to DataFrame and formatting
         pocket = pd.DataFrame(result)
-        pocket = self._rename_dataframe_columns(
-            pocket, REMOTE_COLUMNS_MAPPING["pockets"]
-        )
+        pocket = self._standardize_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
         # Format DataFrame
         pocket = self._format_dataframe(
             pocket, LOCAL_REMOTE_COLUMNS["pockets"]["remote"]
