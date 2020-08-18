@@ -635,11 +635,15 @@ class Coordinates(CoordinatesProvider):
 
         # Return different output formats
         if output_format == "rdkit":
-            return self._mol2_file_to_rdkit_mol(str(file_path), compute2d)
+            rdkit_mol = self._mol2_file_to_rdkit_mol(str(file_path), compute2d)
+            return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
-                return self._mol2_file_to_dataframe(file_path).df
+                mol2_df = self._mol2_file_to_dataframe(file_path).df
+                if entity in ["complex", "pocket", "protein"]:
+                    mol2_df = self._split_mol2_subst_names(mol2_df)
+                return mol2_df
             elif input_format == "pdb":
                 pass
 

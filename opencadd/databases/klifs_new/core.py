@@ -1151,237 +1151,6 @@ class CoordinatesProvider(BaseProvider):
         super().__init__()
 
     @staticmethod
-    def _fetch_text(structure_id, entity="complex", input_format="mol2"):
-        """
-        Get structural data content from KLIFS database as string (text).
-
-        Parameters
-        ----------
-        structure_id : str
-            KLIFS structure ID.
-        entity : str
-            Structural entity: complex (default), ligand, pocket, or protein.
-        input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only if entity=complex).
-
-        Returns
-        -------
-        str
-            Structural data.
-        """
-
-        if entity == "complex" and input_format == "mol2":
-            return (
-                KLIFS_CLIENT.Structures.get_structure_get_complex(
-                    structure_ID=structure_id
-                )
-                .response()
-                .result
-            )
-        elif entity == "complex" and input_format == "pdb":
-            return (
-                KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(
-                    structure_ID=structure_id
-                )
-                .response()
-                .result
-            )
-        elif entity == "ligand" and input_format == "mol2":
-            return (
-                KLIFS_CLIENT.Structures.get_structure_get_ligand(
-                    structure_ID=structure_id
-                )
-                .response()
-                .result
-            )
-        elif entity == "pocket" and input_format == "mol2":
-            return (
-                KLIFS_CLIENT.Structures.get_structure_get_pocket(
-                    structure_ID=structure_id
-                )
-                .response()
-                .result
-            )
-        elif entity == "protein" and input_format == "mol2":
-            return (
-                KLIFS_CLIENT.Structures.get_structure_get_protein(
-                    structure_ID=structure_id
-                )
-                .response()
-                .result
-            )
-
-    @staticmethod
-    def _mol2_text_to_dataframe(mol2_text):
-        """
-        Get structural data from mol2 text.
-
-        Parameters
-        ----------
-        mol2_text : str
-            Mol2 file content from KLIFS database.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Structural data.
-        """
-
-        pmol = PandasMol2()
-
-        try:
-            mol2_df = pmol._construct_df(
-                mol2_text.splitlines(True),
-                col_names=[
-                    "atom_id",
-                    "atom_name",
-                    "x",
-                    "y",
-                    "z",
-                    "atom_type",
-                    "subst_id",
-                    "subst_name",
-                    "charge",
-                    "backbone",
-                ],
-                col_types=[int, str, float, float, float, str, int, str, float, str],
-            )
-        except ValueError:
-            mol2_df = pmol._construct_df(
-                mol2_text.splitlines(True),
-                col_names=[
-                    "atom_id",
-                    "atom_name",
-                    "x",
-                    "y",
-                    "z",
-                    "atom_type",
-                    "subst_id",
-                    "subst_name",
-                    "charge",
-                ],
-                col_types=[int, str, float, float, float, str, int, str, float],
-            )
-
-        return mol2_df
-
-    @staticmethod
-    def _mol2_text_to_rdkit_mol(mol2_text, compute2d=True):
-        """
-        Get structural data from mol2 text.
-
-        Parameters
-        ----------
-        mol2_text : str
-            Mol2 file content from KLIFS database.
-        compute2d : bool
-            Compute 2D coordinates for ligand (default).
-
-        Returns
-        -------
-        rdkit.Chem.rdchem.Mol
-            Molecule.
-        """
-
-        mol = Chem.MolFromMol2Block(mol2_text)
-
-        if compute2d:
-            AllChem.Compute2DCoords(mol)
-
-        return mol
-
-    @staticmethod
-    def _pdb_text_to_dataframe(pdb_text):
-        """
-        Get structural data from pdb text.
-
-        Parameters
-        ----------
-        pdb_text : str
-            Pdb file content from KLIFS database.
-
-        Returns
-        -------
-        dict of pandas.DataFrame
-            Structural data.
-        """
-
-        ppdb = PandasPdb()
-
-        pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
-
-        print(f"Structural data keys: {pdb_dict.keys()}")
-
-        return pdb_dict
-
-    @staticmethod
-    def _mol2_file_to_dataframe(mol2_file):
-        """
-        Get structural data from mol2 file.
-
-        Parameters
-        ----------
-        mol2_file : pathlib.Path or str
-            Path to mol2 file.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Structural data.
-        """
-
-        mol2_file = Path(mol2_file)
-
-        pmol = PandasMol2()
-
-        try:
-            mol2_df = pmol.read_mol2(
-                str(mol2_file),
-                columns={
-                    0: ("atom_id", int),
-                    1: ("atom_name", str),
-                    2: ("x", float),
-                    3: ("y", float),
-                    4: ("z", float),
-                    5: ("atom_type", str),
-                    6: ("subst_id", int),
-                    7: ("subst_name", str),
-                    8: ("charge", float),
-                    9: ("backbone", str),
-                },
-            )
-
-        except ValueError:
-            mol2_df = pmol.read_mol2(str(mol2_file))
-
-        return mol2_df
-
-    @staticmethod
-    def _mol2_file_to_rdkit_mol(mol2_file, compute2d=True):
-        """
-        Get structural data from mol2 file.
-
-        Parameters
-        ----------
-        mol2_file : pathlib.Path or str
-            Path to mol2 file.
-        compute2d : bool
-            Compute 2D coordinates for ligand (default).
-
-        Returns
-        -------
-        rdkit.Chem.rdchem.Mol
-            Molecule.
-        """
-
-        mol = Chem.MolFromMol2File(mol2_file)
-
-        if compute2d:
-            AllChem.Compute2DCoords(mol)
-
-        return mol
-
-    @staticmethod
     def check_parameter_validity(entity, input_format, output_format=None):
         """
         Check if entity and input/output format (and their combinations) are valid.
@@ -1419,4 +1188,88 @@ class CoordinatesProvider(BaseProvider):
                 raise ValueError(
                     f"Only entity ligand can be fetched as rdkit molecule."
                 )
+
+    def _split_mol2_subst_names(self, mol2_dataframe):
+        """
+        Split "residue.subst_name" column values from mol2 file and add as 
+        "residue.name" and "residue.pdb_id" columns.
+
+        Parameters
+        ----------
+        mol2_dataframe : pandas.DataFrame
+            Structural data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structural data, including additional columns for residue name and PDB ID.
+        """
+
+        result = mol2_dataframe.apply(
+            lambda x: self._split_mol2_subst_name(
+                x["residue.subst_name"], x["atom.type"]
+            ),
+            axis=1,
+        )
+        res_names = [res_name for res_name, res_id in result]
+        res_ids = [res_id for res_name, res_id in result]
+
+        mol2_dataframe["residue.name"] = res_names
+        mol2_dataframe["residue.pdb_id"] = res_ids
+
+        return mol2_dataframe
+
+    @staticmethod
+    def _split_mol2_subst_name(subst_name, atom_type):
+        """
+        Split "residue.subst_name" values from mol2 file.
+
+        Parameters
+        ----------
+        subst_name : str
+            Substructure name in mol2 file. 
+        atom_type : str
+            Atom type.
+
+        Returns
+        -------
+        tuple (str, int)
+            Residue name and residue PDB ID.
+
+        Notes
+        -----
+        Regular example: "ALA1" ("residue.subst_name") will be split to 
+        - "ALA" ("residue.name") and 
+        - 1 ("residue.pdb_id").
+        """
+
+        # Some subst_name entries in the KLIFS mol2 files contain underscores.
+        # Examples:
+        # - 5YKS: Residues on the N-terminus of (before) the first amino acid,
+        #         i.e. 3C protease cutting site
+        # - 2J5E: Mutated residue (CYO_797)
+        # Replace underscores with minus sign, so casting to int is still possible.
+        subst_name = subst_name.replace("_", "-")
+
+        # Some subst_name entries in the KLIFS mol2 files (in accordance with
+        # the original PDB files) contain a letter after the residue ID.
+        # Examples:
+        # - 3HLL: Irregular residue ID (56A, 93B)
+        # Remove letter from end of string.
+        try:
+            int(subst_name[-1])
+        except ValueError:
+            subst_name = subst_name[:-1]
+
+        # Handle "residues" that are elements such as CA or MG.
+        if subst_name[:2] == atom_type.upper():
+            res_name = subst_name[:2]
+            res_id = int(subst_name[2:])
+
+        # These are amino acid, linkers, compounds, ...
+        else:
+            res_name = subst_name[:3]
+            res_id = int(subst_name[3:])
+
+        return res_name, res_id
 

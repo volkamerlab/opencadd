@@ -696,13 +696,18 @@ class Coordinates(CoordinatesProvider):
             return text
 
         elif output_format == "rdkit":
-            return self._mol2_text_to_rdkit_mol(text, compute2d)
+            rdkit_mol = self._mol2_text_to_rdkit_mol(text, compute2d)
+            return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
-                return self._mol2_text_to_dataframe(text)
+                mol2_df = self._mol2_text_to_dataframe(text)
+                if entity in ["complex", "pocket", "protein"]:
+                    mol2_df = self._split_mol2_subst_names(mol2_df)
+                return mol2_df
             elif input_format == "pdb":
-                return self._pdb_text_to_dataframe(text)
+                pdb_df = self._pdb_text_to_dataframe(text)
+                return pdb_df
 
     def save(
         self,
@@ -832,7 +837,7 @@ class Coordinates(CoordinatesProvider):
         Parameters
         ----------
         mol2_text : str
-        Mol2 file content from KLIFS database.
+            Mol2 file content from KLIFS database.
 
         Returns
         -------
