@@ -12,10 +12,13 @@ from . import remote
 from . import local
 
 KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(KLIFS_API_DEFINITIONS, config={"validate_responses": False})
+KLIFS_CLIENT = SwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)
 
 # Set logger
 _logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # Needed to show all columns in Jupyter notebooks
 pd.set_option("display.max_columns", 100)
@@ -30,8 +33,10 @@ def setup_remote():
     opencadd.databases.klifs.api.Session
         Remote session.
     """
+    _logger.info(f"Set up remote session...")
     session = Session()
     session.from_remote()
+    _logger.info(f"Remote session is ready!")
     return session
 
 
@@ -49,8 +54,10 @@ def setup_local(path_to_klifs_download):
     opencadd.databases.klifs.api.Session
         Remote session.
     """
+    _logger.info(f"Set up local session...")
     session = Session()
     session.from_local(path_to_klifs_download)
+    _logger.info(f"Local session is ready!")
     return session
 
 
