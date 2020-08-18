@@ -337,7 +337,7 @@ class SessionInitializer:
             klifs_metadata_with_ids.loc[index, "structure.id"] = structure_id
             klifs_metadata_with_ids.loc[index, "kinase.id"] = kinase_id
         # Remove structures that have no KLIFS ID
-        klifs_metadata_with_ids.dropna(subset="structure.id", inplace=True)
+        klifs_metadata_with_ids.dropna(subset=["structure.id"], inplace=True)
 
         return klifs_metadata_with_ids
 
