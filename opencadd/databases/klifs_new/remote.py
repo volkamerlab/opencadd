@@ -702,8 +702,8 @@ class Coordinates(CoordinatesProvider):
         elif output_format == "biopandas":
             if input_format == "mol2":
                 mol2_df = self._mol2_text_to_dataframe(text)
-                if entity in ["complex", "pocket", "protein"]:
-                    mol2_df = self._split_mol2_subst_names(mol2_df)
+                mol2_df = self._split_mol2_subst_names(mol2_df)
+                mol2_df = self._add_residue_klifs_ids(mol2_df, structure_id)
                 return mol2_df
             elif input_format == "pdb":
                 pdb_df = self._pdb_text_to_dataframe(text)
@@ -910,3 +910,24 @@ class Coordinates(CoordinatesProvider):
         print(f"Structural data keys: {pdb_dict.keys()}")
 
         return pdb_dict
+
+    def _add_residue_klifs_ids(self, mol2_dataframe, structure_id):
+        """
+        Add KLIFS position IDs from the KLIFS metadata as additional column.
+
+        Parameters
+        ----------
+        mol2_dataframe : TODO
+        Returns
+        -------
+        pandas.DataFrame TODO
+        """
+
+        # Get pocket residue details: KLIFS and PDB residue IDs
+        pocket_remote = Pockets(self.__client)
+        pocket = pocket_remote.from_structure_id(structure_id)
+        # Merge DataFrames
+        mol2_dataframe = mol2_dataframe.merge(pocket, on="residue.pdb_id", how="left")
+
+        return mol2_dataframe
+
