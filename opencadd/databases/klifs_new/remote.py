@@ -647,13 +647,6 @@ class Coordinates(CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide remote coordinates requests, 
     i.e. fetching and saving structural data (coordinates).
-    
-    Methods
-    -------
-    fetch(structure_id, entity=, input_format, output_format, compute2d)
-        Fetch structural data from KLIFS database in different output formats.
-    save(structure_id, output_path, entity, input_format, in_dir)
-        Save structural data to file.
     """
 
     def __init__(self, client):
@@ -661,7 +654,7 @@ class Coordinates(CoordinatesProvider):
         super().__init__()
         self.__client = client
 
-    def fetch(
+    def from_structure_id(
         self,
         structure_id,
         entity="complex",
@@ -709,7 +702,7 @@ class Coordinates(CoordinatesProvider):
                 pdb_df = self._pdb_text_to_dataframe(text)
                 return pdb_df
 
-    def save(
+    def to_file(
         self,
         structure_id,
         output_path,
@@ -756,7 +749,9 @@ class Coordinates(CoordinatesProvider):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Get text
-        text = self.fetch(structure_id, entity, input_format, output_format="text")
+        text = self.from_structure_id(
+            structure_id, entity, input_format, output_format="text"
+        )
 
         # Save text to file
         with open(output_path, "w") as f:

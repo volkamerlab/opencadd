@@ -1145,6 +1145,51 @@ class CoordinatesProvider(BaseProvider):
     Get coordinates for different entities (complex, ligand, pocket, protein, water) and 
     input formats (mol2, pdb)
     in the form of different output formats (text, biopandas, rdkit).
+
+    Methods
+    -------
+    from_structure_id(structure_id, entity, input_format, output_format, compute2d)
+        Fetch/load structural data from KLIFS server/file.
+    from_file(file_path, output_format, compute2d)
+        Load structural data from KLIFS file (local only).
+    to_file()
+        Save structural data to file (remote only).
+
+    Raises
+    ------
+    Add exceptions here. TODO
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of atom coordinates (rows) with the (or a subset of 
+    the) following attributes (columns):
+
+    atom.id : int
+        Atom PDB ID.
+    atom.name : str
+        Atom name.
+    atom.x : float
+        Atom x coordinate.
+    atom.y : float
+        Atom y coordinate.
+    atom.z : float
+        Atom z coordinate.
+    atom.type : float
+        Atom type.  TODO from where?
+    residue.subst_id : str
+        Residue's substructure ID.  TODO from where?
+    residue.subst_name : str
+        Residue's substructure name.  TODO from where?
+    atom.charge : float
+        Atom charge.
+    residue.name : float
+        Residue name.
+    residue.pdb_id : float
+        Residue PDB ID.
+    residue.klifs_id : int
+        Residue KLIFS ID (pocket residues only, other NaN).
+    residue.klifs_region : float
+        KLIFS region that the residue belongs to (pocket residues only, other NaN).
     """
 
     def __init__(self):

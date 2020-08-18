@@ -598,11 +598,6 @@ class Coordinates(CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide local coordinates requests, 
     i.e. loading structural data (coordinates).
-    
-    Methods
-    -------
-    load(file_path, output_format, compute2d)
-        Load structural data from KLIFS file in different output formats.
     """
 
     def __init__(self, database):
@@ -610,7 +605,7 @@ class Coordinates(CoordinatesProvider):
         super().__init__()
         self.__database = database
 
-    def load(self, file_path, output_format="biopandas", compute2d=True):
+    def from_file(self, file_path, output_format="biopandas", compute2d=True):
         """
         Load structural data from KLIFS file in different output formats.
 
@@ -641,8 +636,7 @@ class Coordinates(CoordinatesProvider):
         elif output_format == "biopandas":
             if input_format == "mol2":
                 mol2_df = self._mol2_file_to_dataframe(file_path).df
-                if entity in ["complex", "pocket", "protein"]:
-                    mol2_df = self._split_mol2_subst_names(mol2_df)
+                mol2_df = self._split_mol2_subst_names(mol2_df)
                 return mol2_df
             elif input_format == "pdb":
                 pass
@@ -699,3 +693,40 @@ class Coordinates(CoordinatesProvider):
             AllChem.Compute2DCoords(mol)
 
         return mol
+
+    @staticmethod
+    def _add_residue_klifs_ids(mol2_dataframe, klifs_metadata_entry):
+        """
+        Add KLIFS position IDs from the KLIFS metadata as additional column.
+
+        Parameters
+        ----------
+        TODO
+
+        Returns
+        -------
+        TODO
+        """
+
+        # List of KLIFS positions (starting at 1) excluding gap positions
+        klifs_ids = [
+            index
+            for index, residue in enumerate(klifs_metadata_entry["kinase.pocket"], 1)
+            if residue != "_"
+        ]
+
+        # Number of atoms per residue in molecule (mol2file)
+        # Note: sort=False important otherwise negative residue IDs will be sorted to the top
+        number_of_atoms_per_residue = mol2_dataframe.groupby(
+            by="residue.subst_name", sort=False
+        ).size()
+
+        # Get KLIFS position IDs for each atom in molecule
+        klifs_ids_per_atom = []
+
+        for klifs_id, n in zip(klifs_ids, number_of_atoms_per_residue):
+            klifs_ids_per_atom = klifs_ids_per_atom + [klifs_id] * n
+
+        # Add column for KLIFS position IDs to molecule
+        molecule.df["klifs_id"] = klifs_ids_per_atom
+
