@@ -1243,33 +1243,15 @@ class CoordinatesProvider(BaseProvider):
         - 1 ("residue.pdb_id").
         """
 
-        # Some subst_name entries in the KLIFS mol2 files contain underscores.
-        # Examples:
-        # - 5YKS: Residues on the N-terminus of (before) the first amino acid,
-        #         i.e. 3C protease cutting site
-        # - 2J5E: Mutated residue (CYO_797)
-        # Replace underscores with minus sign, so casting to int is still possible.
-        subst_name = subst_name.replace("_", "-")
-
-        # Some subst_name entries in the KLIFS mol2 files (in accordance with
-        # the original PDB files) contain a letter after the residue ID.
-        # Examples:
-        # - 3HLL: Irregular residue ID (56A, 93B)
-        # Remove letter from end of string.
-        try:
-            int(subst_name[-1])
-        except ValueError:
-            subst_name = subst_name[:-1]
-
         # Handle "residues" that are elements such as CA or MG.
         if subst_name[:2] == atom_type.upper():
             res_name = subst_name[:2]
-            res_id = int(subst_name[2:])
+            res_id = subst_name[2:]
 
         # These are amino acid, linkers, compounds, ...
         else:
             res_name = subst_name[:3]
-            res_id = int(subst_name[3:])
+            res_id = subst_name[3:]
 
         return res_name, res_id
 
