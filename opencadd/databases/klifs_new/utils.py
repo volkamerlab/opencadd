@@ -8,7 +8,14 @@ from contextlib import contextmanager
 import logging
 from pathlib import Path
 
+from bravado.client import SwaggerClient
+
 _logger = logging.getLogger(__name__)
+
+KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
+KLIFS_CLIENT = SwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)
 
 
 def get_file_path(
@@ -68,7 +75,10 @@ def get_file_path(
             / f"{entity}.{format}"
         )
     else:
-        path = path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
+        path = (
+            path_to_klifs_download
+            / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
+        )
 
     return path
 

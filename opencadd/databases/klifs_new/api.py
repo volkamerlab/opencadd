@@ -5,16 +5,12 @@ Defines the opencadd.databases.klifs API (local and remote).
 """
 import logging
 
-from bravado.client import SwaggerClient
 import pandas as pd
 
 from . import remote
 from . import local
+from .utils import KLIFS_CLIENT
 
-KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(
-    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-)
 
 # Set logger
 _logger = logging.getLogger(__name__)
