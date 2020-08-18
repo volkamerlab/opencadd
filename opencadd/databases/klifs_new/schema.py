@@ -144,7 +144,7 @@ REMOTE_COLUMNS_MAPPING = {
     "pockets": {
         "index": "structure.pocket_klifs_numbering",
         "Xray_position": "structure.pocket_pdb_numbering",
-        "KLIFS_position": "structure.pocket_regions_klifs",
+        "KLIFS_position": "structure.pocket_klifs_regions",
     },
 }
 

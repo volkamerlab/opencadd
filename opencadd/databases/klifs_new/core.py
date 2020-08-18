@@ -1099,6 +1099,18 @@ class PocketsProvider(BaseProvider):
     from_structure_id()
         Get a structure's residue numbering in PDB and KLIFS by structure ID
         (plus kinase region label for each residue).
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of 
+    the) following attributes (columns):
+
+    structure.pocket_klifs_numbering : int
+        KLIFS numbering for pocket residues.
+    structure.pocket_pdb_numbering : int
+        PDB numbering for pocket residues.
+    structure.pocket_klifs_regions : str
+        KLIFS regions assigned to pocket residues.
     """
 
     def __init__(self):
