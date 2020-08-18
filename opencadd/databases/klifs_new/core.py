@@ -72,6 +72,8 @@ class BaseProvider:
 
         Parameters
         ----------
+        dataframe : pandas.DataFrame
+            Remote query result.
         columns_mapping : dict
             Mapping of old to new column names.
         """
@@ -88,6 +90,8 @@ class BaseProvider:
 
         Parameters
         ----------
+        dataframe : pandas.DataFrame
+            Remote query result.
         column_names : list of str
             Column names in the order of interest for output.
 
@@ -270,7 +274,7 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Kinase families (rows) with the following column: "kinase.family". Check class 
             docstring for more information on columns.
         
@@ -298,7 +302,7 @@ class KinasesProvider(BaseProvider):
         
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_", 
             "species.klifs". Check class docstring for more information on columns.
         
@@ -315,9 +319,14 @@ class KinasesProvider(BaseProvider):
         """
         Get kinases by one or more kinase IDs.
 
+        Parameters
+        ----------
+        kinase_ids : int or list of int
+            KLIFS kinase ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Kinases (rows) with columns as described in the class docstring.
         
         Raises
@@ -333,9 +342,14 @@ class KinasesProvider(BaseProvider):
         """
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
+        Parameters
+        ----------
+        kinase_names : str or list of str
+            Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Kinases (rows) with columns as described in the class docstring.
         
         Raises
@@ -418,11 +432,11 @@ class LigandsProvider(BaseProvider):
         Parameters
         ----------
         kinase_ids : int or list of int
-            Kinase ID(s).
+            KLIFS kinase ID(s).
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
             
         Raises
@@ -441,11 +455,11 @@ class LigandsProvider(BaseProvider):
         Parameters
         ----------
         kinase_names : str or list of str
-            Kinase names(s).
+            Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
             
         Raises
@@ -464,11 +478,11 @@ class LigandsProvider(BaseProvider):
         Parameters
         ----------
         ligand_ids : int or list of int
-            Ligand ID(s).
+            KLIFS ligand ID(s).
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
             
         Raises
@@ -489,7 +503,7 @@ class LigandsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
             
         Raises
@@ -629,7 +643,7 @@ class StructuresProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -643,9 +657,14 @@ class StructuresProvider(BaseProvider):
         """
         Get structures by one or more structure IDs.
 
+        Parameters
+        ----------
+        structure_ids : int or list of int
+            KLIFS structure ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -661,9 +680,14 @@ class StructuresProvider(BaseProvider):
         """
         Get structures by one or more ligand IDs.
 
+        Parameters
+        ----------
+        ligand_ids : int or list of int
+            KLIFS ligand ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -679,9 +703,14 @@ class StructuresProvider(BaseProvider):
         """
         Get structures by one or more kinase IDs.
 
+        Parameters
+        ----------
+        kinase_ids : int or list of int
+            KLIFS kinase ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -693,13 +722,24 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_structure_pdbs(self, structure_pdbs):
+    def from_structure_pdbs(
+        self, structure_pdbs, structure_alternate_model=None, structure_chain=None
+    ):
         """
         Get structures by one or more structure PDB IDs.
 
+        Parameters
+        ----------
+        structure_pdbs : str or list of str
+            Structure PDB ID(s).
+        structure_alternate_model : None or str
+            Alternate model (only used if only one structure PDB ID is given).
+        structure_chain : None or str
+            Chain (only used if only one structure PDB ID is given).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -711,13 +751,50 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
+    @staticmethod
+    def _filter_pdb_by_alt_chain(
+        structures, structure_alternate_model=None, structure_chain=None
+    ):
+        """
+        If only one structure PDB ID given, filter structures by alternate model and/or chain.
+
+        Parameters
+        ----------
+        structures : pandas.DataFrame
+            Structures for one structures PDB ID (rows) with columns as described in the class docstring.
+        structure_alternate_model : None or str
+            Alternate model (only used if only one structure PDB ID is given).
+        structure_chain : None or str
+            Chain (only used if only one structure PDB ID is given).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structures (rows) with columns as described in the class docstring.
+        """
+
+        # Filter by alternate model if given
+        if structure_alternate_model:
+            structures = structures[
+                structures["structure.alternate_model"] == structure_alternate_model
+            ]
+        # Filter by chain if given
+        if structure_chain:
+            structures = structures[structures["structure.chain"] == structure_chain]
+        return structures
+
     def from_ligand_pdbs(self, ligand_pdbs):
         """
         Get structures by one or more ligand PDB IDs.
 
+        Parameters
+        ----------
+        ligand_pdbs : str or list of str
+            Ligand PDB ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -731,9 +808,14 @@ class StructuresProvider(BaseProvider):
         """
         Get structures by one or more kinase names (KLIFS or HGNC name).
 
+        Parameters
+        ----------
+        kinase_names : str or list of str
+            Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
             
         Raises
@@ -793,7 +875,7 @@ class BioactivitiesProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
             
         Raises
@@ -806,10 +888,15 @@ class BioactivitiesProvider(BaseProvider):
     def from_kinase_ids(self, kinase_ids):
         """
         Get bioactivities by one or more kinase IDs.
+        
+        Parameters
+        ----------
+        kinase_ids : int or list of int
+            KLIFS kinase ID(s).
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
             
         Raises
@@ -825,9 +912,14 @@ class BioactivitiesProvider(BaseProvider):
         """
         Get bioactivities by one or more ligand IDs.
 
+        Parameters
+        ----------
+        ligand_ids : int or list of int
+            KLIFS ligand ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
             
         Raises
@@ -883,7 +975,7 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             7 interaction types (rows) with the following columns: 
             "interaction.id", "interaction.name". 
             Check class docstring for more information on columns.
@@ -896,7 +988,7 @@ class InteractionsProvider(BaseProvider):
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
@@ -912,9 +1004,14 @@ class InteractionsProvider(BaseProvider):
         """
         Get interactions by one or more structure IDs.
 
+        Parameters
+        ----------
+        structure_ids : int or list of int
+            KLIFS structure ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
@@ -932,9 +1029,14 @@ class InteractionsProvider(BaseProvider):
         """
         Get interactions by one or more ligand IDs.
 
+        Parameters
+        ----------
+        ligand_ids : int or list of int
+            KLIFS ligand ID(s).
+
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
@@ -949,10 +1051,15 @@ class InteractionsProvider(BaseProvider):
     def from_kinase_ids(self, kinase_ids):
         """
         Get interactions by one or more kinase IDs.
+        
+        Parameters
+        ----------
+        kinase_ids : int or list of int
+            KLIFS kinase ID(s).
 
         Returns
         -------
-        pandas.DataFrame or None
+        pandas.DataFrame
             Interactions (rows) with the following columns: 
             "structure.id", "interaction.fingerprint". 
             Check class docstring for more information on columns.
@@ -1038,31 +1145,41 @@ class CoordinatesProvider(BaseProvider):
 
         if entity == "complex" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_complex(structure_ID=structure_id)
+                KLIFS_CLIENT.Structures.get_structure_get_complex(
+                    structure_ID=structure_id
+                )
                 .response()
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
+                KLIFS_CLIENT.Structures.get_structure_get_pdb_complex(
+                    structure_ID=structure_id
+                )
                 .response()
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_ligand(structure_ID=structure_id)
+                KLIFS_CLIENT.Structures.get_structure_get_ligand(
+                    structure_ID=structure_id
+                )
                 .response()
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_pocket(structure_ID=structure_id)
+                KLIFS_CLIENT.Structures.get_structure_get_pocket(
+                    structure_ID=structure_id
+                )
                 .response()
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
             return (
-                KLIFS_CLIENT.Structures.get_structure_get_protein(structure_ID=structure_id)
+                KLIFS_CLIENT.Structures.get_structure_get_protein(
+                    structure_ID=structure_id
+                )
                 .response()
                 .result
             )
@@ -1248,7 +1365,7 @@ class CoordinatesProvider(BaseProvider):
             Structural entity: complex, ligand, pocket, protein, or water (only in local module).
         input_format : str
             File input format: mol2 or pdb (only for entity=complex).
-        output_format : str or None
+        output_format : None or str
             Output format: text (only in remote module), biopandas, or rdkit (only for entity=ligand).
         """
 
@@ -1272,4 +1389,7 @@ class CoordinatesProvider(BaseProvider):
             raise ValueError(f"Entity {entity} is only available in mol2 format.")
         if output_format:
             if output_format == "rdkit" and entity != "ligand":
-                raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
+                raise ValueError(
+                    f"Only entity ligand can be fetched as rdkit molecule."
+                )
+

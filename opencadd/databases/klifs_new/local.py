@@ -87,7 +87,9 @@ class SessionInitializer:
         klifs_metadata = self._merge_files(klifs_overview, klifs_export)
         klifs_metadata = self._add_filepaths(klifs_metadata)
 
-        klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
+        klifs_metadata.to_csv(
+            self.path_to_klifs_download / "klifs_metadata.csv", index=False
+        )
 
         return klifs_metadata
 
@@ -111,7 +113,9 @@ class SessionInitializer:
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_name(i) for i in klifs_export["kinase.name"]]
+        kinase_names = [
+            self._format_kinase_name(i) for i in klifs_export["kinase.name"]
+        ]
         klifs_export["kinase.name"] = [i[0] for i in kinase_names]
         klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
 
@@ -215,7 +219,9 @@ class SessionInitializer:
             "ligand.pdb_allosteric",
         ]
 
-        klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
+        klifs_metadata = klifs_export.merge(
+            right=klifs_overview, how="inner", on=mutual_columns
+        )
 
         if (
             not (klifs_overview.shape[1] + klifs_export.shape[1] - len(mutual_columns))
@@ -228,7 +234,11 @@ class SessionInitializer:
                 f"KLIFS merged table has shape: {klifs_metadata.shape}"
             )
 
-        if not klifs_overview.shape[0] == klifs_export.shape[0] == klifs_metadata.shape[0]:
+        if (
+            not klifs_overview.shape[0]
+            == klifs_export.shape[0]
+            == klifs_metadata.shape[0]
+        ):
             raise ValueError(
                 f"Output table has incorrect number of rows:\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -326,7 +336,9 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
+        kinases = self._format_dataframe(
+            kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
+        )
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -338,7 +350,9 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        kinases = self._format_dataframe(
+            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"]
+        )
         return kinases
 
 
@@ -358,7 +372,9 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"]
+        )
         return ligands
 
     def from_kinase_names(self, kinase_names):
@@ -369,7 +385,8 @@ class Ligands(LigandsProvider):
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
+            ligands,
+            LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -388,7 +405,9 @@ class Ligands(LigandsProvider):
         ligands = self.__database
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],)
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],
+        )
         return ligands
 
 
@@ -413,12 +432,19 @@ class Structures(StructuresProvider):
         )
         return structures
 
-    def from_structure_pdbs(self, structure_pdbs):
+    def from_structure_pdbs(
+        self, structure_pdbs, structure_alternate_model=None, structure_chain=None
+    ):
 
         structure_pdbs = self._cast_to_list(structure_pdbs)
         # Get local database and select rows
         structures = self.__database
         structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
+        # If only one structure PDB ID is given, check alternate model and chain filters
+        if len(structure_pdbs) == 1:
+            structures = self._filter_pdb_by_alt_chain(
+                structures, structure_alternate_model, structure_chain
+            )
         # Format DataFrame
         structures = self._format_dataframe(
             structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
@@ -445,7 +471,10 @@ class Structures(StructuresProvider):
         structures = structures[
             structures.apply(
                 lambda x: any(
-                    [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
+                    [
+                        kinase_name in kinase_names
+                        for kinase_name in x["kinase.name_all"]
+                    ]
                 ),
                 axis=1,
             )
