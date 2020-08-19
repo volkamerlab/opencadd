@@ -11,7 +11,7 @@ from opencadd.databases.klifs_new.utils import (
 
 
 @pytest.mark.parametrize(
-    "path_to_klifs_download, species, kinase_name, structure_pdb, structure_alternate_model, structure_chain, entity, format, in_dir, filepath_template",
+    "path_to_klifs_download, species, kinase_name, structure_pdb, structure_alternate_model, structure_chain, entity, input_format, in_dir, filepath_template",
     [
         (
             "/path/to",
@@ -71,14 +71,13 @@ def test_metadata_to_filepath(
     structure_alternate_model,
     structure_chain,
     entity,
-    format,
+    input_format,
     in_dir,
     filepath_template,
 ):
     """
     Test metadata to filepath conversion.
     """
-
     filepath = metadata_to_filepath(
         path_to_klifs_download,
         species,
@@ -87,8 +86,53 @@ def test_metadata_to_filepath(
         structure_alternate_model,
         structure_chain,
         entity,
-        format,
+        input_format,
         in_dir,
     )
     assert str(filepath) == filepath_template
 
+
+@pytest.mark.parametrize(
+    "filepath, metadata_template",
+    [
+        (
+            "/path/to/HUMAN/BRAF/6uuo/pocket.mol2",
+            {
+                "species": "Human",
+                "kinase_name": "BRAF",
+                "structure_pdb": "6uuo",
+                "entity": "pocket",
+                "input_format": "mol2",
+            },
+        ),
+        (
+            "/path/to/HUMAN/BRAF/6uuo_chainA/pocket.mol2",
+            {
+                "species": "Human",
+                "kinase_name": "BRAF",
+                "structure_pdb": "6uuo",
+                "structure_chain": "A",
+                "entity": "pocket",
+                "input_format": "mol2",
+            },
+        ),
+        (
+            "/path/to/HUMAN/BRAF/6uuo_altB_chainA/pocket.mol2",
+            {
+                "species": "Human",
+                "kinase_name": "BRAF",
+                "structure_pdb": "6uuo",
+                "structure_alternate_model": "B",
+                "structure_chain": "A",
+                "entity": "pocket",
+                "input_format": "mol2",
+            },
+        ),
+    ],
+)
+def test_filepath_to_metadata(filepath, metadata_template):
+    """
+    Test filepath to metadata conversion.
+    """
+    metadata = filepath_to_metadata(filepath)
+    assert metadata == metadata_template
