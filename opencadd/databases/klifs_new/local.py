@@ -707,10 +707,40 @@ class Coordinates(CoordinatesProvider):
             if input_format == "mol2":
                 mol2_df = self._mol2_file_to_dataframe(file_path).df
                 mol2_df = self._split_mol2_subst_names(mol2_df)
-                # mol2_df = self._add_residue_klifs_ids(mol2_df, structure_id)
+                if "pocket" in str(file_path):
+                    mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
                 return mol2_df
             elif input_format == "pdb":
                 pass
+
+    def from_structure_id(
+        self,
+        structure_id,
+        entity="complex",
+        input_format="mol2",
+        output_format="biopandas",
+        compute2d=True,
+    ):
+        self.check_parameter_validity(entity, input_format, output_format)
+
+        # Get structure by structure ID
+        structures_local = Structures(self.__database, self.__path_to_klifs_download)
+        structure = structures_local.from_structure_ids(structure_id).squeeze()
+        # Get filepath from metadata
+        filepath = metadata_to_filepath(
+            self.__path_to_klifs_download,
+            structure["species.klifs"],
+            structure["kinase.name"],
+            structure["structure.pdb"],
+            structure["structure.alternate_model"],
+            structure["structure.chain"],
+            entity,
+            input_format,
+            in_dir=True,
+        )
+        # Get coordinates from file
+        result = self.from_file(filepath, output_format, compute2d)
+        return result
 
     @staticmethod
     def _mol2_file_to_dataframe(mol2_file):
