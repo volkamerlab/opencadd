@@ -105,7 +105,7 @@ class SessionInitializer:
         klifs_metadata = self._merge_files(klifs_overview, klifs_export)
         _logger.info(f"Add paths to coordinate folders to structures...")
         klifs_metadata = self._add_filepaths(klifs_metadata)
-        _logger.info(f"Add KLIFS IDs to structures...")
+        _logger.info(f"Add KLIFS IDs to structures (uses remote since not available locally!)...")
         klifs_metadata = self._add_klifs_ids(klifs_metadata)
 
         klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
