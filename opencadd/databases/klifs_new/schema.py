@@ -144,7 +144,7 @@ REMOTE_COLUMNS_MAPPING = {
     "pockets": {
         "index": "residue.klifs_id",
         "Xray_position": "residue.pdb_id",
-        "KLIFS_position": "residue.klifs_regions",
+        "KLIFS_position": "residue.klifs_region",
     },
 }
 
@@ -197,11 +197,13 @@ LOCAL_REMOTE_COLUMNS = {
     },
     "structures": {
         "local": [
+            "structure.id",
             "kinase.name",
             # "kinase.name_all",
             "kinase.family",
             "kinase.group",
             "species.klifs",
+            "kinase.id",
             "structure.pdb",
             "structure.alternate_model",
             "structure.chain",
@@ -252,7 +254,7 @@ LOCAL_REMOTE_COLUMNS = {
         "remote": list(REMOTE_COLUMNS_MAPPING["interaction_types"].values()),
     },
     "pockets": {
-        "local": [],  # Not available locally
+        "local": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
         "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
     },
     "coordinates": {"local": [], "remote": [],},
