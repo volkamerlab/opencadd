@@ -660,6 +660,23 @@ class Pockets(PocketsProvider):
         self.__database = database
         self.__path_to_klifs_download = path_to_klifs_download
 
+    def from_structure_id(self, structure_id):
+
+        # Get pocket coordinates
+        coordinates_local = Coordinates(self.__database, self.__path_to_klifs_download)
+        mol2_df = coordinates_local.from_structure_id(
+            structure_id,
+            entity="pocket",
+            input_format="mol2",
+            output_format="biopandas",
+        )
+        # Format DataFrame
+        mol2_df = self._format_dataframe(
+            mol2_df, LOCAL_REMOTE_COLUMNS["pockets"]["local"],
+        )
+
+        return mol2_df
+
 
 class Coordinates(CoordinatesProvider):
     """
