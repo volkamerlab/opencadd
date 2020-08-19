@@ -92,6 +92,9 @@ def filepath_to_metadata(filepath):
     Write docs TODO
     """
 
+    # Cast to string
+    filepath = str(filepath)
+
     # Split filepath
     metadata = re.split(r"/|_|\.", filepath)
     # Assign list elements to detail type
@@ -110,6 +113,7 @@ def filepath_to_metadata(filepath):
             "species": metadata[-6].capitalize(),
             "kinase_name": metadata[-5],
             "structure_pdb": metadata[-4],
+            "structure_alternate_model": None,
             "structure_chain": metadata[-3][-1],
             "entity": metadata[-2],
             "input_format": metadata[-1],
@@ -119,6 +123,8 @@ def filepath_to_metadata(filepath):
             "species": metadata[-5].capitalize(),
             "kinase_name": metadata[-4],
             "structure_pdb": metadata[-3],
+            "structure_alternate_model": None,
+            "structure_chain": None,
             "entity": metadata[-2],
             "input_format": metadata[-1],
         }
