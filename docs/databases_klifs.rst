@@ -29,10 +29,16 @@ This module uses the official KLIFS API: https://klifs.vu-compmedchem.nl/swagger
 
 .. code-block:: python
 
-    import opencadd.databases.klifs as klifs
+    from opencadd.databases.klifs.api import setup_remote
+
+    # Set up remote session
+    remote = setup_remote()
 
     # Get all kinases that are available remotely
-    klifs.remote.kinases.kinase_names()
+    remote.kinases.all_kinases()
+
+    # Get kinases by kinase name
+    remote.kinases.from_kinase_names(["EGFR", "BRAF"])
 
 Work with KLIFS data from disc (locally)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,23 +61,18 @@ The ``opencadd.databases.klifs.local`` submodule offers you to access KLIFS data
             │   └── ... 
             └── ... 
 
-**Note**: In order to use the ``opencadd.databases.klifs.local`` module, it is necessary to initialize a metadata file (**the API needs to be simplified here...**).
-
 .. code-block:: python
 
-    import opencadd.databases.klifs as klifs
+    from opencadd.databases.klifs.api import setup_local
 
-    # Initialize KLIFS metadata
-    klifs_overview_path = Path("/path/to/overview.csv")
-    klifs_export_path = Path("/path/to/KLIFS_export.csv")
-    klifs.local.initialize.from_files(klifs_overview_path, klifs_export_path)
-
-    # Load KLIFS metadata
-    klifs_metadata_path = Path("path/to/klifs_metadata.csv")
-    klifs_metadata = pd.read_csv(klifs_metadata_path)
+    # Set up local session
+    local = setup_local("../../opencadd/tests/databases/data/KLIFS_download")
 
     # Get all kinases that are available locally
-    klifs.remote.kinases.kinase_names(klifs_metadata)
+    local.kinases.all_kinases()
+
+    # Get kinases by kinase name
+    local.kinases.from_kinase_names(["EGFR", "BRAF"])
 
 
 How is ``opencadd.databases.klifs`` structured?
@@ -84,27 +85,48 @@ The module's structure looks like this, trying to use the same API for both modu
     opencadd/ 
         └── databases/
             └── klifs/
-                ├── local/
-                │   ├── coordinates.py
-                │   ├── initialize.py
-                │   ├── interactions.py
-                │   ├── kinases.py
-                │   ├── ligands.py
-                │   └── structures.py
-                ├── remote/
-                │   ├── coordinates.py
-                │   ├── interactions.py
-                │   ├── kinases.py
-                │   ├── ligands.py
-                │   └── structures.py
-                ├── klifs_client.py
+                ├── api.py
+                ├── core.py
+                ├── local.py
+                ├── remote.py
+                ├── schema.py
                 └── utils.py
 
 This structure mirrors the KLIFS Swagger API structure in the following way to access different kinds of information both remotely and locally:
 
-- ``kinases`` (in KLIFS called ``information``): Get information about kinases (groups, families, names)
-- ``interactions``: Get interaction fingerprint via structure_ID
-- ``ligands``: Get ligand information
-- ``structures``: Get structure information
-- ``coordinates`` (in KLIFS part of ``structures``): Get structural data (structure coordinates)
+- ``kinases``  
+
+  - Get information about kinases (groups, families, names).  
+  - In KLIFS swagger API called ``Information``.  
+
+- ``ligands``  
+
+  - Get ligand information.  
+  - In KLIFS swagger API called ``Ligands``.  
+
+- ``structures``
+
+  - Get structure information.  
+  - In KLIFS swagger API called ``Structures``.  
+
+- ``bioactivities``  
+
+  - Get bioactivity information.  
+  - In KLIFS swagger API part of ``Ligands``.  
+
+- ``interactions``  
+
+  - Get interaction information.  
+  - In KLIFS swagger API called ``Interactions``.  
+
+- ``pocket``  
+
+  - Get interaction information.  
+  - In KLIFS swagger API part of ``Interactions``.  
+
+- ``coordinates``  
+
+  - Get structural data (structure coordinates).
+  - In KLIFS swagger API part of ``Structures``.  
+
 
