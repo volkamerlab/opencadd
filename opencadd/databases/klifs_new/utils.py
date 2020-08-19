@@ -19,7 +19,7 @@ KLIFS_CLIENT = SwaggerClient.from_url(
 )
 
 
-def metadata_to_filepath(  # Rename function metadata_to_filepath TODO
+def metadata_to_filepath(
     path_to_klifs_download,
     species,
     kinase_name,

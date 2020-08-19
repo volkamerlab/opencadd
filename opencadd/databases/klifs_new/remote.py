@@ -662,22 +662,6 @@ class Coordinates(CoordinatesProvider):
         output_format="biopandas",
         compute2d=True,
     ):
-        """
-        Fetch structural data from KLIFS database in different output formats.
-
-        Parameters
-        ----------
-        structure_id : str
-            KLIFS structure ID.
-        entity : str
-            Structural entity: complex (default), ligand, pocket, or protein.
-        input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
-        output_format : str
-            Output format: text, biopandas (default), or rdkit (only for entity=ligand).
-        compute2d : bool
-            For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
-        """
 
         self.check_parameter_validity(entity, input_format, output_format)
 
@@ -920,8 +904,8 @@ class Coordinates(CoordinatesProvider):
         """
 
         # Get pocket residue details: KLIFS and PDB residue IDs
-        pocket_remote = Pockets(self.__client)
-        pocket = pocket_remote.from_structure_id(structure_id)
+        pockets_remote = Pockets(self.__client)
+        pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
         mol2_dataframe = mol2_dataframe.merge(pocket, on="residue.pdb_id", how="left")
 
