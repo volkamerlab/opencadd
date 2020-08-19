@@ -23,7 +23,7 @@ from .core import (
     CoordinatesProvider,
 )
 from .schema import LOCAL_COLUMNS_MAPPING, MOL2_COLUMNS, LOCAL_REMOTE_COLUMNS
-from .utils import KLIFS_CLIENT, get_file_path, filepath_to_metadata
+from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
 
 PATH_TO_KLIFS_IDS = (
     Path(__file__).parent
@@ -103,7 +103,9 @@ class SessionInitializer:
         _logger.info(f"Add KLIFS IDs to structures...")
         klifs_metadata = self._add_klifs_ids(klifs_metadata)
 
-        klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
+        klifs_metadata.to_csv(
+            self.path_to_klifs_download / "klifs_metadata.csv", index=False
+        )
 
         return klifs_metadata
 
@@ -127,7 +129,9 @@ class SessionInitializer:
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_name(i) for i in klifs_export["kinase.name"]]
+        kinase_names = [
+            self._format_kinase_name(i) for i in klifs_export["kinase.name"]
+        ]
         klifs_export["kinase.name"] = [i[0] for i in kinase_names]
         klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
 
@@ -231,7 +235,9 @@ class SessionInitializer:
             "ligand.pdb_allosteric",
         ]
 
-        klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
+        klifs_metadata = klifs_export.merge(
+            right=klifs_overview, how="inner", on=mutual_columns
+        )
 
         if (
             not (klifs_overview.shape[1] + klifs_export.shape[1] - len(mutual_columns))
@@ -244,7 +250,11 @@ class SessionInitializer:
                 f"KLIFS merged table has shape: {klifs_metadata.shape}"
             )
 
-        if not klifs_overview.shape[0] == klifs_export.shape[0] == klifs_metadata.shape[0]:
+        if (
+            not klifs_overview.shape[0]
+            == klifs_export.shape[0]
+            == klifs_metadata.shape[0]
+        ):
             raise ValueError(
                 f"Output table has incorrect number of rows:\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -275,7 +285,7 @@ class SessionInitializer:
         for index, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
-            mol2_path = get_file_path(
+            mol2_path = metadata_to_filepath(
                 ".",
                 row["species.klifs"],
                 row["kinase.name"],
@@ -283,7 +293,7 @@ class SessionInitializer:
                 row["structure.alternate_model"],
                 row["structure.chain"],
                 entity="",
-                format="",
+                input_format="",
                 in_dir=True,
             )
             filepaths.append(mol2_path)
@@ -316,7 +326,9 @@ class SessionInitializer:
         ].iterrows():
             # Get IDs from remote
             structure = remote_structures.from_structure_pdbs(
-                row["structure.pdb"], row["structure.alternate_model"], row["structure.chain"],
+                row["structure.pdb"],
+                row["structure.alternate_model"],
+                row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
             kinase_id = structure["kinase.id"][0]
@@ -378,7 +390,9 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
+        kinases = self._format_dataframe(
+            kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
+        )
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -390,7 +404,9 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        kinases = self._format_dataframe(
+            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"]
+        )
         return kinases
 
 
@@ -410,7 +426,9 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"]
+        )
         return ligands
 
     def from_kinase_names(self, kinase_names):
@@ -421,7 +439,8 @@ class Ligands(LigandsProvider):
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
+            ligands,
+            LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -440,7 +459,9 @@ class Ligands(LigandsProvider):
         ligands = self.__database
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],)
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],
+        )
         return ligands
 
 
@@ -504,7 +525,10 @@ class Structures(StructuresProvider):
         structures = structures[
             structures.apply(
                 lambda x: any(
-                    [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
+                    [
+                        kinase_name in kinase_names
+                        for kinase_name in x["kinase.name_all"]
+                    ]
                 ),
                 axis=1,
             )
@@ -684,11 +708,15 @@ class Coordinates(CoordinatesProvider):
         # Get metadata for structure by structure ID
         metadata = filepath_to_metadata(filepath)
         structures_local = Structures(self.__database)
-        structure = from_structure_pdbs(structure_pdb, structure_alternate_model, structure_chain)
+        structure = from_structure_pdbs(
+            structure_pdb, structure_alternate_model, structure_chain
+        )
         structure_id = structure["structure.id"][0]
         # List of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
-            index for index, residue in enumerate(structure["kinase.pocket"], 1) if residue != "_"
+            index
+            for index, residue in enumerate(structure["kinase.pocket"], 1)
+            if residue != "_"
         ]
         print(len(klifs_ids))
 

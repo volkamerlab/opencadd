@@ -14,10 +14,12 @@ from bravado.client import SwaggerClient
 _logger = logging.getLogger(__name__)
 
 KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(KLIFS_API_DEFINITIONS, config={"validate_responses": False})
+KLIFS_CLIENT = SwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)
 
 
-def get_file_path(  # Rename function metadata_to_filepath TODO
+def metadata_to_filepath(  # Rename function metadata_to_filepath TODO
     path_to_klifs_download,
     species,
     kinase_name,
@@ -25,7 +27,7 @@ def get_file_path(  # Rename function metadata_to_filepath TODO
     structure_alternate_model,
     structure_chain,
     entity="complex",
-    format="mol2",
+    input_format="mol2",
     in_dir=False,
 ):
     """
@@ -34,7 +36,7 @@ def get_file_path(  # Rename function metadata_to_filepath TODO
     Parameters
     ----------
     path_to_klifs_download : pathlib.Path or str
-        Path to folder for file destination (if in_dir=False) or KLIFS_downlaod folder destination (if in_dir=True).
+        Path to folder for file destination (if in_dir=False) or KLIFS_download folder destination (if in_dir=True).
     species : str
         Species.
     kinase_name : str
@@ -45,9 +47,9 @@ def get_file_path(  # Rename function metadata_to_filepath TODO
         Alternate model ID.
     structure_chain : str
         Chain ID.
-    entitiy : str
+    entity : str
         Structural entity: complex (default), ligand, pocket, protein, or water (only in local module).
-    format : str
+    input_format : str
         File format: mol2 (default) or pdb (only for entity=complex).
     in_dir : bool
         Use KLIFS directory structure (default: False).
@@ -60,21 +62,27 @@ def get_file_path(  # Rename function metadata_to_filepath TODO
 
     path_to_klifs_download = Path(path_to_klifs_download)
     species = species.upper()
+    if not structure_alternate_model:
+        structure_alternate_model = "-"
     structure_alternate_model = structure_alternate_model.replace("-", "")
+    if not structure_chain:
+        structure_chain = "-"
     structure_chain = structure_chain.replace("-", "")
     structure = f"{structure_pdb}{f'_alt{structure_alternate_model}' if bool(structure_alternate_model) else ''}{f'_chain{structure_chain}' if bool(structure_chain) else ''}"
 
     if in_dir:
         path = (
             path_to_klifs_download
-            / "KLIFS_download"
             / species
             / kinase_name
             / structure
-            / f"{entity}.{format}"
+            / f"{entity}.{input_format}"
         )
     else:
-        path = path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{format}"
+        path = (
+            path_to_klifs_download
+            / f"{species}_{kinase_name}_{structure}_{entity}.{input_format}"
+        )
 
     return path
 
@@ -85,7 +93,7 @@ def filepath_to_metadata(filepath):
     """
 
     # Split filepath
-    metadata = re.split("/|_|\.", filepath)
+    metadata = re.split(r"/|_|\.", filepath)
     # Assign list elements to detail type
     if ("chain" in filepath) and ("alt" in filepath):
         metadata = {
