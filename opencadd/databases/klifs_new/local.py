@@ -626,14 +626,30 @@ class Interactions(InteractionsProvider):
 
         # Get local database and select rows
         interactions = self.__database
-        interactions = interactions[
-            [
-                "structure.pdb",
-                "structure.alternate_model",
-                "structure.chain",
-                "interaction.fingerprint",
-            ]
-        ]
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
+        )
+        return interactions
+
+    def from_structure_ids(self, structure_ids):
+
+        structure_ids = self._cast_to_list(structure_ids)
+        # Get local database and select rows
+        interactions = self.__database
+        interactions = interactions[interactions["structure.id"].isin(structure_ids)]
+        # Format DataFrame
+        interactions = self._format_dataframe(
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
+        )
+        return interactions
+
+    def from_kinase_ids(self, kinase_ids):
+
+        kinase_ids = self._cast_to_list(kinase_ids)
+        # Get local database and select rows
+        interactions = self.__database
+        interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
             interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],

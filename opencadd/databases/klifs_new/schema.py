@@ -241,12 +241,7 @@ LOCAL_REMOTE_COLUMNS = {
         "remote": list(REMOTE_COLUMNS_MAPPING["bioactivities"].values()),
     },
     "interactions": {
-        "local": [
-            "structure.pdb",
-            "structure.alternate_model",
-            "structure.chain",
-            "interaction.fingerprint",
-        ],
+        "local": list(REMOTE_COLUMNS_MAPPING["interactions"].values()),
         "remote": list(REMOTE_COLUMNS_MAPPING["interactions"].values()),
     },
     "interaction_types": {
