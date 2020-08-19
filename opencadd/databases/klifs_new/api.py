@@ -66,6 +66,8 @@ class Session:
     ----------
     session_type : None or str
         Session type, i.e. remote or local. 
+    path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     client : None or bravado.client.SwaggerClient
         KLIFS client (set if session type is remote).
     database : None or pandas.DataFrame
@@ -87,6 +89,7 @@ class Session:
     def __init__(self):
 
         self.session_type = None
+        self.path_to_klifs_download = None
         self.client = None
         self.database = None
         self.kinases = None
@@ -110,18 +113,25 @@ class Session:
         # Session type
         self.session_type = "local"
 
+        # Set path to KLIFS download
+        self.path_to_klifs_download = path_to_klifs_download
+
         # Get database
-        session_initializer = local.SessionInitializer(path_to_klifs_download)
+        session_initializer = local.SessionInitializer(self.path_to_klifs_download)
         self.database = session_initializer.klifs_metadata
 
         # Initialize classes
-        self.kinases = local.Kinases(self.database)
-        self.ligands = local.Ligands(self.database)
-        self.structures = local.Structures(self.database)
-        self.bioactivities = local.Bioactivities(self.client)
-        self.interactions = local.Interactions(self.database)
-        self.pockets = local.Pockets(self.database)
-        self.coordinates = local.Coordinates(self.database)
+        self.kinases = local.Kinases(self.database, self.path_to_klifs_download)
+        self.ligands = local.Ligands(self.database, self.path_to_klifs_download)
+        self.structures = local.Structures(self.database, self.path_to_klifs_download)
+        self.bioactivities = local.Bioactivities(
+            self.client, self.path_to_klifs_download
+        )
+        self.interactions = local.Interactions(
+            self.database, self.path_to_klifs_download
+        )
+        self.pockets = local.Pockets(self.database, self.path_to_klifs_download)
+        self.coordinates = local.Coordinates(self.database, self.path_to_klifs_download)
 
     def from_remote(self):
         """

@@ -350,12 +350,15 @@ class Kinases(KinasesProvider):
     ---------- 
     __database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
     def all_kinase_groups(self):
 
@@ -414,12 +417,20 @@ class Ligands(LigandsProvider):
     """
     Extends LigandsProvider to provide local ligands requests.
     Refer to LigandsProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
     def all_ligands(self):
 
@@ -469,12 +480,20 @@ class Structures(StructuresProvider):
     """
     Extends StructuresProvider to provide local structures requests.
     Refer to StructuresProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
     def all_structures(self):
 
@@ -563,24 +582,40 @@ class Bioactivities(BioactivitiesProvider):
     """
     Extends BioactivitiesProvider to provide local bioactivities requests.
     Refer to BioactivitiesProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
 
 class Interactions(InteractionsProvider):
     """
     Extends InteractionsProvider to provide local kinases requests.
     Refer to InteractionsProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
     def all_interactions(self):
 
@@ -604,24 +639,41 @@ class Interactions(InteractionsProvider):
 class Pockets(PocketsProvider):
     """
     Extends PocketsProvider to provide local pocket requests.
+    Refer to PocketsProvider documentation for more information.
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
 
 class Coordinates(CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide local coordinates requests, 
     i.e. loading structural data (coordinates).
+
+    Attributes
+    ---------- 
+    __database : pandas.DataFrame
+        KLIFS metadata (set if session type is local).
+    __path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database):
+    def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
         self.__database = database
+        self.__path_to_klifs_download = path_to_klifs_download
 
     def from_file(self, file_path, output_format="biopandas", compute2d=True):
         """
