@@ -640,6 +640,8 @@ class Coordinates(CoordinatesProvider):
         ----------
         structure_id : str
             KLIFS structure ID.
+        output_path : pathlib.Path or str
+            Path to output folder.
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
         input_format : str

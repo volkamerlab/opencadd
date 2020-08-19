@@ -197,9 +197,7 @@ class BaseProvider:
             result_df.reset_index(drop=True, inplace=True)
             return result_df
         else:
-            raise SwaggerMappingError(
-                f"None of the input values exist, thus no results are returned."
-            )
+            raise SwaggerMappingError(f"Input values yield no results.")
 
 
 class KinasesProvider(BaseProvider):
@@ -1206,7 +1204,7 @@ class CoordinatesProvider(BaseProvider):
 
         Parameters
         ----------
-        structure_id : str
+        structure_id : int
             KLIFS structure ID.
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
