@@ -539,6 +539,25 @@ class Structures(StructuresProvider):
         )
         return structures
 
+    def from_structure_ids(self, structure_ids):
+
+        structure_ids = self._cast_to_list(structure_ids)
+        # Get local database and select rows
+        structures = self.__database
+        structures = structures[structures["structure.id"].isin(structure_ids)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        # Check: If only one structure ID was given, only one result is allowed
+        if len(structure_ids) == 1:
+            if len(structures) != 1:
+                raise ValueError(
+                    f"More than one structure found for input structure ID."
+                )
+
+        return structures
+
 
 class Bioactivities(BioactivitiesProvider):
     """
