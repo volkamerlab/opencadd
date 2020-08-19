@@ -4,7 +4,7 @@ Tests for opencadd.databases.klifs.utils
 
 import pytest
 
-from opencadd.databases.klifs_new.utils import (
+from opencadd.databases.klifs.utils import (
     metadata_to_filepath,
     filepath_to_metadata,
 )
@@ -101,6 +101,8 @@ def test_metadata_to_filepath(
                 "species": "Human",
                 "kinase_name": "BRAF",
                 "structure_pdb": "6uuo",
+                "structure_alternate_model": None,
+                "structure_chain": None,
                 "entity": "pocket",
                 "input_format": "mol2",
             },
@@ -111,6 +113,7 @@ def test_metadata_to_filepath(
                 "species": "Human",
                 "kinase_name": "BRAF",
                 "structure_pdb": "6uuo",
+                "structure_alternate_model": None,
                 "structure_chain": "A",
                 "entity": "pocket",
                 "input_format": "mol2",

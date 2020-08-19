@@ -108,9 +108,7 @@ class SessionInitializer:
         _logger.info(f"Add KLIFS IDs to structures...")
         klifs_metadata = self._add_klifs_ids(klifs_metadata)
 
-        klifs_metadata.to_csv(
-            self.path_to_klifs_download / "klifs_metadata.csv", index=False
-        )
+        klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
 
         return klifs_metadata
 
@@ -134,9 +132,7 @@ class SessionInitializer:
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [
-            self._format_kinase_name(i) for i in klifs_export["kinase.name"]
-        ]
+        kinase_names = [self._format_kinase_name(i) for i in klifs_export["kinase.name"]]
         klifs_export["kinase.name"] = [i[0] for i in kinase_names]
         klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
 
@@ -240,9 +236,7 @@ class SessionInitializer:
             "ligand.pdb_allosteric",
         ]
 
-        klifs_metadata = klifs_export.merge(
-            right=klifs_overview, how="inner", on=mutual_columns
-        )
+        klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
 
         if (
             not (klifs_overview.shape[1] + klifs_export.shape[1] - len(mutual_columns))
@@ -255,11 +249,7 @@ class SessionInitializer:
                 f"KLIFS merged table has shape: {klifs_metadata.shape}"
             )
 
-        if (
-            not klifs_overview.shape[0]
-            == klifs_export.shape[0]
-            == klifs_metadata.shape[0]
-        ):
+        if not klifs_overview.shape[0] == klifs_export.shape[0] == klifs_metadata.shape[0]:
             raise ValueError(
                 f"Output table has incorrect number of rows:\n"
                 f"KLIFS overview table has shape: {klifs_overview.shape}\n"
@@ -331,9 +321,7 @@ class SessionInitializer:
         ].iterrows():
             # Get IDs from remote
             structure = remote_structures.from_structure_pdbs(
-                row["structure.pdb"],
-                row["structure.alternate_model"],
-                row["structure.chain"],
+                row["structure.pdb"], row["structure.alternate_model"], row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
             kinase_id = structure["kinase.id"][0]
@@ -398,9 +386,7 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -412,9 +398,7 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
         return kinases
 
 
@@ -442,9 +426,7 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"]
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
         return ligands
 
     def from_kinase_names(self, kinase_names):
@@ -455,8 +437,7 @@ class Ligands(LigandsProvider):
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands,
-            LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -475,9 +456,7 @@ class Ligands(LigandsProvider):
         ligands = self.__database
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],)
         return ligands
 
 
@@ -549,10 +528,7 @@ class Structures(StructuresProvider):
         structures = structures[
             structures.apply(
                 lambda x: any(
-                    [
-                        kinase_name in kinase_names
-                        for kinase_name in x["kinase.name_all"]
-                    ]
+                    [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
                 ),
                 axis=1,
             )
@@ -576,9 +552,7 @@ class Structures(StructuresProvider):
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
-                raise ValueError(
-                    f"More than one structure found for input structure ID."
-                )
+                raise ValueError(f"More than one structure found for input structure ID.")
 
         return structures
 
@@ -681,15 +655,10 @@ class Pockets(PocketsProvider):
         # Get pocket coordinates
         coordinates_local = Coordinates(self.__database, self.__path_to_klifs_download)
         mol2_df = coordinates_local.from_structure_id(
-            structure_id,
-            entity="pocket",
-            input_format="mol2",
-            output_format="biopandas",
+            structure_id, entity="pocket", input_format="mol2", output_format="biopandas",
         )
         # Format DataFrame
-        mol2_df = self._format_dataframe(
-            mol2_df, LOCAL_REMOTE_COLUMNS["pockets"]["local"],
-        )
+        mol2_df = self._format_dataframe(mol2_df, LOCAL_REMOTE_COLUMNS["pockets"]["local"],)
 
         return mol2_df
 
@@ -855,16 +824,12 @@ class Coordinates(CoordinatesProvider):
         structure_id = structure["structure.id"]
         # List of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
-            index
-            for index, residue in enumerate(structure["kinase.pocket"], 1)
-            if residue != "_"
+            index for index, residue in enumerate(structure["kinase.pocket"], 1) if residue != "_"
         ]
 
         # Number of atoms per residue in molecule (mol2file)
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
-        number_of_atoms_per_residue = mol2_df.groupby(
-            by="residue.subst_name", sort=False
-        ).size()
+        number_of_atoms_per_residue = mol2_df.groupby(by="residue.subst_name", sort=False).size()
 
         # Get KLIFS position IDs for each atom in molecule
         klifs_ids_per_atom = []

@@ -124,12 +124,8 @@ class Session:
         self.kinases = local.Kinases(self.database, self.path_to_klifs_download)
         self.ligands = local.Ligands(self.database, self.path_to_klifs_download)
         self.structures = local.Structures(self.database, self.path_to_klifs_download)
-        self.bioactivities = local.Bioactivities(
-            self.client, self.path_to_klifs_download
-        )
-        self.interactions = local.Interactions(
-            self.database, self.path_to_klifs_download
-        )
+        self.bioactivities = local.Bioactivities(self.client, self.path_to_klifs_download)
+        self.interactions = local.Interactions(self.database, self.path_to_klifs_download)
         self.pockets = local.Pockets(self.database, self.path_to_klifs_download)
         self.coordinates = local.Coordinates(self.database, self.path_to_klifs_download)
 

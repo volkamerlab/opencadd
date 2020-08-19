@@ -59,9 +59,7 @@ class Kinases(KinasesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_families(kinase_group=group)
-            .response()
-            .result
+            self.__client.Information.get_kinase_families(kinase_group=group).response().result
         )
         # Convert list to DataFrame (1 column)
         kinase_families = pd.DataFrame(
@@ -81,13 +79,9 @@ class Kinases(KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._standardize_dataframe(
-            kinases, REMOTE_COLUMNS_MAPPING["kinases"]
-        )
+        kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
@@ -101,13 +95,9 @@ class Kinases(KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._standardize_dataframe(
-            kinases, REMOTE_COLUMNS_MAPPING["kinases"]
-        )
+        kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -118,9 +108,7 @@ class Kinases(KinasesProvider):
             self._from_kinase_name, kinase_names, additional_parameters=[species]
         )
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
         return kinases
 
     def _from_kinase_name(self, kinase_name, species=None):
@@ -140,21 +128,15 @@ class Kinases(KinasesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_ID(
-                kinase_name=kinase_name, species=species
-            )
+            self.__client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
             .response()
             .result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
-        kinases = self._standardize_dataframe(
-            kinases, REMOTE_COLUMNS_MAPPING["kinases"]
-        )
+        kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"]
-        )
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["remote"])
 
         return kinases
 
@@ -177,20 +159,12 @@ class Ligands(LigandsProvider):
         kinases = kinases_remote.all_kinases()
         # Use KLIFS API: Get ligands
         kinase_ids = kinases["kinase.id"].to_list()
-        result = (
-            self.__client.Ligands.get_ligands_list(kinase_ID=kinase_ids)
-            .response()
-            .result
-        )
+        result = self.__client.Ligands.get_ligands_list(kinase_ID=kinase_ids).response().result
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._standardize_dataframe(
-            ligands, REMOTE_COLUMNS_MAPPING["ligands"]
-        )
+        ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
@@ -221,20 +195,12 @@ class Ligands(LigandsProvider):
         """
 
         # Use KLIFS API
-        result = (
-            self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id])
-            .response()
-            .result
-        )
+        result = self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
-        ligands = self._standardize_dataframe(
-            ligands, REMOTE_COLUMNS_MAPPING["ligands"]
-        )
+        ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
         # Rename column to indicate query key
         ligands["kinase.id (query)"] = kinase_id
         return ligands
@@ -271,9 +237,7 @@ class Ligands(LigandsProvider):
         # Select ligands by ligand IDs
         ligands = ligands[ligands["ligand.id"].isin(ligand_ids)]
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
         return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -284,9 +248,7 @@ class Ligands(LigandsProvider):
         # Select ligands by ligand PDB IDs
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
-        )
+        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["remote"])
         return ligands
 
 
@@ -326,9 +288,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._standardize_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._standardize_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         # Format DataFrame
         structures = self._format_dataframe(
             structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
@@ -355,15 +315,11 @@ class Structures(StructuresProvider):
         kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API
         result = (
-            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids)
-            .response()
-            .result
+            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._standardize_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._standardize_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         # Format DataFrame
         structures = self._format_dataframe(
             structures, LOCAL_REMOTE_COLUMNS["structures"]["remote"]
@@ -383,9 +339,7 @@ class Structures(StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
-        structures = self._standardize_dataframe(
-            structures, REMOTE_COLUMNS_MAPPING["structures"]
-        )
+        structures = self._standardize_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
         # If only one structure PDB ID is given, check alternate model and chain filters
         if len(structure_pdbs) == 1:
             structures = self._filter_pdb_by_alt_chain(
@@ -499,9 +453,7 @@ class Bioactivities(BioactivitiesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id)
-            .response()
-            .result
+            self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id).response().result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         bioactivities = self._abc_to_dataframe(result)
@@ -532,9 +484,7 @@ class Interactions(InteractionsProvider):
     def interaction_types(self):
 
         # Use KLIFS API
-        result = (
-            self.__client.Interactions.get_interactions_get_types().response().result
-        )
+        result = self.__client.Interactions.get_interactions_get_types().response().result
         # Convert list of ABC objects to DataFrame and rename columns
         interaction_types = self._abc_to_dataframe(result)
         interaction_types = self._standardize_dataframe(
@@ -565,9 +515,7 @@ class Interactions(InteractionsProvider):
         structure_ids = self._cast_to_list(structure_ids)
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_get_IFP(
-                structure_ID=structure_ids
-            )
+            self.__client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
             .response()
             .result
         )
@@ -627,9 +575,7 @@ class Pockets(PocketsProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_match_residues(
-                structure_ID=structure_id
-            )
+            self.__client.Interactions.get_interactions_match_residues(structure_ID=structure_id)
             .response()
             .result
         )
@@ -637,9 +583,7 @@ class Pockets(PocketsProvider):
         pocket = pd.DataFrame(result)
         pocket = self._standardize_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
         # Format DataFrame
-        pocket = self._format_dataframe(
-            pocket, LOCAL_REMOTE_COLUMNS["pockets"]["remote"]
-        )
+        pocket = self._format_dataframe(pocket, LOCAL_REMOTE_COLUMNS["pockets"]["remote"])
         return pocket
 
 
@@ -687,12 +631,7 @@ class Coordinates(CoordinatesProvider):
                 return pdb_df
 
     def to_file(
-        self,
-        structure_id,
-        output_path,
-        entity="complex",
-        input_format="mol2",
-        in_dir=False,
+        self, structure_id, output_path, entity="complex", input_format="mol2", in_dir=False,
     ):
         """
         Save structural data to file.
@@ -734,9 +673,7 @@ class Coordinates(CoordinatesProvider):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Get text
-        text = self.from_structure_id(
-            structure_id, entity, input_format, output_format="text"
-        )
+        text = self.from_structure_id(structure_id, entity, input_format, output_format="text")
 
         # Save text to file
         with open(output_path, "w") as f:
@@ -763,41 +700,31 @@ class Coordinates(CoordinatesProvider):
 
         if entity == "complex" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_complex(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
             text = (
-                self.__client.Structures.get_structure_get_pdb_complex(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_ligand(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_ligand(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_pocket(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_pocket(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_protein(
-                    structure_ID=structure_id
-                )
+                self.__client.Structures.get_structure_get_protein(structure_ID=structure_id)
                 .response()
                 .result
             )

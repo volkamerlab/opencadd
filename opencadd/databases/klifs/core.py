@@ -767,9 +767,7 @@ class StructuresProvider(BaseProvider):
         raise NotImplementedError("Implement in your subclass!")
 
     @staticmethod
-    def _filter_pdb_by_alt_chain(
-        structures, structure_alternate_model=None, structure_chain=None
-    ):
+    def _filter_pdb_by_alt_chain(structures, structure_alternate_model=None, structure_chain=None):
         """
         If only one structure PDB ID given, filter structures by alternate model and/or chain.
 
@@ -1256,9 +1254,7 @@ class CoordinatesProvider(BaseProvider):
             raise ValueError(f"Entity {entity} is only available in mol2 format.")
         if output_format:
             if output_format == "rdkit" and entity != "ligand":
-                raise ValueError(
-                    f"Only entity ligand can be fetched as rdkit molecule."
-                )
+                raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
 
     def _split_mol2_subst_names(self, mol2_dataframe):
         """
@@ -1277,10 +1273,7 @@ class CoordinatesProvider(BaseProvider):
         """
 
         result = mol2_dataframe.apply(
-            lambda x: self._split_mol2_subst_name(
-                x["residue.subst_name"], x["atom.type"]
-            ),
-            axis=1,
+            lambda x: self._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]), axis=1,
         )
         res_names = [res_name for res_name, res_id in result]
         res_ids = [res_id for res_name, res_id in result]

@@ -7,8 +7,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from opencadd.databases.klifs_new.api import setup_local
-from opencadd.databases.klifs_new.schema import KINASE_GROUPS, LOCAL_REMOTE_COLUMNS
+from opencadd.databases.klifs.api import setup_local
+from opencadd.databases.klifs.schema import KINASE_GROUPS, LOCAL_REMOTE_COLUMNS
 
 PATH_TEST_DATA = Path(__file__).parent / "data" / "KLIFS_download"
 

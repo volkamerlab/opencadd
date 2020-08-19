@@ -14,9 +14,7 @@ from bravado.client import SwaggerClient
 _logger = logging.getLogger(__name__)
 
 KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(
-    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-)
+KLIFS_CLIENT = SwaggerClient.from_url(KLIFS_API_DEFINITIONS, config={"validate_responses": False})
 
 
 def metadata_to_filepath(
@@ -72,16 +70,11 @@ def metadata_to_filepath(
 
     if in_dir:
         path = (
-            path_to_klifs_download
-            / species
-            / kinase_name
-            / structure
-            / f"{entity}.{input_format}"
+            path_to_klifs_download / species / kinase_name / structure / f"{entity}.{input_format}"
         )
     else:
         path = (
-            path_to_klifs_download
-            / f"{species}_{kinase_name}_{structure}_{entity}.{input_format}"
+            path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{input_format}"
         )
 
     return path

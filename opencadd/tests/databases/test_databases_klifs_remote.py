@@ -6,8 +6,8 @@ from bravado_core.exception import SwaggerMappingError
 import pandas as pd
 import pytest
 
-from opencadd.databases.klifs_new.api import setup_remote
-from opencadd.databases.klifs_new.schema import KINASE_GROUPS, LOCAL_REMOTE_COLUMNS
+from opencadd.databases.klifs.api import setup_remote
+from opencadd.databases.klifs.schema import KINASE_GROUPS, LOCAL_REMOTE_COLUMNS
 
 
 class TestsAllQueries:
