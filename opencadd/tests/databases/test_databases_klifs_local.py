@@ -27,11 +27,14 @@ class TestsAllQueries:
 
         kinases = session.kinases.all_kinase_groups()
         assert isinstance(kinases, pd.DataFrame)
-        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
+        assert (
+            kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
+        )
         assert kinases["kinase.group"].to_list() == result_groups
 
     @pytest.mark.parametrize(
-        "group, result_families", [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
+        "group, result_families",
+        [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
     )
     def test_all_kinase_families(self, group, result_families):
         """
@@ -41,7 +44,10 @@ class TestsAllQueries:
 
         kinases = session.kinases.all_kinase_families(group)
         assert isinstance(kinases, pd.DataFrame)
-        assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
+        assert (
+            kinases.columns.to_list()
+            == LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
+        )
         assert kinases["kinase.family"].to_list() == result_families
 
     @pytest.mark.parametrize("group", ["XXX"])
@@ -76,7 +82,8 @@ class TestsAllQueries:
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
 
     @pytest.mark.parametrize(
-        "group, family, species", [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
+        "group, family, species",
+        [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
     )
     def test_all_kinases_raise(self, group, family, species):
         """
@@ -112,7 +119,7 @@ class TestsAllQueries:
         session = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(NotImplementedError):
-            session.interactions.interaction_types  # TODO
+            session.interactions.interaction_types
 
     def test_all_interactions(self):
         """
@@ -129,7 +136,7 @@ class TestsAllQueries:
         Test request result for all kinases.
         """
         session = setup_local(PATH_TEST_DATA)
-        with pytest.raises(NotImplementedError):  # TODO
+        with pytest.raises(NotImplementedError):
             session.bioactivities.all_bioactivities()
 
 
@@ -138,14 +145,32 @@ class TestsFromKinaseIds:
     Test all class methods with kinase IDs as input.
     """
 
-    @pytest.mark.parametrize("kinase_ids", [33, [33, 34]])
+    @pytest.mark.parametrize("kinase_ids", [472, [472, 509], [472, 509, 10000]])
     def test_from_kinase_ids(self, kinase_ids):
         """
         Test all class methods with kinase IDs as input.
         """
         session = setup_local(PATH_TEST_DATA)
-        with pytest.raises(NotImplementedError):  # TODO
-            session.kinases.from_kinase_ids(kinase_ids)
+
+        # Kinases
+        kinases = session.kinases.from_kinase_ids(kinase_ids)
+        assert isinstance(kinases, pd.DataFrame)
+
+        # Ligands
+        ligands = session.ligands.from_kinase_ids(kinase_ids)
+        assert isinstance(ligands, pd.DataFrame)
+
+        # Structures
+        structures = session.structures.from_kinase_ids(kinase_ids)
+        assert isinstance(structures, pd.DataFrame)
+
+        # Bioactivities
+        with pytest.raises(NotImplementedError):
+            session.bioactivities.from_kinase_ids(kinase_ids)
+
+        # Interactions
+        interactions = session.interactions.from_kinase_ids(kinase_ids)
+        assert isinstance(kinases, pd.DataFrame)
 
     @pytest.mark.parametrize("kinase_ids", [10000, "XXX"])
     def test_from_kinase_ids_raise(self, kinase_ids):
@@ -153,8 +178,11 @@ class TestsFromKinaseIds:
         Test all class methods with kinase IDs as input: Error raised if input invalid?
         """
         session = setup_local(PATH_TEST_DATA)
-        with pytest.raises(NotImplementedError):  # TODO
+        with pytest.raises(ValueError):
             session.kinases.from_kinase_ids(kinase_ids)
+            session.ligands.from_kinase_ids(kinase_ids)
+            session.structures.from_kinase_ids(kinase_ids)
+            session.interactions.from_kinase_ids(kinase_ids)
 
 
 class TestsFromKinaseNames:
@@ -162,7 +190,9 @@ class TestsFromKinaseNames:
     Test class methods with kinase names as input.
     """
 
-    @pytest.mark.parametrize("kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)])
+    @pytest.mark.parametrize(
+        "kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)]
+    )
     def test_from_kinase_names(self, kinase_names, species):
         """
         Test class methods with kinase names as input.
@@ -174,7 +204,9 @@ class TestsFromKinaseNames:
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["local"]
 
-    @pytest.mark.parametrize("kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")])
+    @pytest.mark.parametrize(
+        "kinase_names, species", [("XXX", None), (1, None), ("EGFR", "XXX")]
+    )
     def test_from_kinase_names_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?

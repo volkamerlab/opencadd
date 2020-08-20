@@ -389,6 +389,16 @@ class Kinases(KinasesProvider):
         kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
         return kinases
 
+    def from_kinase_ids(self, kinase_ids):
+
+        kinase_ids = self._cast_to_list(kinase_ids)
+        # Get local database and select rows
+        kinases = self.__database
+        kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
+        # Format DataFrame
+        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        return kinases
+
     def from_kinase_names(self, kinase_names, species=None):
 
         kinase_names = self._cast_to_list(kinase_names)
@@ -427,6 +437,22 @@ class Ligands(LigandsProvider):
         ligands = self.__database
         # Format DataFrame
         ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
+        return ligands
+
+    def from_kinase_ids(self, kinase_ids):
+
+        kinase_ids = self._cast_to_list(kinase_ids)
+        # Get local database and select rows
+        ligands = self.__database
+        ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
+        # Format DataFrame
+        ligands = self._format_dataframe(
+            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.id"],
+        )
+        # Rename columns to indicate columns involved in query
+        ligands.rename(
+            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
+        )
         return ligands
 
     def from_kinase_names(self, kinase_names):
@@ -489,6 +515,39 @@ class Structures(StructuresProvider):
         )
         return structures
 
+    def from_structure_ids(self, structure_ids):
+
+        structure_ids = self._cast_to_list(structure_ids)
+        # Get local database and select rows
+        structures = self.__database
+        structures = structures[structures["structure.id"].isin(structure_ids)]
+        # Format DataFrame
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
+        )
+        # Check: If only one structure ID was given, only one result is allowed
+        if len(structure_ids) == 1:
+            if len(structures) != 1:
+                raise ValueError(f"More than one structure found for input structure ID.")
+
+        return structures
+
+    def from_kinase_ids(self, kinase_ids):
+
+        kinase_ids = self._cast_to_list(kinase_ids)
+        # Get local database and select rows
+        kinases = self.__database
+        kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
+        # Format DataFrame
+        kinases = self._format_dataframe(
+            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"] + ["kinase.id"],
+        )
+        # Rename columns to indicate columns involved in query
+        kinases.rename(
+            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
+        )
+        return kinases
+
     def from_structure_pdbs(
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
@@ -537,23 +596,6 @@ class Structures(StructuresProvider):
         structures = self._format_dataframe(
             structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
         )
-        return structures
-
-    def from_structure_ids(self, structure_ids):
-
-        structure_ids = self._cast_to_list(structure_ids)
-        # Get local database and select rows
-        structures = self.__database
-        structures = structures[structures["structure.id"].isin(structure_ids)]
-        # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
-        # Check: If only one structure ID was given, only one result is allowed
-        if len(structure_ids) == 1:
-            if len(structures) != 1:
-                raise ValueError(f"More than one structure found for input structure ID.")
-
         return structures
 
 
