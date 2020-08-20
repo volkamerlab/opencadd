@@ -297,6 +297,8 @@ class Structures(StructuresProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
+        # Approach incorrect: One PDB can have multiple IDs TODO
+
         ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
         remote_ligands = Ligands(self.__client)
