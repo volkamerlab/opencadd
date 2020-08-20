@@ -536,17 +536,13 @@ class Structures(StructuresProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        kinases = self.__database
-        kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
+        structures = self.__database
+        structures = structures[structures["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
-        kinases = self._format_dataframe(
-            kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"] + ["kinase.id"],
+        structures = self._format_dataframe(
+            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
         )
-        # Rename columns to indicate columns involved in query
-        kinases.rename(
-            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
-        )
-        return kinases
+        return structures
 
     def from_structure_pdbs(
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
@@ -668,7 +664,11 @@ class Interactions(InteractionsProvider):
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
-            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
+            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"] + ["kinase.id"],
+        )
+        # Rename columns to indicate columns involved in query
+        interactions.rename(
+            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
         )
         return interactions
 
