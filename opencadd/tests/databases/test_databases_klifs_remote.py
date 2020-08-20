@@ -25,7 +25,6 @@ class TestsAllQueries:
         kinases = session.kinases.all_kinase_groups()
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["remote"]
-        assert kinases.shape[0] == 8
         assert sorted(kinases["kinase.group"].to_list()) == KINASE_GROUPS
 
     @pytest.mark.parametrize("group", [None, *KINASE_GROUPS])
@@ -93,7 +92,7 @@ class TestsAllQueries:
 
     def test_all_structures(self):
         """
-        Test request result for all kinases.
+        Test request result for all structures.
         """
         session = setup_remote()
 
@@ -245,7 +244,7 @@ class TestsFromStructureIds:
     Test class methods with structure IDs as input.
     """
 
-    @pytest.mark.parametrize("structure_ids", [100, [100, 100000]])
+    @pytest.mark.parametrize("structure_ids", [12347, [12347, 100000]])
     def test_from_structure_ids(self, structure_ids):
         """
         Test class methods with structure IDs as input.
@@ -279,6 +278,9 @@ class TestsFromStructureIds:
         with pytest.raises(SwaggerMappingError):
             session.structures.from_structure_ids(structure_ids)
             session.interactions.from_structure_ids(structure_ids)
+            if isinstance(structure_ids, int):
+                structure_id = structure_ids
+                session.pockets.from_structure_id(structure_id)
 
 
 class TestsFromKinaseNames:
@@ -334,7 +336,7 @@ class TestsFromLigandPdbs:
     Test class methods with ligand PDB IDs as input.
     """
 
-    @pytest.mark.parametrize("ligand_pdbs", ["STU", ["STU", "STI"], ["STU", "XXX"]])
+    @pytest.mark.parametrize("ligand_pdbs", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
     def test_from_ligand_pdbs(self, ligand_pdbs):
         """
         Test class methods with ligand PDB IDs as input.
