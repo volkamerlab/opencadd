@@ -1254,14 +1254,14 @@ class CoordinatesProvider(BaseProvider):
             if output_format == "rdkit" and entity != "ligand":
                 raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
 
-    def _split_mol2_subst_names(self, mol2_dataframe):
+    def _split_mol2_subst_names(self, mol2_df):
         """
         Split "residue.subst_name" column values from mol2 file and add as 
         "residue.name" and "residue.pdb_id" columns.
 
         Parameters
         ----------
-        mol2_dataframe : pandas.DataFrame
+        mol2_df : pandas.DataFrame
             Structural data.
 
         Returns
@@ -1270,16 +1270,16 @@ class CoordinatesProvider(BaseProvider):
             Structural data, including additional columns for residue name and PDB ID.
         """
 
-        result = mol2_dataframe.apply(
+        result = mol2_df.apply(
             lambda x: self._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]), axis=1,
         )
         res_names = [res_name for res_name, res_id in result]
         res_ids = [res_id for res_name, res_id in result]
 
-        mol2_dataframe["residue.name"] = res_names
-        mol2_dataframe["residue.pdb_id"] = res_ids
+        mol2_df["residue.name"] = res_names
+        mol2_df["residue.pdb_id"] = res_ids
 
-        return mol2_dataframe
+        return mol2_df
 
     @staticmethod
     def _split_mol2_subst_name(subst_name, atom_type):

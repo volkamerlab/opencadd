@@ -822,22 +822,25 @@ class Coordinates(CoordinatesProvider):
 
         return pdb_dict
 
-    def _add_residue_klifs_ids(self, mol2_dataframe, structure_id):
+    def _add_residue_klifs_ids(self, mol2_df, structure_id):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
         ----------
-        mol2_dataframe : TODO
+        mol2_df : pandas.DataFrame
+            Structural data.
+        
         Returns
         -------
-        pandas.DataFrame TODO
+        pandas.DataFrame
+            Structural data including KLIFS residue IDs.
         """
 
         # Get pocket residue details: KLIFS and PDB residue IDs
         pockets_remote = Pockets(self.__client)
         pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
-        mol2_dataframe = mol2_dataframe.merge(pocket, on="residue.pdb_id", how="left")
+        mol2_df = mol2_df.merge(pocket, on="residue.pdb_id", how="left")
 
-        return mol2_dataframe
+        return mol2_df

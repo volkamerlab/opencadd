@@ -849,10 +849,14 @@ class Coordinates(CoordinatesProvider):
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
-        ---------- TODO
+        ---------- 
+        mol2_df : pandas.DataFrame
+            Structural data.
 
         Returns
-        ------- TODO
+        -------
+        pandas.DataFrame
+            Structural data including KLIFS residue IDs.
         """
 
         # Get structure ID from file path
