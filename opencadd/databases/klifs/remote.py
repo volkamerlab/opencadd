@@ -818,10 +818,9 @@ class Coordinates(CoordinatesProvider):
         """
 
         ppdb = PandasPdb()
-
         pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
 
-        print(f"Structural data keys: {pdb_dict.keys()}")
+        # Streamline output with mol2 output? TODO
 
         return pdb_dict
 
