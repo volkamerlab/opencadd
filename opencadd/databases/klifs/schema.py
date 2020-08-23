@@ -252,7 +252,22 @@ LOCAL_REMOTE_COLUMNS = {
         "local": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
         "remote": list(REMOTE_COLUMNS_MAPPING["pockets"].values()),
     },
-    "coordinates": {"local": [], "remote": [],},
+    "coordinates": [
+        "atom.id",
+        "atom.name",
+        "atom.x",
+        "atom.y",
+        "atom.z",
+        "atom.type",
+        "residue.subst_id",
+        "residue.subst_name",
+        "atom.charge",
+        "atom.backbone",
+        "residue.name",
+        "residue.pdb_id",
+        "residue.klifs_id",
+        "residue.klifs_region",
+    ],
 }
 
 POCKET_KLIFS_REGIONS = {
