@@ -816,6 +816,8 @@ class Coordinates(CoordinatesProvider):
 
         except ValueError:
             mol2_df = pmol.read_mol2(str(mol2_file), columns=MOL2_COLUMNS["n_cols_9"])
+            # Add column to return same column names in both cases (i.e. try-except)
+            mol2_df.insert(9, "atom.backbone", np.nan)
 
         return mol2_df
 

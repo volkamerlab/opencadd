@@ -11,6 +11,7 @@ from bravado_core.exception import SwaggerMappingError
 from biopandas.mol2 import PandasMol2
 from biopandas.pdb import PandasPdb
 import pandas as pd
+import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
@@ -770,6 +771,8 @@ class Coordinates(CoordinatesProvider):
                 col_names=[i[0] for i in MOL2_COLUMNS["n_cols_9"].values()],
                 col_types=[i[1] for i in MOL2_COLUMNS["n_cols_9"].values()],
             )
+            # Add column to return same column names in both cases (i.e. try-except)
+            mol2_df.insert(9, "atom.backbone", np.nan)
 
         return mol2_df
 
