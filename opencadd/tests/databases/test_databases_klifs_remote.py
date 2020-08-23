@@ -5,6 +5,7 @@ Tests for opencadd.databases.klifs.remote
 from bravado_core.exception import SwaggerMappingError
 import pandas as pd
 import pytest
+from rdkit import Chem
 
 from opencadd.databases.klifs.api import setup_remote
 from opencadd.databases.klifs.schema import KINASE_GROUPS, LOCAL_REMOTE_COLUMNS
@@ -401,8 +402,52 @@ class TestsCoordinates:
     Test remote Coordinates class.
     """
 
-    def ttest_fetch(self):
-        pass
+    @pytest.mark.parametrize(
+        "structure_id, entity, input_format, output_format, n_atoms, centroid",
+        [
+            (12347, "complex", "mol2", "biopandas", 3604, [-3.996449, 17.509910, 31.077763]),
+            (12347, "ligand", "mol2", "biopandas", 49, [2.291216, 20.590290, 39.074586]),
+            (12347, "ligand", "mol2", "rdkit", None, None),
+            (12347, "pocket", "mol2", "biopandas", 1156, [0.308657, 21.880768, 35.903844]),
+            (12347, "protein", "mol2", "biopandas", 3552, [-4.061604, 17.472405, 30.976719]),
+        ],
+    )
+    def test_from_structure_id(
+        self, structure_id, entity, input_format, output_format, n_atoms, centroid
+    ):
+        """
+        Test retrieval of coordinates data from structure ID.
+        """
+        session = setup_remote()
 
-    def ttest_save(self):
-        pass
+        coordinates = session.coordinates.from_structure_id(
+            structure_id, entity, input_format, output_format
+        )
+        if output_format == "biopandas":
+            assert isinstance(coordinates, pd.DataFrame)
+            assert coordinates.columns.to_list() == LOCAL_REMOTE_COLUMNS["coordinates"]
+            assert coordinates.shape[0] == n_atoms
+            assert pytest.approx(coordinates["atom.x"].mean(), centroid[0], abs=1.0e-6)
+            assert pytest.approx(coordinates["atom.y"].mean(), centroid[1], abs=1.0e-6)
+            assert pytest.approx(coordinates["atom.z"].mean(), centroid[2], abs=1.0e-6)
+        elif output_format == "rdkit":
+            assert isinstance(coordinates, Chem.rdchem.Mol)
+
+    @pytest.mark.parametrize(
+        "structure_id, entity, input_format, output_format",
+        [
+            (12347, "complex", "mol2", "rdkit"),
+            (12347, "ligand", "pdb", "biopandas"),
+            (12347, "water", "mol2", "biopandas"),
+        ],
+    )
+    def test_from_structure_id_raise(self, structure_id, entity, input_format, output_format):
+        """
+        Test retrieval of coordinates data from structure ID: Error raised if input invalid?
+        """
+        session = setup_remote()
+
+        with pytest.raises(ValueError):
+            session.coordinates.from_structure_id(
+                structure_id, entity, input_format, output_format
+            )
