@@ -73,7 +73,7 @@ class Kinases(KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"]["remote"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
@@ -89,7 +89,7 @@ class Kinases(KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["remote"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -100,7 +100,7 @@ class Kinases(KinasesProvider):
             self._from_kinase_name, kinase_names, additional_parameters=[species]
         )
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["remote"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
     def _from_kinase_name(self, kinase_name, species=None):
@@ -128,7 +128,7 @@ class Kinases(KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         kinases = self._standardize_dataframe(kinases, REMOTE_COLUMNS_MAPPING["kinases"])
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["remote"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
 
         return kinases
 
@@ -156,7 +156,7 @@ class Ligands(LigandsProvider):
         ligands = self._abc_to_dataframe(result)
         ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["remote"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
@@ -166,9 +166,7 @@ class Ligands(LigandsProvider):
             self._from_kinase_id, kinase_ids, additional_parameters=None
         )
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, COLUMN_NAMES["ligands"]["remote"] + ["kinase.id (query)"]
-        )
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
         return ligands
 
     def _from_kinase_id(self, kinase_id):
@@ -192,7 +190,7 @@ class Ligands(LigandsProvider):
         ligands = self._abc_to_dataframe(result)
         ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["remote"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
         # Rename column to indicate query key
         ligands["kinase.id (query)"] = kinase_id
         return ligands
@@ -229,7 +227,7 @@ class Ligands(LigandsProvider):
         # Select ligands by ligand IDs
         ligands = ligands[ligands["ligand.id"].isin(ligand_ids)]
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["remote"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -240,7 +238,7 @@ class Ligands(LigandsProvider):
         # Select ligands by ligand PDB IDs
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["remote"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
 
@@ -263,8 +261,10 @@ class Structures(StructuresProvider):
         # Use KLIFS API: Get all structures from these kinase IDs
         kinase_ids = kinases["kinase.id"].to_list()
         structures = self.from_kinase_ids(kinase_ids)
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_structure_ids(self, structure_ids):
@@ -279,8 +279,10 @@ class Structures(StructuresProvider):
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
         structures = self._standardize_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_ligand_ids(self, ligand_ids):
@@ -294,8 +296,10 @@ class Structures(StructuresProvider):
         # Use KLIFS API: Get structures from ligand PDBs
         ligand_pdbs = ligands["ligand.pdb"].to_list()
         structures = self.from_ligand_pdbs(ligand_pdbs)
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_kinase_ids(self, kinase_ids):
@@ -308,8 +312,10 @@ class Structures(StructuresProvider):
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
         structures = self._standardize_dataframe(structures, REMOTE_COLUMNS_MAPPING["structures"])
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_structure_pdbs(
@@ -331,8 +337,10 @@ class Structures(StructuresProvider):
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             )
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -342,8 +350,10 @@ class Structures(StructuresProvider):
         structures = self.all_structures()
         # Select structures by ligand PDB IDs
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
         return structures
 
     def from_kinase_names(self, kinase_names):
@@ -353,8 +363,26 @@ class Structures(StructuresProvider):
         structures = self.all_structures()
         # Select structures by kinase names
         structures = structures[structures["kinase.name"].isin(kinase_names)]
+        # Add missing columns that are available locally
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["remote"])
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"])
+        return structures
+
+    def _add_missing_columns_structures(self, structures):
+        """
+        Add missing columns that are available in remote.
+        """
+
+        missing_columns = {
+            "structure.filepath": None,
+            "kinase.family": None,
+            "kinase.group": None,
+            "kinase.name_full": None,
+            "ligand.name": None,
+            "ligand.name_allosteric": None,
+        }
+        structures = self._add_missing_columns(structures, missing_columns)
         return structures
 
 
@@ -384,9 +412,7 @@ class Bioactivities(BioactivitiesProvider):
         with silence_logging():
             bioactivities = self.from_ligand_ids(ligand_ids)
         # Format DataFrame
-        bioactivities = self._format_dataframe(
-            bioactivities, COLUMN_NAMES["bioactivities"]["remote"]
-        )
+        bioactivities = self._format_dataframe(bioactivities, COLUMN_NAMES["bioactivities"])
         return bioactivities
 
     def from_kinase_ids(self, kinase_ids):
@@ -399,9 +425,7 @@ class Bioactivities(BioactivitiesProvider):
         ligand_ids = ligands["ligand.id"].to_list()
         bioactivities = self.from_ligand_ids(ligand_ids)
         # Format DataFrame
-        bioactivities = self._format_dataframe(
-            bioactivities, COLUMN_NAMES["bioactivities"]["remote"]
-        )
+        bioactivities = self._format_dataframe(bioactivities, COLUMN_NAMES["bioactivities"])
         return bioactivities
 
     def from_ligand_ids(self, ligand_ids):
@@ -411,9 +435,7 @@ class Bioactivities(BioactivitiesProvider):
             self._from_ligand_id, ligand_ids, additional_parameters=None
         )
         # Format DataFrame
-        bioactivities = self._format_dataframe(
-            bioactivities, COLUMN_NAMES["bioactivities"]["remote"]
-        )
+        bioactivities = self._format_dataframe(bioactivities, COLUMN_NAMES["bioactivities"])
         return bioactivities
 
     def _from_ligand_id(self, ligand_id):
@@ -441,9 +463,7 @@ class Bioactivities(BioactivitiesProvider):
             bioactivities, REMOTE_COLUMNS_MAPPING["bioactivities"]
         )
         # Format DataFrame
-        bioactivities = self._format_dataframe(
-            bioactivities, COLUMN_NAMES["bioactivities"]["remote"]
-        )
+        bioactivities = self._format_dataframe(bioactivities, COLUMN_NAMES["bioactivities"])
         # Rename column to indicate query key
         bioactivities["ligand.id (query)"] = ligand_id
         return bioactivities
@@ -472,7 +492,7 @@ class Interactions(InteractionsProvider):
         )
         # Format DataFrame
         interaction_types = self._format_dataframe(
-            interaction_types, COLUMN_NAMES["interaction_types"]["remote"]
+            interaction_types, COLUMN_NAMES["interaction_types"]
         )
         return interaction_types
 
@@ -485,7 +505,7 @@ class Interactions(InteractionsProvider):
         structure_ids = structures["structure.id"].to_list()
         interactions = self.from_structure_ids(structure_ids)
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["remote"])
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"])
         return interactions
 
     def from_structure_ids(self, structure_ids):
@@ -503,7 +523,7 @@ class Interactions(InteractionsProvider):
             interactions, REMOTE_COLUMNS_MAPPING["interactions"]
         )
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["remote"])
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"])
         return interactions
 
     def from_ligand_ids(self, ligand_ids):
@@ -516,7 +536,7 @@ class Interactions(InteractionsProvider):
         structure_ids = structures["structure.id"].to_list()
         interactions = self.from_structure_ids(structure_ids)
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["remote"])
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"])
         return interactions
 
     def from_kinase_ids(self, kinase_ids):
@@ -529,7 +549,7 @@ class Interactions(InteractionsProvider):
         structure_ids = structures["structure.id"].to_list()
         interactions = self.from_structure_ids(structure_ids)
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["remote"])
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"])
         return interactions
 
 
@@ -555,7 +575,7 @@ class Pockets(PocketsProvider):
         pocket = pd.DataFrame(result)
         pocket = self._standardize_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
         # Format DataFrame
-        pocket = self._format_dataframe(pocket, COLUMN_NAMES["pockets"]["remote"])
+        pocket = self._format_dataframe(pocket, COLUMN_NAMES["pockets"])
         return pocket
 
 

@@ -379,8 +379,10 @@ class Kinases(KinasesProvider):
             kinases = kinases[kinases["kinase.family"] == family]
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
+        # Add missing columns that are available remotely
+        kinases["kinase.name_full"] = None
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
@@ -389,8 +391,10 @@ class Kinases(KinasesProvider):
         # Get local database and select rows
         kinases = self.__database.copy()
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
+        # Add missing columns that are available remotely
+        kinases = self._add_missing_columns_kinases(kinases)
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -401,8 +405,25 @@ class Kinases(KinasesProvider):
         kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
+        # Add missing columns that are available remotely
+        kinases = self._add_missing_columns_kinases(kinases)
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
+        return kinases
+
+    def _add_missing_columns_kinases(self, kinases):
+        """
+        Add missing columns that are available remotely.
+        """
+
+        missing_columns = {
+            "kinase.hgnc": None,
+            "kinase.class": None,
+            "kinase.name_full": None,
+            "kinase.uniprot": None,
+            "kinase.iuphar": None,
+        }
+        kinases = self._add_missing_columns(kinases, missing_columns)
         return kinases
 
 
@@ -429,8 +450,10 @@ class Ligands(LigandsProvider):
 
         # Get local database and select rows
         ligands = self.__database.copy()
+        # Add missing columns that are available remotely
+        ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
@@ -439,10 +462,10 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
+        # Add missing columns that are available remotely
+        ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, COLUMN_NAMES["ligands"]["local"] + ["kinase.id"],
-        )
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={"kinase.id": "kinase.id (query)",}, inplace=True,
@@ -455,9 +478,11 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database.copy()
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
+        # Add missing columns that are available remotely
+        ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands, COLUMN_NAMES["ligands"]["local"] + ["kinase.name", "species.klifs"],
+            ligands, COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -475,8 +500,19 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
+        # Add missing columns that are available remotely
+        ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"],)
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"],)
+        return ligands
+
+    def _add_missing_columns_ligands(self, ligands):
+        """
+        Add missing columns that are available remotely.
+        """
+
+        missing_columns = {"ligand.id": None, "ligand.smiles": None, "ligand.inchikey": None}
+        ligands = self._add_missing_columns(ligands, missing_columns)
         return ligands
 
 
@@ -503,8 +539,10 @@ class Structures(StructuresProvider):
 
         # Get local database and select rows
         structures = self.__database.copy()
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_ids(self, structure_ids):
@@ -513,8 +551,10 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self.__database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
@@ -528,8 +568,10 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self.__database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_pdbs(
@@ -545,8 +587,10 @@ class Structures(StructuresProvider):
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             )
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -555,8 +599,10 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self.__database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_kinase_names(self, kinase_names):
@@ -572,8 +618,26 @@ class Structures(StructuresProvider):
                 axis=1,
             )
         ]
+        # Add missing columns that are available remotely
+        structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        return structures
+
+    def _add_missing_columns_structures(self, structures):
+        """
+        Add missing columns that are available remotely.
+        """
+
+        missing_columns = {
+            "structure.front": None,
+            "structure.gate": None,
+            "structure.back": None,
+            "structure.grich_distance": None,
+            "structure.grich_angle": None,
+            "structure.grich_rotation": None,
+        }
+        structures = self._add_missing_columns(structures, missing_columns)
         return structures
 
 
@@ -621,7 +685,7 @@ class Interactions(InteractionsProvider):
         # Get local database and select rows
         interactions = self.__database.copy()
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_structure_ids(self, structure_ids):
@@ -631,7 +695,7 @@ class Interactions(InteractionsProvider):
         interactions = self.__database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_kinase_ids(self, kinase_ids):
@@ -642,7 +706,7 @@ class Interactions(InteractionsProvider):
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
-            interactions, COLUMN_NAMES["interactions"]["local"] + ["kinase.id"],
+            interactions, COLUMN_NAMES["interactions"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
@@ -678,7 +742,7 @@ class Pockets(PocketsProvider):
             structure_id, entity="pocket", input_format="mol2", output_format="biopandas",
         )
         # Format DataFrame
-        mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"]["local"],)
+        mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
 
         return mol2_df
 

@@ -108,8 +108,8 @@ class TestsAllQueries:
         result_remote = REMOTE.kinases.all_kinases(group, family, species)
         result_local = LOCAL.kinases.all_kinases(group, family, species)
 
-        check_dataframe(result_remote, COLUMN_NAMES["kinases_all"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["kinases_all"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["kinases_all"])
+        check_dataframe(result_local, COLUMN_NAMES["kinases_all"])
 
         assert result_local["kinase.name"].to_list() == local_kinases[0]
         assert result_local["species.klifs"].to_list() == local_kinases[1]
@@ -137,8 +137,8 @@ class TestsAllQueries:
         result_remote = REMOTE.ligands.all_ligands()
         result_local = LOCAL.ligands.all_ligands()
 
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["ligands"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["ligands"])
+        check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
         assert result_local["ligand.pdb"].to_list() == ["1N1", "QH1", "PRC"]
         # Do not test remote,
@@ -152,8 +152,8 @@ class TestsAllQueries:
         result_remote = REMOTE.structures.all_structures()
         result_local = LOCAL.structures.all_structures()
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         assert result_local["structure.id"].to_list() == [3482, 12347, 5728, 5705]
         # Do not test remote,
@@ -165,7 +165,7 @@ class TestsAllQueries:
         """
 
         result_remote = REMOTE.interactions.interaction_types
-        check_dataframe(result_remote, COLUMN_NAMES["interaction_types"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["interaction_types"])
 
         with pytest.raises(NotImplementedError):
             LOCAL.interactions.interaction_types
@@ -178,8 +178,8 @@ class TestsAllQueries:
         result_remote = REMOTE.interactions.all_interactions()
         result_local = LOCAL.interactions.all_interactions()
 
-        check_dataframe(result_remote, COLUMN_NAMES["interactions"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["interactions"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["interactions"])
+        check_dataframe(result_local, COLUMN_NAMES["interactions"])
 
     def test_all_bioactivities(self):
 
@@ -193,7 +193,7 @@ class TestsAllQueries:
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.all_bioactivities()
 
-        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
 
 class TestsFromKinaseIds:
@@ -211,37 +211,35 @@ class TestsFromKinaseIds:
         result_remote = REMOTE.kinases.from_kinase_ids(kinase_ids)
         result_local = LOCAL.kinases.from_kinase_ids(kinase_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["kinases"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["kinases"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["kinases"])
+        check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
         result_remote = REMOTE.ligands.from_kinase_ids(kinase_ids)
         result_local = LOCAL.ligands.from_kinase_ids(kinase_ids)
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"]["remote"] + ["kinase.id (query)"])
-        check_dataframe(result_local, COLUMN_NAMES["ligands"]["local"] + ["kinase.id (query)"])
+        check_dataframe(result_remote, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
+        check_dataframe(result_local, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
 
         # Structures
         result_remote = REMOTE.structures.from_kinase_ids(kinase_ids)
         result_local = LOCAL.structures.from_kinase_ids(kinase_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Bioactivities
         result_remote = REMOTE.bioactivities.from_kinase_ids(kinase_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.from_kinase_ids(kinase_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
         result_remote = REMOTE.interactions.from_kinase_ids(kinase_ids)
         result_local = LOCAL.interactions.from_kinase_ids(kinase_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["interactions"]["remote"])
-        check_dataframe(
-            result_local, COLUMN_NAMES["interactions"]["local"] + ["kinase.id (query)"]
-        )
+        check_dataframe(result_remote, COLUMN_NAMES["interactions"])
+        check_dataframe(result_local, COLUMN_NAMES["interactions"] + ["kinase.id (query)"])
 
     @pytest.mark.parametrize("kinase_ids", [10000, "XXX"])
     def test_from_kinase_ids_raise(self, kinase_ids):
@@ -279,28 +277,28 @@ class TestsFromLigandIds:
         with pytest.raises(NotImplementedError):
             LOCAL.ligands.from_ligand_ids(ligand_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["ligands"])
 
         # Structures
         result_remote = REMOTE.structures.from_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.structures.from_ligand_ids(ligand_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
 
         # Bioactivities
         result_remote = REMOTE.bioactivities.from_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.from_ligand_ids(ligand_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
         result_remote = REMOTE.interactions.from_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.interactions.from_ligand_ids(ligand_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["interactions"]["remote"])
+        check_dataframe(result_remote, COLUMN_NAMES["interactions"])
 
     @pytest.mark.parametrize("ligand_ids", [10000, "XXX"])
     def test_from_ligand_ids_raise(self, ligand_ids):
@@ -332,15 +330,15 @@ class TestsFromStructureIds:
         result_remote = REMOTE.structures.from_structure_ids(structure_ids)
         result_local = LOCAL.structures.from_structure_ids(structure_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Interactions
         result_remote = REMOTE.interactions.from_structure_ids(structure_ids)
         result_local = LOCAL.interactions.from_structure_ids(structure_ids)
 
-        check_dataframe(result_remote, COLUMN_NAMES["interactions"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["interactions"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["interactions"])
+        check_dataframe(result_local, COLUMN_NAMES["interactions"])
 
         # Pockets (takes only one structure ID as input!)
         if isinstance(structure_ids, int):
@@ -349,8 +347,8 @@ class TestsFromStructureIds:
             result_remote = REMOTE.pockets.from_structure_id(structure_ids)
             result_local = LOCAL.pockets.from_structure_id(structure_ids)
 
-            check_dataframe(result_remote, COLUMN_NAMES["pockets"]["remote"])
-            check_dataframe(result_local, COLUMN_NAMES["pockets"]["local"])
+            check_dataframe(result_remote, COLUMN_NAMES["pockets"])
+            check_dataframe(result_local, COLUMN_NAMES["pockets"])
 
     @pytest.mark.parametrize("structure_ids", [100000, "XXX"])
     def test_from_structure_ids_raise(self, structure_ids):
@@ -389,8 +387,8 @@ class TestsFromKinaseNames:
         result_remote = REMOTE.kinases.from_kinase_names(kinase_names, species)
         result_local = LOCAL.kinases.from_kinase_names(kinase_names, species)
 
-        check_dataframe(result_remote, COLUMN_NAMES["kinases"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["kinases"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["kinases"])
+        check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
         result_remote = REMOTE.ligands.from_kinase_names(kinase_names)
@@ -398,20 +396,20 @@ class TestsFromKinaseNames:
 
         check_dataframe(
             result_remote,
-            COLUMN_NAMES["ligands"]["remote"]
+            COLUMN_NAMES["ligands"]
             + ["kinase.id (query)", "kinase.name (query)", "species.klifs (query)",],
         )
         check_dataframe(
             result_local,
-            COLUMN_NAMES["ligands"]["local"] + ["kinase.name (query)", "species.klifs (query)",],
+            COLUMN_NAMES["ligands"] + ["kinase.name (query)", "species.klifs (query)",],
         )
 
         # Structures
         result_remote = REMOTE.structures.from_kinase_names(kinase_names)
         result_local = LOCAL.structures.from_kinase_names(kinase_names)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("kinase_names, species", [("XXX", None), (1, None), ("XXX", "XXX")])
     def test_from_kinase_names_raise(self, kinase_names, species):
@@ -445,15 +443,15 @@ class TestsFromLigandPdbs:
         result_remote = REMOTE.ligands.from_ligand_pdbs(ligand_pdbs)
         result_local = LOCAL.ligands.from_ligand_pdbs(ligand_pdbs)
 
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["ligands"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["ligands"])
+        check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
         # Structure
         result_remote = REMOTE.structures.from_ligand_pdbs(ligand_pdbs)
         result_local = LOCAL.structures.from_ligand_pdbs(ligand_pdbs)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("ligand_pdbs", [1, "XXX"])
     def test_from_ligand_pdbs_raise(self, ligand_pdbs):
@@ -483,8 +481,8 @@ class TestsFromStructurePdbs:
         result_remote = REMOTE.structures.from_structure_pdbs(structure_pdbs)
         result_local = LOCAL.structures.from_structure_pdbs(structure_pdbs)
 
-        check_dataframe(result_remote, COLUMN_NAMES["structures"]["remote"])
-        check_dataframe(result_local, COLUMN_NAMES["structures"]["local"])
+        check_dataframe(result_remote, COLUMN_NAMES["structures"])
+        check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("structure_pdbs", [1, "xxxx"])
     def test_from_structure_pdbs_raise(self, structure_pdbs):

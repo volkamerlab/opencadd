@@ -132,6 +132,32 @@ class BaseProvider:
             raise ValueError(f"Input values yield no results.")
 
     @staticmethod
+    def _add_missing_columns(dataframe, missing_columns):
+        """
+        Add missing columns in local or remote result that are available in result pendant 
+        from remote or local module, respectively.
+
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+            Result from query in local or remote session.
+        missing_columns : dict
+            Column names (keys) and their values (value) for columns that are not present 
+            in local or remote result but in their pendant from te remote or local module, 
+            respectively. 
+
+        Returns
+        -------
+        pandas.DataFrame
+            Input DataFrame with additional columns representing missing data.
+        """
+
+        for column_name, column_value in missing_columns.items():
+            dataframe[column_name] = column_value
+
+        return dataframe
+
+    @staticmethod
     def _multiple_remote_requests(
         function, iterator, additional_parameters=None,
     ):
@@ -224,18 +250,21 @@ class KinasesProvider(BaseProvider):
 
     Remote only:
 
-        kinase.id : int
-            Kinase ID.
         kinase.hgnc : str
-            Kinase name according to the HUGO Gene Nomenclature Committee.
+            Kinase name according to the HUGO Gene Nomenclature Committee. 
+            Available remotely only.
         kinase.class : str
             Kinase class.
+            Available remotely only.
         kinase.name_full : str
             Full kinase name.
+            Available remotely only.
         kinase.uniprot : str
             UniProt ID.
+            Available remotely only.
         kinase.iuphar : int
             IUPHAR ID.
+            Available remotely only.
 
     Local only:
 
@@ -243,6 +272,8 @@ class KinasesProvider(BaseProvider):
 
     Both local and remote:
         
+        kinase.id : int
+            Kinase ID.
         kinase.name : str
             Kinase name according to KLIFS.
         kinase.family : str
@@ -401,10 +432,13 @@ class LigandsProvider(BaseProvider):
 
         ligand.id : int
             Ligand ID.
+            Available remotely only.
         ligand.smiles : str
             Ligand SMILES.
+            Available remotely only.
         ligand.inchikey : str
             Ligand InChI key.
+            Available remotely only.
 
     Local only:
 
@@ -553,98 +587,102 @@ class StructuresProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
     following attributes (columns):
 
-    Remote only:
-
-        structure.id : int
-            Structure ID.
-        kinase.id : int
-            Kinase ID.
-        structure.front : bool
-            Orthosteric ligand occupies KLIFS front cleft.
-        structure.gate : bool
-            Orthosteric ligand occupies gate area.
-        structure.back : bool
-            Orthosteric ligand occupies KLIFS back cleft.
-        structure.grich_distance : float
-            G-rich loop conformation: Distance between the catalytic loop and the G-rich loop.
-        structure.grich_angle : float
-            G-rich loop conformation: Angle of loop compared to hinge reagion and catalytic loop.
-        structure.grich_rotation : float
-            G-rich loop conformation: Rotation of the G-rich loop compared to the catalytic loop
-
-    Local only:
-
-        structure.filepath : str
-            Path to folder with the structure's coordinate files.
-        kinase.family : str
-            Kinase family.
-        kinase.group : str
-            Kinase group.
-        kinase.name_full : str
-            Full kinase name.
-        ligand.name : str
-            Orthosteric ligand name. None if no ligand.
-        ligand.name_allosteric : str
-            Allosteric ligand name. None if no ligand.
-    
-    Both remote and local:
-
-        kinase.name : str
-            Kinase name according to KLIFS.
-        species.klifs : str
-            Species (KLIFS notation).
-        structure.pdb : str
-            Structure PDB ID.
-        structure.alternate_model : str
-            Alternate model. "-" if no alternate model.
-        structure.chain : str
-            Chain.
-        structure.rmsd1 : float
-            RMSD between structure and reference structures based on full kinase domain.
-        structure.rmsd2 : float
-            RMSD between structure and reference structures based on kinase pocket residues.
-        kinase.pocket : str
-            One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps "-").
-        structure.resolution : float
-            Structure resolution in Angström.
-        structure.qualityscore : float
-            KLIFS quality score (considering missing residues/atoms and RMSD1/RMSD2).
-        structure.missing_residues : int
-            Number of missing residues.
-        structure.missing_atoms : int
-            Number of missing atoms.
-        ligand.pdb : str or int (0)
-            Orthosteric ligand PDB ID. None if no ligand.
-        ligand.pdb_allosteric : str or 
-            Allosteric ligand PDB ID.  None if no ligand.
-        structure.DFG : str
-            DFG conformation (in, out, out-like, na).
-        structure.ac_helix : str
-            aC helix conformation (in, out, out-like, na).
-        structure.fp_i : bool
-            Orthosteric ligand occupies KLIFS front pocket I (FP-I).
-        structure.fp_ii : bool
-            Orthosteric ligand occupies KLIFS front pocket II (FP-II).
-        structure.bp_i_a : bool
-            Orthosteric ligand occupies KLIFS back pocket I-A (BP-I-A).
-        structure.bp_i_b : bool
-            Orthosteric ligand occupies KLIFS back pocket I-B (BP-I-B).
-        structure.bp_ii_in : bool
-            Orthosteric ligand occupies KLIFS back pocket II DFG-in (BP-II-in).
-        structure.bp_ii_a_in : bool
-            Orthosteric ligand occupies KLIFS back pocket II-A DFG-in (BP-II-A-in).
-        structure.bp_ii_b_in : bool
-            Orthosteric ligand occupies KLIFS back pocket II-B DFG-in (BP-II-B-in).
-        structure.bp_ii_out : bool
-            Orthosteric ligand occupies KLIFS back pocket II DFG-out (BP-II-out).
-        structure.bp_ii_b : bool
-            Orthosteric ligand occupies KLIFS back pocket II-B (BP-II-B).
-        structure.bp_iii : bool
-            Orthosteric ligand occupies KLIFS back pocket III (BP-III).
-        structure.bp_iv : bool
-            Orthosteric ligand occupies KLIFS back pocket IV (BP-IV).
-        structure.bp_v : bool
-            Orthosteric ligand occupies KLIFS back pocket V (BP-V).
+    structure.id : int
+        Structure ID.    
+    structure.pdb : str
+        Structure PDB ID.
+    structure.alternate_model : str
+        Alternate model. "-" if no alternate model.
+    structure.chain : str
+        Chain.
+    species.klifs : str
+        Species (KLIFS notation).
+    kinase.id : int
+        Kinase ID.
+    kinase.name : str
+        Kinase name according to KLIFS.
+    kinase.name_full : str
+        Full kinase name.
+        Available remotely when querying all kinases only.
+    kinase.family : str
+        Kinase family.
+        Available locally only.
+    kinase.group : str
+        Kinase group.
+        Available locally only.
+    kinase.pocket : str
+        One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps "-").
+    ligand.pdb : str or int (0)
+        Orthosteric ligand PDB ID. None if no ligand.
+    ligand.pdb_allosteric : str or 
+        Allosteric ligand PDB ID.  None if no ligand.
+    ligand.name : str
+        Orthosteric ligand name. None if no ligand.
+        Available locally only.
+    ligand.name_allosteric : str
+        Allosteric ligand name. None if no ligand.
+        Available locally only.
+    structure.dfg : str
+        DFG conformation (in, out, out-like, na).
+    structure.ac_helix : str
+        aC helix conformation (in, out, out-like, na).
+    structure.resolution : float
+        Structure resolution in Angström.
+    structure.qualityscore : float
+        KLIFS quality score (considering missing residues/atoms and RMSD1/RMSD2).
+    structure.missing_residues : int
+        Number of missing residues.
+    structure.missing_atoms : int
+        Number of missing atoms.
+    structure.rmsd1 : float
+        RMSD between structure and reference structures based on full kinase domain.
+    structure.rmsd2 : float
+        RMSD between structure and reference structures based on kinase pocket residues.
+    structure.front : bool
+        Orthosteric ligand occupies KLIFS front cleft.
+        Available remotely only.
+    structure.gate : bool
+        Orthosteric ligand occupies gate area.
+        Available remotely only.
+    structure.back : bool
+        Orthosteric ligand occupies KLIFS back cleft.
+        Available remotely only.
+    structure.fp_i : bool
+        Orthosteric ligand occupies KLIFS front pocket I (FP-I).
+    structure.fp_ii : bool
+        Orthosteric ligand occupies KLIFS front pocket II (FP-II).
+    structure.bp_i_a : bool
+        Orthosteric ligand occupies KLIFS back pocket I-A (BP-I-A).
+    structure.bp_i_b : bool
+        Orthosteric ligand occupies KLIFS back pocket I-B (BP-I-B).
+    structure.bp_ii_in : bool
+        Orthosteric ligand occupies KLIFS back pocket II DFG-in (BP-II-in).
+    structure.bp_ii_a_in : bool
+        Orthosteric ligand occupies KLIFS back pocket II-A DFG-in (BP-II-A-in).
+    structure.bp_ii_b_in : bool
+        Orthosteric ligand occupies KLIFS back pocket II-B DFG-in (BP-II-B-in).
+    structure.bp_ii_out : bool
+        Orthosteric ligand occupies KLIFS back pocket II DFG-out (BP-II-out).
+    structure.bp_ii_b : bool
+        Orthosteric ligand occupies KLIFS back pocket II-B (BP-II-B).
+    structure.bp_iii : bool
+        Orthosteric ligand occupies KLIFS back pocket III (BP-III).
+    structure.bp_iv : bool
+        Orthosteric ligand occupies KLIFS back pocket IV (BP-IV).
+    structure.bp_v : bool
+        Orthosteric ligand occupies KLIFS back pocket V (BP-V).
+    structure.grich_distance : float
+        G-rich loop conformation: Distance between the catalytic loop and the G-rich loop.
+        Available remotely only.
+    structure.grich_angle : float
+        G-rich loop conformation: Angle of loop compared to hinge reagion and catalytic loop.
+        Available remotely only.
+    structure.grich_rotation : float
+        G-rich loop conformation: Rotation of the G-rich loop compared to the catalytic loop.
+        Available remotely only.
+    structure.filepath : str
+        Path to folder with the structure's coordinate files.
+        Available locally only.
     """
 
     def __init__(self):
@@ -1253,3 +1291,4 @@ class CoordinatesProvider(BaseProvider):
         if output_format:
             if output_format == "rdkit" and entity != "ligand":
                 raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
+
