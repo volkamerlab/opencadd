@@ -4,16 +4,6 @@ schema.py
 Defines schema used accross the klifs module.
 """
 
-KINASE_GROUPS = [
-    "AGC",
-    "CAMK",
-    "CK1",
-    "CMGC",
-    "Other",
-    "STE",
-    "TK",
-    "TKL",
-]
 
 LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {
