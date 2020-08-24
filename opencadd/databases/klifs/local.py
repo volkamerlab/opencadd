@@ -354,7 +354,7 @@ class Kinases(KinasesProvider):
     def all_kinase_groups(self):
 
         # Get local database and select rows
-        kinase_groups = self.__database
+        kinase_groups = self.__database.copy()
         # Format DataFrame
         kinase_groups = self._format_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
         return kinase_groups
@@ -362,7 +362,7 @@ class Kinases(KinasesProvider):
     def all_kinase_families(self, group=None):
 
         # Get local database and select rows
-        kinase_families = self.__database
+        kinase_families = self.__database.copy()
         if group:
             kinase_families = kinase_families[kinase_families["kinase.group"] == group]
         # Format DataFrame
@@ -372,7 +372,7 @@ class Kinases(KinasesProvider):
     def all_kinases(self, group=None, family=None, species=None):
 
         # Get local database and select rows
-        kinases = self.__database
+        kinases = self.__database.copy()
         if group:
             kinases = kinases[kinases["kinase.group"] == group]
         if family:
@@ -387,7 +387,7 @@ class Kinases(KinasesProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        kinases = self.__database
+        kinases = self.__database.copy()
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["local"])
@@ -397,7 +397,7 @@ class Kinases(KinasesProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows
-        kinases = self.__database
+        kinases = self.__database.copy()
         kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
@@ -428,7 +428,7 @@ class Ligands(LigandsProvider):
     def all_ligands(self):
 
         # Get local database and select rows
-        ligands = self.__database
+        ligands = self.__database.copy()
         # Format DataFrame
         ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"])
         return ligands
@@ -437,7 +437,7 @@ class Ligands(LigandsProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        ligands = self.__database
+        ligands = self.__database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         ligands = self._format_dataframe(
@@ -453,7 +453,7 @@ class Ligands(LigandsProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows
-        ligands = self.__database
+        ligands = self.__database.copy()
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Format DataFrame
         ligands = self._format_dataframe(
@@ -473,7 +473,7 @@ class Ligands(LigandsProvider):
 
         ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Get local database and select rows
-        ligands = self.__database
+        ligands = self.__database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
         ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"],)
@@ -502,7 +502,7 @@ class Structures(StructuresProvider):
     def all_structures(self):
 
         # Get local database and select rows
-        structures = self.__database
+        structures = self.__database.copy()
         # Format DataFrame
         structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
@@ -511,7 +511,7 @@ class Structures(StructuresProvider):
 
         structure_ids = self._cast_to_list(structure_ids)
         # Get local database and select rows
-        structures = self.__database
+        structures = self.__database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
         # Format DataFrame
         structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
@@ -526,7 +526,7 @@ class Structures(StructuresProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        structures = self.__database
+        structures = self.__database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
@@ -538,7 +538,7 @@ class Structures(StructuresProvider):
 
         structure_pdbs = self._cast_to_list(structure_pdbs)
         # Get local database and select rows
-        structures = self.__database
+        structures = self.__database.copy()
         structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
         # If only one structure PDB ID is given, check alternate model and chain filters
         if len(structure_pdbs) == 1:
@@ -553,7 +553,7 @@ class Structures(StructuresProvider):
 
         ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Get local database and select rows
-        structures = self.__database
+        structures = self.__database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
         structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
@@ -563,7 +563,7 @@ class Structures(StructuresProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
-        structures = self.__database
+        structures = self.__database.copy()
         structures = structures[
             structures.apply(
                 lambda x: any(
@@ -619,7 +619,7 @@ class Interactions(InteractionsProvider):
     def all_interactions(self):
 
         # Get local database and select rows
-        interactions = self.__database
+        interactions = self.__database.copy()
         # Format DataFrame
         interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
         return interactions
@@ -628,7 +628,7 @@ class Interactions(InteractionsProvider):
 
         structure_ids = self._cast_to_list(structure_ids)
         # Get local database and select rows
-        interactions = self.__database
+        interactions = self.__database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
@@ -638,7 +638,7 @@ class Interactions(InteractionsProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        interactions = self.__database
+        interactions = self.__database.copy()
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
