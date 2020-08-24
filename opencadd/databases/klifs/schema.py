@@ -174,9 +174,9 @@ MOL2_COLUMNS = {
     },
 }
 
-LOCAL_REMOTE_COLUMNS = {
-    "kinase_groups": {"local": ["kinase.group"], "remote": ["kinase.group"]},
-    "kinase_families": {"local": ["kinase.family"], "remote": ["kinase.family"]},
+COLUMN_NAMES = {
+    "kinase_groups": ["kinase.group"],
+    "kinase_families": ["kinase.family"],
     "kinases_all": {
         "local": ["kinase.name", "species.klifs"],
         "remote": ["kinase.id", "kinase.name", "kinase.name_full", "species.klifs",],
