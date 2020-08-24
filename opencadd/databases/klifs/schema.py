@@ -148,32 +148,6 @@ REMOTE_COLUMNS_MAPPING = {
     },
 }
 
-MOL2_COLUMNS = {
-    "n_cols_10": {
-        0: ("atom.id", int),
-        1: ("atom.name", str),
-        2: ("atom.x", float),
-        3: ("atom.y", float),
-        4: ("atom.z", float),
-        5: ("atom.type", str),
-        6: ("residue.subst_id", int),
-        7: ("residue.subst_name", str),
-        8: ("atom.charge", float),
-        9: ("atom.backbone", str),
-    },
-    "n_cols_9": {
-        0: ("atom.id", int),
-        1: ("atom.name", str),
-        2: ("atom.x", float),
-        3: ("atom.y", float),
-        4: ("atom.z", float),
-        5: ("atom.type", str),
-        6: ("residue.subst_id", int),
-        7: ("residue.subst_name", str),
-        8: ("atom.charge", float),
-    },
-}
-
 COLUMN_NAMES = {
     "kinase_groups": ["kinase.group"],
     "kinase_families": ["kinase.family"],
