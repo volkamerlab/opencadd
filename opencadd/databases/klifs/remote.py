@@ -621,8 +621,7 @@ class Coordinates(CoordinatesProvider):
                 return mol2_df
             elif input_format == "pdb":
                 parser = PdbToDataFrame()
-                parser.from_text(text)
-                pdb_df = self._pdb_text_to_dataframe(text)
+                pdb_df = parser.from_text(text)
                 return pdb_df
 
     def to_file(
