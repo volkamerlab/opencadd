@@ -255,7 +255,10 @@ class TestsFromKinaseNames:
         # Ligands
         ligands = session.ligands.from_kinase_names(kinase_names)
         assert isinstance(ligands, pd.DataFrame)
-        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"]
+        assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"] + [
+            "kinase.name (query)",
+            "species.klifs (query)",
+        ]
 
         # Structures
         structures = session.structures.from_kinase_names(kinase_names)
