@@ -7,10 +7,8 @@ Defines local KLIFS session.
 import logging
 from pathlib import Path
 
-from biopandas.mol2 import PandasMol2
 import pandas as pd
-from rdkit import Chem
-from rdkit.Chem import AllChem
+import numpy as np
 
 from . import remote
 from .core import (
@@ -22,10 +20,10 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
 )
+from .parser import Mol2ToDataFrame, Mol2ToRdkitMol
 from .schema import (
     LOCAL_COLUMNS_MAPPING,
-    MOL2_COLUMNS,
-    LOCAL_REMOTE_COLUMNS,
+    COLUMN_NAMES,
     POCKET_KLIFS_REGIONS,
 )
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
@@ -358,9 +356,7 @@ class Kinases(KinasesProvider):
         # Get local database and select rows
         kinase_groups = self.__database
         # Format DataFrame
-        kinase_groups = self._format_dataframe(
-            kinase_groups, LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
-        )
+        kinase_groups = self._format_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -370,9 +366,7 @@ class Kinases(KinasesProvider):
         if group:
             kinase_families = kinase_families[kinase_families["kinase.group"] == group]
         # Format DataFrame
-        kinase_families = self._format_dataframe(
-            kinase_families, LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
-        )
+        kinase_families = self._format_dataframe(kinase_families, COLUMN_NAMES["kinase_families"])
         return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
@@ -386,7 +380,7 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases_all"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"]["local"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
@@ -396,7 +390,7 @@ class Kinases(KinasesProvider):
         kinases = self.__database
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["local"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -408,7 +402,7 @@ class Kinases(KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
         # Format DataFrame
-        kinases = self._format_dataframe(kinases, LOCAL_REMOTE_COLUMNS["kinases"]["local"])
+        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"]["local"])
         return kinases
 
 
@@ -436,7 +430,7 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self.__database
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"])
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
@@ -447,7 +441,7 @@ class Ligands(LigandsProvider):
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.id"],
+            ligands, COLUMN_NAMES["ligands"]["local"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -463,7 +457,7 @@ class Ligands(LigandsProvider):
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"] + ["kinase.name", "species.klifs"],
+            ligands, COLUMN_NAMES["ligands"]["local"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -482,7 +476,7 @@ class Ligands(LigandsProvider):
         ligands = self.__database
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        ligands = self._format_dataframe(ligands, LOCAL_REMOTE_COLUMNS["ligands"]["local"],)
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"]["local"],)
         return ligands
 
 
@@ -510,9 +504,7 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self.__database
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
 
     def from_structure_ids(self, structure_ids):
@@ -522,9 +514,7 @@ class Structures(StructuresProvider):
         structures = self.__database
         structures = structures[structures["structure.id"].isin(structure_ids)]
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
@@ -539,9 +529,7 @@ class Structures(StructuresProvider):
         structures = self.__database
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
 
     def from_structure_pdbs(
@@ -558,9 +546,7 @@ class Structures(StructuresProvider):
                 structures, structure_alternate_model, structure_chain
             )
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -570,9 +556,7 @@ class Structures(StructuresProvider):
         structures = self.__database
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
 
     def from_kinase_names(self, kinase_names):
@@ -589,9 +573,7 @@ class Structures(StructuresProvider):
             )
         ]
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures, LOCAL_REMOTE_COLUMNS["structures"]["local"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"]["local"],)
         return structures
 
 
@@ -639,9 +621,7 @@ class Interactions(InteractionsProvider):
         # Get local database and select rows
         interactions = self.__database
         # Format DataFrame
-        interactions = self._format_dataframe(
-            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
-        )
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
         return interactions
 
     def from_structure_ids(self, structure_ids):
@@ -651,9 +631,7 @@ class Interactions(InteractionsProvider):
         interactions = self.__database
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Format DataFrame
-        interactions = self._format_dataframe(
-            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"],
-        )
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"]["local"],)
         return interactions
 
     def from_kinase_ids(self, kinase_ids):
@@ -664,7 +642,7 @@ class Interactions(InteractionsProvider):
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
-            interactions, LOCAL_REMOTE_COLUMNS["interactions"]["local"] + ["kinase.id"],
+            interactions, COLUMN_NAMES["interactions"]["local"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
@@ -700,7 +678,7 @@ class Pockets(PocketsProvider):
             structure_id, entity="pocket", input_format="mol2", output_format="biopandas",
         )
         # Format DataFrame
-        mol2_df = self._format_dataframe(mol2_df, LOCAL_REMOTE_COLUMNS["pockets"]["local"],)
+        mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"]["local"],)
 
         return mol2_df
 
@@ -749,15 +727,19 @@ class Coordinates(CoordinatesProvider):
 
         # Return different output formats
         if output_format == "rdkit":
-            rdkit_mol = self._mol2_file_to_rdkit_mol(str(file_path), compute2d)
+            parser = Mol2ToRdkitMol()
+            rdkit_mol = parser.from_file(str(file_path), compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
-                mol2_df = self._mol2_file_to_dataframe(file_path).df
-                mol2_df = self._split_mol2_subst_names(mol2_df)
+                parser = Mol2ToDataFrame()
+                mol2_df = parser.from_file(file_path)
                 if "pocket" in str(file_path):
                     mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
+                else:
+                    mol2_df["residue.klifs_id"] = np.nan  # Fill with KLIFS IDs TODO
+                    mol2_df["residue.klifs_region"] = np.nan  # Fill with KLIFS regions TODO
                 return mol2_df
             elif input_format == "pdb":
                 pass
@@ -790,61 +772,6 @@ class Coordinates(CoordinatesProvider):
         # Get coordinates from file
         result = self.from_file(filepath, output_format, compute2d)
         return result
-
-    @staticmethod
-    def _mol2_file_to_dataframe(mol2_file):
-        """
-        Get structural data from mol2 file.
-
-        Parameters
-        ----------
-        mol2_file : pathlib.Path or str
-        Path to mol2 file.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Structural data.
-        """
-
-        mol2_file = Path(mol2_file)
-
-        pmol = PandasMol2()
-
-        try:
-            mol2_df = pmol.read_mol2(str(mol2_file), columns=MOL2_COLUMNS["n_cols_10"])
-
-        except ValueError:
-            mol2_df = pmol.read_mol2(str(mol2_file), columns=MOL2_COLUMNS["n_cols_9"])
-            # Add column to return same column names in both cases (i.e. try-except)
-            mol2_df.insert(9, "atom.backbone", np.nan)
-
-        return mol2_df
-
-    @staticmethod
-    def _mol2_file_to_rdkit_mol(mol2_file, compute2d=True):
-        """
-        Get structural data from mol2 file.
-
-        Parameters
-        ----------
-        mol2_file : pathlib.Path or str
-        Path to mol2 file.
-        compute2d : bool
-            Compute 2D coordinates for ligand (default).
-
-        Returns
-        -------
-        rdkit.Chem.rdchem.Mol
-            Molecule.
-        """
-
-        mol = Chem.MolFromMol2File(mol2_file)
-
-        if compute2d:
-            AllChem.Compute2DCoords(mol)
-
-        return mol
 
     def _add_residue_klifs_ids(self, mol2_df, filepath):
         """
