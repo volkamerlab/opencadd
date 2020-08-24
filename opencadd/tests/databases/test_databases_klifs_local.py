@@ -23,9 +23,9 @@ class TestsAllQueries:
         """
         Test request result for all kinase groups.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        kinases = session.kinases.all_kinase_groups()
+        kinases = local.kinases.all_kinase_groups()
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["local"]
         assert kinases["kinase.group"].to_list() == result_groups
@@ -37,9 +37,9 @@ class TestsAllQueries:
         """
         Test request result for all kinase families.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        kinases = session.kinases.all_kinase_families(group)
+        kinases = local.kinases.all_kinase_families(group)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_families"]["local"]
         assert kinases["kinase.family"].to_list() == result_families
@@ -49,10 +49,10 @@ class TestsAllQueries:
         """
         Test request result for all kinase families: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(ValueError):
-            session.kinases.all_kinase_families(group)
+            local.kinases.all_kinase_families(group)
 
     @pytest.mark.parametrize(
         "group, family, species, result_kinases",
@@ -69,9 +69,9 @@ class TestsAllQueries:
         """
         Test request result for all kinases.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        kinases = session.kinases.all_kinases(group, family, species)
+        kinases = local.kinases.all_kinases(group, family, species)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["local"]
 
@@ -82,18 +82,18 @@ class TestsAllQueries:
         """
         Test request result for all kinases: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(ValueError):
-            session.kinases.all_kinases(group, family, species)
+            local.kinases.all_kinases(group, family, species)
 
     def test_all_ligands(self):
         """
         Test request result for all ligands.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        ligands = session.ligands.all_ligands()
+        ligands = local.ligands.all_ligands()
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"]
         assert ligands["ligand.pdb"].to_list() == ["1N1", "QH1", "PRC"]
@@ -102,9 +102,9 @@ class TestsAllQueries:
         """
         Test request result for all structures.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        structures = session.structures.all_structures()
+        structures = local.structures.all_structures()
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
         assert structures["structure.id"].to_list() == [3482, 12347, 5728, 5705]
@@ -113,18 +113,18 @@ class TestsAllQueries:
         """
         Test request result for all interaction types.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(NotImplementedError):
-            session.interactions.interaction_types
+            local.interactions.interaction_types
 
     def test_all_interactions(self):
         """
         Test request result for all kinases.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
-        interactions = session.interactions.all_interactions()
+        interactions = local.interactions.all_interactions()
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["local"]
 
@@ -133,9 +133,9 @@ class TestsAllQueries:
         """
         Test request result for all kinases.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
         with pytest.raises(NotImplementedError):
-            session.bioactivities.all_bioactivities()
+            local.bioactivities.all_bioactivities()
 
 
 class TestsFromKinaseIds:
@@ -148,31 +148,31 @@ class TestsFromKinaseIds:
         """
         Test all class methods with kinase IDs as input.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Kinases
-        kinases = session.kinases.from_kinase_ids(kinase_ids)
+        kinases = local.kinases.from_kinase_ids(kinase_ids)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["local"]
 
         # Ligands
-        ligands = session.ligands.from_kinase_ids(kinase_ids)
+        ligands = local.ligands.from_kinase_ids(kinase_ids)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"] + [
             "kinase.id (query)"
         ]
 
         # Structures
-        structures = session.structures.from_kinase_ids(kinase_ids)
+        structures = local.structures.from_kinase_ids(kinase_ids)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
 
         # Bioactivities
         with pytest.raises(NotImplementedError):
-            session.bioactivities.from_kinase_ids(kinase_ids)
+            local.bioactivities.from_kinase_ids(kinase_ids)
 
         # Interactions
-        interactions = session.interactions.from_kinase_ids(kinase_ids)
+        interactions = local.interactions.from_kinase_ids(kinase_ids)
         assert isinstance(kinases, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["local"] + [
             "kinase.id (query)"
@@ -183,12 +183,12 @@ class TestsFromKinaseIds:
         """
         Test all class methods with kinase IDs as input: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
         with pytest.raises(ValueError):
-            session.kinases.from_kinase_ids(kinase_ids)
-            session.ligands.from_kinase_ids(kinase_ids)
-            session.structures.from_kinase_ids(kinase_ids)
-            session.interactions.from_kinase_ids(kinase_ids)
+            local.kinases.from_kinase_ids(kinase_ids)
+            local.ligands.from_kinase_ids(kinase_ids)
+            local.structures.from_kinase_ids(kinase_ids)
+            local.interactions.from_kinase_ids(kinase_ids)
 
 
 class TestFromStructureIds:
@@ -201,22 +201,22 @@ class TestFromStructureIds:
         """
         Test class methods with structure IDs as input.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Structures
-        structures = session.structures.from_structure_ids(structure_ids)
+        structures = local.structures.from_structure_ids(structure_ids)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
 
         # Interactions
-        interactions = session.interactions.from_structure_ids(structure_ids)
+        interactions = local.interactions.from_structure_ids(structure_ids)
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["local"]
 
         # Pockets (takes only one structure ID as input!)
         if isinstance(structure_ids, int):
             structure_id = structure_ids
-            pocket = session.pockets.from_structure_id(structure_id)
+            pocket = local.pockets.from_structure_id(structure_id)
             assert isinstance(pocket, pd.DataFrame)
             assert pocket.columns.to_list() == LOCAL_REMOTE_COLUMNS["pockets"]["local"]
 
@@ -225,14 +225,14 @@ class TestFromStructureIds:
         """
         Test class methods with structure IDs as input: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(ValueError):
-            session.structures.from_structure_ids(structure_ids)
-            session.interactions.from_structure_ids(structure_ids)
+            local.structures.from_structure_ids(structure_ids)
+            local.interactions.from_structure_ids(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
-                session.pockets.from_structure_id(structure_id)
+                local.pockets.from_structure_id(structure_id)
 
 
 class TestsFromKinaseNames:
@@ -245,15 +245,15 @@ class TestsFromKinaseNames:
         """
         Test class methods with kinase names as input.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Kinases
-        kinases = session.kinases.from_kinase_names(kinase_names, species)
+        kinases = local.kinases.from_kinase_names(kinase_names, species)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["local"]
 
         # Ligands
-        ligands = session.ligands.from_kinase_names(kinase_names)
+        ligands = local.ligands.from_kinase_names(kinase_names)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"] + [
             "kinase.name (query)",
@@ -261,7 +261,7 @@ class TestsFromKinaseNames:
         ]
 
         # Structures
-        structures = session.structures.from_kinase_names(kinase_names)
+        structures = local.structures.from_kinase_names(kinase_names)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
 
@@ -270,11 +270,11 @@ class TestsFromKinaseNames:
         """
         Test class methods with kinase names as input: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
         with pytest.raises(ValueError):
-            session.kinases.from_kinase_names(kinase_names, species)
-            session.ligands.from_kinase_names(kinase_names)
-            session.structures.from_kinase_names(kinase_names)
+            local.kinases.from_kinase_names(kinase_names, species)
+            local.ligands.from_kinase_names(kinase_names)
+            local.structures.from_kinase_names(kinase_names)
 
 
 class TestsFromLigandPdbs:
@@ -287,15 +287,15 @@ class TestsFromLigandPdbs:
         """
         Test class methods with ligand PDB IDs as input.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Ligands
-        ligands = session.ligands.from_ligand_pdbs(ligand_pdbs)
+        ligands = local.ligands.from_ligand_pdbs(ligand_pdbs)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["local"]
 
         # Structure
-        structures = session.structures.from_ligand_pdbs(ligand_pdbs)
+        structures = local.structures.from_ligand_pdbs(ligand_pdbs)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
 
@@ -304,11 +304,11 @@ class TestsFromLigandPdbs:
         """
         Test class methods with ligand PDB IDs as input: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         with pytest.raises(ValueError):
-            session.ligands.from_ligand_pdbs(ligand_pdbs)
-            session.structures.from_ligand_pdbs(ligand_pdbs)
+            local.ligands.from_ligand_pdbs(ligand_pdbs)
+            local.structures.from_ligand_pdbs(ligand_pdbs)
 
 
 class TestsFromStructurePdbs:
@@ -321,10 +321,10 @@ class TestsFromStructurePdbs:
         """
         Test class methods with structure PDB IDs as input.
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Structure
-        structures = session.structures.from_structure_pdbs(structure_pdbs)
+        structures = local.structures.from_structure_pdbs(structure_pdbs)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["local"]
 
@@ -333,8 +333,8 @@ class TestsFromStructurePdbs:
         """
         Test class methods with structure PDB IDs as input: Error raised if input invalid?
         """
-        session = setup_local(PATH_TEST_DATA)
+        local = setup_local(PATH_TEST_DATA)
 
         # Structure
         with pytest.raises(ValueError):
-            session.structures.from_structure_pdbs(structure_pdbs)
+            local.structures.from_structure_pdbs(structure_pdbs)

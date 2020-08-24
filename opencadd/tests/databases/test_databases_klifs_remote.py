@@ -21,9 +21,9 @@ class TestsAllQueries:
         """
         Test request result for all kinase groups.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        kinases = session.kinases.all_kinase_groups()
+        kinases = remote.kinases.all_kinase_groups()
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_groups"]["remote"]
         assert sorted(kinases["kinase.group"].to_list()) == KINASE_GROUPS
@@ -33,9 +33,9 @@ class TestsAllQueries:
         """
         Test request result for all kinase families.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        kinases = session.kinases.all_kinase_families(group)
+        kinases = remote.kinases.all_kinase_families(group)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinase_families"]["remote"]
 
@@ -44,10 +44,10 @@ class TestsAllQueries:
         """
         Test request result for all kinase families: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(SwaggerMappingError):
-            session.kinases.all_kinase_families(group)
+            remote.kinases.all_kinase_families(group)
 
     @pytest.mark.parametrize(
         "group, family, species",
@@ -64,9 +64,9 @@ class TestsAllQueries:
         """
         Test request result for all kinases.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        kinases = session.kinases.all_kinases(group, family, species)
+        kinases = remote.kinases.all_kinases(group, family, species)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases_all"]["remote"]
 
@@ -77,17 +77,17 @@ class TestsAllQueries:
         """
         Test request result for all kinases: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
         with pytest.raises(SwaggerMappingError):
-            session.kinases.all_kinases(group, family, species)
+            remote.kinases.all_kinases(group, family, species)
 
     def test_all_ligands(self):
         """
         Test request result for all ligands.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        ligands = session.ligands.all_ligands()
+        ligands = remote.ligands.all_ligands()
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
 
@@ -95,9 +95,9 @@ class TestsAllQueries:
         """
         Test request result for all structures.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        structures = session.structures.all_structures()
+        structures = remote.structures.all_structures()
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
@@ -105,9 +105,9 @@ class TestsAllQueries:
         """
         Test request result for all interaction types.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        interaction_types = session.interactions.interaction_types
+        interaction_types = remote.interactions.interaction_types
         assert isinstance(interaction_types, pd.DataFrame)
         assert (
             interaction_types.columns.to_list()
@@ -118,9 +118,9 @@ class TestsAllQueries:
         """
         Test request result for all kinases.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        interactions = session.interactions.all_interactions()
+        interactions = remote.interactions.all_interactions()
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
@@ -129,11 +129,11 @@ class TestsAllQueries:
         """
         Test request result for all kinases.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Usually this class method is used to get ALL bioactivities from ALL ligands
         # Since this query takes a few minutes, only the frist 3 ligands are used here for testing
-        bioactivities = session.bioactivities.all_bioactivities(n=3)
+        bioactivities = remote.bioactivities.all_bioactivities(n=3)
         assert isinstance(bioactivities, pd.DataFrame)
         assert bioactivities.columns.to_list() == LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
 
@@ -148,32 +148,32 @@ class TestsFromKinaseIds:
         """
         Test all class methods with kinase IDs as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Kinases
-        kinases = session.kinases.from_kinase_ids(kinase_ids)
+        kinases = remote.kinases.from_kinase_ids(kinase_ids)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["remote"]
 
         # Ligands
-        ligands = session.ligands.from_kinase_ids(kinase_ids)
+        ligands = remote.ligands.from_kinase_ids(kinase_ids)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"] + [
             "kinase.id (query)"
         ]
 
         # Structures
-        structures = session.structures.from_kinase_ids(kinase_ids)
+        structures = remote.structures.from_kinase_ids(kinase_ids)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
         # Bioactivities
-        bioactivities = session.bioactivities.from_kinase_ids(kinase_ids)
+        bioactivities = remote.bioactivities.from_kinase_ids(kinase_ids)
         assert isinstance(bioactivities, pd.DataFrame)
         assert bioactivities.columns.to_list() == LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
 
         # Interactions
-        interactions = session.interactions.from_kinase_ids(kinase_ids)
+        interactions = remote.interactions.from_kinase_ids(kinase_ids)
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
@@ -182,14 +182,14 @@ class TestsFromKinaseIds:
         """
         Test all class methods with kinase IDs as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(SwaggerMappingError):
-            session.kinases.from_kinase_ids(kinase_ids)
-            session.ligands.from_kinase_ids(kinase_ids)
-            session.structures.from_kinase_ids(kinase_ids)
-            session.bioactivities.from_kinase_ids(kinase_ids)
-            session.interactions.from_kinase_ids(kinase_ids)
+            remote.kinases.from_kinase_ids(kinase_ids)
+            remote.ligands.from_kinase_ids(kinase_ids)
+            remote.structures.from_kinase_ids(kinase_ids)
+            remote.bioactivities.from_kinase_ids(kinase_ids)
+            remote.interactions.from_kinase_ids(kinase_ids)
 
 
 class TestsFromLigandIds:
@@ -202,25 +202,25 @@ class TestsFromLigandIds:
         """
         Test all class methods with ligand IDs as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Ligands
-        ligands = session.ligands.from_ligand_ids(ligand_ids)
+        ligands = remote.ligands.from_ligand_ids(ligand_ids)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
 
         # Structures
-        structures = session.structures.from_ligand_ids(ligand_ids)
+        structures = remote.structures.from_ligand_ids(ligand_ids)
         assert isinstance(ligands, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
         # Bioactivities
-        bioactivities = session.bioactivities.from_ligand_ids(ligand_ids)
+        bioactivities = remote.bioactivities.from_ligand_ids(ligand_ids)
         assert isinstance(bioactivities, pd.DataFrame)
         assert bioactivities.columns.to_list() == LOCAL_REMOTE_COLUMNS["bioactivities"]["remote"]
 
         # Interactions
-        interactions = session.interactions.from_ligand_ids(ligand_ids)
+        interactions = remote.interactions.from_ligand_ids(ligand_ids)
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
@@ -229,15 +229,15 @@ class TestsFromLigandIds:
         """
         Test all class methods with ligand IDs as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(SwaggerMappingError):
-            session.bioactivities.from_ligand_ids(ligand_ids)
-            session.interactions.from_ligand_ids(ligand_ids)
+            remote.bioactivities.from_ligand_ids(ligand_ids)
+            remote.interactions.from_ligand_ids(ligand_ids)
 
         with pytest.raises(ValueError):
-            session.ligands.from_ligand_ids(ligand_ids)
-            session.structures.from_ligand_ids(ligand_ids)
+            remote.ligands.from_ligand_ids(ligand_ids)
+            remote.structures.from_ligand_ids(ligand_ids)
 
 
 class TestsFromStructureIds:
@@ -250,22 +250,22 @@ class TestsFromStructureIds:
         """
         Test class methods with structure IDs as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Structures
-        structures = session.structures.from_structure_ids(structure_ids)
+        structures = remote.structures.from_structure_ids(structure_ids)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
         # Interactions
-        interactions = session.interactions.from_structure_ids(structure_ids)
+        interactions = remote.interactions.from_structure_ids(structure_ids)
         assert isinstance(interactions, pd.DataFrame)
         assert interactions.columns.to_list() == LOCAL_REMOTE_COLUMNS["interactions"]["remote"]
 
         # Pockets (takes only one structure ID as input!)
         if isinstance(structure_ids, int):
             structure_id = structure_ids
-            pocket = session.pockets.from_structure_id(structure_id)
+            pocket = remote.pockets.from_structure_id(structure_id)
             assert isinstance(pocket, pd.DataFrame)
             assert pocket.columns.to_list() == LOCAL_REMOTE_COLUMNS["pockets"]["remote"]
 
@@ -274,14 +274,14 @@ class TestsFromStructureIds:
         """
         Test class methods with structure IDs as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(SwaggerMappingError):
-            session.structures.from_structure_ids(structure_ids)
-            session.interactions.from_structure_ids(structure_ids)
+            remote.structures.from_structure_ids(structure_ids)
+            remote.interactions.from_structure_ids(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
-                session.pockets.from_structure_id(structure_id)
+                remote.pockets.from_structure_id(structure_id)
 
 
 class TestsFromKinaseNames:
@@ -297,15 +297,15 @@ class TestsFromKinaseNames:
         """
         Test class methods with kinase names as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Kinases
-        kinases = session.kinases.from_kinase_names(kinase_names, species)
+        kinases = remote.kinases.from_kinase_names(kinase_names, species)
         assert isinstance(kinases, pd.DataFrame)
         assert kinases.columns.to_list() == LOCAL_REMOTE_COLUMNS["kinases"]["remote"]
 
         # Ligands
-        ligands = session.ligands.from_kinase_names(kinase_names)
+        ligands = remote.ligands.from_kinase_names(kinase_names)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"] + [
             "kinase.id (query)",
@@ -314,7 +314,7 @@ class TestsFromKinaseNames:
         ]
 
         # Structures
-        structures = session.structures.from_kinase_names(kinase_names)
+        structures = remote.structures.from_kinase_names(kinase_names)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
@@ -323,13 +323,13 @@ class TestsFromKinaseNames:
         """
         Test class methods with kinase names as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
         with pytest.raises(SwaggerMappingError):
-            session.kinases.from_kinase_names(kinase_names, species)
-            session.ligands.from_kinase_names(kinase_names)
+            remote.kinases.from_kinase_names(kinase_names, species)
+            remote.ligands.from_kinase_names(kinase_names)
 
         with pytest.raises(ValueError):
-            session.structures.from_kinase_names(kinase_names)
+            remote.structures.from_kinase_names(kinase_names)
 
 
 class TestsFromLigandPdbs:
@@ -342,15 +342,15 @@ class TestsFromLigandPdbs:
         """
         Test class methods with ligand PDB IDs as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Ligands
-        ligands = session.ligands.from_ligand_pdbs(ligand_pdbs)
+        ligands = remote.ligands.from_ligand_pdbs(ligand_pdbs)
         assert isinstance(ligands, pd.DataFrame)
         assert ligands.columns.to_list() == LOCAL_REMOTE_COLUMNS["ligands"]["remote"]
 
         # Structure
-        structures = session.structures.from_ligand_pdbs(ligand_pdbs)
+        structures = remote.structures.from_ligand_pdbs(ligand_pdbs)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
@@ -359,11 +359,11 @@ class TestsFromLigandPdbs:
         """
         Test class methods with ligand PDB IDs as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(ValueError):
-            session.ligands.from_ligand_pdbs(ligand_pdbs)
-            session.structures.from_ligand_pdbs(ligand_pdbs)
+            remote.ligands.from_ligand_pdbs(ligand_pdbs)
+            remote.structures.from_ligand_pdbs(ligand_pdbs)
 
 
 class TestsFromStructurePdbs:
@@ -376,10 +376,10 @@ class TestsFromStructurePdbs:
         """
         Test class methods with structure PDB IDs as input.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Structure
-        structures = session.structures.from_structure_pdbs(structure_pdbs)
+        structures = remote.structures.from_structure_pdbs(structure_pdbs)
         assert isinstance(structures, pd.DataFrame)
         assert structures.columns.to_list() == LOCAL_REMOTE_COLUMNS["structures"]["remote"]
 
@@ -388,13 +388,13 @@ class TestsFromStructurePdbs:
         """
         Test class methods with structure PDB IDs as input: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         # Structure
         # Note: Integer input raises jsonschema.exceptions.ValidationError,
         # here tested using Exception
         with pytest.raises((SwaggerMappingError, Exception)):
-            session.structures.from_structure_pdbs(structure_pdbs)
+            remote.structures.from_structure_pdbs(structure_pdbs)
 
 
 class TestsCoordinates:
@@ -418,9 +418,9 @@ class TestsCoordinates:
         """
         Test retrieval of coordinates data from structure ID.
         """
-        session = setup_remote()
+        remote = setup_remote()
 
-        coordinates = session.coordinates.from_structure_id(
+        coordinates = remote.coordinates.from_structure_id(
             structure_id, entity, input_format, output_format
         )
         if output_format == "biopandas":
@@ -445,9 +445,8 @@ class TestsCoordinates:
         """
         Test retrieval of coordinates data from structure ID: Error raised if input invalid?
         """
-        session = setup_remote()
+        remote = setup_remote()
 
         with pytest.raises(ValueError):
-            session.coordinates.from_structure_id(
-                structure_id, entity, input_format, output_format
-            )
+            remote.coordinates.from_structure_id(structure_id, entity, input_format, output_format)
+
