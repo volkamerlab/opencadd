@@ -756,5 +756,6 @@ class Coordinates(CoordinatesProvider):
         pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
         mol2_df = mol2_df.merge(pocket, on="residue.pdb_id", how="left")
+        mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
 
         return mol2_df

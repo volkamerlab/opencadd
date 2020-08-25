@@ -894,5 +894,6 @@ class Coordinates(CoordinatesProvider):
             .rename(columns={"index": "residue.klifs_id"})
         )
         mol2_df = mol2_df.merge(pocket_klifs_regions, on="residue.klifs_id", how="left")
+        mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
 
         return mol2_df
