@@ -4,6 +4,7 @@ api.py
 Defines the opencadd.databases.klifs API (local and remote).
 """
 import logging
+from pathlib import Path
 
 import pandas as pd
 
@@ -36,7 +37,7 @@ def setup_remote():
     return session
 
 
-def setup_local(path_to_klifs_download):
+def setup_local(path_to_klifs_download, path_to_klifs_metadata=None):
     """
     Set up local session to work with KLIFS data locally.
 
@@ -44,6 +45,11 @@ def setup_local(path_to_klifs_download):
     ---------
     path_to_klifs_download : pathlib.Path or str
         Path to folder with KLIFS download files.
+    path_to_klifs_metadata : pathlib.Path or str
+        Path to KLIFS metadata file (default is None). 
+        Set this parameter, if you have initialized a local session before and therefore
+        already have a KLIFS metadata file. 
+        You could pass here a filtered version of this KLIFS metadata file.
     
     Returns
     -------
@@ -52,7 +58,7 @@ def setup_local(path_to_klifs_download):
     """
     _logger.info(f"Set up local session...")
     session = Session()
-    session.from_local(path_to_klifs_download)
+    session.from_local(path_to_klifs_download, path_to_klifs_metadata)
     _logger.info(f"Local session is ready!")
     return session
 
@@ -100,25 +106,40 @@ class Session:
         self.pockets = None
         self.coordinates = None
 
-    def from_local(self, path_to_klifs_download):
+    def from_local(self, path_to_klifs_download, path_to_klifs_metadata=None):
         """
-        Set up local session by initializing a local metadata database from KLIFS download.
+        Set up local session by initializing or loading a local metadata database 
+        from a KLIFS download.
 
         Parameters
         ----------
         path_to_klifs_download : pathlib.Path or str
             Path to folder with KLIFS download files.
+        path_to_klifs_metadata : pathlib.Path or str
+            Path to KLIFS metadata file (default is None). 
+            Set this parameter, if you have initialized a local session before and therefore
+            already have a KLIFS metadata file. 
+            You could pass here a filtered version of this KLIFS metadata file.
         """
 
         # Session type
         self.session_type = "local"
 
         # Set path to KLIFS download
-        self.path_to_klifs_download = path_to_klifs_download
+        self.path_to_klifs_download = Path(path_to_klifs_download)
+        if path_to_klifs_metadata:
+            self.path_to_klifs_metadata = Path(path_to_klifs_metadata)
+        else:
+            self.path_to_klifs_metadata = None
 
-        # Get database
-        session_initializer = local.SessionInitializer(self.path_to_klifs_download)
-        self.database = session_initializer.klifs_metadata
+        # Get database: If a path to an existing KLIFS metadata file is given,
+        # load database from this file.
+        # If not, initialize the KLIFS metadata database.
+        if self.path_to_klifs_metadata:
+            self.database = pd.read_csv(self.path_to_klifs_metadata)
+        else:
+            session_initializer = local.SessionInitializer(self.path_to_klifs_download)
+            self.database = session_initializer.klifs_metadata
 
         # Initialize classes
         self.kinases = local.Kinases(self.database, self.path_to_klifs_download)

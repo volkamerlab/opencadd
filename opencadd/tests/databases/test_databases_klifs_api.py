@@ -30,8 +30,11 @@ def test_api_remote():
     assert isinstance(session.coordinates, remote.Coordinates)
 
 
-@pytest.mark.parametrize("path_to_klifs_download", [PATH_TEST_DATA])
-def test_api_local(path_to_klifs_download):
+@pytest.mark.parametrize(
+    "path_to_klifs_download, path_to_klifs_metadata",
+    [(PATH_TEST_DATA, None), (PATH_TEST_DATA, PATH_TEST_DATA / "klifs_metadata.csv")],
+)
+def test_api_local(path_to_klifs_download, path_to_klifs_metadata):
     """
     Test Session attributes for local session.
 
@@ -39,8 +42,14 @@ def test_api_local(path_to_klifs_download):
     ----------
     path_to_klifs_download : pathlib.Path or str
         Path to folder with KLIFS download files.
+    path_to_klifs_metadata : pathlib.Path or str
+        Path to KLIFS metadata file (default is None). 
+        Set this parameter, if you have initialized a local session before and therefore
+        already have a KLIFS metadata file. 
+        You could pass here a filtered version of this KLIFS metadata file.
     """
-    session = setup_local(path_to_klifs_download)
+    session = setup_local(path_to_klifs_download, path_to_klifs_metadata)
+
     assert session.session_type == "local"
     assert session.client is None
     assert isinstance(session.database, pd.DataFrame)
