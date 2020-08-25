@@ -29,7 +29,7 @@ def metadata_to_filepath(
     in_dir=False,
 ):
     """
-    Get file path.
+    Get file path from metadata.
 
     Parameters
     ----------
@@ -82,7 +82,31 @@ def metadata_to_filepath(
 
 def filepath_to_metadata(filepath):
     """
-    TODO
+    Get metadata from file path.
+
+    Parameters
+    ----------
+    filepath : pathlib.Path
+        File path.
+
+    Returns
+    -------
+    dict
+        Metadata in the form of a dictionary with the following keys and values:
+        species : str
+            Species.
+        kinase_name : str
+            Kinase name.
+        structure_pdb : str
+            PDB ID.
+        structure_alternate_model : str
+            Alternate model ID. None if not existing.
+        structure_chain : str
+            Chain ID.
+        entity : str
+            Structural entity: complex, ligand, pocket, protein, or water.
+        input_format : str
+            File format: mol2 or pdb.
     """
 
     # Cast to string

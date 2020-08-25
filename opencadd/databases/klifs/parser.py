@@ -42,11 +42,8 @@ MOL2_COLUMNS = {
 
 class PdbToDataFrame:
     """
-    TODO
+    Parse a pdb file or pdb text into a DataFrame.
     """
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def from_text(pdb_text):
@@ -74,12 +71,8 @@ class PdbToDataFrame:
 
 class Mol2ToDataFrame:
     """
-    TODO
+    Parse a mol2 file or mol2 text into a DataFrame.
     """
-
-    def __init__(self):
-
-        pass
 
     def from_file(self, mol2_file):
         """
@@ -88,7 +81,7 @@ class Mol2ToDataFrame:
         Parameters
         ----------
         mol2_file : pathlib.Path or str
-        Path to mol2 file.
+            Path to mol2 file.
 
         Returns
         -------
@@ -212,11 +205,8 @@ class Mol2ToDataFrame:
 
 class Mol2ToRdkitMol:
     """
-    TODO
+    Parse a mol2 file or mol2 text into an RDKit molecule.
     """
-
-    def __init__(self):
-        pass
 
     @staticmethod
     def from_file(mol2_file, compute2d=True):
@@ -226,7 +216,7 @@ class Mol2ToRdkitMol:
         Parameters
         ----------
         mol2_file : pathlib.Path or str
-        Path to mol2 file.
+            Path to mol2 file.
         compute2d : bool
             Compute 2D coordinates for ligand (default).
 
