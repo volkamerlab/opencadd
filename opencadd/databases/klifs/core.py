@@ -1189,10 +1189,6 @@ class CoordinatesProvider(BaseProvider):
     to_file()
         Save structural data to file (remote only).
 
-    Raises
-    ------
-    TODO Add exceptions here. 
-
     Notes
     -----
     Class methods all return a pandas.DataFrame of atom coordinates (rows) with the (or a subset of 
@@ -1255,6 +1251,13 @@ class CoordinatesProvider(BaseProvider):
             Output format: text, biopandas (default), or rdkit (only for entity=ligand).
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
+        
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure ID does not exist.
+        ValueError
+            If input yields not result.
         """
         raise NotImplementedError("Implement in your subclass!")
 

@@ -778,6 +778,13 @@ class Coordinates(CoordinatesProvider):
             Structural entity: complex (default), ligand, pocket, protein, or water.
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
+
+        Raises
+        ------
+        ValueError
+            If input yields not result.
+        FileNotFoundError
+            If input file does not exist.
         """
 
         file_path = Path(file_path)

@@ -642,6 +642,11 @@ class Coordinates(CoordinatesProvider):
             Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
         in_dir : bool
             Save file in KLIFS directory structure (default: False).
+
+        Raises
+        ------
+        ValueError
+            If input yields not result.
         """
 
         self.check_parameter_validity(entity, input_format)
@@ -663,7 +668,6 @@ class Coordinates(CoordinatesProvider):
             input_format,
             in_dir,
         )
-        print(output_path)
 
         # Create output directory if needed
         output_path.parent.mkdir(parents=True, exist_ok=True)
