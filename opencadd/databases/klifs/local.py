@@ -806,11 +806,7 @@ class Coordinates(CoordinatesProvider):
             if input_format == "mol2":
                 parser = Mol2ToDataFrame()
                 mol2_df = parser.from_file(file_path)
-                if "pocket" in str(file_path):
-                    mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
-                else:
-                    mol2_df["residue.klifs_id"] = np.nan  # TODO Fill with KLIFS IDs
-                    mol2_df["residue.klifs_region"] = np.nan  # TODO Fill with KLIFS regions
+                mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
                 return mol2_df
             elif input_format == "pdb":
                 pass
@@ -875,14 +871,22 @@ class Coordinates(CoordinatesProvider):
 
         # Number of atoms per residue in molecule (mol2file)
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
-        number_of_atoms_per_residue = mol2_df.groupby(by="residue.subst_name", sort=False).size()
+        parser = Mol2ToDataFrame()
+        mol2_df_pocket = parser.from_file(filepath.parent / "pocket.mol2")
+        number_of_atoms_per_residue = mol2_df_pocket.groupby(
+            by="residue.subst_name", sort=False
+        ).size()
 
         # Get KLIFS position IDs for each atom in molecule
         klifs_ids_per_atom = []
         for klifs_id, n in zip(klifs_ids, number_of_atoms_per_residue):
             klifs_ids_per_atom.extend([klifs_id] * n)
         # Add column for KLIFS position IDs to molecule
-        mol2_df["residue.klifs_id"] = klifs_ids_per_atom
+        mol2_df_pocket["residue.klifs_id"] = klifs_ids_per_atom
+        # Merge pocket DataFrame with input DataFrame
+        mol2_df = mol2_df.merge(
+            mol2_df_pocket[["residue.pdb_id", "residue.klifs_id"]], on="residue.pdb_id", how="left"
+        )
         # Add column for KLIFS regions
         pocket_klifs_regions = (
             pd.Series(POCKET_KLIFS_REGIONS, name="residue.klifs_region")
