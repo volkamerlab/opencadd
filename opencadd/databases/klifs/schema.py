@@ -201,10 +201,10 @@ COLUMN_NAMES = {
         "structure.filepath",
     ],
     "bioactivities": [
-        # "kinase.id"  # Add if added to KLIFS API? TODO
+        # TODO "kinase.id"  # Add if added to KLIFS API?
         "kinase.pref_name",
         "kinase.uniprot",
-        # "ligand.id"  # Add if added to KLIFS API? TODO
+        # TODO "ligand.id"  # Add if added to KLIFS API?
         "ligand.bioactivity_standard_type",
         "ligand.bioactivity_standard_relation",
         "ligand.bioactivity_standard_value",

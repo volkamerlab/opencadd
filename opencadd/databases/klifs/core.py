@@ -1191,7 +1191,7 @@ class CoordinatesProvider(BaseProvider):
 
     Raises
     ------
-    Add exceptions here. TODO
+    TODO Add exceptions here. 
 
     Notes
     -----
@@ -1209,11 +1209,14 @@ class CoordinatesProvider(BaseProvider):
     atom.z : float
         Atom z coordinate.
     atom.type : float
-        Atom type.  TODO from where?
+        Atom type.  
+        TODO from where?
     residue.subst_id : str
-        Residue's substructure ID.  TODO from where?
+        Residue's substructure ID.  
+        TODO from where?
     residue.subst_name : str
-        Residue's substructure name.  TODO from where?
+        Residue's substructure name.  
+        TODO from where?
     atom.charge : float
         Atom charge.
     residue.name : float
@@ -1291,4 +1294,3 @@ class CoordinatesProvider(BaseProvider):
         if output_format:
             if output_format == "rdkit" and entity != "ligand":
                 raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
-

@@ -82,7 +82,7 @@ def metadata_to_filepath(
 
 def filepath_to_metadata(filepath):
     """
-    Write docs TODO
+    TODO
     """
 
     # Cast to string

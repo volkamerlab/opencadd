@@ -560,4 +560,3 @@ class TestsCoordinates:
         with pytest.raises(ValueError):
             REMOTE.coordinates.from_structure_id(structure_id, entity, input_format, output_format)
             LOCAL.coordinates.from_structure_id(structure_id, entity, input_format, output_format)
-

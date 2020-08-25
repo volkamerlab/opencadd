@@ -42,7 +42,7 @@ MOL2_COLUMNS = {
 
 class PdbToDataFrame:
     """
-    Bla TODO
+    TODO
     """
 
     def __init__(self):
@@ -67,14 +67,14 @@ class PdbToDataFrame:
         ppdb = PandasPdb()
         pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
 
-        # Streamline output with mol2 output? TODO
+        # TODO Streamline output with mol2 output?
 
         return pdb_dict
 
 
 class Mol2ToDataFrame:
     """
-    Bla TODO
+    TODO
     """
 
     def __init__(self):
@@ -212,7 +212,7 @@ class Mol2ToDataFrame:
 
 class Mol2ToRdkitMol:
     """
-    Bla TODO
+    TODO
     """
 
     def __init__(self):

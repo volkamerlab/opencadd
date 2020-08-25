@@ -802,8 +802,8 @@ class Coordinates(CoordinatesProvider):
                 if "pocket" in str(file_path):
                     mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
                 else:
-                    mol2_df["residue.klifs_id"] = np.nan  # Fill with KLIFS IDs TODO
-                    mol2_df["residue.klifs_region"] = np.nan  # Fill with KLIFS regions TODO
+                    mol2_df["residue.klifs_id"] = np.nan  # TODO Fill with KLIFS IDs
+                    mol2_df["residue.klifs_region"] = np.nan  # TODO Fill with KLIFS regions
                 return mol2_df
             elif input_format == "pdb":
                 pass
