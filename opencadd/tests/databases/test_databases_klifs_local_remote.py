@@ -350,6 +350,8 @@ class TestsFromStructureIds:
             check_dataframe(result_remote, COLUMN_NAMES["pockets"])
             check_dataframe(result_local, COLUMN_NAMES["pockets"])
 
+            assert all(result_local == result_remote)
+
     @pytest.mark.parametrize("structure_ids", [100000, "XXX"])
     def test_from_structure_ids_raise(self, structure_ids):
         """
