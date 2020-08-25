@@ -802,13 +802,13 @@ class Coordinates(CoordinatesProvider):
         self.__database = database
         self.__path_to_klifs_download = path_to_klifs_download
 
-    def from_file(self, file_path, output_format="biopandas", compute2d=True):
+    def from_file(self, filepath, output_format="biopandas", compute2d=True):
         """
         Load structural data from KLIFS file in different output formats.
 
         Parameters
         ----------
-        file_path : pathlib.Path or str
+        filepath : pathlib.Path or str
             Path to KLIFS file.
         entity : str
             Structural entity: complex (default), ligand, pocket, protein, or water.
@@ -823,26 +823,26 @@ class Coordinates(CoordinatesProvider):
             If input file does not exist.
         """
 
-        file_path = Path(file_path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"File does not exist: {file_path}.")
+        filepath = Path(filepath)
+        if not filepath.exists():
+            raise FileNotFoundError(f"File does not exist: {filepath}.")
 
         # Check if parameters are valid
-        entity = file_path.stem
-        input_format = file_path.suffix[1:]
+        entity = filepath.stem
+        input_format = filepath.suffix[1:]
         self.check_parameter_validity(entity, input_format, output_format)
 
         # Return different output formats
         if output_format == "rdkit":
             parser = Mol2ToRdkitMol()
-            rdkit_mol = parser.from_file(str(file_path), compute2d)
+            rdkit_mol = parser.from_file(str(filepath), compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
                 parser = Mol2ToDataFrame()
-                mol2_df = parser.from_file(file_path)
-                mol2_df = self._add_residue_klifs_ids(mol2_df, file_path)
+                mol2_df = parser.from_file(filepath)
+                mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
                 return mol2_df
             elif input_format == "pdb":
                 pass
