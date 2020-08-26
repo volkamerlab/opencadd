@@ -10,30 +10,133 @@ import pandas as pd
 
 class Pocket:
     """
-    Class to define a pocket with 
-    - structural data, 
+    Class defining a pocket with 
+    - structural data (protein/pocket), 
     - subpockets (to be shown as spheres) and 
     - regions (to be highlighted).
 
     Attributes
     ----------
-    TODO
+    data : pandas.DataFrame
+        Structural data (protein/pocket) with the following mandatory columns:
+        "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
+    name : str
+        Name of protein/pocket.
+    _subpockets : list of Subpocket
+        List of user-defined subpockets.
+    _region : list of Region
+        List of user-defined regions.
     """
 
-    def __init__(self):
+    def __init__(self, data, name):
 
-        self.molecule = None
-        self._subpockets = None
-        self.regions = None
+        self.data = data
+        self.name = name
+        self._subpockets = []
+        self._regions = []
 
     @property
     def subpockets(self):
-        return self._subpockets
+        """
+        Return subpockets data as DataFrame: 
+        Name, color and subpocket center (columns) for all subpockets (rows).
+        """
 
-    def set_subpockets(
-        self, dataframe, names, colors, anchor_residue_ids, anchor_residue_labels,
+        if self._subpockets == []:
+            return None
+
+        subpockets = pd.DataFrame(
+            {
+                "subpocket.name": [subpocket.name for subpocket in self._subpockets],
+                "subpocket.color": [subpocket.color for subpocket in self._subpockets],
+                "subpocket.center": [subpocket.center for subpocket in self._subpockets],
+            }
+        )
+
+        return subpockets
+
+    @property
+    def regions(self):
+        """
+        Return region data as DataFrame:
+        Name, color, involved residue PDB IDs and labels (columns) for all regions.
+        """
+        if self._regions == []:
+            return None
+
+        regions = pd.DataFrame(
+            {
+                "region.name": [region.name for region in self._regions],
+                "region.color": [region.color for region in self._regions],
+                "residue.pdb_ids": [region.residue_pdb_ids for region in self._regions],
+                "residue.label": [region.residue_labels for region in self._regions],
+            }
+        )
+
+        return regions
+
+    @property
+    def anchor_residues(self):
+        """
+        Return anchor residue data as DataFrame:
+        - Subpocket name and color
+        - Anchor residue PDB IDs (user-defined input IDs or alternative 
+          IDs if input was not available)
+        - Anchor residue labels
+        - Ahe anchor residue centers (coordinates)
+        """
+
+        if self._subpockets == []:
+            return None
+
+        anchor_residues = [subpocket.anchor_residues for subpocket in self._subpockets]
+        anchor_residues = pd.concat(anchor_residues)
+
+        return anchor_residues
+
+    def add_subpocket(
+        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels,
     ):
-        pass
+        """
+        Add subpocket based on given anchor residue PDB IDs.
+
+        Parameters
+        ----------
+        name : str
+            Subpocket name.
+        color : str
+            Subpocket color.
+        anchor_residue_pdb_ids : list of (int, str)
+            List of anchor residue PDB IDs.
+        anchor_residue_labels : list of (int, str)
+            List of anchor residue labels.
+        """
+
+        subpocket = Subpocket()
+        subpocket.from_dataframe(
+            self.data, name, color, anchor_residue_pdb_ids, anchor_residue_labels
+        )
+        self._subpockets.append(subpocket)
+
+    def add_region(self, name, color, residue_pdb_ids, residue_labels):
+        """
+        Add region based on given input residue PDB IDs.
+
+        Parameters
+        ----------
+        name : str
+            Region name.
+        color : str
+            Region color.
+        residue_pdb_ids : list of (int, str)
+            List of residue PDB IDs defining the region.
+        residue_labels : list of (int, str)
+            List of residue labels.
+        """
+
+        region = Region()
+        region.from_dataframe(self.data, name, color, residue_pdb_ids, residue_labels)
+        self._regions.append(region)
 
 
 class Subpocket:
