@@ -166,8 +166,9 @@ class Subpocket:
 
 
 class Residue:
+class AnchorResidue:
     """
-    Class to define a residue.
+    Class defining an anchor residue.
 
     Attributes
     ----------
@@ -193,7 +194,7 @@ class Residue:
 
     def from_dataframe(self, dataframe, residue_pdb_id, residue_label=None, color=None):
         """
-        Set residue properties for a given residue PDB ID.
+        Set residue properties.
 
         Parameters
         ----------
@@ -216,7 +217,7 @@ class Residue:
         self.color = color
 
         # Select atom from residue PDB ID and atom name
-        atom = self._atom(dataframe)
+        atom = self._ca_atom(dataframe)
 
         # If residue PDB ID exists, get atom coordinates.
         if atom is not None:
@@ -224,16 +225,16 @@ class Residue:
 
         # If not, get atom coordinates for residue before/after.
         else:
-            atoms = self._atom_before_after(dataframe)
+            atoms = self._ca_atom_before_after(dataframe)
             if atoms is not None:
                 self.pdb_id_alternative = atoms["residue.pdb_id"].to_list()
                 self.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
             else:
                 self.center = None
 
-    def _atom(self, dataframe):
+    def _ca_atom(self, dataframe):
         """
-        Select an atom based on a residue PBD ID and an atom name.
+        Select a CA atom based on a residue PBD ID.
 
         Parameters
         ----------
@@ -265,9 +266,9 @@ class Residue:
                 f"Unambiguous atom selection. {len(atom)} atoms found instead of 0 or 1."
             )
 
-    def _atom_before_after(self, dataframe):
+    def _ca_atom_before_after(self, dataframe):
         """
-        Select atoms with a given atom name for residues before and after a given residue PBD ID.
+        Select CA atoms from residues before and after a given residue PBD ID.
 
         Parameters
         ----------
