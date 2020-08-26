@@ -38,7 +38,7 @@ class Pocket:
 
 class Subpocket:
     """
-    Class to define a subpocket.
+    Class defining a subpocket.
 
     Attributes
     ----------
@@ -63,7 +63,12 @@ class Subpocket:
     @property
     def anchor_residues(self):
         """
-        Return details on anchor residues as DataFrame.
+        Return anchor residue data as DataFrame:
+        - Subpocket name and color
+        - Anchor residue PDB IDs (user-defined input IDs or alternative 
+          IDs if input was not available)
+        - Anchor residue labels
+        - Ahe anchor residue centers (coordinates)
         """
 
         anchor_residues_dict = {
@@ -80,22 +85,38 @@ class Subpocket:
 
         return anchor_residues_df
 
-    def from_anchor_residue_ids(self, dataframe, name, color, residue_pdb_ids, residue_labels):
+    def from_dataframe(
+        self, dataframe, name, color, anchor_residue_pdb_ids, anchor_residue_labels
+    ):
         """
-        TODO
+        Set subpocket properties.
+        
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+            Structural data (protein/pocket) with the following mandatory columns:
+            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
+        name : str
+            Subpocket name.
+        color : str
+            Subpocket color.
+        anchor_residue_pdb_ids : list of (int, str)
+            List of anchor residue PDB IDs.
+        anchor_residue_labels : list of (int, str)
+            List of anchor residue labels.
         """
 
         anchor_residues = []
 
-        for residue_pdb_id, residue_label in zip(residue_pdb_ids, residue_labels):
+        for residue_pdb_id, residue_label in zip(anchor_residue_pdb_ids, anchor_residue_labels):
 
-            residue = Residue()
+            residue = AnchorResidue()
             residue.from_dataframe(dataframe, residue_pdb_id, residue_label, color)
             anchor_residues.append(residue)
 
-        self.from_anchor_residues(name, color, anchor_residues)
+        self._from_anchor_residues(name, color, anchor_residues)
 
-    def from_anchor_residues(self, name, color, anchor_residues):
+    def _from_anchor_residues(self, name, color, anchor_residues):
         """
         Set subpocket from given anchor residues.
 
