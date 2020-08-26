@@ -95,7 +95,7 @@ class Pocket:
         return anchor_residues
 
     def add_subpocket(
-        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels,
+        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue PDB IDs.
@@ -118,7 +118,7 @@ class Pocket:
         )
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, color, residue_pdb_ids, residue_labels):
+    def add_region(self, name, color, residue_pdb_ids, residue_labels=None):
         """
         Add region based on given input residue PDB IDs.
 
@@ -208,6 +208,12 @@ class Subpocket:
         anchor_residue_labels : list of (int, str)
             List of anchor residue labels.
         """
+
+        if not anchor_residue_labels:
+            anchor_residue_labels = [None] * len(anchor_residue_pdb_ids)
+
+        if len(anchor_residue_pdb_ids) != len(anchor_residue_labels):
+            raise ValueError(f"Number of residue PDB IDs and labels must be of same length.")
 
         anchor_residues = []
 
@@ -384,6 +390,7 @@ class AnchorResidue:
         # Set class attributes
         if isinstance(residue_pdb_id, int):
             residue_pdb_id = str(residue_pdb_id)
+
         self.pdb_id = residue_pdb_id
         self.label = residue_label
         self.color = color
