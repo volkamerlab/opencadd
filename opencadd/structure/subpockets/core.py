@@ -64,14 +64,24 @@ class Pocket:
         if self._regions == []:
             return None
 
-        regions = pd.DataFrame(
-            {
-                "region.name": [region.name for region in self._regions],
-                "region.color": [region.color for region in self._regions],
-                "residue.pdb_ids": [region.residue_pdb_ids for region in self._regions],
-                "residue.label": [region.residue_labels for region in self._regions],
-            }
-        )
+        regions = []
+
+        for region in self._regions:
+
+            n_residues = len(region.residue_pdb_ids)
+
+            region = pd.DataFrame(
+                {
+                    "region.name": [region.name] * n_residues,
+                    "region.color": [region.color] * n_residues,
+                    "residue.pdb_ids": region.residue_pdb_ids,
+                    "residue.label": region.residue_labels,
+                }
+            )
+
+            regions.append(region)
+
+        regions = pd.concat(regions)
 
         return regions
 
