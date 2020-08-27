@@ -204,9 +204,75 @@ class Pocket:
         region.from_dataframe(self.data, name, color, residue_pdb_ids, residue_labels)
         self._regions.append(region)
 
+    def visualize(self, file_path):
+        """
+        TODO
+        """
 
-class Subpocket:
-    """
+        file_path = str(file_path)
+
+        # Load structure from file in nglview
+        view = nglview.show_file(file_path)
+        view.clear()
+
+        # Get file format (this is important to know how nglview will index residues)
+        file_format = file_path.split(".")[-1]
+
+        # Get PDB ID to nglview index mapping
+        residue_id2ix = self._map_residue_id2ix(file_format)
+
+        # Show regions
+        scheme_regions_list = []
+        for index, region in self.regions.iterrows():
+            color_name = region["region.color_name"]
+            residue_pdb_id = region["residue.pdb_id"]
+            residue_ngl_ix = residue_id2ix.loc[residue_pdb_id]
+            scheme_regions_list.append([color_name, residue_ngl_ix])
+
+        scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
+        view.add_representation("cartoon", selection="protein", color=scheme_regions)
+
+        # Show subpockets
+        for index, subpocket in self.subpockets.iterrows():
+            center = list(subpocket["subpocket.center"])
+            color_rgb = subpocket["subpocket.color_rgb"]
+            name = subpocket["subpocket.name"]
+            view.shape.add_sphere(center, color_rgb, 2, name)
+
+        # Show anchor points
+        for index, anchor_residue in self.anchor_residues.iterrows():
+            center = list(anchor_residue["anchor_residue.center"])
+            color_rgb = anchor_residue["subpocket.color_rgb"]
+            view.shape.add_sphere(center, color_rgb, 0.5)
+
+        # Show
+        return view
+
+    def _map_residue_id2ix(self, file_format):
+        """
+        TODO
+        """
+
+        # Get all residue names
+        residue_id2ix = self.data[["residue.subst_name", "residue.pdb_id"]].drop_duplicates()
+
+        if file_format == "mol2":
+
+            # Map residue names to nglview index (starting from 1)
+            residue_id2ix["residue.ngl_ix"] = [str(i) for i in range(1, len(residue_id2ix) + 1)]
+            # Cast to Series (PDB IDs as index, NGL index as values)
+            residue_id2ix.set_index("residue.pdb_id", inplace=True)
+            residue_id2ix = residue_id2ix["residue.ngl_ix"]
+
+        else:
+
+            # In this case, PDB ID and nglview index are the same
+            residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.pdb_id"]
+            residue_id2ix.index = residue_id2ix["residue.pdb_id"]
+            residue_id2ix = residue_id2ix["residue.ngl_ix"]
+
+        return residue_id2ix
+
     Class defining a subpocket.
 
     Attributes
