@@ -29,7 +29,6 @@ class Base:
         tuple of (str, list of float)
             Color name, color RGB value.
         """
-        print(color)
 
         if isinstance(color, str):
             color_name = color
@@ -66,32 +65,53 @@ class Base:
         return residue_pdb_ids, residue_labels
 
 
-class Pocket:
+class Pocket(Base):
     """
     Class defining a pocket with 
-    - structural data (protein/pocket), 
+    - structural protein data, 
     - subpockets (to be shown as spheres) and 
     - regions (to be highlighted).
 
     Attributes
     ----------
     data : pandas.DataFrame
-        Structural data (protein/pocket) with the following mandatory columns:
+        Structural protein data with the following mandatory columns:
         "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
     name : str
-        Name of protein/pocket.
+        Name of protein.
+    residue_pdb_ids : list of str
+        Pocket residue PDB IDs.
+    residue_labels : list of str
+        Pocket residue labels.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
     _region : list of Region
         List of user-defined regions.
     """
 
-    def __init__(self, data, name):
+    def __init__(self, data, name, residue_pdb_ids, residue_labels):
 
         self.data = data
         self.name = name
+        self.centroid = None
+
+        residue_pdb_ids, residue_labels = self._format_residue_pdb_ids_and_labels(
+            residue_pdb_ids, residue_labels
+        )
+        self.residue_pdb_ids = residue_pdb_ids
+        self.residue_labels = residue_labels
         self._subpockets = []
         self._regions = []
+
+    @property
+    def residues(self):
+        """
+        Return pocket residues (PDB ID and labels).
+        """
+
+        residues = {"residue.pdb_id": self.residue_pdb_ids, "residue.labels": self.residue_labels}
+        residues = pd.DataFrame(residues)
+        return residues
 
     @property
     def subpockets(self):
@@ -164,6 +184,29 @@ class Pocket:
 
         return anchor_residues
 
+    def add_centroid(self):
+        """
+        Add centroid of all input residues' CA atoms.
+
+        Parameters
+        ----------
+        numpy.array
+            Pocket centroid (coordinates).
+        """
+
+        dataframe = self.data
+
+        atoms = dataframe[
+            (dataframe["residue.pdb_id"].isin(self.residue_pdb_ids))
+            & (dataframe["atom.name"] == "CA")
+        ]
+
+        print(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
+
+        centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+
+        self.centroid = centroid
+
     def add_subpocket(
         self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
     ):
@@ -208,19 +251,30 @@ class Pocket:
         region.from_dataframe(self.data, name, color, residue_pdb_ids, residue_labels)
         self._regions.append(region)
 
-    def visualize(self, file_path):
+    def visualize(self, filepath):
         """
-        TODO
+        Visualize the pocket (subpockets, regions, and anchor residues).
+
+        Parameters
+        ----------
+        filepath : pathlib.Path or str
+            Path to structure file.
+        
+        Returns
+        -------
+        nglview.widget.NGLWidget
+            Pocket visualization.
         """
 
-        file_path = str(file_path)
+        filepath = str(filepath)
 
         # Load structure from file in nglview
-        view = nglview.show_file(file_path)
+        view = nglview.show_file(filepath)
+        view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         view.clear()
 
         # Get file format (this is important to know how nglview will index residues)
-        file_format = file_path.split(".")[-1]
+        file_format = filepath.split(".")[-1]
 
         # Get PDB ID to nglview index mapping
         residue_id2ix = self._map_residue_id2ix(file_format)
@@ -235,6 +289,9 @@ class Pocket:
 
         scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
         view.add_representation("cartoon", selection="protein", color=scheme_regions)
+
+        # Show pocket centroids
+        view.shape.add_sphere(list(self.centroid), [0, 0, 1], 2, "centroid")
 
         # Show subpockets
         for index, subpocket in self.subpockets.iterrows():
@@ -254,7 +311,19 @@ class Pocket:
 
     def _map_residue_id2ix(self, file_format):
         """
-        TODO
+        Map residue PDB IDs to nglview indices depending on file format.
+        In case of mol2 files, nglview will use indices starting from 1.
+        In case of pdb files, nglview will use the residue PDB IDs as indices.
+
+        Parameters
+        ----------
+        filepath : pathlib.Path or str
+            Path to structure file.
+
+        Returns
+        -------
+        pandas.Series
+            Residue PDB IDs (index) and residue nglview indices (values).
         """
 
         # Get all residue names
@@ -340,7 +409,7 @@ class Subpocket(Base):
         Parameters
         ----------
         dataframe : pandas.DataFrame
-            Structural data (protein/pocket) with the following mandatory columns:
+            Structural protein data with the following mandatory columns:
             "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
         name : str
             Subpocket name.
