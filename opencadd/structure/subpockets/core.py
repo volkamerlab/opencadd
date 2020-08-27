@@ -8,6 +8,62 @@ import numpy as np
 import pandas as pd
 
 
+class Base:
+    """
+    Basic methods needed for child classes in this module.
+    """
+
+    def _format_color(self, color):
+        """
+        Handle input color name: Return color name and RGB value.
+
+        Parameters
+        ----------
+        color : str
+            Color name.
+
+        Returns
+        -------
+        tuple of (str, list of float)
+            Color name, color RGB value.
+        """
+        print(color)
+
+        if isinstance(color, str):
+            color_name = color
+            color_rgb = colors.to_rgb(color_name)
+
+        return color_name, color_rgb
+
+    def _format_residue_pdb_ids_and_labels(self, residue_pdb_ids, residue_labels):
+        """
+        Handle input residue PDB IDs and labels: Must be of same length, cast values to string.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        tuple of list of str
+            Residue PDB IDs, residue labels.
+        """
+
+        # If no anchor residue labels are given, create list of None
+        # (list length = number of anchor residue PDB IDs)
+        if not residue_labels:
+            residue_labels = [None] * len(residue_pdb_ids)
+
+        # Check if PDB IDs and labels are of same length, if not raise error
+        if len(residue_pdb_ids) != len(residue_labels):
+            raise ValueError(f"Number of residue PDB IDs and labels must be of same length.")
+
+        # Cast residue PDB IDs and labels to strings
+        residue_pdb_ids = [str(residue_pdb_id) for residue_pdb_id in residue_pdb_ids]
+        residue_labels = [str(residue_label) for residue_label in residue_labels]
+
+        return residue_pdb_ids, residue_labels
+
+
 class Pocket:
     """
     Class defining a pocket with 
