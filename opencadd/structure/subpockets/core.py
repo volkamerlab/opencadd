@@ -4,6 +4,8 @@ core.py
 Defines core classes and functions.
 """
 
+from matplotlib import colors
+import nglview
 import numpy as np
 import pandas as pd
 
@@ -104,7 +106,8 @@ class Pocket:
         subpockets = pd.DataFrame(
             {
                 "subpocket.name": [subpocket.name for subpocket in self._subpockets],
-                "subpocket.color": [subpocket.color for subpocket in self._subpockets],
+                "subpocket.color_name": [subpocket.color_name for subpocket in self._subpockets],
+                "subpocket.color_rgb": [subpocket.color_rgb for subpocket in self._subpockets],
                 "subpocket.center": [subpocket.center for subpocket in self._subpockets],
             }
         )
@@ -129,8 +132,9 @@ class Pocket:
             region = pd.DataFrame(
                 {
                     "region.name": [region.name] * n_residues,
-                    "region.color": [region.color] * n_residues,
-                    "residue.pdb_ids": region.residue_pdb_ids,
+                    "region.color_name": [region.color_name] * n_residues,
+                    "region.color_rgb": [region.color_rgb] * n_residues,
+                    "residue.pdb_id": region.residue_pdb_ids,
                     "residue.label": region.residue_labels,
                 }
             )
@@ -174,8 +178,8 @@ class Pocket:
             Subpocket color.
         anchor_residue_pdb_ids : list of (int, str)
             List of anchor residue PDB IDs.
-        anchor_residue_labels : list of (int, str)
-            List of anchor residue labels.
+        anchor_residue_labels : list of (int, str) or None
+            List of anchor residue labels. Must be of same length as anchor_residue_pdb_ids.
         """
 
         subpocket = Subpocket()
@@ -196,8 +200,8 @@ class Pocket:
             Region color.
         residue_pdb_ids : list of (int, str)
             List of residue PDB IDs defining the region.
-        residue_labels : list of (int, str)
-            List of residue labels.
+        residue_labels : list of (int, str) or None
+            List of residue labels. Must be of same length as residue_pdb_ids.
         """
 
         region = Region()
@@ -273,14 +277,19 @@ class Pocket:
 
         return residue_id2ix
 
+
+class Subpocket(Base):
+    """
     Class defining a subpocket.
 
     Attributes
     ----------
     name : str
         Subpocket name.
-    color : str
-        Subpocket color.
+    color_name : str
+        Region color name.
+    color_rgb : list of float
+        Region color RGB value.
     center : np.array
         Coordinates (x, y, z) of the subpocket center, 
         i.e. the centroid of all anchor residues' CA atoms.
@@ -291,7 +300,8 @@ class Pocket:
     def __init__(self):
 
         self.name = None
-        self.color = None
+        self.color_name = None
+        self.color_rgb = None
         self.center = None
         self._anchor_residues = None
 
@@ -307,6 +317,8 @@ class Pocket:
         """
 
         anchor_residues_dict = {
+            "subpocket.color_name": [residue.color_name for residue in self._anchor_residues],
+            "subpocket.color_rgb": [residue.color_rgb for residue in self._anchor_residues],
             "anchor_residue.pdb_id": [residue.pdb_id for residue in self._anchor_residues],
             "anchor_residue.pdb_id_alternative": [
                 residue.pdb_id_alternative for residue in self._anchor_residues
@@ -316,7 +328,6 @@ class Pocket:
         }
         anchor_residues_df = pd.DataFrame(anchor_residues_dict)
         anchor_residues_df.insert(0, "subpocket.name", self.name)
-        anchor_residues_df.insert(1, "subpocket.color", self.color)
 
         return anchor_residues_df
 
@@ -334,18 +345,17 @@ class Pocket:
         name : str
             Subpocket name.
         color : str
-            Subpocket color.
+            Subpocket color (by name or RGB values).
         anchor_residue_pdb_ids : list of (int, str)
             List of anchor residue PDB IDs.
-        anchor_residue_labels : list of (int, str)
-            List of anchor residue labels.
+        anchor_residue_labels : list of (int, str) or None
+            List of anchor residue labels. Must be of same length as residue_pdb_ids.
         """
 
-        if not anchor_residue_labels:
-            anchor_residue_labels = [None] * len(anchor_residue_pdb_ids)
-
-        if len(anchor_residue_pdb_ids) != len(anchor_residue_labels):
-            raise ValueError(f"Number of residue PDB IDs and labels must be of same length.")
+        # Format residue PDB IDs and labels
+        anchor_residue_pdb_ids, anchor_residue_labels = self._format_residue_pdb_ids_and_labels(
+            anchor_residue_pdb_ids, anchor_residue_labels
+        )
 
         anchor_residues = []
 
@@ -371,10 +381,13 @@ class Pocket:
             List of anchor residues.
         """
 
-        # Set class attributes
         self.name = name
-        self.color = color
         self._anchor_residues = anchor_residues
+
+        # Format and set color name and RGB value
+        color_name, color_rgb = self._format_color(color)
+        self.color_name = color_name
+        self.color_rgb = color_rgb
 
         # Calculate subpocket center
         self.center = self._centroid()
@@ -406,7 +419,7 @@ class Pocket:
             return subpocket_center
 
 
-class Region:
+class Region(Base):
     """
     Class defining a region.
 
@@ -414,8 +427,10 @@ class Region:
     ----------
     name : str
         Region name.
-    color : str
-        Region color.
+    color_name : str
+        Region color name.
+    color_rgb : list of float
+        Region color RGB value.
     residue_pdb_ids : list of (int, str)
         List of residue PDB IDs defining the region.
     residue_labels : list of (int, str)
@@ -425,13 +440,13 @@ class Region:
     def __init__(self):
 
         self.name = None
-        self.color = None
+        self.color_name = None
+        self.color_rgb = None
         self.residue_pdb_ids = None
         self.residue_labels = None
 
     def from_dataframe(self, dataframe, name, color, residue_pdb_ids, residue_labels=None):
         """
-
         Set region properties.
         
         Parameters
@@ -445,22 +460,21 @@ class Region:
             Region color.
         residue_pdb_ids : list of (int, str)
             List of residue PDB IDs defining the region.
-        residue_labels : list of (int, str)
-            List of residue labels.
+        residue_labels : list of (int, str) or None
+            List of residue labels. Must be of same length as residue_pdb_ids.
         """
 
         self.name = name
-        self.color = color
 
-        if not residue_labels:
-            residue_labels = [None] * len(residue_pdb_ids)
+        # Format and set color name and RGB value
+        color_name, color_rgb = self._format_color(color)
+        self.color_name = color_name
+        self.color_rgb = color_rgb
 
-        if len(residue_pdb_ids) != len(residue_labels):
-            raise ValueError(f"Number of residue PDB IDs and labels must be of same length.")
-
-        # Cast residue PDB IDs and labels to strings
-        residue_pdb_ids = [str(residue_pdb_id) for residue_pdb_id in residue_pdb_ids]
-        residue_labels = [str(residue_label) for residue_label in residue_labels]
+        # Format residue PDB IDs and labels
+        residue_pdb_ids, residue_labels = self._format_residue_pdb_ids_and_labels(
+            residue_pdb_ids, residue_labels
+        )
 
         # Add residue labels to dataframe
         residue_labels_df = pd.DataFrame(
@@ -476,7 +490,7 @@ class Region:
         self.residue_labels = residues["residue.label"].to_list()
 
 
-class AnchorResidue:
+class AnchorResidue(Base):
     """
     Class defining an anchor residue.
 
@@ -488,8 +502,10 @@ class AnchorResidue:
         Alternative residue PDB ID(s) in case input PDB ID not available.
     label : str
         Residue label, e.g. some non-PDB ID.
-    color : str
-        Residue color.
+    color_name : str
+        Residue color name.
+    color_rgb : list of float
+        Residue color RGB value.
     center : numpy.array
         Coordinates (x, y, z) of the residue center.
     """
@@ -499,10 +515,11 @@ class AnchorResidue:
         self.pdb_id = None
         self.pdb_id_alternative = None
         self.label = None
-        self.color = None
+        self.color_name = None
+        self.color_rgb = None
         self.center = None
 
-    def from_dataframe(self, dataframe, residue_pdb_id, residue_label=None, color=None):
+    def from_dataframe(self, dataframe, residue_pdb_id, residue_label=None, color="green"):
         """
         Set residue properties.
 
@@ -516,7 +533,7 @@ class AnchorResidue:
         residue_label : str
             Residue label, e.g. some non-PDB ID (default None).
         color : str
-            Residue color (default None).
+            Residue color (default green).
         """
 
         # Set class attributes
@@ -525,7 +542,11 @@ class AnchorResidue:
 
         self.pdb_id = residue_pdb_id
         self.label = residue_label
-        self.color = color
+
+        # Set color name and RGB value
+        color_name, color_rgb = self._format_color(color)
+        self.color_name = color_name
+        self.color_rgb = color_rgb
 
         # Select atom from residue PDB ID and atom name
         atom = self._ca_atom(dataframe)
@@ -616,3 +637,4 @@ class AnchorResidue:
             raise ValueError(
                 f"Unambiguous atom selection. {len(atom)} atoms found instead of 0 or 1."
             )
+
