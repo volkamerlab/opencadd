@@ -116,9 +116,9 @@ class Pocket(Base):
         Return pocket residues (PDB ID and labels).
         """
 
-        residues = {"residue.pdb_id": self.residue_pdb_ids, "residue.labels": self.residue_labels}
+        residues = {"residue.pdb_id": self.residue_pdb_ids, "residue.label": self.residue_labels}
         residues = pd.DataFrame(residues)
-        return residues
+        return residues.reset_index(drop=True)
 
     @property
     def subpockets(self):
@@ -139,7 +139,7 @@ class Pocket(Base):
             }
         )
 
-        return subpockets
+        return subpockets.reset_index(drop=True)
 
     @property
     def regions(self):
@@ -170,7 +170,7 @@ class Pocket(Base):
 
         regions = pd.concat(regions)
 
-        return regions
+        return regions.reset_index(drop=True)
 
     @property
     def anchor_residues(self):
@@ -189,7 +189,7 @@ class Pocket(Base):
         anchor_residues = [subpocket.anchor_residues for subpocket in self._subpockets]
         anchor_residues = pd.concat(anchor_residues)
 
-        return anchor_residues
+        return anchor_residues.reset_index(drop=True)
 
     def clear_subpockets(self):
         """
