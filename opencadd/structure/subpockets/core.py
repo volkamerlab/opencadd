@@ -727,4 +727,3 @@ class AnchorResidue(Base):
             raise ValueError(
                 f"Unambiguous atom selection. {len(atom)} atoms found instead of 0 or 1."
             )
-
