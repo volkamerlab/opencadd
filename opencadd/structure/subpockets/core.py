@@ -83,6 +83,8 @@ class Pocket(Base):
         Pocket residue PDB IDs.
     residue_labels : list of str
         Pocket residue labels.
+    centroid : numpy.array
+        Pocket centroid based on all pocket residues' CA atoms.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
     _region : list of Region
@@ -93,13 +95,12 @@ class Pocket(Base):
 
         self.data = data
         self.name = name
-        self.centroid = None
-
         residue_pdb_ids, residue_labels = self._format_residue_pdb_ids_and_labels(
             residue_pdb_ids, residue_labels
         )
         self.residue_pdb_ids = residue_pdb_ids
         self.residue_labels = residue_labels
+        self.centroid = self._centroid()
         self._subpockets = []
         self._regions = []
 
@@ -184,11 +185,25 @@ class Pocket(Base):
 
         return anchor_residues
 
-    def add_centroid(self):
+    def clear_subpockets(self):
+        """
+        Clear subpockets, i.e. remove all defined subpockets.
+        """
+
+        self._subpockets = []
+
+    def clear_regions(self):
+        """
+        Clear regions, i.e. remove all defined regions.
+        """
+
+        self._regions = []
+
+    def _centroid(self):
         """
         Add centroid of all input residues' CA atoms.
 
-        Parameters
+        Returns
         ----------
         numpy.array
             Pocket centroid (coordinates).
@@ -205,7 +220,7 @@ class Pocket(Base):
 
         centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
 
-        self.centroid = centroid
+        return centroid
 
     def add_subpocket(
         self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
