@@ -11,7 +11,9 @@ import pytest
 from opencadd.databases.klifs import local, remote
 from opencadd.databases.klifs.api import setup_local, setup_remote
 
-PATH_TEST_DATA = Path(__file__).parent / "data" / "KLIFS_download"
+PATH_TEST_DATA = (
+    Path(__name__).parent / "opencadd" / "tests" / "databases" / "data" / "KLIFS_download"
+)
 
 
 def test_api_remote():
