@@ -168,7 +168,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, COLUMN_NAMES["interaction_types"])
 
         with pytest.raises(NotImplementedError):
-            LOCAL.interactions.interaction_types
+            LOCAL.interactions.interaction_types()
 
     def test_all_interactions(self):
         """
