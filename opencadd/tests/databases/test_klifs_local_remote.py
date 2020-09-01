@@ -14,9 +14,7 @@ from opencadd.databases.klifs.schema import COLUMN_NAMES
 
 # Set local and remote session
 REMOTE = setup_remote()
-LOCAL = setup_local(
-    Path(__name__).parent / "opencadd" / "tests" / "databases" / "data" / "KLIFS_download"
-)
+LOCAL = setup_local(Path(__name__).parent / "opencadd" / "tests" / "data" / "klifs")
 
 
 def check_dataframe(dataframe, column_names):
