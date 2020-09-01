@@ -413,7 +413,7 @@ class TestsFromKinaseNames:
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
-    @pytest.mark.parametrize("kinase_names, species", [("XXX", None), (1, None), ("XXX", "XXX")])
+    @pytest.mark.parametrize("kinase_names, species", [("XXX", None), ("XXX", "XXX")])
     def test_from_kinase_names_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?
