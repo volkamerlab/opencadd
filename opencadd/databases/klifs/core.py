@@ -382,7 +382,7 @@ class KinasesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_names(self, kinase_names):
+    def from_kinase_names(self, kinase_names, species=None):
         """
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
@@ -390,6 +390,9 @@ class KinasesProvider(BaseProvider):
         ----------
         kinase_names : str or list of str
             Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
+        species : None or str
+            Species name (default is None, i.e. all species are selected).
+            
 
         Returns
         -------
