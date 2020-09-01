@@ -19,7 +19,7 @@ class ToDataFrame:
     Base class for DataFrame generation from different input formats.
     """
 
-    def _format_dataframe(self, dataframe):
+    def _format_dataframe(self, dataframe, verbose=False):
         """
         Streamline the output DataFrame's column name order and dtypes accross all input formats.
 
@@ -27,6 +27,8 @@ class ToDataFrame:
         ---------
         dataframe : pandas.DataFrame
             DataFrame with structural data.
+        verbose : bool
+            Show only default columns (False) or additionally input-format specific columns (True).
 
         Returns
         -------
@@ -34,8 +36,13 @@ class ToDataFrame:
             Formatted DataFrame with structural data.
         """
 
+        if verbose:
+            dataframe_columns = DATAFRAME_COLUMNS["default"] + DATAFRAME_COLUMNS["verbose"]
+        else:
+            dataframe_columns = DATAFRAME_COLUMNS["default"]
+
         # If default column names are missing, add empty columns
-        for (column_name, column_dtype) in DATAFRAME_COLUMNS:
+        for (column_name, column_dtype) in dataframe_columns:
 
             if column_name not in dataframe.columns:
 
@@ -50,15 +57,15 @@ class ToDataFrame:
 
         # Set default dtypes
         dtypes_dict = {
-            column_name: column_dtype for (column_name, column_dtype) in DATAFRAME_COLUMNS
+            column_name: column_dtype for (column_name, column_dtype) in dataframe_columns
         }
         dataframe = dataframe.astype(dtypes_dict)
 
         # Set default columns order
-        column_names = [column_name for (column_name, column_dtype) in DATAFRAME_COLUMNS]
+        column_names = [column_name for (column_name, column_dtype) in dataframe_columns]
         dataframe = dataframe[column_names]
 
-        return dataframe
+        return dataframe.dropna(axis=1)
 
 
 class PdbToDataFrame(ToDataFrame):
@@ -66,7 +73,7 @@ class PdbToDataFrame(ToDataFrame):
     Parse a pdb file or pdb text into a DataFrame.
     """
 
-    def from_file(self, pdb_file):
+    def from_file(self, pdb_file, verbose=False):
         """
         Get structural data from pdb file.
 
@@ -74,6 +81,8 @@ class PdbToDataFrame(ToDataFrame):
         ----------
         pdb_file : pathlib.Path or str
             Path to pdb file.
+        verbose : bool
+            Show only default columns (False) or additionally input-format specific columns (True).
 
         Returns
         -------
@@ -89,9 +98,9 @@ class PdbToDataFrame(ToDataFrame):
         with open(pdb_file, "r") as f:
             text = f.read()
 
-        return self.from_text(text)
+        return self.from_text(text, verbose)
 
-    def from_text(self, pdb_text):
+    def from_text(self, pdb_text, verbose=False):
         """
         Get structural data from pdb text.
 
@@ -99,6 +108,8 @@ class PdbToDataFrame(ToDataFrame):
         ----------
         pdb_text : str
             Pdb file content from KLIFS database.
+        verbose : bool
+            Show only default columns (False) or additionally input-format specific columns (True).
 
         Returns
         -------
@@ -118,7 +129,7 @@ class PdbToDataFrame(ToDataFrame):
         pdb_df.columns = [i[0] for i in PDB_COLUMNS.values()]
 
         # Format DataFrame
-        pdb_df = self._format_dataframe(pdb_df)
+        pdb_df = self._format_dataframe(pdb_df, verbose)
 
         return pdb_df
 
@@ -128,7 +139,7 @@ class Mol2ToDataFrame(ToDataFrame):
     Parse a mol2 file or mol2 text into a DataFrame.
     """
 
-    def from_file(self, mol2_file):
+    def from_file(self, mol2_file, verbose=False):
         """
         Get structural data from mol2 file.
 
@@ -136,6 +147,8 @@ class Mol2ToDataFrame(ToDataFrame):
         ----------
         mol2_file : pathlib.Path or str
             Path to mol2 file.
+        verbose : bool
+            Show only default columns (False) or additionally input-format specific columns (True).
 
         Returns
         -------
@@ -151,9 +164,9 @@ class Mol2ToDataFrame(ToDataFrame):
         with open(mol2_file, "r") as f:
             text = f.read()
 
-        return self.from_text(text)
+        return self.from_text(text, verbose)
 
-    def from_text(self, mol2_text):
+    def from_text(self, mol2_text, verbose=False):
         """
         Get structural data from mol2 text.
 
@@ -161,6 +174,8 @@ class Mol2ToDataFrame(ToDataFrame):
         ----------
         mol2_text : str
             Mol2 file content from KLIFS database.
+        verbose : bool
+            Show only default columns (False) or additionally input-format specific columns (True).
 
         Returns
         -------
@@ -187,7 +202,7 @@ class Mol2ToDataFrame(ToDataFrame):
         mol2_df = self._split_mol2_subst_names(mol2_df)
 
         # Format DataFrame
-        mol2_df = self._format_dataframe(mol2_df)
+        mol2_df = self._format_dataframe(mol2_df, verbose)
 
         return mol2_df
 
