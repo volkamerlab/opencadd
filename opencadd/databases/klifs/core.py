@@ -196,14 +196,14 @@ class BaseProvider:
                 try:
                     result = function(i, *additional_parameters)
                     result_list.append(result)
-                except Exception as e:
+                except (SwaggerMappingError, ValueError) as e:
                     errors.append(f"Error for {i}: {e}")
 
             else:
                 try:
                     result = function(i)
                     result_list.append(result)
-                except Exception as e:
+                except (SwaggerMappingError, ValueError) as e:
                     errors.append(f"Error for {i}: {e}")
 
         # Remove None values
