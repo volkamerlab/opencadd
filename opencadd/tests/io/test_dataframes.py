@@ -26,8 +26,8 @@ def _dataframe_format_tests(dataframe):
 
     assert isinstance(dataframe, pd.DataFrame)
 
-    column_names = [column_name for (column_name, column_dtype) in DATAFRAME_COLUMNS]
-    column_dtypes = [column_dtype for (column_name, column_dtype) in DATAFRAME_COLUMNS]
+    column_names = [column_name for (column_name, column_dtype) in DATAFRAME_COLUMNS["default"]]
+    column_dtypes = [column_dtype for (column_name, column_dtype) in DATAFRAME_COLUMNS["default"]]
     assert dataframe.columns.to_list() == column_names
     assert dataframe.dtypes.to_list() == column_dtypes
 
