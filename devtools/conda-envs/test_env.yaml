@@ -9,6 +9,12 @@ dependencies:
   - pip
   - MDAnalysis
   - nglview
+  - pandas
+  # databases.klifs
+  - bravado
+  - biopandas
+  - rdkit
+  - tqdm
   # Chimera reimplementation
   - biotite
   # mmligner

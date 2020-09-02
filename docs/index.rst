@@ -16,6 +16,12 @@ OpenCADD is a Python package for structural cheminformatics!
 
 .. toctree::
    :maxdepth: 1
+   :caption: Input/output formats
+
+   tutorials/io
+
+.. toctree::
+   :maxdepth: 1
    :caption: Superposition
 
    superposition
@@ -28,6 +34,13 @@ OpenCADD is a Python package for structural cheminformatics!
    :caption: Structure: Subpockets
 
    tutorials/structure_subpockets
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Databases: KLIFS
+
+   databases_klifs
+   tutorials/databases_klifs
 
 .. toctree::
    :maxdepth: 1

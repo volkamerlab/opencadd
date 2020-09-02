@@ -1,0 +1,18 @@
+@<TRIPOS>MOLECULE
+6uuo.A
+3 2 1 0 0 
+SMALL
+NO_CHARGES
+
+
+@<TRIPOS>ATOM
+  1 O      -29.7742    11.3869    19.8824 O.3   1 HOH   0.0000 
+  2 H1     -28.8142    11.3869    19.8824 H     1 HOH   0.0000 
+  3 H2     -30.0645    12.0339    20.5295 H     1 HOH   0.0000 
+@<TRIPOS>BOND
+  1   1   2  1   
+  2   1   3  1   
+@<TRIPOS>SUBSTRUCTURE
+  1 HOH   1 GROUP 4 A **** 0
+
+# MOE 2014.09 (io_trps.svl 2012.10)
