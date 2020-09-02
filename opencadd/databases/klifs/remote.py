@@ -19,8 +19,9 @@ from .core import (
     CoordinatesProvider,
 )
 from .schema import REMOTE_COLUMNS_MAPPING, COLUMN_NAMES
-from .parser import Mol2ToDataFrame, Mol2ToRdkitMol, PdbToDataFrame
 from .utils import metadata_to_filepath, silence_logging
+from opencadd.io.dataframes import Mol2ToDataFrame, PdbToDataFrame
+from opencadd.io.rdkit import Mol2ToRdkitMol
 
 _logger = logging.getLogger(__name__)
 

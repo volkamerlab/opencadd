@@ -19,13 +19,14 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
 )
-from .parser import Mol2ToDataFrame, Mol2ToRdkitMol
 from .schema import (
     LOCAL_COLUMNS_MAPPING,
     COLUMN_NAMES,
     POCKET_KLIFS_REGIONS,
 )
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
+from opencadd.io.dataframes import Mol2ToDataFrame
+from opencadd.io.rdkit import Mol2ToRdkitMol
 
 PATH_TO_KLIFS_IDS = (
     Path(__file__).parent
@@ -757,7 +758,9 @@ class Pockets(PocketsProvider):
         mol2_df = parser.from_file(pocket_path)
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
-        number_of_atoms_per_residue = mol2_df.groupby(by="residue.subst_name", sort=False).size()
+        number_of_atoms_per_residue = mol2_df.groupby(
+            ["residue.name", "residue.pdb_id"], sort=False
+        ).size()
 
         # Get KLIFS position IDs for each atom in molecule
         klifs_ids_per_atom = []
