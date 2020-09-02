@@ -8,8 +8,8 @@ from bravado.client import SwaggerClient
 import pandas as pd
 import pytest
 
+from opencadd.io.dataframes import Mol2ToDataFrame
 from opencadd.structure.subpockets.core import Base, AnchorResidue, Pocket
-from opencadd.structure.subpockets.parser import Mol2ToDataFrame
 
 
 def load_dataframe_protein(klifs_structure_id=None):

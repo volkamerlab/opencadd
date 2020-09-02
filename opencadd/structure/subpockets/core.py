@@ -348,7 +348,7 @@ class Pocket(Base):
         """
 
         # Get all residue names
-        residue_id2ix = self.data[["residue.subst_name", "residue.pdb_id"]].drop_duplicates()
+        residue_id2ix = self.data[["residue.name", "residue.pdb_id"]].drop_duplicates()
 
         if file_format == "mol2":
 
