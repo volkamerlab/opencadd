@@ -9,7 +9,9 @@ import pandas as pd
 import pytest
 
 from opencadd.io.dataframes import Mol2ToDataFrame
-from opencadd.structure.subpockets.core import Base, AnchorResidue, Pocket
+from opencadd.structure.subpockets.api import Pocket
+from opencadd.structure.subpockets.core import Base
+from opencadd.structure.subpockets.subpocket import AnchorResidue
 
 
 def load_dataframe_protein(klifs_structure_id=None):
@@ -58,20 +60,6 @@ class TestsBase:
     """
     Test Base class methods.
     """
-
-    @pytest.mark.parametrize("color_name, color_rgb", [("red", (1, 0, 0))])
-    def test_format_color(self, color_name, color_rgb):
-        base = Base()
-        name, rgb = base._format_color(color_name)
-        assert name == color_name
-        assert rgb == color_rgb
-
-    @pytest.mark.parametrize("color_name", ["xxx"])
-    def test_format_color_raise(self, color_name):
-
-        with pytest.raises(ValueError):
-            base = Base()
-            base._format_color(color_name)
 
     @pytest.mark.parametrize(
         "residue_pdb_ids, residue_labels, residue_pdb_ids_formatted, residue_labels_formatted",
@@ -162,12 +150,12 @@ class TestsPocket:
         region = pd.DataFrame(
             {
                 "region.name": [name] * n_region_residues,
-                "region.color_name": [color] * n_region_residues,
+                "region.color": [color] * n_region_residues,
                 "residue.pdb_id": [str(i) for i in residue_pdb_ids],
                 "residue.label": [str(i) for i in residue_labels],
             }
         )
-        assert pocket.regions.drop("region.color_rgb", axis=1).equals(region)
+        assert pocket.regions.equals(region)
 
     @pytest.mark.parametrize(
         "name, color, residue_pdb_ids, residue_labels, center",
@@ -190,11 +178,10 @@ class TestsPocket:
         subpocket = pocket._subpockets[0]
 
         assert subpocket.name == name
-        assert subpocket.color_name == color
+        assert subpocket.color == color
         assert pytest.approx(subpocket.center, center, abs=1.0e-6)
         assert pocket.subpockets.columns.to_list() == [
             "subpocket.name",
-            "subpocket.color_name",
-            "subpocket.color_rgb",
+            "subpocket.color",
             "subpocket.center",
         ]

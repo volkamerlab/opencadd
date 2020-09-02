@@ -2,5 +2,6 @@
 opencadd.structure.subpockets module
 """
 
-from . import api
-from . import core
+from .api import Pocket
+from .region import Region
+from .subpocket import Subpocket, AnchorResidue
