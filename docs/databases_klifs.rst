@@ -1,7 +1,10 @@
 Databases: KLIFS
 ================
 
-Once you have installed the package, you will have access to the ``opencadd.databases.klifs`` module (among other utilities!), which offers functions to interact remotely and locally with data from KLIFS.
+Once you have installed the package, you will have access (among others) 
+to the ``opencadd.databases.klifs`` module.
+
+This module offers a simple API to interact with data from KLIFS remotely and locally.
 
 
 What is KLIFS and who created it?
@@ -29,10 +32,10 @@ This module uses the official KLIFS API: https://klifs.vu-compmedchem.nl/swagger
 
 .. code-block:: python
 
-    from opencadd.databases.klifs.api import setup_remote
+    from opencadd.databases import klifs
 
     # Set up remote session
-    remote = setup_remote()
+    remote = klifs.setup_remote()
 
     # Get all kinases that are available remotely
     remote.kinases.all_kinases()
@@ -63,10 +66,10 @@ The ``opencadd.databases.klifs.local`` submodule offers you to access KLIFS data
 
 .. code-block:: python
 
-    from opencadd.databases.klifs.api import setup_local
+    from opencadd.databases import klifs
 
     # Set up local session
-    local = setup_local("../../opencadd/tests/databases/data/KLIFS_download")
+    local = klifs.setup_local("../../opencadd/tests/databases/data/KLIFS_download")
 
     # Get all kinases that are available locally
     local.kinases.all_kinases()

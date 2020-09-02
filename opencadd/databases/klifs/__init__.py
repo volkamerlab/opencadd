@@ -1,3 +1,5 @@
 """
-Empty init file in case you choose a package besides PyTest such as Nose which may look for such a file
+opencadd.databases.klifs module
 """
+
+from .api import setup_local, setup_remote
