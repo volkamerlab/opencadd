@@ -8,7 +8,7 @@ import pytest
 import pandas as pd
 from rdkit import Chem
 
-from opencadd.io.api import DataFrame, RdkitMol
+from opencadd.io import DataFrame, RdkitMol
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
 
