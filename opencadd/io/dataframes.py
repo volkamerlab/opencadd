@@ -117,6 +117,11 @@ class PdbToDataFrame(ToDataFrame):
             Structural data
         """
 
+        # Set pdb columns (index, name, dtype) as DataFrame
+        pdb_columns = pd.DataFrame.from_dict(
+            PDB_COLUMNS, orient="index", columns=["name", "dtype"]
+        )
+
         # Use biopandas to parse the pdb format and return DataFrames
         ppdb = PandasPdb()
         pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
@@ -125,8 +130,8 @@ class PdbToDataFrame(ToDataFrame):
         pdb_df = pd.concat([pdb_dict["ATOM"], pdb_dict["HETATM"]])
 
         # Select only columns of interest and rename columns
-        pdb_df = pdb_df.iloc[:, list(PDB_COLUMNS.keys())]
-        pdb_df.columns = [i[0] for i in PDB_COLUMNS.values()]
+        pdb_df = pdb_df.iloc[:, pdb_columns.index.to_list()]
+        pdb_df.columns = pdb_columns["name"].to_list()
 
         # Format DataFrame
         pdb_df = self._format_dataframe(pdb_df, verbose)
@@ -183,19 +188,27 @@ class Mol2ToDataFrame(ToDataFrame):
             Structural data.
         """
 
+        # Set mol2 columns (index, name, dtype) as DataFrame
+        mol2_columns_10 = pd.DataFrame.from_dict(
+            MOL2_COLUMNS["n_cols_10"], orient="index", columns=["name", "dtype"]
+        )
+        mol2_columns_9 = pd.DataFrame.from_dict(
+            MOL2_COLUMNS["n_cols_9"], orient="index", columns=["name", "dtype"]
+        )
+
         # Use biopandas to parse the mol2 format and return a DataFrame
         pmol = PandasMol2()
         try:
             mol2_df = pmol._construct_df(
                 mol2_text.splitlines(True),
-                col_names=[i[0] for i in MOL2_COLUMNS["n_cols_10"].values()],
-                col_types=[i[1] for i in MOL2_COLUMNS["n_cols_10"].values()],
+                col_names=mol2_columns_10["name"].to_list(),
+                col_types=mol2_columns_10["dtype"].to_list(),
             )
         except ValueError:
             mol2_df = pmol._construct_df(
                 mol2_text.splitlines(True),
-                col_names=[i[0] for i in MOL2_COLUMNS["n_cols_9"].values()],
-                col_types=[i[1] for i in MOL2_COLUMNS["n_cols_9"].values()],
+                col_names=mol2_columns_9["name"].to_list(),
+                col_types=mol2_columns_9["dtype"].to_list(),
             )
 
         # Infer residue PDB ID and name from substructure name
