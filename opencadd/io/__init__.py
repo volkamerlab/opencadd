@@ -2,4 +2,4 @@
 opencadd.io module
 """
 
-from .core import DataFrame, RdkitMol
+from .api import DataFrame, RdkitMol

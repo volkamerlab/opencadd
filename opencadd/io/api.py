@@ -1,7 +1,7 @@
 """
-opencadd.io.core
+opencadd.io.api
 
-Defines the opencadd.oi core classes.
+Defines the opencadd.oi API.
 """
 
 from pathlib import Path
