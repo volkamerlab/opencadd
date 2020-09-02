@@ -56,14 +56,14 @@ class ToDataFrame:
                     raise KeyError(f"Column dtype {column_dtype} is not implemented.")
 
         # Set default dtypes
-        dtypes_dict = {
+        column_dtypes_dict = {
             column_name: column_dtype for (column_name, column_dtype) in dataframe_columns
         }
-        dataframe = dataframe.astype(dtypes_dict)
+        dataframe = dataframe.astype(column_dtypes_dict)
 
         # Set default columns order
-        column_names = [column_name for (column_name, column_dtype) in dataframe_columns]
-        dataframe = dataframe[column_names]
+        column_names_list = [column_name for (column_name, column_dtype) in dataframe_columns]
+        dataframe = dataframe[column_names_list]
 
         return dataframe.dropna(axis=1)
 
