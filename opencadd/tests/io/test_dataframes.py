@@ -26,10 +26,12 @@ def _dataframe_format_tests(dataframe):
 
     assert isinstance(dataframe, pd.DataFrame)
 
-    column_names = [column_name for (column_name, column_dtype) in DATAFRAME_COLUMNS["default"]]
-    column_dtypes = [column_dtype for (column_name, column_dtype) in DATAFRAME_COLUMNS["default"]]
-    assert dataframe.columns.to_list() == column_names
-    assert dataframe.dtypes.to_list() == column_dtypes
+    # Create DataFrame for default dataframe columns
+    default_dataframe_columns = pd.DataFrame(
+        DATAFRAME_COLUMNS["default"], columns=["name", "dtype"]
+    )
+    assert dataframe.columns.to_list() == default_dataframe_columns["name"].to_list()
+    assert dataframe.dtypes.to_list() == default_dataframe_columns["dtype"].to_list()
 
 
 @pytest.mark.parametrize("pdb_file", [PATH_TEST_DATA / "2itz.pdb"])
