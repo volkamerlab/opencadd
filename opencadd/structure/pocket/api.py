@@ -386,4 +386,3 @@ class Pocket(Base):
             residue_id2ix = residue_id2ix["residue.ngl_ix"]
 
         return residue_id2ix
-

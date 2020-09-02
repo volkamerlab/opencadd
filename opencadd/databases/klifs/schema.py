@@ -345,4 +345,3 @@ POCKET_KLIFS_REGION_COLORS = {
     "xDFG": "cornflowerblue",
     "a.l": "cornflowerblue",
 }
-

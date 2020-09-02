@@ -11,26 +11,6 @@ class Base:
     Pocket, Subpocket, Region, AnchorResidue.
     """
 
-    def from_dataframe(self, dataframe, name, color, residue_pdb_ids, residue_labels):
-        """
-        Set class attributes from DataFrame.
-        
-        Parameters
-        ----------
-        dataframe : pandas.DataFrame
-            Structural data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z"
-        name : str
-            Name.
-        color : str
-            Color.
-        residue_pdb_ids : list of (int, str)
-            List of residue PDB IDs.
-        residue_labels : list of (int, str) or None
-            List of residue labels. Must be of same length as residue_pdb_ids.
-        """
-        raise NotImplementedError("Implement in your subclass!")
-
     def _format_residue_pdb_ids_and_labels(self, residue_pdb_ids, residue_labels):
         """
         Handle input residue PDB IDs and labels: Must be of same length, cast values to string.
