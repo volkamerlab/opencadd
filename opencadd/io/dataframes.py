@@ -136,6 +136,11 @@ class PdbToDataFrame(ToDataFrame):
         # Format DataFrame
         pdb_df = self._format_dataframe(pdb_df, verbose)
 
+        if len(pdb_df) == 0:
+            raise ValueError(
+                f"No structural data could be loaded. Is the input text in pdb format?"
+            )
+
         return pdb_df
 
 
@@ -197,18 +202,23 @@ class Mol2ToDataFrame(ToDataFrame):
         )
 
         # Use biopandas to parse the mol2 format and return a DataFrame
-        pmol = PandasMol2()
         try:
-            mol2_df = pmol._construct_df(
-                mol2_text.splitlines(True),
-                col_names=mol2_columns_10["name"].to_list(),
-                col_types=mol2_columns_10["dtype"].to_list(),
-            )
-        except ValueError:
-            mol2_df = pmol._construct_df(
-                mol2_text.splitlines(True),
-                col_names=mol2_columns_9["name"].to_list(),
-                col_types=mol2_columns_9["dtype"].to_list(),
+            pmol = PandasMol2()
+            try:
+                mol2_df = pmol._construct_df(
+                    mol2_text.splitlines(True),
+                    col_names=mol2_columns_10["name"].to_list(),
+                    col_types=mol2_columns_10["dtype"].to_list(),
+                )
+            except ValueError:
+                mol2_df = pmol._construct_df(
+                    mol2_text.splitlines(True),
+                    col_names=mol2_columns_9["name"].to_list(),
+                    col_types=mol2_columns_9["dtype"].to_list(),
+                )
+        except UnboundLocalError:
+            raise ValueError(
+                f"No structural data could be loaded. Is the input text in mol2 format?"
             )
 
         # Infer residue PDB ID and name from substructure name
