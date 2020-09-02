@@ -14,7 +14,7 @@ import pandas as pd
 from .schema import DATAFRAME_COLUMNS, PDB_COLUMNS, MOL2_COLUMNS
 
 
-class ToDataFrame:
+class Base:
     """
     Base class for DataFrame generation from different input formats.
     """
@@ -68,7 +68,7 @@ class ToDataFrame:
         return dataframe.dropna(axis=1)
 
 
-class PdbToDataFrame(ToDataFrame):
+class PdbToDataFrame(Base):
     """
     Parse a pdb file or pdb text into a DataFrame.
     """
@@ -144,7 +144,7 @@ class PdbToDataFrame(ToDataFrame):
         return pdb_df
 
 
-class Mol2ToDataFrame(ToDataFrame):
+class Mol2ToDataFrame(Base):
     """
     Parse a mol2 file or mol2 text into a DataFrame.
     """
