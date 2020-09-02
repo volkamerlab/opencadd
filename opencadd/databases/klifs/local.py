@@ -25,7 +25,7 @@ from .schema import (
     POCKET_KLIFS_REGIONS,
 )
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
-from opencadd import io
+from opencadd.io import DataFrame, RdkitMol
 
 PATH_TO_KLIFS_IDS = (
     Path(__file__).parent
@@ -753,7 +753,7 @@ class Pockets(PocketsProvider):
         pocket_path = (
             self.__path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
         )
-        mol2_df = io.DataFrame.from_file(pocket_path)
+        mol2_df = DataFrame.from_file(pocket_path)
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
         number_of_atoms_per_residue = mol2_df.groupby(
@@ -834,12 +834,12 @@ class Coordinates(CoordinatesProvider):
 
         # Return different output formats
         if output_format == "rdkit":
-            rdkit_mol = io.RdkitMol.from_file(filepath, compute2d)
+            rdkit_mol = RdkitMol.from_file(filepath, compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
-                mol2_df = io.DataFrame.from_file(filepath)
+                mol2_df = DataFrame.from_file(filepath)
                 mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
                 return mol2_df
             elif input_format == "pdb":

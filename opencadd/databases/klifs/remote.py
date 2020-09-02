@@ -20,7 +20,7 @@ from .core import (
 )
 from .schema import REMOTE_COLUMNS_MAPPING, COLUMN_NAMES
 from .utils import metadata_to_filepath, silence_logging
-from opencadd import io
+from opencadd.io import DataFrame, RdkitMol
 
 _logger = logging.getLogger(__name__)
 
@@ -609,16 +609,16 @@ class Coordinates(CoordinatesProvider):
             return text
 
         elif output_format == "rdkit":
-            rdkit_mol = io.RdkitMol.from_text(text, input_format, compute2d)
+            rdkit_mol = RdkitMol.from_text(text, input_format, compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
             if input_format == "mol2":
-                mol2_df = io.DataFrame.from_text(text, input_format)
+                mol2_df = DataFrame.from_text(text, input_format)
                 mol2_df = self._add_residue_klifs_ids(mol2_df, structure_id)
                 return mol2_df
             elif input_format == "pdb":
-                pdb_df = io.DataFrame.from_text(text, input_format)
+                pdb_df = DataFrame.from_text(text, input_format)
                 return pdb_df
 
     def to_file(

@@ -32,10 +32,10 @@ This module uses the official KLIFS API: https://klifs.vu-compmedchem.nl/swagger
 
 .. code-block:: python
 
-    from opencadd.databases import klifs
+    from opencadd.databases.klifs import setup_remote
 
     # Set up remote session
-    remote = klifs.setup_remote()
+    remote = setup_remote()
 
     # Get all kinases that are available remotely
     remote.kinases.all_kinases()
@@ -66,10 +66,10 @@ The ``opencadd.databases.klifs.local`` submodule offers you to access KLIFS data
 
 .. code-block:: python
 
-    from opencadd.databases import klifs
+    from opencadd.databases.klifs import setup_local
 
     # Set up local session
-    local = klifs.setup_local("../../opencadd/tests/databases/data/KLIFS_download")
+    local = setup_local("../../opencadd/tests/databases/data/KLIFS_download")
 
     # Get all kinases that are available locally
     local.kinases.all_kinases()
