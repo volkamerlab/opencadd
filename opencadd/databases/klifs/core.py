@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from .schema import POCKET_KLIFS_REGION_COLORS
+
 _logger = logging.getLogger(__name__)
 
 COORDINATES_PARAMETERS = {
@@ -1174,6 +1176,21 @@ class PocketsProvider(BaseProvider):
             Remote module: Structure ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
+
+    @staticmethod
+    def _add_klifs_region_details(pocket):
+        """
+        TODO
+        """
+
+        pocket["residue.klifs_region"] = pocket["residue.klifs_region_id"].apply(
+            lambda x: ".".join(x.split(".")[:-1])
+        )
+        pocket["residue.klifs_color"] = pocket["residue.klifs_region"].apply(
+            lambda x: POCKET_KLIFS_REGION_COLORS[x]
+        )
+
+        return pocket
 
 
 class CoordinatesProvider(BaseProvider):

@@ -134,7 +134,7 @@ REMOTE_COLUMNS_MAPPING = {
     "pockets": {
         "index": "residue.klifs_id",
         "Xray_position": "residue.pdb_id",
-        "KLIFS_position": "residue.klifs_region",
+        "KLIFS_position": "residue.klifs_region_id",
     },
 }
 
@@ -214,7 +214,13 @@ COLUMN_NAMES = {
     ],
     "interactions": ["structure.id", "interaction.fingerprint"],
     "interaction_types": ["interaction.id", "interaction.name"],
-    "pockets": ["residue.klifs_id", "residue.pdb_id", "residue.klifs_region"],
+    "pockets": [
+        "residue.klifs_id",
+        "residue.pdb_id",
+        "residue.klifs_region_id",
+        "residue.klifs_region",
+        "residue.klifs_color",
+    ],
     "coordinates": [
         "atom.id",
         "atom.name",
@@ -224,11 +230,13 @@ COLUMN_NAMES = {
         "residue.pdb_id",
         "residue.name",
         "residue.klifs_id",
+        "residue.klifs_region_id",
         "residue.klifs_region",
+        "residue.klifs_color",
     ],
 }
 
-POCKET_KLIFS_REGIONS = {
+POCKET_KLIFS_REGION_IDS = {
     1: "I.1",
     2: "I.2",
     3: "I.3",
@@ -315,3 +323,26 @@ POCKET_KLIFS_REGIONS = {
     84: "a.l.84",
     85: "a.l.85",
 }
+
+POCKET_KLIFS_REGION_COLORS = {
+    "I": "khaki",
+    "g.l": "green",
+    "II": "khaki",
+    "III": "khaki",
+    "αC": "red",
+    "b.l": "green",
+    "IV": "khaki",
+    "V": "khaki",
+    "GK": "orange",
+    "hinge": "magenta",
+    "linker": "cyan",
+    "αD": "red",
+    "αE": "red",
+    "VI": "khaki",
+    "c.l": "darkorange",
+    "VII": "khaki",
+    "VIII": "khaki",
+    "xDFG": "cornflowerblue",
+    "a.l": "cornflowerblue",
+}
+

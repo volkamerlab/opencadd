@@ -574,6 +574,8 @@ class Pockets(PocketsProvider):
         # Convert to DataFrame and formatting
         pocket = pd.DataFrame(result)
         pocket = self._standardize_dataframe(pocket, REMOTE_COLUMNS_MAPPING["pockets"])
+        # Add KLIFS region and color
+        pocket = self._add_klifs_region_details(pocket)
         # Format DataFrame
         pocket = self._format_dataframe(pocket, COLUMN_NAMES["pockets"])
         return pocket

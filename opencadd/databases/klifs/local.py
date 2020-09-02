@@ -22,7 +22,7 @@ from .core import (
 from .schema import (
     LOCAL_COLUMNS_MAPPING,
     COLUMN_NAMES,
-    POCKET_KLIFS_REGIONS,
+    POCKET_KLIFS_REGION_IDS,
 )
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, RdkitMol
@@ -33,11 +33,11 @@ PATH_TO_KLIFS_IDS = (
     / ".."
     / "data"
     / "klifs_ids.csv"
-    # Path(__name__).parent / "opencadd" / "data" / "klifs_ids.csv"
+    # Path(__name__).parent / "opencadd" / "data" / "klifs_ids.csv" TODO
 )
 
 POCKET_KLIFS_REGIONS = (
-    pd.Series(POCKET_KLIFS_REGIONS, name="residue.klifs_region")
+    pd.Series(POCKET_KLIFS_REGION_IDS, name="residue.klifs_region_id")
     .reset_index()
     .rename(columns={"index": "residue.klifs_id"})
 )
@@ -776,6 +776,9 @@ class Pockets(PocketsProvider):
         # Add column for KLIFS regions
         mol2_df = mol2_df.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
         mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
+
+        # Add KLIFS region and color
+        mol2_df = self._add_klifs_region_details(mol2_df)
 
         # Format DataFrame
         mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
