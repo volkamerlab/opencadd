@@ -31,9 +31,9 @@ OpenCADD is a Python package for structural cheminformatics!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Structure: Subpockets
+   :caption: Structure: Pocket
 
-   tutorials/structure_subpockets
+   tutorials/structure_pocket
 
 .. toctree::
    :maxdepth: 1
