@@ -15,6 +15,7 @@ dependencies:
   - rdkit
   # Chimera reimplementation
   - biotite
+  - biopython 1.77
   # mmligner
   - mmligner
   # theseus
