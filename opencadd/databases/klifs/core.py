@@ -1,5 +1,5 @@
 """
-core.py
+opencadd.databases.klifs.core
 
 Defines core classes and functions.
 """

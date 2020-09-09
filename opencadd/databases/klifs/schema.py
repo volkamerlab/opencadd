@@ -1,7 +1,7 @@
 """
-schema.py
+opencadd.databases.klifs.schema
 
-Defines schema used accross the klifs module.
+Defines schema used across the klifs module.
 """
 
 

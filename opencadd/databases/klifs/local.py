@@ -1,7 +1,7 @@
 """
-local.py
+opencadd.databases.klifs.local
 
-Defines local KLIFS session.
+Defines a local KLIFS session.
 """
 
 import logging

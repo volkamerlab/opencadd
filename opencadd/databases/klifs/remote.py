@@ -1,7 +1,7 @@
 """
-remote.py
+opencadd.databases.klifs.remote
 
-Defines remote KLIFS session.
+Defines a remote KLIFS session.
 """
 
 import logging

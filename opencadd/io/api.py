@@ -1,7 +1,7 @@
 """
 opencadd.io.api
 
-Defines the opencadd.oi API.
+Defines the opencadd.io API.
 """
 
 from pathlib import Path

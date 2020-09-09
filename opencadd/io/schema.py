@@ -1,7 +1,7 @@
 """
 opencadd.io.schema
 
-Defines schema used accross the io module.
+Defines schema used across the io module.
 """
 
 DATAFRAME_COLUMNS = {

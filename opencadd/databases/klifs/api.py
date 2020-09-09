@@ -1,5 +1,5 @@
 """
-api.py
+opencadd.databases.klifs.api
 
 Defines the opencadd.databases.klifs API (local and remote).
 """
