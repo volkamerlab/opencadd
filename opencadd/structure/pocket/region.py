@@ -35,7 +35,7 @@ class Region(Base):
     def from_dataframe(self, dataframe, name, color, residue_pdb_ids, residue_labels=None):
         """
         Set region properties.
-        
+
         Parameters
         ----------
         dataframe : pandas.DataFrame

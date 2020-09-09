@@ -50,8 +50,8 @@ class TestsDataFrame:
     )
     def test_from_text(self, filepath, format, verbose):
         """
-        Test if input produces a DataFrame. 
-        Note: Use file as test function input; file content will be read as string, 
+        Test if input produces a DataFrame.
+        Note: Use file as test function input; file content will be read as string,
         which is the input for the class method to be tested here!
         """
 
@@ -76,8 +76,8 @@ class TestsDataFrame:
     )
     def test_from_text_raises(self, filepath, format):
         """
-        Test if input produces a ValueError for invalid inputs. 
-        Note: Use file as test function input; file content will be read as string, 
+        Test if input produces a ValueError for invalid inputs.
+        Note: Use file as test function input; file content will be read as string,
         which is the input for the class method to be tested here!
         """
 
@@ -103,7 +103,7 @@ class TestsRdkitMol:
     )
     def test_from_file(self, filepath, compute2d):
         """
-        Test if input produces an RDKit molecule. 
+        Test if input produces an RDKit molecule.
         """
 
         rmol = RdkitMol.from_file(filepath, compute2d)
@@ -118,8 +118,8 @@ class TestsRdkitMol:
     )
     def test_from_text(self, filepath, format, compute2d):
         """
-        Test if input produces an RDKit molecule. 
-        Note: Use file as test function input; file content will be read as string, 
+        Test if input produces an RDKit molecule.
+        Note: Use file as test function input; file content will be read as string,
         which is the input for the class method to be tested here!
         """
 

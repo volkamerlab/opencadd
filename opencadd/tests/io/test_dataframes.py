@@ -15,9 +15,9 @@ PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
 
 def _dataframe_format_tests(dataframe):
     """
-    Default tests: Check if output is a DataFrame, if column names (and their order) and 
+    Default tests: Check if output is a DataFrame, if column names (and their order) and
     the column dtypes are correct.
-    
+
     Parameter
     ---------
     dataframe : pandas.DataFrame

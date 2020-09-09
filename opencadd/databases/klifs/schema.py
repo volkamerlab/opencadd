@@ -127,9 +127,15 @@ REMOTE_COLUMNS_MAPPING = {
         "pchembl_value": "ligand.bioactivity_pchembl_value",
     },
     # Interactions.get_interactions_get_IFP()
-    "interactions": {"structure_ID": "structure.id", "IFP": "interaction.fingerprint",},
+    "interactions": {
+        "structure_ID": "structure.id",
+        "IFP": "interaction.fingerprint",
+    },
     # Interactions.get_interactions_get_types()
-    "interaction_types": {"position": "interaction.id", "name": "interaction.name",},
+    "interaction_types": {
+        "position": "interaction.id",
+        "name": "interaction.name",
+    },
     # Interactions.get_interactions_match_residues()
     "pockets": {
         "index": "residue.klifs_id",
@@ -141,7 +147,12 @@ REMOTE_COLUMNS_MAPPING = {
 COLUMN_NAMES = {
     "kinase_groups": ["kinase.group"],
     "kinase_families": ["kinase.family"],
-    "kinases_all": ["kinase.id", "kinase.name", "kinase.name_full", "species.klifs",],
+    "kinases_all": [
+        "kinase.id",
+        "kinase.name",
+        "kinase.name_full",
+        "species.klifs",
+    ],
     "kinases": [
         "kinase.id",
         "kinase.name",

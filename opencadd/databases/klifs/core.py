@@ -136,7 +136,7 @@ class BaseProvider:
     @staticmethod
     def _add_missing_columns(dataframe, missing_columns):
         """
-        Add missing columns in local or remote result that are available in result pendant 
+        Add missing columns in local or remote result that are available in result pendant
         from remote or local module, respectively.
 
         Parameters
@@ -144,9 +144,9 @@ class BaseProvider:
         dataframe : pandas.DataFrame
             Result from query in local or remote session.
         missing_columns : dict
-            Column names (keys) and their values (value) for columns that are not present 
-            in local or remote result but in their pendant from te remote or local module, 
-            respectively. 
+            Column names (keys) and their values (value) for columns that are not present
+            in local or remote result but in their pendant from te remote or local module,
+            respectively.
 
         Returns
         -------
@@ -161,19 +161,21 @@ class BaseProvider:
 
     @staticmethod
     def _multiple_remote_requests(
-        function, iterator, additional_parameters=None,
+        function,
+        iterator,
+        additional_parameters=None,
     ):
         """
         Wrap remote requests using multiple inputs, where KLIFS API only allows a single input
-        or where for some reason - in this package - single input requests are preferred over 
+        or where for some reason - in this package - single input requests are preferred over
         using the KLIFS API for multiple input requests.
-        
+
         Parameters
         ----------
         function : function
             Function that returns result for a single input.
         iterator : int/str or list of int/str
-            Iterator, here IDs or names. 
+            Iterator, here IDs or names.
             If single input is given (thus no iterator), it will be cast to a list.
         additional_parameters : None or list
             List of additional parameters (not iterated) that are needed for function.
@@ -247,13 +249,13 @@ class KinasesProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the) 
+    Class methods all return a pandas.DataFrame of kinases (rows) with the (or a subset of the)
     following attributes (columns):
 
     Remote only:
 
         kinase.hgnc : str
-            Kinase name according to the HUGO Gene Nomenclature Committee. 
+            Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
         kinase.class : str
             Kinase class.
@@ -273,7 +275,7 @@ class KinasesProvider(BaseProvider):
         -
 
     Both local and remote:
-        
+
         kinase.id : int
             Kinase ID.
         kinase.name : str
@@ -295,11 +297,11 @@ class KinasesProvider(BaseProvider):
     def all_kinase_groups(self):
         """
         Get all available kinase groups.
-        
+
         Returns
         -------
         pandas.DataFrame
-            Kinase groups (rows) with the following column: "kinase.group". Check class docstring 
+            Kinase groups (rows) with the following column: "kinase.group". Check class docstring
             for more information on columns.
 
         Raises
@@ -317,13 +319,13 @@ class KinasesProvider(BaseProvider):
         ----------
         group : None or str
             Kinase group name (default is None, i.e. all kinase groups are selected).
-        
+
         Returns
         -------
         pandas.DataFrame
-            Kinase families (rows) with the following column: "kinase.family". Check class 
+            Kinase families (rows) with the following column: "kinase.family". Check class
             docstring for more information on columns.
-        
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -335,8 +337,8 @@ class KinasesProvider(BaseProvider):
 
     def all_kinases(self, group=None, family=None, species=None):
         """
-        Get all available kinase names (optional: select kinase group, family and/or species). 
-        
+        Get all available kinase names (optional: select kinase group, family and/or species).
+
         Parameters
         ----------
         group : None or str
@@ -345,13 +347,13 @@ class KinasesProvider(BaseProvider):
             Kinase family name (default is None, i.e. all kinase families are selected).
         species : None or str
             Species name (default is None, i.e. all species are selected).
-        
+
         Returns
         -------
         pandas.DataFrame
-            Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_", 
+            Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_",
             "species.klifs". Check class docstring for more information on columns.
-        
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -374,7 +376,7 @@ class KinasesProvider(BaseProvider):
         -------
         pandas.DataFrame
             Kinases (rows) with columns as described in the class docstring.
-        
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -394,13 +396,13 @@ class KinasesProvider(BaseProvider):
             Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
         species : None or str
             Species name (default is None, i.e. all species are selected).
-            
+
 
         Returns
         -------
         pandas.DataFrame
             Kinases (rows) with columns as described in the class docstring.
-        
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -430,7 +432,7 @@ class LigandsProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
+    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the)
     following attributes (columns):
 
     Remote only:
@@ -450,7 +452,7 @@ class LigandsProvider(BaseProvider):
         -
 
     Both local and remote:
-    
+
         ligand.pdb : str
             Ligand PDB name.
         ligand.name : str
@@ -490,7 +492,7 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -513,7 +515,7 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -536,7 +538,7 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -557,7 +559,7 @@ class LigandsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Ligands (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -589,11 +591,11 @@ class StructuresProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the) 
+    Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the)
     following attributes (columns):
 
     structure.id : int
-        Structure ID.    
+        Structure ID.
     structure.pdb : str
         Structure PDB ID.
     structure.alternate_model : str
@@ -619,7 +621,7 @@ class StructuresProvider(BaseProvider):
         One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps "-").
     ligand.pdb : str or int (0)
         Orthosteric ligand PDB ID. None if no ligand.
-    ligand.pdb_allosteric : str or 
+    ligand.pdb_allosteric : str or
         Allosteric ligand PDB ID.  None if no ligand.
     ligand.name : str
         Orthosteric ligand name. None if no ligand.
@@ -701,7 +703,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -722,7 +724,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -745,7 +747,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -768,7 +770,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -797,7 +799,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -850,7 +852,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -871,7 +873,7 @@ class StructuresProvider(BaseProvider):
         -------
         pandas.DataFrame
             Structures (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -883,7 +885,7 @@ class StructuresProvider(BaseProvider):
 class BioactivitiesProvider(BaseProvider):
     """
     Class for bioactivities requests (ChEMBL data linked to KLIFS data).
-    
+
     Methods
     -------
     all_bioactivities()
@@ -895,7 +897,7 @@ class BioactivitiesProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of bioactivities (rows) with the (or a subset of 
+    Class methods all return a pandas.DataFrame of bioactivities (rows) with the (or a subset of
     the) following attributes (columns):
     kinase.pref_name : str
         Target name (ChEMBL notation).
@@ -931,7 +933,7 @@ class BioactivitiesProvider(BaseProvider):
         -------
         pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         ValueError
@@ -942,7 +944,7 @@ class BioactivitiesProvider(BaseProvider):
     def from_kinase_ids(self, kinase_ids):
         """
         Get bioactivities by one or more kinase IDs.
-        
+
         Parameters
         ----------
         kinase_ids : int or list of int
@@ -952,7 +954,7 @@ class BioactivitiesProvider(BaseProvider):
         -------
         pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -975,7 +977,7 @@ class BioactivitiesProvider(BaseProvider):
         -------
         pandas.DataFrame
             Bioactivities (rows) with columns as described in the class docstring.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -1002,16 +1004,16 @@ class InteractionsProvider(BaseProvider):
         Get interactions by one or more ligand IDs.
     from_kinase_ids(kinase_ids)
         Get interactions by one or more kinase IDs.
-    
+
     Notes
     -----
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of 
+    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
     the) following attributes (columns):
 
     structure.id : int
         Structure ID.
     interaction.fingerprint : str
-        Interaction fingerprint, a string of 595 zeros and ones for 
+        Interaction fingerprint, a string of 595 zeros and ones for
         85 (pocket residues) * 7 (interaction features).
     interaction.id : int
         Interaction ID (1-7).
@@ -1030,8 +1032,8 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            7 interaction types (rows) with the following columns: 
-            "interaction.id", "interaction.name". 
+            7 interaction types (rows) with the following columns:
+            "interaction.id", "interaction.name".
             Check class docstring for more information on columns.
         """
         raise NotImplementedError("Implement in your subclass!")
@@ -1043,10 +1045,10 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: 
-            "structure.id", "interaction.fingerprint". 
+            Interactions (rows) with the following columns:
+            "structure.id", "interaction.fingerprint".
             Check class docstring for more information on columns.
-            
+
         Raises
         ------
         ValueError
@@ -1066,10 +1068,10 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: 
-            "structure.id", "interaction.fingerprint". 
+            Interactions (rows) with the following columns:
+            "structure.id", "interaction.fingerprint".
             Check class docstring for more information on columns.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -1091,10 +1093,10 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: 
-            "structure.id", "interaction.fingerprint". 
+            Interactions (rows) with the following columns:
+            "structure.id", "interaction.fingerprint".
             Check class docstring for more information on columns.
-            
+
         Raises
         ------
         ValueError
@@ -1105,7 +1107,7 @@ class InteractionsProvider(BaseProvider):
     def from_kinase_ids(self, kinase_ids):
         """
         Get interactions by one or more kinase IDs.
-        
+
         Parameters
         ----------
         kinase_ids : int or list of int
@@ -1114,10 +1116,10 @@ class InteractionsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Interactions (rows) with the following columns: 
-            "structure.id", "interaction.fingerprint". 
+            Interactions (rows) with the following columns:
+            "structure.id", "interaction.fingerprint".
             Check class docstring for more information on columns.
-            
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
@@ -1141,7 +1143,7 @@ class PocketsProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of 
+    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
     the) following attributes (columns):
 
     structure.pocket_klifs_numbering : int
@@ -1195,8 +1197,8 @@ class PocketsProvider(BaseProvider):
 
 class CoordinatesProvider(BaseProvider):
     """
-    Class for coordinates requests: 
-    Get coordinates for different entities (complex, ligand, pocket, protein, water) and 
+    Class for coordinates requests:
+    Get coordinates for different entities (complex, ligand, pocket, protein, water) and
     input formats (mol2, pdb)
     in the form of different output formats (text, biopandas, rdkit).
 
@@ -1211,7 +1213,7 @@ class CoordinatesProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of atom coordinates (rows) with the (or a subset of 
+    Class methods all return a pandas.DataFrame of atom coordinates (rows) with the (or a subset of
     the) following attributes (columns):
 
     atom.id : int
@@ -1225,13 +1227,13 @@ class CoordinatesProvider(BaseProvider):
     atom.z : float
         Atom z coordinate.
     atom.type : float
-        Atom type.  
+        Atom type.
         TODO from where?
     residue.subst_id : str
-        Residue's substructure ID.  
+        Residue's substructure ID.
         TODO from where?
     residue.subst_name : str
-        Residue's substructure name.  
+        Residue's substructure name.
         TODO from where?
     atom.charge : float
         Atom charge.
@@ -1271,7 +1273,7 @@ class CoordinatesProvider(BaseProvider):
             Output format: text, biopandas (default), or rdkit (only for entity=ligand).
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
-        
+
         Raises
         ------
         bravado_core.exception.SwaggerMappingError

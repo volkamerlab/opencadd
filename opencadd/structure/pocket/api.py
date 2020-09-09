@@ -16,9 +16,9 @@ from opencadd.io import DataFrame
 
 class Pocket(Base):
     """
-    Class defining a pocket with 
-    - structural protein data, 
-    - subpockets (to be shown as spheres) and 
+    Class defining a pocket with
+    - structural protein data,
+    - subpockets (to be shown as spheres) and
     - regions (to be highlighted).
 
     Attributes
@@ -145,7 +145,7 @@ class Pocket(Base):
     @property
     def subpockets(self):
         """
-        Return subpockets data as DataFrame: 
+        Return subpockets data as DataFrame:
         Name, color and subpocket center (columns) for all subpockets (rows).
         """
 
@@ -197,7 +197,7 @@ class Pocket(Base):
         """
         Return anchor residue data as DataFrame:
         - Subpocket name and color
-        - Anchor residue PDB IDs (user-defined input IDs or alternative 
+        - Anchor residue PDB IDs (user-defined input IDs or alternative
           IDs if input was not available)
         - Anchor residue labels
         - Ahe anchor residue centers (coordinates)
@@ -249,7 +249,11 @@ class Pocket(Base):
         return centroid
 
     def add_subpocket(
-        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
+        self,
+        name,
+        color,
+        anchor_residue_pdb_ids,
+        anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue PDB IDs.
@@ -300,7 +304,7 @@ class Pocket(Base):
         ----------
         filepath : pathlib.Path or str
             Path to structure file.
-        
+
         Returns
         -------
         nglview.widget.NGLWidget

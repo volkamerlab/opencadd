@@ -43,9 +43,9 @@ def test_api_local(path_to_klifs_download, path_to_klifs_metadata):
     path_to_klifs_download : pathlib.Path or str
         Path to folder with KLIFS download files.
     path_to_klifs_metadata : pathlib.Path or str
-        Path to KLIFS metadata file (default is None). 
+        Path to KLIFS metadata file (default is None).
         Set this parameter, if you have initialized a local session before and therefore
-        already have a KLIFS metadata file. 
+        already have a KLIFS metadata file.
         You could pass here a filtered version of this KLIFS metadata file.
     """
     session = setup_local(path_to_klifs_download, path_to_klifs_metadata)

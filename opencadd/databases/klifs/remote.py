@@ -583,7 +583,7 @@ class Pockets(PocketsProvider):
 
 class Coordinates(CoordinatesProvider):
     """
-    Extends CoordinatesProvider to provide remote coordinates requests, 
+    Extends CoordinatesProvider to provide remote coordinates requests,
     i.e. fetching and saving structural data (coordinates).
     """
 
@@ -624,7 +624,12 @@ class Coordinates(CoordinatesProvider):
                 return pdb_df
 
     def to_file(
-        self, structure_id, output_path, entity="complex", input_format="mol2", in_dir=False,
+        self,
+        structure_id,
+        output_path,
+        entity="complex",
+        input_format="mol2",
+        in_dir=False,
     ):
         """
         Save structural data to file.
@@ -743,7 +748,7 @@ class Coordinates(CoordinatesProvider):
         ----------
         mol2_df : pandas.DataFrame
             Structural data.
-        
+
         Returns
         -------
         pandas.DataFrame

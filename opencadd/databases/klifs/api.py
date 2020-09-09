@@ -47,11 +47,11 @@ def setup_local(path_to_klifs_download, path_to_klifs_metadata=None):
     path_to_klifs_download : pathlib.Path or str
         Path to folder with KLIFS download files.
     path_to_klifs_metadata : pathlib.Path or str
-        Path to KLIFS metadata file (default is None). 
+        Path to KLIFS metadata file (default is None).
         Set this parameter, if you have initialized a local session before and therefore
-        already have a KLIFS metadata file. 
+        already have a KLIFS metadata file.
         You could pass here a filtered version of this KLIFS metadata file.
-    
+
     Returns
     -------
     opencadd.databases.klifs.api.Session
@@ -72,7 +72,7 @@ class Session:
     Attributes
     ----------
     session_type : None or str
-        Session type, i.e. remote or local. 
+        Session type, i.e. remote or local.
     path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     client : None or bravado.client.SwaggerClient
@@ -109,7 +109,7 @@ class Session:
 
     def from_local(self, path_to_klifs_download, path_to_klifs_metadata=None):
         """
-        Set up local session by initializing or loading a local metadata database 
+        Set up local session by initializing or loading a local metadata database
         from a KLIFS download.
 
         Parameters
@@ -117,9 +117,9 @@ class Session:
         path_to_klifs_download : pathlib.Path or str
             Path to folder with KLIFS download files.
         path_to_klifs_metadata : pathlib.Path or str
-            Path to KLIFS metadata file (default is None). 
+            Path to KLIFS metadata file (default is None).
             Set this parameter, if you have initialized a local session before and therefore
-            already have a KLIFS metadata file. 
+            already have a KLIFS metadata file.
             You could pass here a filtered version of this KLIFS metadata file.
         """
 

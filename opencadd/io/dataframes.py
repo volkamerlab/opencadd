@@ -231,7 +231,7 @@ class Mol2ToDataFrame(Base):
 
     def _split_mol2_subst_names(self, mol2_df):
         """
-        Split "residue.subst_name" column values from mol2 file and add as 
+        Split "residue.subst_name" column values from mol2 file and add as
         "residue.name" and "residue.pdb_id" columns.
 
         Parameters
@@ -246,7 +246,8 @@ class Mol2ToDataFrame(Base):
         """
 
         result = mol2_df.apply(
-            lambda x: self._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]), axis=1,
+            lambda x: self._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]),
+            axis=1,
         )
         res_names = [res_name for res_name, res_id in result]
         res_ids = [res_id for res_name, res_id in result]
@@ -264,7 +265,7 @@ class Mol2ToDataFrame(Base):
         Parameters
         ----------
         subst_name : str
-            Substructure name in mol2 file. 
+            Substructure name in mol2 file.
         atom_type : str
             Atom type.
 
@@ -275,8 +276,8 @@ class Mol2ToDataFrame(Base):
 
         Notes
         -----
-        Regular example: "ALA1" ("residue.subst_name") will be split to 
-        - "ALA" ("residue.name") and 
+        Regular example: "ALA1" ("residue.subst_name") will be split to
+        - "ALA" ("residue.name") and
         - 1 ("residue.pdb_id").
         """
 

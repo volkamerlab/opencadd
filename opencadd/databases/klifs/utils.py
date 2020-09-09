@@ -153,10 +153,10 @@ def silence_logging(highest_level=logging.CRITICAL):
     """
     A context manager that will prevent any logging messages
     triggered during the body from being processed.
-    
+
     Parameters
     ----------
-    highest_level : 
+    highest_level :
         The maximum logging level in use.
         This would only need to be changed if a custom level greater than CRITICAL is defined.
 
@@ -164,7 +164,7 @@ def silence_logging(highest_level=logging.CRITICAL):
     -----
     Two kind-of hacks here:
     - Can't get the highest logging level in effect => delegate to the user.
-    - Can't get the current module-level override => use an undocumented (but non-private!) 
+    - Can't get the current module-level override => use an undocumented (but non-private!)
       interface.
 
     References

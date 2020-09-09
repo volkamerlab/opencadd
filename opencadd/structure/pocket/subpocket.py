@@ -21,7 +21,7 @@ class Subpocket(Base):
     color : str
         Region color name (matplotlib name).
     center : np.array
-        Coordinates (x, y, z) of the subpocket center, 
+        Coordinates (x, y, z) of the subpocket center,
         i.e. the centroid of all anchor residues' CA atoms.
     _anchor_residues : list of Residue
         List of anchor residues.
@@ -39,7 +39,7 @@ class Subpocket(Base):
         """
         Return anchor residue data as DataFrame:
         - Subpocket name and color
-        - Anchor residue PDB IDs (user-defined input IDs or alternative 
+        - Anchor residue PDB IDs (user-defined input IDs or alternative
           IDs if input was not available)
         - Anchor residue labels
         - Ahe anchor residue centers (coordinates)
@@ -64,7 +64,7 @@ class Subpocket(Base):
     ):
         """
         Set subpocket properties.
-        
+
         Parameters
         ----------
         dataframe : pandas.DataFrame
@@ -123,7 +123,7 @@ class Subpocket(Base):
         Returns
         -------
         np.array
-            Subpocket center, i.e. the centroid of all anchor residue centers. 
+            Subpocket center, i.e. the centroid of all anchor residue centers.
             None if anchor residues are missing.
         """
 
@@ -223,8 +223,8 @@ class AnchorResidue(Base):
         Returns
         -------
         pandas.DataFrame
-            Atom data if DataFrame length is 1, None if length is 0. 
-        
+            Atom data if DataFrame length is 1, None if length is 0.
+
         Raises
         ------
         ValueError
@@ -257,8 +257,8 @@ class AnchorResidue(Base):
         Returns
         -------
         pandas.DataFrame
-            Atoms data if DataFrame length is 1 or 2, None if length is 0. 
-        
+            Atoms data if DataFrame length is 1 or 2, None if length is 0.
+
         Raises
         ------
         ValueError
