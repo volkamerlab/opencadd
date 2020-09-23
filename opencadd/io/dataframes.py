@@ -127,7 +127,7 @@ class PdbToDataFrame(Base):
         pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
 
         # Concatenate ATOM and HETATM entries
-        pdb_df = pd.concat([pdb_dict["ATOM"], pdb_dict["HETATM"]])
+        pdb_df = pd.concat([pdb_dict["ATOM"], pdb_dict["HETATM"]]).reset_index(drop=True)
 
         # Select only columns of interest and rename columns
         pdb_df = pdb_df.iloc[:, pdb_columns.index.to_list()]
