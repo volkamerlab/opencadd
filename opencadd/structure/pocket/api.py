@@ -23,6 +23,8 @@ class Pocket(Base):
 
     Attributes
     ----------
+    filepath : str or pathlib.Path
+        File path to structural protein data.
     data : pandas.DataFrame
         Structural protein data with the following mandatory columns:
         "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
@@ -40,8 +42,9 @@ class Pocket(Base):
         List of user-defined regions.
     """
 
-    def __init__(self, data, name, residue_pdb_ids, residue_labels):
+    def __init__(self, filepath, data, name, residue_pdb_ids, residue_labels):
 
+        self.filepath = filepath
         self.data = data
         self.name = name
         residue_pdb_ids, residue_labels = self._format_residue_pdb_ids_and_labels(
@@ -77,60 +80,7 @@ class Pocket(Base):
 
         dataframe = DataFrame.from_file(filepath)
 
-        return cls(dataframe, name, residue_pdb_ids, residue_labels)
-
-    @classmethod
-    def from_text(cls, text, format, name, residue_pdb_ids, residue_labels):
-        """
-        Initialize Pocket object from structure file.
-
-        Attributes
-        ----------
-        text : str
-            Structural protein data as string.
-        format : str
-            Structural protein data format.
-        name : str
-            Name of protein.
-        residue_pdb_ids : list of str
-            Pocket residue PDB IDs.
-        residue_labels : list of str
-            Pocket residue labels.
-
-        Returns
-        -------
-        Pocket
-            Pocket object.
-        """
-
-        dataframe = DataFrame.from_text(text, format)
-
-        return cls(dataframe, name, residue_pdb_ids, residue_labels)
-
-    @classmethod
-    def from_dataframe(cls, dataframe, name, residue_pdb_ids, residue_labels):
-        """
-        Initialize Pocket object from DataFrame.
-
-        Attributes
-        ----------
-        dataframe : pandas.DataFrame
-            Structural protein data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
-        name : str
-            Name of protein.
-        residue_pdb_ids : list of str
-            Pocket residue PDB IDs.
-        residue_labels : list of str
-            Pocket residue labels.
-
-        Returns
-        -------
-        Pocket
-            Pocket object.
-        """
-
-        return cls(dataframe, name, residue_pdb_ids, residue_labels)
+        return cls(filepath, dataframe, name, residue_pdb_ids, residue_labels)
 
     @property
     def residues(self):
@@ -249,11 +199,7 @@ class Pocket(Base):
         return centroid
 
     def add_subpocket(
-        self,
-        name,
-        color,
-        anchor_residue_pdb_ids,
-        anchor_residue_labels=None,
+        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue PDB IDs.
@@ -296,14 +242,9 @@ class Pocket(Base):
         region.from_dataframe(self.data, name, color, residue_pdb_ids, residue_labels)
         self._regions.append(region)
 
-    def visualize(self, filepath):
+    def visualize(self):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
-
-        Parameters
-        ----------
-        filepath : pathlib.Path or str
-            Path to structure file.
 
         Returns
         -------
@@ -311,7 +252,7 @@ class Pocket(Base):
             Pocket visualization.
         """
 
-        filepath = str(filepath)
+        filepath = str(self.filepath)
 
         # Load structure from file in nglview
         view = nglview.show_file(filepath)
