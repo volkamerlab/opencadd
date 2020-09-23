@@ -1,7 +1,7 @@
 """
 opencadd.io.rdkit
 
-Defines classes that convert different input types into RDKit molecules.
+Defines classes that convert structural data into RDKit molecule objects.
 """
 
 from rdkit import Chem

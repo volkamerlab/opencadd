@@ -26,8 +26,7 @@ def _rdkit_format_tests(rmol):
 
 
 @pytest.mark.parametrize(
-    "mol2_file",
-    [PATH_TEST_DATA / "2itz_chainA_ligand.mol2"],
+    "mol2_file", [PATH_TEST_DATA / "2itz_chainA_ligand.mol2"],
 )
 def test_from_mol2_file(mol2_file):
     """
@@ -46,8 +45,7 @@ def test_from_mol2_file(mol2_file):
 
 
 @pytest.mark.parametrize(
-    "mol2_file",
-    [PATH_TEST_DATA / "2itz_chainA_ligand.mol2"],
+    "mol2_file", [PATH_TEST_DATA / "2itz_chainA_ligand.mol2"],
 )
 def test_from_mol2_text(mol2_file):
     """

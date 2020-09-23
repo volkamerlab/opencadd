@@ -161,9 +161,7 @@ class BaseProvider:
 
     @staticmethod
     def _multiple_remote_requests(
-        function,
-        iterator,
-        additional_parameters=None,
+        function, iterator, additional_parameters=None,
     ):
         """
         Wrap remote requests using multiple inputs, where KLIFS API only allows a single input

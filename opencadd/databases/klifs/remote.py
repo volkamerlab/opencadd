@@ -624,12 +624,7 @@ class Coordinates(CoordinatesProvider):
                 return pdb_df
 
     def to_file(
-        self,
-        structure_id,
-        output_path,
-        entity="complex",
-        input_format="mol2",
-        in_dir=False,
+        self, structure_id, output_path, entity="complex", input_format="mol2", in_dir=False,
     ):
         """
         Save structural data to file.
@@ -646,6 +641,11 @@ class Coordinates(CoordinatesProvider):
             Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
         in_dir : bool
             Save file in KLIFS directory structure (default: False).
+
+        Returns
+        -------
+        pathlib.Path
+            Path to file.
 
         Raises
         ------
@@ -682,6 +682,8 @@ class Coordinates(CoordinatesProvider):
         # Save text to file
         with open(output_path, "w") as f:
             f.write(text)
+
+        return output_path
 
     def _fetch_text(self, structure_id, entity="complex", input_format="mol2"):
         """

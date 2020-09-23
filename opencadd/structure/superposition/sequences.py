@@ -70,11 +70,7 @@ def sequence_alignment(seq1: str, seq2: str, matrix: str, gap: int, local: bool 
 
     matrix = matrices(matrix)
     alignment = seq_align.align_optimal(
-        seq.ProteinSequence(seq1),
-        seq.ProteinSequence(seq2),
-        matrix,
-        gap_penalty=gap,
-        local=local,
+        seq.ProteinSequence(seq1), seq.ProteinSequence(seq2), matrix, gap_penalty=gap, local=local,
     )
     return alignment[0]
 

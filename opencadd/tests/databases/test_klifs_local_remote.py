@@ -61,8 +61,7 @@ class TestsAllQueries:
         assert sorted(result_local["kinase.group"].to_list()) == ["TK", "TKL"]
 
     @pytest.mark.parametrize(
-        "group, local_families",
-        [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
+        "group, local_families", [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
     )
     def test_all_kinase_families(self, group, local_families):
         """
@@ -118,8 +117,7 @@ class TestsAllQueries:
         # since too many and may vary if structures are added to KLIFS.
 
     @pytest.mark.parametrize(
-        "group, family, species",
-        [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
+        "group, family, species", [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
     )
     def test_all_kinases_raise(self, group, family, species):
         """
@@ -380,8 +378,7 @@ class TestsFromKinaseNames:
     """
 
     @pytest.mark.parametrize(
-        "kinase_names, species",
-        [("BMX", None), (["BMX", "BRAF"], None)],
+        "kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)],
     )
     def test_from_kinase_names(self, kinase_names, species):
         """
@@ -402,19 +399,11 @@ class TestsFromKinaseNames:
         check_dataframe(
             result_remote,
             COLUMN_NAMES["ligands"]
-            + [
-                "kinase.id (query)",
-                "kinase.name (query)",
-                "species.klifs (query)",
-            ],
+            + ["kinase.id (query)", "kinase.name (query)", "species.klifs (query)",],
         )
         check_dataframe(
             result_local,
-            COLUMN_NAMES["ligands"]
-            + [
-                "kinase.name (query)",
-                "species.klifs (query)",
-            ],
+            COLUMN_NAMES["ligands"] + ["kinase.name (query)", "species.klifs (query)",],
         )
 
         # Structures

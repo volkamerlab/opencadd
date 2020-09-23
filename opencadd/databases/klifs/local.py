@@ -129,8 +129,7 @@ class SessionInitializer:
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_export"],
-            inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_export"], inplace=True,
         )
 
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
@@ -156,8 +155,7 @@ class SessionInitializer:
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"],
-            inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"], inplace=True,
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
@@ -326,9 +324,7 @@ class SessionInitializer:
         ].iterrows():
             # Get IDs from remote
             structure = remote_structures.from_structure_pdbs(
-                row["structure.pdb"],
-                row["structure.alternate_model"],
-                row["structure.chain"],
+                row["structure.pdb"], row["structure.alternate_model"], row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
             kinase_id = structure["kinase.id"][0]
@@ -474,16 +470,10 @@ class Ligands(LigandsProvider):
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.id"],
-        )
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
         # Rename columns to indicate columns involved in query
         ligands.rename(
-            columns={
-                "kinase.id": "kinase.id (query)",
-            },
-            inplace=True,
+            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
         )
         return ligands
 
@@ -497,8 +487,7 @@ class Ligands(LigandsProvider):
         ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
         ligands = self._format_dataframe(
-            ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"],
+            ligands, COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -519,10 +508,7 @@ class Ligands(LigandsProvider):
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands,
-            COLUMN_NAMES["ligands"],
-        )
+        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"],)
         return ligands
 
     def _add_missing_columns_ligands(self, ligands):
@@ -561,10 +547,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_ids(self, structure_ids):
@@ -576,10 +559,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
@@ -596,10 +576,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_pdbs(
@@ -618,10 +595,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -633,10 +607,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_kinase_names(self, kinase_names):
@@ -655,10 +626,7 @@ class Structures(StructuresProvider):
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
-        structures = self._format_dataframe(
-            structures,
-            COLUMN_NAMES["structures"],
-        )
+        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def _add_missing_columns_structures(self, structures):
@@ -722,10 +690,7 @@ class Interactions(InteractionsProvider):
         # Get local database and select rows
         interactions = self.__database.copy()
         # Format DataFrame
-        interactions = self._format_dataframe(
-            interactions,
-            COLUMN_NAMES["interactions"],
-        )
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_structure_ids(self, structure_ids):
@@ -735,10 +700,7 @@ class Interactions(InteractionsProvider):
         interactions = self.__database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Format DataFrame
-        interactions = self._format_dataframe(
-            interactions,
-            COLUMN_NAMES["interactions"],
-        )
+        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_kinase_ids(self, kinase_ids):
@@ -749,15 +711,11 @@ class Interactions(InteractionsProvider):
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
-            interactions,
-            COLUMN_NAMES["interactions"] + ["kinase.id"],
+            interactions, COLUMN_NAMES["interactions"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
-            columns={
-                "kinase.id": "kinase.id (query)",
-            },
-            inplace=True,
+            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
         )
         return interactions
 
@@ -823,10 +781,7 @@ class Pockets(PocketsProvider):
         mol2_df = self._add_klifs_region_details(mol2_df)
 
         # Format DataFrame
-        mol2_df = self._format_dataframe(
-            mol2_df,
-            COLUMN_NAMES["pockets"],
-        )
+        mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
 
         return mol2_df
 
