@@ -7,10 +7,39 @@ from pathlib import Path
 import pytest
 import pandas as pd
 from rdkit import Chem
+from Bio.PDB.Structure import Structure
 
-from opencadd.io import DataFrame, RdkitMol
+from opencadd.io import DataFrame, RdkitMol, Biopython
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
+
+
+class TestsBiopython:
+    """
+    Tests the DataFrame class methods.
+    """
+
+    @pytest.mark.parametrize(
+        "filepath", [PATH_TEST_DATA / "2itz.pdb"],
+    )
+    def test_from_file(self, filepath):
+        """
+        Test if input produces a biopython structure object.
+        """
+
+        biopython_structure = Biopython.from_file(filepath)
+        isinstance(biopython_structure, Structure)
+
+    @pytest.mark.parametrize(
+        "filepath", [PATH_TEST_DATA / "2itz_chainA_protein.mol2"],
+    )
+    def test_from_file_raises(self, filepath):
+        """
+        Test if input produces a ValueError for invalid inputs.
+        """
+
+        with pytest.raises(ValueError):
+            Biopython.from_file(filepath)
 
 
 class TestsDataFrame:
