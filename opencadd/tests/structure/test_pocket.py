@@ -122,7 +122,7 @@ class TestsPocket:
     def test_init(self, name, residue_pdb_ids, residue_labels, centroid):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket(dataframe, name, residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, name, residue_pdb_ids, residue_labels)
 
         assert pocket.name == name
         assert pocket.residues.equals(
@@ -142,7 +142,7 @@ class TestsPocket:
     def test_add_regions(self, name, color, residue_pdb_ids, residue_labels):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket(dataframe, "", residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, "", residue_pdb_ids, residue_labels)
 
         pocket.add_region(name, color, residue_pdb_ids, residue_labels)
 
@@ -172,7 +172,7 @@ class TestsPocket:
     def test_add_subpocket(self, name, color, residue_pdb_ids, residue_labels, center):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket(dataframe, "", residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, "", residue_pdb_ids, residue_labels)
 
         pocket.add_subpocket(name, color, residue_pdb_ids, residue_labels)
         subpocket = pocket._subpockets[0]
