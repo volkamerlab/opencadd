@@ -36,6 +36,7 @@ PATH_TO_KLIFS_IDS = (
     # Path(__name__).parent / "opencadd" / "data" / "klifs_ids.csv" TODO
 )
 
+# TODO move this to schema?
 POCKET_KLIFS_REGIONS = (
     pd.Series(POCKET_KLIFS_REGION_IDS, name="residue.klifs_region_id")
     .reset_index()
