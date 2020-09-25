@@ -94,12 +94,12 @@ class TestsDataFrame:
     @pytest.mark.parametrize(
         "filepath, format",
         [
-            (PATH_TEST_DATA / "2itz.pdb", "mol2"),  # TODO
+            (PATH_TEST_DATA / "2itz.pdb", "mol2"),
             (PATH_TEST_DATA / "2itz.pdb", "unknown format"),
-            (PATH_TEST_DATA / "2itz_chainA_protein.mol2", "pdb"),  # TODO
+            (PATH_TEST_DATA / "2itz_chainA_protein.mol2", "pdb"),
             (PATH_TEST_DATA / "2itz_chainA_protein.mol2", "unknown format"),
-            (PATH_TEST_DATA / "invalid_data", "mol2"),  # TODO
-            (PATH_TEST_DATA / "invalid_data", "pdb"),  # TODO
+            (PATH_TEST_DATA / "invalid_data", "mol2"),
+            (PATH_TEST_DATA / "invalid_data", "pdb"),
             (PATH_TEST_DATA / "invalid_data", "unknown format"),
         ],
     )

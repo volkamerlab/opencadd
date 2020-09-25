@@ -75,7 +75,7 @@ class PdbToDataFrame(Base):
 
     def from_file(self, pdb_file, verbose=False):
         """
-        Get structural data from pdb file.
+        Get structural data from pdb file as DataFrame.
 
         Parameters
         ----------
@@ -102,7 +102,7 @@ class PdbToDataFrame(Base):
 
     def from_text(self, pdb_text, verbose=False):
         """
-        Get structural data from pdb text.
+        Get structural data from pdb text as DataFrame.
 
         Parameters
         ----------
@@ -151,7 +151,7 @@ class Mol2ToDataFrame(Base):
 
     def from_file(self, mol2_file, verbose=False):
         """
-        Get structural data from mol2 file.
+        Get structural data from mol2 file as DataFrame.
 
         Parameters
         ----------
@@ -178,7 +178,7 @@ class Mol2ToDataFrame(Base):
 
     def from_text(self, mol2_text, verbose=False):
         """
-        Get structural data from mol2 text.
+        Get structural data from mol2 text as DataFrame.
 
         Parameters
         ----------

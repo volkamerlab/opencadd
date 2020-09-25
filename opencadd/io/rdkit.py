@@ -16,7 +16,7 @@ class Mol2ToRdkitMol:
     @staticmethod
     def from_file(mol2_file, compute2d=True):
         """
-        Get structural data from mol2 file.
+        Get structural data from mol2 file as RDKit molecule.
 
         Parameters
         ----------
@@ -41,7 +41,7 @@ class Mol2ToRdkitMol:
     @staticmethod
     def from_text(mol2_text, compute2d=True):
         """
-        Get structural data from mol2 text.
+        Get structural data from mol2 text as RDKit molecule.
 
         Parameters
         ----------

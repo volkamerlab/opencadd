@@ -17,7 +17,7 @@ class Biopython:
     @classmethod
     def from_file(cls, filepath):
         """
-        Load structures as DataFrame from file.
+        Load structures as biopython structure object from file.
 
         Parameters
         ----------
@@ -119,7 +119,7 @@ class RdkitMol:
     @classmethod
     def from_file(cls, filepath, compute2d=True):
         """
-        Load structures as DataFrame from file.
+        Load structures as RDKit molecule from file.
 
         Parameters
         ----------
@@ -148,7 +148,7 @@ class RdkitMol:
     @classmethod
     def from_text(cls, text, format, compute2d=True):
         """
-        Load structures as DataFrame from text (file content as string).
+        Load structures as RDKit molecule from text (file content as string).
 
         Parameters
         ----------
