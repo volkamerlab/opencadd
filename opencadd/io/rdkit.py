@@ -4,17 +4,74 @@ opencadd.io.rdkit
 Defines classes that convert structural data into RDKit molecule objects.
 """
 
+import logging
+from pathlib import Path
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
+from .core import _Base
 
-class Mol2ToRdkitMol:
+logger = logging.getLogger(__name__)
+
+
+class Rdkit(_Base):
     """
-    Parse a mol2 file or mol2 text into an RDKit molecule.
+    Parse a structure as an RDKit molecule.
     """
 
-    @staticmethod
-    def from_file(mol2_file, compute2d=True):
+    @classmethod
+    def from_file(cls, filepath, compute2d=True):
+        """
+        Load structures as RDKit molecule from file.
+
+        Parameters
+        ----------
+        filepath : str or pathlib.Path
+            Path to structure file: pdb and mol2 files only.
+        compute2d : bool
+            Compute 2D coordinates for ligand (default).
+
+        Returns
+        -------
+        rdkit.Chem.rdchem.Mol
+            Structure as RDKit molecule object.
+        """
+
+        filepath = cls._convert_filepath(filepath)
+
+        if filepath.suffix == ".mol2":
+            return cls._from_mol2_file(filepath, compute2d)
+        else:
+            raise ValueError(f"The {filepath.suffix} format is not supported or invalid.")
+
+    @classmethod
+    def from_text(cls, text, ext, compute2d=True):
+        """
+        Load structures as RDKit molecule from text (file content as string).
+
+        Parameters
+        ----------
+        text : str
+            Structure file content as string.
+        ext : str
+            Structure format: "pdb" or "mol2".
+        compute2d : bool
+            Compute 2D coordinates for ligand (default).
+
+        Returns
+        -------
+        rdkit.Chem.rdchem.Mol
+            Structure as RDKit molecule object.
+        """
+
+        if ext == "mol2":
+            return cls._from_mol2_text(text, compute2d)
+        else:
+            raise ValueError(f"The {ext} format is not supported or invalid.")
+
+    @classmethod
+    def _from_mol2_file(cls, mol2_file, compute2d=True):
         """
         Get structural data from mol2 file as RDKit molecule.
 
@@ -38,8 +95,8 @@ class Mol2ToRdkitMol:
 
         return mol
 
-    @staticmethod
-    def from_text(mol2_text, compute2d=True):
+    @classmethod
+    def _from_mol2_text(cls, mol2_text, compute2d=True):
         """
         Get structural data from mol2 text as RDKit molecule.
 

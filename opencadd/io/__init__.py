@@ -2,4 +2,6 @@
 opencadd.io module
 """
 
-from .api import DataFrame, RdkitMol, Biopython
+from .biopython import Biopython
+from .dataframe import DataFrame
+from .rdkit import Rdkit
