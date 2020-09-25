@@ -283,7 +283,7 @@ class DataFrame(_Base):
         try:
             int(res_id)
         except ValueError:
-            logger.WARNING(f"Suspicious residue ID: {res_id} (from {subst_name})")
+            logger.warning(f"Suspicious residue ID: {res_id} (from {subst_name})")
 
         return res_name, res_id
 
