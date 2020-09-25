@@ -5,7 +5,6 @@ Defines classes that convert structural data into RDKit molecule objects.
 """
 
 import logging
-from pathlib import Path
 
 from rdkit import Chem
 from rdkit.Chem import AllChem

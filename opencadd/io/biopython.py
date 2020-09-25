@@ -5,7 +5,6 @@ Defines classes that convert structural data into biopython structure objects.
 """
 
 import logging
-from pathlib import Path
 
 from Bio.PDB.PDBParser import PDBParser
 
