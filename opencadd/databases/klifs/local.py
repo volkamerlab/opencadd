@@ -25,7 +25,7 @@ from .schema import (
     POCKET_KLIFS_REGION_IDS,
 )
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
-from opencadd.io import DataFrame, RdkitMol
+from opencadd.io import DataFrame, Rdkit
 
 PATH_TO_KLIFS_IDS = (
     Path(__file__).parent
@@ -758,7 +758,7 @@ class Pockets(PocketsProvider):
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
         number_of_atoms_per_residue = mol2_df.groupby(
-            ["residue.name", "residue.pdb_id"], sort=False
+            ["residue.name", "residue.id"], sort=False
         ).size()
 
         # Get KLIFS position IDs for each atom in molecule
@@ -767,7 +767,7 @@ class Pockets(PocketsProvider):
             klifs_ids_per_atom.extend([klifs_id] * n)
         # Add column for KLIFS position IDs to molecule
         mol2_df["residue.klifs_id"] = klifs_ids_per_atom
-        mol2_df = mol2_df[["residue.pdb_id", "residue.klifs_id"]].drop_duplicates()
+        mol2_df = mol2_df[["residue.id", "residue.klifs_id"]].drop_duplicates()
 
         # Add KLIFS IDs that are missing in pocket and fill with "_"
         full_klifs_ids_df = pd.Series(range(1, 86), name="residue.klifs_id").to_frame()
@@ -838,7 +838,7 @@ class Coordinates(CoordinatesProvider):
 
         # Return different output formats
         if output_format == "rdkit":
-            rdkit_mol = RdkitMol.from_file(filepath, compute2d)
+            rdkit_mol = Rdkit.from_file(filepath, compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
@@ -908,6 +908,6 @@ class Coordinates(CoordinatesProvider):
         mol2_df_pocket = pockets_local.from_structure_id(structure_id)
 
         # Merge pocket DataFrame with input DataFrame
-        mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.pdb_id", how="left")
+        mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.id", how="left")
 
         return mol2_df

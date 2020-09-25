@@ -133,7 +133,7 @@ REMOTE_COLUMNS_MAPPING = {
     # Interactions.get_interactions_match_residues()
     "pockets": {
         "index": "residue.klifs_id",
-        "Xray_position": "residue.pdb_id",
+        "Xray_position": "residue.id",
         "KLIFS_position": "residue.klifs_region_id",
     },
 }
@@ -216,7 +216,7 @@ COLUMN_NAMES = {
     "interaction_types": ["interaction.id", "interaction.name"],
     "pockets": [
         "residue.klifs_id",
-        "residue.pdb_id",
+        "residue.id",
         "residue.klifs_region_id",
         "residue.klifs_region",
         "residue.klifs_color",
@@ -227,7 +227,7 @@ COLUMN_NAMES = {
         "atom.x",
         "atom.y",
         "atom.z",
-        "residue.pdb_id",
+        "residue.id",
         "residue.name",
         "residue.klifs_id",
         "residue.klifs_region_id",

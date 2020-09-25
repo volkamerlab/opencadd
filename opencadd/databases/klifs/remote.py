@@ -20,7 +20,7 @@ from .core import (
 )
 from .schema import REMOTE_COLUMNS_MAPPING, COLUMN_NAMES
 from .utils import metadata_to_filepath, silence_logging
-from opencadd.io import DataFrame, RdkitMol
+from opencadd.io import DataFrame, Rdkit
 
 _logger = logging.getLogger(__name__)
 
@@ -611,7 +611,7 @@ class Coordinates(CoordinatesProvider):
             return text
 
         elif output_format == "rdkit":
-            rdkit_mol = RdkitMol.from_text(text, input_format, compute2d)
+            rdkit_mol = Rdkit.from_text(text, input_format, compute2d)
             return rdkit_mol
 
         elif output_format == "biopandas":
@@ -761,7 +761,7 @@ class Coordinates(CoordinatesProvider):
         pockets_remote = Pockets(self.__client)
         pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
-        mol2_df = mol2_df.merge(pocket, on="residue.pdb_id", how="left")
+        mol2_df = mol2_df.merge(pocket, on="residue.id", how="left")
         mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
 
         return mol2_df
