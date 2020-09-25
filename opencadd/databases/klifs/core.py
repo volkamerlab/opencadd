@@ -1132,12 +1132,13 @@ class PocketsProvider(BaseProvider):
     """
     Class for pocket requests.
     Get PDB and KLIFS pocket residues numbering (plus kinase region label for each residue).
+    # FIXME really PDB?
 
     Methods
     -------
     from_structure_id()
         Get a structure's residue numbering in PDB and KLIFS by structure ID
-        (plus kinase region label for each residue).
+        (plus kinase region label for each residue).  # FIXME really PDB?
 
     Notes
     -----
@@ -1146,7 +1147,7 @@ class PocketsProvider(BaseProvider):
 
     structure.pocket_klifs_numbering : int
         KLIFS numbering for pocket residues.
-    structure.pocket_pdb_numbering : int
+    structure.pocket_pdb_numbering : int  # FIXME really PDB?
         PDB numbering for pocket residues.
     structure.pocket_klifs_regions : str
         KLIFS regions assigned to pocket residues.
@@ -1158,7 +1159,7 @@ class PocketsProvider(BaseProvider):
     def from_structure_id(self, structure_id):
         """
         Get a structure's residue numbering in PDB and KLIFS by structure ID
-        (plus kinase region label for each residue).
+        (plus kinase region label for each residue).  # FIXME really PDB?
 
         Parameters
         ----------
@@ -1215,7 +1216,7 @@ class CoordinatesProvider(BaseProvider):
     the) following attributes (columns):
 
     atom.id : int
-        Atom PDB ID.
+        Atom PDB ID. # FIXME really PDB?
     atom.name : str
         Atom name.
     atom.x : float
@@ -1238,7 +1239,7 @@ class CoordinatesProvider(BaseProvider):
     residue.name : float
         Residue name.
     residue.id : float
-        Residue PDB ID.
+        Residue PDB ID. # FIXME really PDB?
     residue.klifs_id : int
         Residue KLIFS ID (pocket residues only, other NaN).
     residue.klifs_region : float
