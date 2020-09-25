@@ -27,10 +27,10 @@ class Pocket(Base):
         File path to structural protein data.
     data : pandas.DataFrame
         Structural protein data with the following mandatory columns:
-        "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
+        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
     name : str
         Name of protein.
-    residue_pdb_ids : list of str
+    residue_ids : list of str
         Pocket residue PDB IDs.
     residue_labels : list of str
         Pocket residue labels.
@@ -42,22 +42,22 @@ class Pocket(Base):
         List of user-defined regions.
     """
 
-    def __init__(self, filepath, data, name, residue_pdb_ids, residue_labels):
+    def __init__(self, filepath, data, name, residue_ids, residue_labels):
 
         self.filepath = filepath
         self.data = data
         self.name = name
-        residue_pdb_ids, residue_labels = self._format_residue_pdb_ids_and_labels(
-            residue_pdb_ids, residue_labels
+        residue_ids, residue_labels = self._format_residue_ids_and_labels(
+            residue_ids, residue_labels
         )
-        self.residue_pdb_ids = residue_pdb_ids
+        self.residue_ids = residue_ids
         self.residue_labels = residue_labels
         self.centroid = self._centroid()
         self._subpockets = []
         self._regions = []
 
     @classmethod
-    def from_file(cls, filepath, name, residue_pdb_ids, residue_labels):
+    def from_file(cls, filepath, name, residue_ids, residue_labels):
         """
         Initialize Pocket object from structure protein file.
 
@@ -67,7 +67,7 @@ class Pocket(Base):
             File path to structural protein data.
         name : str
             Name of protein.
-        residue_pdb_ids : list of str
+        residue_ids : list of str
             Pocket residue PDB IDs.
         residue_labels : list of str
             Pocket residue labels.
@@ -80,7 +80,7 @@ class Pocket(Base):
 
         dataframe = DataFrame.from_file(filepath)
 
-        return cls(filepath, dataframe, name, residue_pdb_ids, residue_labels)
+        return cls(filepath, dataframe, name, residue_ids, residue_labels)
 
     @property
     def residues(self):
@@ -88,7 +88,7 @@ class Pocket(Base):
         Return pocket residues (PDB ID and labels).
         """
 
-        residues = {"residue.pdb_id": self.residue_pdb_ids, "residue.label": self.residue_labels}
+        residues = {"residue.id": self.residue_ids, "residue.label": self.residue_labels}
         residues = pd.DataFrame(residues)
         return residues.reset_index(drop=True)
 
@@ -125,13 +125,13 @@ class Pocket(Base):
 
         for region in self._regions:
 
-            n_residues = len(region.residue_pdb_ids)
+            n_residues = len(region.residue_ids)
 
             region = pd.DataFrame(
                 {
                     "region.name": [region.name] * n_residues,
                     "region.color": [region.color] * n_residues,
-                    "residue.pdb_id": region.residue_pdb_ids,
+                    "residue.id": region.residue_ids,
                     "residue.label": region.residue_labels,
                 }
             )
@@ -188,8 +188,7 @@ class Pocket(Base):
         dataframe = self.data
 
         atoms = dataframe[
-            (dataframe["residue.pdb_id"].isin(self.residue_pdb_ids))
-            & (dataframe["atom.name"] == "CA")
+            (dataframe["residue.id"].isin(self.residue_ids)) & (dataframe["atom.name"] == "CA")
         ]
 
         print(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
@@ -199,7 +198,7 @@ class Pocket(Base):
         return centroid
 
     def add_subpocket(
-        self, name, color, anchor_residue_pdb_ids, anchor_residue_labels=None,
+        self, name, color, anchor_residue_ids, anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue PDB IDs.
@@ -210,19 +209,17 @@ class Pocket(Base):
             Subpocket name.
         color : str
             Subpocket color (matplotlib name).
-        anchor_residue_pdb_ids : list of (int, str)
+        anchor_residue_ids : list of (int, str)
             List of anchor residue PDB IDs.
         anchor_residue_labels : list of (int, str) or None
-            List of anchor residue labels. Must be of same length as anchor_residue_pdb_ids.
+            List of anchor residue labels. Must be of same length as anchor_residue_ids.
         """
 
         subpocket = Subpocket()
-        subpocket.from_dataframe(
-            self.data, name, color, anchor_residue_pdb_ids, anchor_residue_labels
-        )
+        subpocket.from_dataframe(self.data, name, color, anchor_residue_ids, anchor_residue_labels)
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, color, residue_pdb_ids, residue_labels=None):
+    def add_region(self, name, color, residue_ids, residue_labels=None):
         """
         Add region based on given input residue PDB IDs.
 
@@ -232,14 +229,14 @@ class Pocket(Base):
             Region name.
         color : str
             Region color (matplotlib name).
-        residue_pdb_ids : list of (int, str)
+        residue_ids : list of (int, str)
             List of residue PDB IDs defining the region.
         residue_labels : list of (int, str) or None
-            List of residue labels. Must be of same length as residue_pdb_ids.
+            List of residue labels. Must be of same length as residue_ids.
         """
 
         region = Region()
-        region.from_dataframe(self.data, name, color, residue_pdb_ids, residue_labels)
+        region.from_dataframe(self.data, name, color, residue_ids, residue_labels)
         self._regions.append(region)
 
     def visualize(self):
@@ -269,8 +266,8 @@ class Pocket(Base):
         scheme_regions_list = []
         for index, region in self.regions.iterrows():
             color = region["region.color"]
-            residue_pdb_id = region["residue.pdb_id"]
-            residue_ngl_ix = residue_id2ix.loc[residue_pdb_id]
+            residue_id = region["residue.id"]
+            residue_ngl_ix = residue_id2ix.loc[residue_id]
             scheme_regions_list.append([color, residue_ngl_ix])
 
         scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
@@ -313,21 +310,21 @@ class Pocket(Base):
         """
 
         # Get all residue names
-        residue_id2ix = self.data[["residue.name", "residue.pdb_id"]].drop_duplicates()
+        residue_id2ix = self.data[["residue.name", "residue.id"]].drop_duplicates()
 
         if file_format == "mol2":
 
             # Map residue names to nglview index (starting from 1)
             residue_id2ix["residue.ngl_ix"] = [str(i) for i in range(1, len(residue_id2ix) + 1)]
             # Cast to Series (PDB IDs as index, NGL index as values)
-            residue_id2ix.set_index("residue.pdb_id", inplace=True)
+            residue_id2ix.set_index("residue.id", inplace=True)
             residue_id2ix = residue_id2ix["residue.ngl_ix"]
 
         else:
 
             # In this case, PDB ID and nglview index are the same
-            residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.pdb_id"]
-            residue_id2ix.index = residue_id2ix["residue.pdb_id"]
+            residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.id"]
+            residue_id2ix.index = residue_id2ix["residue.id"]
             residue_id2ix = residue_id2ix["residue.ngl_ix"]
 
         return residue_id2ix

@@ -8,7 +8,7 @@ from bravado.client import SwaggerClient
 import pandas as pd
 import pytest
 
-from opencadd.io.dataframes import Mol2ToDataFrame
+from opencadd.io.dataframe import DataFrame
 from opencadd.structure.pocket.api import Pocket
 from opencadd.structure.pocket.core import Base
 from opencadd.structure.pocket.subpocket import AnchorResidue
@@ -35,8 +35,7 @@ def load_dataframe_protein(klifs_structure_id=None):
         with open("protein.mol2", "w") as f:
             f.write(result)
 
-        parser = Mol2ToDataFrame()
-        dataframe = parser.from_file("protein.mol2")
+        dataframe = DataFrame.from_file("protein.mol2")
 
         # Delete file
         Path("protein.mol2").unlink()
@@ -45,7 +44,7 @@ def load_dataframe_protein(klifs_structure_id=None):
 
         dataframe = pd.DataFrame(
             {
-                "residue.pdb_id": ["1", "2", "3", "7", "8", "9", "11"],
+                "residue.id": ["1", "2", "3", "7", "8", "9", "11"],
                 "atom.name": ["CA", "CA", "CA", "CA", "CA", "CA", "CA"],
                 "atom.x": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
                 "atom.y": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
@@ -62,21 +61,21 @@ class TestsBase:
     """
 
     @pytest.mark.parametrize(
-        "residue_pdb_ids, residue_labels, residue_pdb_ids_formatted, residue_labels_formatted",
+        "residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted",
         [
             ([1, 2, 3], [1, 2, 3], ["1", "2", "3"], ["1", "2", "3"]),
             ([1, 2], None, ["1", "2"], [None, None]),
         ],
     )
-    def test_format_residue_pdb_ids_and_labels(
-        self, residue_pdb_ids, residue_labels, residue_pdb_ids_formatted, residue_labels_formatted
+    def test_format_residue_ids_and_labels(
+        self, residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted
     ):
 
         base = Base()
-        residue_pdb_ids, residue_labels = base._format_residue_pdb_ids_and_labels(
-            residue_pdb_ids, residue_labels
+        residue_ids, residue_labels = base._format_residue_ids_and_labels(
+            residue_ids, residue_labels
         )
-        assert residue_pdb_ids == residue_pdb_ids_formatted
+        assert residue_ids == residue_ids_formatted
         assert residue_labels == residue_labels_formatted
 
 
@@ -86,7 +85,7 @@ class TestsAnchorResidue:
     """
 
     @pytest.mark.parametrize(
-        "residue_pdb_id, residue_pdb_id_alternative, residue_center",
+        "residue_id, residue_id_alternative, residue_center",
         [
             (1, None, [1, 1, 1]),
             (10, ["9", "11"], [35, 35, 35]),
@@ -95,7 +94,7 @@ class TestsAnchorResidue:
             (5, None, None),
         ],
     )
-    def test_from_dataframe(self, residue_pdb_id, residue_pdb_id_alternative, residue_center):
+    def test_from_dataframe(self, residue_id, residue_id_alternative, residue_center):
         """
         Test anchor residue cases.
         """
@@ -103,9 +102,9 @@ class TestsAnchorResidue:
         dataframe = load_dataframe_protein()
 
         residue = AnchorResidue()
-        residue.from_dataframe(dataframe, residue_pdb_id)
+        residue.from_dataframe(dataframe, residue_id)
 
-        assert residue.pdb_id_alternative == residue_pdb_id_alternative
+        assert residue.id_alternative == residue_id_alternative
         if residue_center:
             assert pytest.approx(residue.center, residue_center, abs=1.0e-6)
 
@@ -116,19 +115,19 @@ class TestsPocket:
     """
 
     @pytest.mark.parametrize(
-        "name, residue_pdb_ids, residue_labels, centroid",
+        "name, residue_ids, residue_labels, centroid",
         [("example kinase", [127, 128, 129], [1, 2, 3], [-1.178433, 23.859733, 45.091933])],
     )
-    def test_init(self, name, residue_pdb_ids, residue_labels, centroid):
+    def test_init(self, name, residue_ids, residue_labels, centroid):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, name, residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, name, residue_ids, residue_labels)
 
         assert pocket.name == name
         assert pocket.residues.equals(
             pd.DataFrame(
                 {
-                    "residue.pdb_id": [str(i) for i in residue_pdb_ids],
+                    "residue.id": [str(i) for i in residue_ids],
                     "residue.label": [str(i) for i in residue_labels],
                 }
             )
@@ -136,29 +135,29 @@ class TestsPocket:
         assert pytest.approx(pocket.centroid, centroid, abs=1.0e-6)
 
     @pytest.mark.parametrize(
-        "name, color, residue_pdb_ids, residue_labels",
+        "name, color, residue_ids, residue_labels",
         [("hinge", "magenta", [127, 128, 129], [46, 47, 48])],
     )
-    def test_add_regions(self, name, color, residue_pdb_ids, residue_labels):
+    def test_add_regions(self, name, color, residue_ids, residue_labels):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, "", residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, "", residue_ids, residue_labels)
 
-        pocket.add_region(name, color, residue_pdb_ids, residue_labels)
+        pocket.add_region(name, color, residue_ids, residue_labels)
 
-        n_region_residues = len(residue_pdb_ids)
+        n_region_residues = len(residue_ids)
         region = pd.DataFrame(
             {
                 "region.name": [name] * n_region_residues,
                 "region.color": [color] * n_region_residues,
-                "residue.pdb_id": [str(i) for i in residue_pdb_ids],
+                "residue.id": [str(i) for i in residue_ids],
                 "residue.label": [str(i) for i in residue_labels],
             }
         )
         assert pocket.regions.equals(region)
 
     @pytest.mark.parametrize(
-        "name, color, residue_pdb_ids, residue_labels, center",
+        "name, color, residue_ids, residue_labels, center",
         [
             (
                 "hinge_region",
@@ -169,12 +168,12 @@ class TestsPocket:
             )
         ],
     )
-    def test_add_subpocket(self, name, color, residue_pdb_ids, residue_labels, center):
+    def test_add_subpocket(self, name, color, residue_ids, residue_labels, center):
 
         dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, "", residue_pdb_ids, residue_labels)
+        pocket = Pocket("", dataframe, "", residue_ids, residue_labels)
 
-        pocket.add_subpocket(name, color, residue_pdb_ids, residue_labels)
+        pocket.add_subpocket(name, color, residue_ids, residue_labels)
         subpocket = pocket._subpockets[0]
 
         assert subpocket.name == name

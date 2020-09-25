@@ -47,9 +47,9 @@ class Subpocket(Base):
 
         anchor_residues_dict = {
             "subpocket.color": [residue.color for residue in self._anchor_residues],
-            "anchor_residue.pdb_id": [residue.pdb_id for residue in self._anchor_residues],
-            "anchor_residue.pdb_id_alternative": [
-                residue.pdb_id_alternative for residue in self._anchor_residues
+            "anchor_residue.id": [residue.id for residue in self._anchor_residues],
+            "anchor_residue.id_alternative": [
+                residue.id_alternative for residue in self._anchor_residues
             ],
             "anchor_residue.label": [residue.label for residue in self._anchor_residues],
             "anchor_residue.center": [residue.center for residue in self._anchor_residues],
@@ -59,9 +59,7 @@ class Subpocket(Base):
 
         return anchor_residues_df
 
-    def from_dataframe(
-        self, dataframe, name, color, anchor_residue_pdb_ids, anchor_residue_labels
-    ):
+    def from_dataframe(self, dataframe, name, color, anchor_residue_ids, anchor_residue_labels):
         """
         Set subpocket properties.
 
@@ -69,28 +67,28 @@ class Subpocket(Base):
         ----------
         dataframe : pandas.DataFrame
             Structural protein data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z".
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
         name : str
             Subpocket name.
         color : str
             Subpocket color (matplotlib name).
-        anchor_residue_pdb_ids : list of (int, str)
+        anchor_residue_ids : list of (int, str)
             List of anchor residue PDB IDs.
         anchor_residue_labels : list of (int, str) or None
-            List of anchor residue labels. Must be of same length as residue_pdb_ids.
+            List of anchor residue labels. Must be of same length as residue_ids.
         """
 
         # Format residue PDB IDs and labels
-        anchor_residue_pdb_ids, anchor_residue_labels = self._format_residue_pdb_ids_and_labels(
-            anchor_residue_pdb_ids, anchor_residue_labels
+        anchor_residue_ids, anchor_residue_labels = self._format_residue_ids_and_labels(
+            anchor_residue_ids, anchor_residue_labels
         )
 
         anchor_residues = []
 
-        for residue_pdb_id, residue_label in zip(anchor_residue_pdb_ids, anchor_residue_labels):
+        for residue_id, residue_label in zip(anchor_residue_ids, anchor_residue_labels):
 
             residue = AnchorResidue()
-            residue.from_dataframe(dataframe, residue_pdb_id, residue_label, color)
+            residue.from_dataframe(dataframe, residue_id, residue_label, color)
             anchor_residues.append(residue)
 
         self._from_anchor_residues(name, color, anchor_residues)
@@ -149,9 +147,9 @@ class AnchorResidue(Base):
 
     Attributes
     ----------
-    pdb_id : str
+    id : str
         Residue PDB ID.
-    pdb_id_alternative : list of str
+    id_alternative : list of str
         Alternative residue PDB ID(s) in case input PDB ID not available.
     label : str
         Residue label, e.g. some non-PDB ID.
@@ -163,13 +161,13 @@ class AnchorResidue(Base):
 
     def __init__(self):
 
-        self.pdb_id = None
-        self.pdb_id_alternative = None
+        self.id = None
+        self.id_alternative = None
         self.label = None
         self.color = None
         self.center = None
 
-    def from_dataframe(self, dataframe, residue_pdb_id, residue_label=None, color="green"):
+    def from_dataframe(self, dataframe, residue_id, residue_label=None, color="green"):
         """
         Set residue properties.
 
@@ -177,8 +175,8 @@ class AnchorResidue(Base):
         ----------
         dataframe : pandas.DataFrame
             Structural data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z"
-        residue_pdb_id : str
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
+        residue_id : str
             Residue PDB ID.
         residue_label : str
             Residue label, e.g. some non-PDB ID (default None).
@@ -187,10 +185,10 @@ class AnchorResidue(Base):
         """
 
         # Set class attributes
-        if isinstance(residue_pdb_id, int):
-            residue_pdb_id = str(residue_pdb_id)
+        if isinstance(residue_id, int):
+            residue_id = str(residue_id)
 
-        self.pdb_id = residue_pdb_id
+        self.id = residue_id
         self.label = residue_label
         self.color = color
 
@@ -205,7 +203,7 @@ class AnchorResidue(Base):
         else:
             atoms = self._ca_atom_before_after(dataframe)
             if atoms is not None:
-                self.pdb_id_alternative = atoms["residue.pdb_id"].to_list()
+                self.id_alternative = atoms["residue.id"].to_list()
                 self.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
             else:
                 self.center = None
@@ -218,7 +216,7 @@ class AnchorResidue(Base):
         ----------
         dataframe : pandas.DataFrame
             Structural data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z"
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
 
         Returns
         -------
@@ -231,9 +229,7 @@ class AnchorResidue(Base):
             If returned number of atoms is larger than 1.
         """
 
-        atom = dataframe[
-            (dataframe["residue.pdb_id"] == self.pdb_id) & (dataframe["atom.name"] == "CA")
-        ]
+        atom = dataframe[(dataframe["residue.id"] == self.id) & (dataframe["atom.name"] == "CA")]
 
         if len(atom) == 1:
             return atom
@@ -252,7 +248,7 @@ class AnchorResidue(Base):
         ----------
         dataframe : pandas.DataFrame
             Structural data with the following mandatory columns:
-            "residue.pdb_id", "atom.name", "atom.x", "atom.y", "atom.z"
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
 
         Returns
         -------
@@ -265,11 +261,11 @@ class AnchorResidue(Base):
             If returned number of atoms is larger than 2.
         """
 
-        residue_pdb_id_before = str(int(self.pdb_id) - 1)
-        residue_pdb_id_after = str(int(self.pdb_id) + 1)
+        residue_id_before = str(int(self.id) - 1)
+        residue_id_after = str(int(self.id) + 1)
 
         atoms = dataframe[
-            (dataframe["residue.pdb_id"].isin([residue_pdb_id_before, residue_pdb_id_after]))
+            (dataframe["residue.id"].isin([residue_id_before, residue_id_after]))
             & (dataframe["atom.name"] == "CA")
         ]
 
