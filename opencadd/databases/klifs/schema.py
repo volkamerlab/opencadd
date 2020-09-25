@@ -32,7 +32,7 @@ LOCAL_COLUMNS_MAPPING = {
         "rmsd1": "structure.rmsd1",
         "rmsd2": "structure.rmsd2",
         "qualityscore": "structure.qualityscore",
-        "pocket": "kinase.pocket",
+        "pocket": "kinase.pocket",  # FIXME structure.pocket?
         "resolution": "structure.resolution",
         "missing_residues": "structure.missing_residues",
         "missing_atoms": "structure.missing_atoms",
@@ -65,7 +65,7 @@ REMOTE_COLUMNS_MAPPING = {
         "full_name": "kinase.name_full",
         "uniprot": "kinase.uniprot",
         "iuphar": "kinase.iuphar",
-        "pocket": "kinase.pocket",
+        "pocket": "kinase.pocket",  # FIXME structure.pocket?
     },
     # Ligands.get_ligands_list
     "ligands": {
@@ -87,7 +87,7 @@ REMOTE_COLUMNS_MAPPING = {
         "chain": "structure.chain",
         "rmsd1": "structure.rmsd1",
         "rmsd2": "structure.rmsd2",
-        "pocket": "kinase.pocket",
+        "pocket": "kinase.pocket",  # FIXME structure.pocket?
         "resolution": "structure.resolution",
         "quality_score": "structure.qualityscore",
         "missing_residues": "structure.missing_residues",
