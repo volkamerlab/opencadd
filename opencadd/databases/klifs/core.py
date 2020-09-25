@@ -1237,7 +1237,7 @@ class CoordinatesProvider(BaseProvider):
         Atom charge.
     residue.name : float
         Residue name.
-    residue.pdb_id : float
+    residue.id : float
         Residue PDB ID.
     residue.klifs_id : int
         Residue KLIFS ID (pocket residues only, other NaN).
