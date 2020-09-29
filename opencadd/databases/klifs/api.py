@@ -14,11 +14,12 @@ from .session import Session
 _logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Needed to show all columns in Jupyter notebooks
-pd.set_option("display.max_columns", 100)
-# FIXME ask for column numbers < 100; if so throw warning
-# + command that user should add to notebook
-# or: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.option_context.html
+# Add warning on truncated DataFrames in Jupyter notebooks
+if pd.get_option("display.max_columns") < 50:
+    _logger.info(
+        "If you want to see an non-truncated version of the DataFrames in this module, "
+        "use `pd.set_option('display.max_columns', 50)` in your notebook."
+    )
 
 
 def setup_remote():
