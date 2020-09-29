@@ -19,7 +19,6 @@ def test_api_remote():
     Test Session attributes for remote session.
     """
     session = setup_remote()
-    assert session.session_type == "remote"
     assert isinstance(session.client, SwaggerClient)
     assert session.database is None
     assert isinstance(session.kinases, remote.Kinases)
@@ -50,7 +49,6 @@ def test_api_local(path_to_klifs_download, path_to_klifs_metadata):
     """
     session = setup_local(path_to_klifs_download, path_to_klifs_metadata)
 
-    assert session.session_type == "local"
     assert session.client is None
     assert isinstance(session.database, pd.DataFrame)
     assert isinstance(session.kinases, local.Kinases)
