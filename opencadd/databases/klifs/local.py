@@ -789,6 +789,7 @@ class Coordinates(CoordinatesProvider):
 
     def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
+        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 

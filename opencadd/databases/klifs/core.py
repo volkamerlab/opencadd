@@ -9,7 +9,7 @@ import logging
 from bravado_core.exception import SwaggerMappingError
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+from tqdm import tqdm  # TODO from tqdm.auto import tqdm
 
 from .schema import POCKET_KLIFS_REGION_COLORS
 
@@ -21,14 +21,15 @@ class BaseProvider:
     Base class for KLIFS requests (local and remote).
     """
 
-    def __init__(self):
-        """Empty init."""
-
     @staticmethod
     def _ensure_list(value):
         """
         Cast value to list if it is not a list, else return as-is.
         """
+
+        # TODO python iterator protocol
+        # check items (if they are str or int)
+        # https://stackoverflow.com/questions/16301253/what-exactly-is-pythons-iterator-protocol
         if not isinstance(value, list):
             return [value]
         else:
@@ -67,6 +68,8 @@ class BaseProvider:
     def _standardize_dataframe(dataframe, columns_mapping):
         """
         Standardize DataFrame: Rename columns and replace column values.
+        # TODO homogenize remote/local responses/returns.
+        # TODO _cleaning_dataframe
 
         Parameters
         ----------
@@ -99,6 +102,9 @@ class BaseProvider:
     def _format_dataframe(dataframe, column_names):
         """
         Format a DataFrame: Sort columns, drop duplicate rows, and reset index.
+
+        # TODO _standardize_dataframe
+        # TODO can we merge this with the function before???
 
         Parameters
         ----------
@@ -133,6 +139,8 @@ class BaseProvider:
         """
         Add missing columns in local or remote result that are available in result pendant
         from remote or local module, respectively.
+
+        # TODO infer missing columns from dataframe??
 
         Parameters
         ----------
@@ -269,10 +277,6 @@ class KinasesProvider(BaseProvider):
             One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
     """
 
-    def __init__(self):
-
-        super().__init__()
-
     def all_kinase_groups(self):
         """
         Get all available kinase groups.
@@ -335,14 +339,14 @@ class KinasesProvider(BaseProvider):
 
         Raises
         ------
-        bravado_core.exception.SwaggerMappingError
+        bravado_core.exception.SwaggerMappingError  # TODO ValueError (keep the original message)
             Remote module: If group or family or species do not exist.
         ValueError
             If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):
+    def from_kinase_ids(self, kinase_ids):  # TODO *kinases_ids
         """
         Get kinases by one or more kinase IDs.
 
@@ -437,10 +441,6 @@ class LigandsProvider(BaseProvider):
         ligand.name : str
             Ligand name.
     """
-
-    def __init__(self):
-
-        super().__init__()
 
     def all_ligands(self):
         """
@@ -671,9 +671,6 @@ class StructuresProvider(BaseProvider):
         Available locally only.
     """
 
-    def __init__(self):
-        super().__init__()
-
     def all_structures(self):
         """
         Get all available structures.
@@ -894,9 +891,6 @@ class BioactivitiesProvider(BaseProvider):
         pChEMBL value from ChEMBL: -Log(molar IC50, XC50, EC50, AC50, Ki, Kd or Potency).
     """
 
-    def __init__(self):
-        super().__init__()
-
     def all_bioactivities(self, n=None):
         """
         Get all available bioactivities.
@@ -999,9 +993,6 @@ class InteractionsProvider(BaseProvider):
     interaction.name : str
         Interaction name (KLIFS notation).
     """
-
-    def __init__(self):
-        super().__init__()
 
     @property
     def interaction_types(self):
@@ -1114,6 +1105,7 @@ class PocketsProvider(BaseProvider):
     Class for pocket requests.
     Get PDB and KLIFS pocket residues numbering (plus kinase region label for each residue).
     # FIXME really PDB?
+    # FIXME why not in schema.py????
 
     Methods
     -------
@@ -1133,9 +1125,6 @@ class PocketsProvider(BaseProvider):
     structure.pocket_klifs_regions : str
         KLIFS regions assigned to pocket residues.
     """
-
-    def __init__(self):
-        super().__init__()
 
     def from_structure_id(self, structure_id):
         """
@@ -1162,7 +1151,17 @@ class PocketsProvider(BaseProvider):
     @staticmethod
     def _add_klifs_region_details(pocket):
         """
-        TODO
+        Add KLIFS region name and color as additional columns to the pocket DataFrame.
+
+        Parameters
+        ----------
+        pandas.DataFrame
+            Pocket data.
+        
+        Returns
+        -------
+        pandas.DataFrame
+            Pocket data including KLIFS region names and colors.
         """
 
         pocket["residue.klifs_region"] = pocket["residue.klifs_region_id"].apply(

@@ -137,4 +137,3 @@ class Session:
         """
 
         return cls(remote)
-

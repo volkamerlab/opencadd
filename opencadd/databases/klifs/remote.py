@@ -573,6 +573,7 @@ class Coordinates(CoordinatesProvider):
 
     def __init__(self, client, *args, **kwargs):
 
+        super().__init__()
         self._client = client
 
     def from_structure_id(
