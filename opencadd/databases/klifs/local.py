@@ -386,7 +386,7 @@ class Kinases(KinasesProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
         kinases = self._database.copy()
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
@@ -398,7 +398,7 @@ class Kinases(KinasesProvider):
 
     def from_kinase_names(self, kinase_names, species=None):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         kinases = self._database.copy()
         kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
@@ -456,7 +456,7 @@ class Ligands(LigandsProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
@@ -472,7 +472,7 @@ class Ligands(LigandsProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
@@ -494,7 +494,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
@@ -544,7 +544,7 @@ class Structures(StructuresProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        structure_ids = self._cast_to_list(structure_ids)
+        structure_ids = self._ensure_list(structure_ids)
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
@@ -561,7 +561,7 @@ class Structures(StructuresProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
@@ -575,7 +575,7 @@ class Structures(StructuresProvider):
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
 
-        structure_pdbs = self._cast_to_list(structure_pdbs)
+        structure_pdbs = self._ensure_list(structure_pdbs)
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
@@ -592,7 +592,7 @@ class Structures(StructuresProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
@@ -604,7 +604,7 @@ class Structures(StructuresProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
         structures = self._database.copy()
         structures = structures[
@@ -685,7 +685,7 @@ class Interactions(InteractionsProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        structure_ids = self._cast_to_list(structure_ids)
+        structure_ids = self._ensure_list(structure_ids)
         # Get local database and select rows
         interactions = self._database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
@@ -695,7 +695,7 @@ class Interactions(InteractionsProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
         interactions = self._database.copy()
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]

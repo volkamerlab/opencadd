@@ -31,7 +31,7 @@ class BaseProvider:
         """Empty init."""
 
     @staticmethod
-    def _cast_to_list(value):
+    def _ensure_list(value):
         """
         Cast value to list if it is not a list, else return as-is.
         """

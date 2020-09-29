@@ -75,7 +75,7 @@ class Kinases(KinasesProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API
         result = (
             self._client.Information.get_kinase_information(kinase_ID=kinase_ids).response().result
@@ -89,7 +89,7 @@ class Kinases(KinasesProvider):
 
     def from_kinase_names(self, kinase_names, species=None):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API (send requests iteratively)
         kinases = self._multiple_remote_requests(
             self._from_kinase_name, kinase_names, additional_parameters=[species]
@@ -191,7 +191,7 @@ class Ligands(LigandsProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
         kinases_remote = Kinases(self._client)
@@ -215,7 +215,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
-        ligand_ids = self._cast_to_list(ligand_ids)
+        ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
         # Select ligands by ligand IDs
@@ -226,7 +226,7 @@ class Ligands(LigandsProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
         # Select ligands by ligand PDB IDs
@@ -262,7 +262,7 @@ class Structures(StructuresProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        structure_ids = self._cast_to_list(structure_ids)
+        structure_ids = self._ensure_list(structure_ids)
         # Use KLIFS API
         result = (
             self._client.Structures.get_structure_list(structure_ID=structure_ids)
@@ -282,7 +282,7 @@ class Structures(StructuresProvider):
 
         # TODO Approach incorrect: One PDB can have multiple IDs
 
-        ligand_ids = self._cast_to_list(ligand_ids)
+        ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
         remote_ligands = Ligands(self._client)
         ligands = remote_ligands.from_ligand_ids(ligand_ids)
@@ -297,7 +297,7 @@ class Structures(StructuresProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API
         result = (
             self._client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
@@ -315,7 +315,7 @@ class Structures(StructuresProvider):
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
 
-        structure_pdbs = self._cast_to_list(structure_pdbs)
+        structure_pdbs = self._ensure_list(structure_pdbs)
         # Use KLIFS API
         result = (
             self._client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
@@ -338,7 +338,7 @@ class Structures(StructuresProvider):
 
     def from_ligand_pdbs(self, ligand_pdbs):
 
-        ligand_pdbs = self._cast_to_list(ligand_pdbs)
+        ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
         # Select structures by ligand PDB IDs
@@ -351,7 +351,7 @@ class Structures(StructuresProvider):
 
     def from_kinase_names(self, kinase_names):
 
-        kinase_names = self._cast_to_list(kinase_names)
+        kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
         # Select structures by kinase names
@@ -409,7 +409,7 @@ class Bioactivities(BioactivitiesProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self._client)
         ligands = ligands_remote.from_kinase_ids(kinase_ids)
@@ -501,7 +501,7 @@ class Interactions(InteractionsProvider):
 
     def from_structure_ids(self, structure_ids):
 
-        structure_ids = self._cast_to_list(structure_ids)
+        structure_ids = self._ensure_list(structure_ids)
         # Use KLIFS API
         result = (
             self._client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
@@ -519,7 +519,7 @@ class Interactions(InteractionsProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
-        ligand_ids = self._cast_to_list(ligand_ids)
+        ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self._client)
         structures = structures_remote.from_ligand_ids(ligand_ids)
@@ -532,7 +532,7 @@ class Interactions(InteractionsProvider):
 
     def from_kinase_ids(self, kinase_ids):
 
-        kinase_ids = self._cast_to_list(kinase_ids)
+        kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self._client)
         structures = structures_remote.from_kinase_ids(kinase_ids)
