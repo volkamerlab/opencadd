@@ -32,19 +32,19 @@ class Kinases(KinasesProvider):
 
     Attributes
     ----------
-    __client : bravado.client.SwaggerClient
+    _client : bravado.client.SwaggerClient
         KLIFS client (set if session type is remote).
     """
 
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def all_kinase_groups(self):
 
         # Use KLIFS API
-        result = self.__client.Information.get_kinase_groups().response().result
+        result = self._client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
         kinase_groups = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_groups"])
         return kinase_groups
@@ -52,9 +52,7 @@ class Kinases(KinasesProvider):
     def all_kinase_families(self, group=None):
 
         # Use KLIFS API
-        result = (
-            self.__client.Information.get_kinase_families(kinase_group=group).response().result
-        )
+        result = self._client.Information.get_kinase_families(kinase_group=group).response().result
         # Convert list to DataFrame (1 column)
         kinase_families = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_families"])
         return kinase_families
@@ -63,7 +61,7 @@ class Kinases(KinasesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_names(
+            self._client.Information.get_kinase_names(
                 kinase_group=group, kinase_family=family, species=species
             )
             .response()
@@ -81,9 +79,7 @@ class Kinases(KinasesProvider):
         kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_information(kinase_ID=kinase_ids)
-            .response()
-            .result
+            self._client.Information.get_kinase_information(kinase_ID=kinase_ids).response().result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         kinases = self._abc_to_dataframe(result)
@@ -120,7 +116,7 @@ class Kinases(KinasesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
+            self._client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
             .response()
             .result
         )
@@ -142,16 +138,16 @@ class Ligands(LigandsProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def all_ligands(self):
 
         # Use KLIFS API: Get all kinase IDs
-        kinases_remote = Kinases(self.__client)
+        kinases_remote = Kinases(self._client)
         kinases = kinases_remote.all_kinases()
         # Use KLIFS API: Get ligands
         kinase_ids = kinases["kinase.id"].to_list()
-        result = self.__client.Ligands.get_ligands_list(kinase_ID=kinase_ids).response().result
+        result = self._client.Ligands.get_ligands_list(kinase_ID=kinase_ids).response().result
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
         ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
@@ -185,7 +181,7 @@ class Ligands(LigandsProvider):
         """
 
         # Use KLIFS API
-        result = self.__client.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
+        result = self._client.Ligands.get_ligands_list(kinase_ID=[kinase_id]).response().result
         # Convert list of ABC objects to DataFrame and rename columns
         ligands = self._abc_to_dataframe(result)
         ligands = self._standardize_dataframe(ligands, REMOTE_COLUMNS_MAPPING["ligands"])
@@ -200,7 +196,7 @@ class Ligands(LigandsProvider):
         kinase_names = self._cast_to_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
-        kinases_remote = Kinases(self.__client)
+        kinases_remote = Kinases(self._client)
         kinases = kinases_remote.from_kinase_names(kinase_names)
         # Select and rename columns to indicate columns involved in query
         kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
@@ -251,12 +247,12 @@ class Structures(StructuresProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def all_structures(self):
 
         # Use KLIFS API: Get all kinase IDs
-        kinases_remote = Kinases(self.__client)
+        kinases_remote = Kinases(self._client)
         kinases = kinases_remote.all_kinases()
         # Use KLIFS API: Get all structures from these kinase IDs
         kinase_ids = kinases["kinase.id"].to_list()
@@ -272,7 +268,7 @@ class Structures(StructuresProvider):
         structure_ids = self._cast_to_list(structure_ids)
         # Use KLIFS API
         result = (
-            self.__client.Structures.get_structure_list(structure_ID=structure_ids)
+            self._client.Structures.get_structure_list(structure_ID=structure_ids)
             .response()
             .result
         )
@@ -291,7 +287,7 @@ class Structures(StructuresProvider):
 
         ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
-        remote_ligands = Ligands(self.__client)
+        remote_ligands = Ligands(self._client)
         ligands = remote_ligands.from_ligand_ids(ligand_ids)
         # Use KLIFS API: Get structures from ligand PDBs
         ligand_pdbs = ligands["ligand.pdb"].to_list()
@@ -307,7 +303,7 @@ class Structures(StructuresProvider):
         kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API
         result = (
-            self.__client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
+            self._client.Structures.get_structures_list(kinase_ID=kinase_ids).response().result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         structures = self._abc_to_dataframe(result)
@@ -325,7 +321,7 @@ class Structures(StructuresProvider):
         structure_pdbs = self._cast_to_list(structure_pdbs)
         # Use KLIFS API
         result = (
-            self.__client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
+            self._client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
             .response()
             .result
         )
@@ -395,12 +391,12 @@ class Bioactivities(BioactivitiesProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def all_bioactivities(self, n=None):
 
         # Use KLIFS API: Get all kinase IDs
-        ligands_remote = Ligands(self.__client)
+        ligands_remote = Ligands(self._client)
         ligands = ligands_remote.all_ligands()
         # Optional: Select top n ligands for bioactivity query!
         if n:
@@ -419,7 +415,7 @@ class Bioactivities(BioactivitiesProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API: Get all kinase IDs
-        ligands_remote = Ligands(self.__client)
+        ligands_remote = Ligands(self._client)
         ligands = ligands_remote.from_kinase_ids(kinase_ids)
         # Use KLIFS API: Get all bioactivities from these ligand IDs
         ligand_ids = ligands["ligand.id"].to_list()
@@ -455,7 +451,7 @@ class Bioactivities(BioactivitiesProvider):
 
         # Use KLIFS API
         result = (
-            self.__client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id).response().result
+            self._client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_id).response().result
         )
         # Convert list of ABC objects to DataFrame and rename columns
         bioactivities = self._abc_to_dataframe(result)
@@ -478,13 +474,13 @@ class Interactions(InteractionsProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     @property
     def interaction_types(self):
 
         # Use KLIFS API
-        result = self.__client.Interactions.get_interactions_get_types().response().result
+        result = self._client.Interactions.get_interactions_get_types().response().result
         # Convert list of ABC objects to DataFrame and rename columns
         interaction_types = self._abc_to_dataframe(result)
         interaction_types = self._standardize_dataframe(
@@ -499,7 +495,7 @@ class Interactions(InteractionsProvider):
     def all_interactions(self):
 
         # Use KLIFS API: Get all structure IDs
-        structures_remote = Structures(self.__client)
+        structures_remote = Structures(self._client)
         structures = structures_remote.all_structures()
         # Use KLIFS API: Get all interactions from these structures IDs
         structure_ids = structures["structure.id"].to_list()
@@ -513,7 +509,7 @@ class Interactions(InteractionsProvider):
         structure_ids = self._cast_to_list(structure_ids)
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
+            self._client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
             .response()
             .result
         )
@@ -530,7 +526,7 @@ class Interactions(InteractionsProvider):
 
         ligand_ids = self._cast_to_list(ligand_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
-        structures_remote = Structures(self.__client)
+        structures_remote = Structures(self._client)
         structures = structures_remote.from_ligand_ids(ligand_ids)
         # Use KLIFS API: Get interactions from these structure IDs
         structure_ids = structures["structure.id"].to_list()
@@ -543,7 +539,7 @@ class Interactions(InteractionsProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
-        structures_remote = Structures(self.__client)
+        structures_remote = Structures(self._client)
         structures = structures_remote.from_kinase_ids(kinase_ids)
         # Use KLIFS API: Get interactions from these structure IDs
         structure_ids = structures["structure.id"].to_list()
@@ -561,13 +557,13 @@ class Pockets(PocketsProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def from_structure_id(self, structure_id):
 
         # Use KLIFS API
         result = (
-            self.__client.Interactions.get_interactions_match_residues(structure_ID=structure_id)
+            self._client.Interactions.get_interactions_match_residues(structure_ID=structure_id)
             .response()
             .result
         )
@@ -590,7 +586,7 @@ class Coordinates(CoordinatesProvider):
     def __init__(self, client):
 
         super().__init__()
-        self.__client = client
+        self._client = client
 
     def from_structure_id(
         self,
@@ -657,7 +653,7 @@ class Coordinates(CoordinatesProvider):
         output_path = Path(output_path)
 
         # Use KLIFS API: Get structure metadata
-        structures_remote = Structures(self.__client)
+        structures_remote = Structures(self._client)
         metadata = structures_remote.from_structure_ids(structure_id).iloc[0]
 
         # Set up output path (metadata in the form of directory structure or file name)
@@ -706,31 +702,31 @@ class Coordinates(CoordinatesProvider):
 
         if entity == "complex" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_complex(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "complex" and input_format == "pdb":
             text = (
-                self.__client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "ligand" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_ligand(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_ligand(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "pocket" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_pocket(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_pocket(structure_ID=structure_id)
                 .response()
                 .result
             )
         elif entity == "protein" and input_format == "mol2":
             text = (
-                self.__client.Structures.get_structure_get_protein(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_protein(structure_ID=structure_id)
                 .response()
                 .result
             )
@@ -758,7 +754,7 @@ class Coordinates(CoordinatesProvider):
         """
 
         # Get pocket residue details: KLIFS and PDB residue IDs
-        pockets_remote = Pockets(self.__client)
+        pockets_remote = Pockets(self._client)
         pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
         mol2_df = mol2_df.merge(pocket, on="residue.id", how="left")

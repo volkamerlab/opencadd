@@ -27,14 +27,8 @@ from .schema import (
 from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, Rdkit
 
-PATH_TO_KLIFS_IDS = (
-    Path(__file__).parent
-    / ".."
-    / ".."
-    / "data"
-    / "klifs_ids.csv"
-    # Path(__name__).parent / "opencadd" / "data" / "klifs_ids.csv" TODO
-)
+PATH_TO_KLIFS_IDS = Path(__file__).parent / ".." / ".." / "data" / "klifs_ids.csv"
+# TODO add filepath to utils and import it once!
 
 # TODO move this to schema?
 POCKET_KLIFS_REGIONS = (
@@ -345,22 +339,22 @@ class Kinases(KinasesProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame  # TODO _database!!!!
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def all_kinase_groups(self):
 
         # Get local database and select rows
-        kinase_groups = self.__database.copy()
+        kinase_groups = self._database.copy()
         # Format DataFrame
         kinase_groups = self._format_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
         return kinase_groups
@@ -368,7 +362,7 @@ class Kinases(KinasesProvider):
     def all_kinase_families(self, group=None):
 
         # Get local database and select rows
-        kinase_families = self.__database.copy()
+        kinase_families = self._database.copy()
         if group:
             kinase_families = kinase_families[kinase_families["kinase.group"] == group]
         # Format DataFrame
@@ -378,7 +372,7 @@ class Kinases(KinasesProvider):
     def all_kinases(self, group=None, family=None, species=None):
 
         # Get local database and select rows
-        kinases = self.__database.copy()
+        kinases = self._database.copy()
         if group:
             kinases = kinases[kinases["kinase.group"] == group]
         if family:
@@ -395,7 +389,7 @@ class Kinases(KinasesProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        kinases = self.__database.copy()
+        kinases = self._database.copy()
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
         # Add missing columns that are available remotely
         kinases = self._add_missing_columns_kinases(kinases)
@@ -407,7 +401,7 @@ class Kinases(KinasesProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows
-        kinases = self.__database.copy()
+        kinases = self._database.copy()
         kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
@@ -440,22 +434,22 @@ class Ligands(LigandsProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def all_ligands(self):
 
         # Get local database and select rows
-        ligands = self.__database.copy()
+        ligands = self._database.copy()
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
         # Format DataFrame
@@ -466,7 +460,7 @@ class Ligands(LigandsProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        ligands = self.__database.copy()
+        ligands = self._database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
@@ -482,7 +476,7 @@ class Ligands(LigandsProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows
-        ligands = self.__database.copy()
+        ligands = self._database.copy()
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
@@ -504,7 +498,7 @@ class Ligands(LigandsProvider):
 
         ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Get local database and select rows
-        ligands = self.__database.copy()
+        ligands = self._database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Add missing columns that are available remotely
         ligands = self._add_missing_columns_ligands(ligands)
@@ -529,22 +523,22 @@ class Structures(StructuresProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def all_structures(self):
 
         # Get local database and select rows
-        structures = self.__database.copy()
+        structures = self._database.copy()
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
         # Format DataFrame
@@ -555,7 +549,7 @@ class Structures(StructuresProvider):
 
         structure_ids = self._cast_to_list(structure_ids)
         # Get local database and select rows
-        structures = self.__database.copy()
+        structures = self._database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
@@ -572,7 +566,7 @@ class Structures(StructuresProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        structures = self.__database.copy()
+        structures = self._database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
@@ -586,7 +580,7 @@ class Structures(StructuresProvider):
 
         structure_pdbs = self._cast_to_list(structure_pdbs)
         # Get local database and select rows
-        structures = self.__database.copy()
+        structures = self._database.copy()
         structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
         # If only one structure PDB ID is given, check alternate model and chain filters
         if len(structure_pdbs) == 1:
@@ -603,7 +597,7 @@ class Structures(StructuresProvider):
 
         ligand_pdbs = self._cast_to_list(ligand_pdbs)
         # Get local database and select rows
-        structures = self.__database.copy()
+        structures = self._database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
         # Add missing columns that are available remotely
         structures = self._add_missing_columns_structures(structures)
@@ -615,7 +609,7 @@ class Structures(StructuresProvider):
 
         kinase_names = self._cast_to_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
-        structures = self.__database.copy()
+        structures = self._database.copy()
         structures = structures[
             structures.apply(
                 lambda x: any(
@@ -654,17 +648,17 @@ class Bioactivities(BioactivitiesProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
 
 class Interactions(InteractionsProvider):
@@ -674,22 +668,22 @@ class Interactions(InteractionsProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def all_interactions(self):
 
         # Get local database and select rows
-        interactions = self.__database.copy()
+        interactions = self._database.copy()
         # Format DataFrame
         interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
@@ -698,7 +692,7 @@ class Interactions(InteractionsProvider):
 
         structure_ids = self._cast_to_list(structure_ids)
         # Get local database and select rows
-        interactions = self.__database.copy()
+        interactions = self._database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
@@ -708,7 +702,7 @@ class Interactions(InteractionsProvider):
 
         kinase_ids = self._cast_to_list(kinase_ids)
         # Get local database and select rows
-        interactions = self.__database.copy()
+        interactions = self._database.copy()
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Format DataFrame
         interactions = self._format_dataframe(
@@ -728,22 +722,22 @@ class Pockets(PocketsProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def from_structure_id(self, structure_id):
 
         # Get kinase pocket from structure ID
-        structures_local = Structures(self.__database, self.__path_to_klifs_download)
+        structures_local = Structures(self._database, self._path_to_klifs_download)
         structure = structures_local.from_structure_ids(structure_id).squeeze()
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
@@ -752,7 +746,7 @@ class Pockets(PocketsProvider):
 
         # Load pocket coordinates from file
         pocket_path = (
-            self.__path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
+            self._path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
         )
         mol2_df = DataFrame.from_file(pocket_path)
         # Get number of atoms per residue
@@ -794,17 +788,17 @@ class Coordinates(CoordinatesProvider):
 
     Attributes
     ----------
-    __database : pandas.DataFrame
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
-    __path_to_klifs_download : pathlib.Path
+    _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
     def __init__(self, database, path_to_klifs_download):
 
         super().__init__()
-        self.__database = database
-        self.__path_to_klifs_download = path_to_klifs_download
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
     def from_file(self, filepath, output_format="biopandas", compute2d=True):
         """
@@ -860,11 +854,11 @@ class Coordinates(CoordinatesProvider):
         self.check_parameter_validity(entity, input_format, output_format)
 
         # Get structure by structure ID
-        structures_local = Structures(self.__database, self.__path_to_klifs_download)
+        structures_local = Structures(self._database, self._path_to_klifs_download)
         structure = structures_local.from_structure_ids(structure_id).squeeze()
         # Get filepath from metadata
         filepath = metadata_to_filepath(
-            self.__path_to_klifs_download,
+            self._path_to_klifs_download,
             structure["species.klifs"],
             structure["kinase.name"],
             structure["structure.pdb"],
@@ -895,7 +889,7 @@ class Coordinates(CoordinatesProvider):
 
         # Get structure ID from file path
         metadata = filepath_to_metadata(filepath)
-        structures_local = Structures(self.__database, self.__path_to_klifs_download)
+        structures_local = Structures(self._database, self._path_to_klifs_download)
         structure = structures_local.from_structure_pdbs(
             metadata["structure_pdb"],
             metadata["structure_alternate_model"],
@@ -904,7 +898,7 @@ class Coordinates(CoordinatesProvider):
         structure_id = structure["structure.id"]
 
         # Get pocket
-        pockets_local = Pockets(self.__database, self.__path_to_klifs_download)
+        pockets_local = Pockets(self._database, self._path_to_klifs_download)
         mol2_df_pocket = pockets_local.from_structure_id(structure_id)
 
         # Merge pocket DataFrame with input DataFrame
