@@ -154,10 +154,7 @@ class BaseProvider:
 
         return dataframe
 
-    @staticmethod
-    def _multiple_remote_requests(
-        function, iterator, additional_parameters=None,
-    ):
+    def _multiple_remote_requests(self, function, iterator, *args, **kwargs):
         """
         Wrap remote requests using multiple inputs, where KLIFS API only allows a single input
         or where for some reason - in this package - single input requests are preferred over
@@ -170,13 +167,9 @@ class BaseProvider:
         iterator : int/str or list of int/str
             Iterator, here IDs or names.
             If single input is given (thus no iterator), it will be cast to a list.
-        additional_parameters : None or list
-            List of additional parameters (not iterated) that are needed for function.
-            None if no additional parameters.
         """
 
-        if not isinstance(iterator, list):
-            iterator = [iterator]
+        iterator = self._ensure_list(iterator)
 
         # If single request fails, error will be raised. Catch errors in list.
         errors = []
@@ -189,19 +182,11 @@ class BaseProvider:
         for i in progressbar:
             progressbar.set_description(f"Processing {i}...")
 
-            if additional_parameters is not None:
-                try:
-                    result = function(i, *additional_parameters)
-                    result_list.append(result)
-                except (SwaggerMappingError, ValueError) as e:
-                    errors.append(f"Error for {i}: {e}")
-
-            else:
-                try:
-                    result = function(i)
-                    result_list.append(result)
-                except (SwaggerMappingError, ValueError) as e:
-                    errors.append(f"Error for {i}: {e}")
+            try:
+                result = function(i, *args, **kwargs)
+                result_list.append(result)
+            except (SwaggerMappingError, ValueError) as e:
+                errors.append(f"Error for {i}: {e}")
 
         # Remove None values
         result_list = [result_df for result_df in result_list if result_df is not None]
@@ -219,6 +204,7 @@ class BaseProvider:
             result_df = pd.concat(result_list)
             result_df.reset_index(drop=True, inplace=True)
             return result_df
+
         else:
             raise SwaggerMappingError(f"Input values yield no results.")
 

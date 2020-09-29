@@ -91,9 +91,7 @@ class Kinases(KinasesProvider):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API (send requests iteratively)
-        kinases = self._multiple_remote_requests(
-            self._from_kinase_name, kinase_names, additional_parameters=[species]
-        )
+        kinases = self._multiple_remote_requests(self._from_kinase_name, kinase_names, species)
         # Format DataFrame
         kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
@@ -156,9 +154,7 @@ class Ligands(LigandsProvider):
     def from_kinase_ids(self, kinase_ids):
 
         # Use KLIFS API (send requests iteratively)
-        ligands = self._multiple_remote_requests(
-            self._from_kinase_id, kinase_ids, additional_parameters=None
-        )
+        ligands = self._multiple_remote_requests(self._from_kinase_id, kinase_ids)
         # Format DataFrame
         ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
         return ligands
@@ -423,9 +419,7 @@ class Bioactivities(BioactivitiesProvider):
     def from_ligand_ids(self, ligand_ids):
 
         # Use KLIFS API (send requests iteratively)
-        bioactivities = self._multiple_remote_requests(
-            self._from_ligand_id, ligand_ids, additional_parameters=None
-        )
+        bioactivities = self._multiple_remote_requests(self._from_ligand_id, ligand_ids)
         # Format DataFrame
         bioactivities = self._format_dataframe(bioactivities, COLUMN_NAMES["bioactivities"])
         return bioactivities
