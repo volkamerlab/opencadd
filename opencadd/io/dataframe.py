@@ -241,6 +241,15 @@ class DataFrame(_Base):
         mol2_df["residue.name"] = res_names
         mol2_df["residue.id"] = res_ids
 
+        # Log a warning for all residues that cannot be converted to an integer
+        for (res_id, subst_name), _ in mol2_df.groupby(
+            ["residue.id", "residue.subst_name"], sort=False
+        ):
+            try:
+                int(res_id)
+            except ValueError:
+                logger.warning(f"Suspicious residue ID: {res_id} (from {subst_name})")
+
         return mol2_df
 
     @classmethod
@@ -267,7 +276,7 @@ class DataFrame(_Base):
         - 1 ("residue.id").
         """
 
-        # FIXME: Use regex!
+        # FIXME in the future: Use regex!
 
         # Handle "residues" that are elements such as CA or MG.
         if subst_name[:2] == atom_type.upper():
@@ -278,12 +287,6 @@ class DataFrame(_Base):
         else:
             res_name = subst_name[:3]
             res_id = subst_name[3:]
-
-        # If the residue ID cannot be converted to an integer, log a warning
-        try:
-            int(res_id)
-        except ValueError:
-            logger.warning(f"Suspicious residue ID: {res_id} (from {subst_name})")
 
         return res_name, res_id
 
