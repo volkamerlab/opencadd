@@ -15,12 +15,11 @@ from .utils import KLIFS_CLIENT
 
 class Session:
     """
-    Class to set up remote or local session. Class attributes are None upon initialization but will
-    be updated when remote or local session is called.
+    Class to set up remote or local session.
 
     Attributes
     ----------
-    path_to_klifs_download : pathlib.Path
+    path_to_klifs_download : None or pathlib.Path
         Path to folder with KLIFS download files.
     client : None or bravado.client.SwaggerClient
         KLIFS client (set if session type is remote).
