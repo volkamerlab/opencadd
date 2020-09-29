@@ -36,9 +36,8 @@ class Kinases(KinasesProvider):
         KLIFS client (set if session type is remote).
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def all_kinase_groups(self):
@@ -135,9 +134,8 @@ class Ligands(LigandsProvider):
     Refer to LigandsProvider documentation for more information.
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def all_ligands(self):
@@ -244,9 +242,8 @@ class Structures(StructuresProvider):
     Refer to StructuresProvider documentation for more information.
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def all_structures(self):
@@ -388,9 +385,8 @@ class Bioactivities(BioactivitiesProvider):
     Refer to BioactivitiesProvider documentation for more information.
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def all_bioactivities(self, n=None):
@@ -471,9 +467,8 @@ class Interactions(InteractionsProvider):
     Refer to InteractionsProvider documentation for more information.
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     @property
@@ -554,9 +549,8 @@ class Pockets(PocketsProvider):
     Extends PocketsProvider to provide remote pocket requests.
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def from_structure_id(self, structure_id):
@@ -583,9 +577,8 @@ class Coordinates(CoordinatesProvider):
     i.e. fetching and saving structural data (coordinates).
     """
 
-    def __init__(self, client):
+    def __init__(self, client, *args, **kwargs):
 
-        super().__init__()
         self._client = client
 
     def from_structure_id(

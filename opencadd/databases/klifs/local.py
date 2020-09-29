@@ -339,15 +339,14 @@ class Kinases(KinasesProvider):
 
     Attributes
     ----------
-    _database : pandas.DataFrame  # TODO _database!!!!
+    _database : pandas.DataFrame
         KLIFS metadata (set if session type is local).
     _path_to_klifs_download : pathlib.Path
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -440,9 +439,8 @@ class Ligands(LigandsProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -529,9 +527,8 @@ class Structures(StructuresProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -654,9 +651,8 @@ class Bioactivities(BioactivitiesProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -674,9 +670,8 @@ class Interactions(InteractionsProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -728,9 +723,8 @@ class Pockets(PocketsProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -794,9 +788,8 @@ class Coordinates(CoordinatesProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download):
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
 
-        super().__init__()
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
