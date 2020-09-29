@@ -820,7 +820,7 @@ class Coordinates(CoordinatesProvider):
         # Check if parameters are valid
         entity = filepath.stem
         input_format = filepath.suffix[1:]
-        self.check_parameter_validity(entity, input_format, output_format)
+        self._check_parameter_validity(entity, input_format, output_format)
 
         # Return different output formats
         if output_format == "rdkit":
@@ -843,7 +843,7 @@ class Coordinates(CoordinatesProvider):
         output_format="biopandas",
         compute2d=True,
     ):
-        self.check_parameter_validity(entity, input_format, output_format)
+        self._check_parameter_validity(entity, input_format, output_format)
 
         # Get structure by structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)

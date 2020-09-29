@@ -590,7 +590,7 @@ class Coordinates(CoordinatesProvider):
         compute2d=True,
     ):
 
-        self.check_parameter_validity(entity, input_format, output_format)
+        self._check_parameter_validity(entity, input_format, output_format)
 
         # Fetch text from KLIFS
         text = self._fetch_text(structure_id, entity, input_format)
@@ -642,7 +642,7 @@ class Coordinates(CoordinatesProvider):
             If input yields not result.
         """
 
-        self.check_parameter_validity(entity, input_format)
+        self._check_parameter_validity(entity, input_format)
         output_path = Path(output_path)
 
         # Use KLIFS API: Get structure metadata

@@ -15,12 +15,6 @@ from .schema import POCKET_KLIFS_REGION_COLORS
 
 _logger = logging.getLogger(__name__)
 
-COORDINATES_PARAMETERS = {
-    "entities": ["complex", "ligand", "pocket", "protein", "water"],
-    "input_formats": ["mol2", "pdb"],
-    "output_formats": ["text", "biopandas", "rdkit"],
-}
-
 
 class BaseProvider:
     """
@@ -1201,6 +1195,11 @@ class CoordinatesProvider(BaseProvider):
     input formats (mol2, pdb)
     in the form of different output formats (text, biopandas, rdkit).
 
+    Attributes
+    ----------
+    options : dict of str: list of str
+        Allowed input parameter options.
+
     Methods
     -------
     from_structure_id(structure_id, entity, input_format, output_format, compute2d)
@@ -1247,7 +1246,12 @@ class CoordinatesProvider(BaseProvider):
     """
 
     def __init__(self):
-        super().__init__()
+
+        self.options = {
+            "entities": ["complex", "ligand", "pocket", "protein", "water"],
+            "input_formats": ["mol2", "pdb"],
+            "output_formats": ["text", "biopandas", "rdkit"],
+        }
 
     def from_structure_id(
         self,
@@ -1282,8 +1286,7 @@ class CoordinatesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    @staticmethod
-    def check_parameter_validity(entity, input_format, output_format=None):
+    def _check_parameter_validity(self, entity, input_format, output_format=None):
         """
         Check if entity and input/output format (and their combinations) are valid.
 
@@ -1298,18 +1301,16 @@ class CoordinatesProvider(BaseProvider):
         """
 
         # Check if parameters are valid
-        if entity not in COORDINATES_PARAMETERS["entities"]:
+        if entity not in self.options["entities"]:
+            raise ValueError(f"Invalid entity. Select from {', '.join(self.options['entities'])}.")
+        if input_format not in self.options["input_formats"]:
             raise ValueError(
-                f"Invalid entity. Select from {', '.join(COORDINATES_PARAMETERS['entities'])}."
-            )
-        if input_format not in COORDINATES_PARAMETERS["input_formats"]:
-            raise ValueError(
-                f"Invalid input format. Select from {', '.join(COORDINATES_PARAMETERS['input_formats'])}."
+                f"Invalid input format. Select from {', '.join(self.options['input_formats'])}."
             )
         if output_format:
-            if output_format not in COORDINATES_PARAMETERS["output_formats"]:
+            if output_format not in self.options["output_formats"]:
                 raise ValueError(
-                    f"Invalid output format. Select from {', '.join(COORDINATES_PARAMETERS['output_formats'])}."
+                    f"Invalid output format. Select from {', '.join(self.options['output_formats'])}."
                 )
 
         # Check if parameter combination is valid
