@@ -38,6 +38,7 @@ class BaseProvider:
     def _abc_to_dataframe(abc_object):
         """
         Transform ABC object into a DataFrame (needed for KLIFS API results).
+        Note: These ABC objects are bravado wrappers for KLIFS responses. 
 
         Parameters
         ----------
