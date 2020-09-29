@@ -16,6 +16,8 @@ _logger = logging.getLogger(__name__)
 KLIFS_API_DEFINITIONS = "https://klifs.net/swagger/swagger.json"
 KLIFS_CLIENT = SwaggerClient.from_url(KLIFS_API_DEFINITIONS, config={"validate_responses": False})
 
+PATH_DATA = Path(__file__).parent / ".." / ".." / "data"
+
 
 def metadata_to_filepath(
     path_to_klifs_download,

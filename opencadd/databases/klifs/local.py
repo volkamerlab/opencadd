@@ -24,11 +24,10 @@ from .schema import (
     COLUMN_NAMES,
     POCKET_KLIFS_REGION_IDS,
 )
-from .utils import KLIFS_CLIENT, metadata_to_filepath, filepath_to_metadata
+from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, Rdkit
 
-PATH_TO_KLIFS_IDS = Path(__file__).parent / ".." / ".." / "data" / "klifs_ids.csv"
-# TODO add filepath to utils and import it once!
+PATH_TO_KLIFS_IDS = PATH_DATA / "klifs_ids.csv"
 
 # TODO move this to schema?
 POCKET_KLIFS_REGIONS = (
