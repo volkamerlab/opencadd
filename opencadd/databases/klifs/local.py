@@ -351,10 +351,10 @@ class Kinases(KinasesProvider):
 
     def all_kinase_groups(self):
 
-        # Get local database and select rows
+        # Get local database
         kinase_groups = self._database.copy()
-        # Format DataFrame
-        kinase_groups = self._format_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
+        # Standardize DataFrame
+        kinase_groups = self._standardize_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -363,8 +363,10 @@ class Kinases(KinasesProvider):
         kinase_families = self._database.copy()
         if group:
             kinase_families = kinase_families[kinase_families["kinase.group"] == group]
-        # Format DataFrame
-        kinase_families = self._format_dataframe(kinase_families, COLUMN_NAMES["kinase_families"])
+        # Standardize DataFrame
+        kinase_families = self._standardize_dataframe(
+            kinase_families, COLUMN_NAMES["kinase_families"]
+        )
         return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
@@ -377,10 +379,8 @@ class Kinases(KinasesProvider):
             kinases = kinases[kinases["kinase.family"] == family]
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
-        # Add missing columns that are available remotely
-        kinases["kinase.name_full"] = None
-        # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases_all"])
+        # Standardize DataFrame
+        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases_all"])
         return kinases
 
     def from_kinase_ids(self, kinase_ids):
@@ -389,10 +389,8 @@ class Kinases(KinasesProvider):
         # Get local database and select rows
         kinases = self._database.copy()
         kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
-        # Add missing columns that are available remotely
-        kinases = self._add_missing_columns_kinases(kinases)
-        # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
+        # Standardize DataFrame
+        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
     def from_kinase_names(self, kinase_names, species=None):
@@ -403,25 +401,8 @@ class Kinases(KinasesProvider):
         kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species]
-        # Add missing columns that are available remotely
-        kinases = self._add_missing_columns_kinases(kinases)
-        # Format DataFrame
-        kinases = self._format_dataframe(kinases, COLUMN_NAMES["kinases"])
-        return kinases
-
-    def _add_missing_columns_kinases(self, kinases):
-        """
-        Add missing columns that are available remotely.
-        """
-
-        missing_columns = {
-            "kinase.hgnc": None,
-            "kinase.class": None,
-            "kinase.name_full": None,
-            "kinase.uniprot": None,
-            "kinase.iuphar": None,
-        }
-        kinases = self._add_missing_columns(kinases, missing_columns)
+        # Standardize DataFrame
+        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
 
@@ -445,12 +426,10 @@ class Ligands(LigandsProvider):
 
     def all_ligands(self):
 
-        # Get local database and select rows
+        # Get local database
         ligands = self._database.copy()
-        # Add missing columns that are available remotely
-        ligands = self._add_missing_columns_ligands(ligands)
-        # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"])
+        # Standardize DataFrame
+        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
     def from_kinase_ids(self, kinase_ids):
@@ -459,10 +438,8 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
-        # Add missing columns that are available remotely
-        ligands = self._add_missing_columns_ligands(ligands)
-        # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
+        # Standardize DataFrame
+        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={"kinase.id": "kinase.id (query)",}, inplace=True,
@@ -475,11 +452,9 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
-        # Add missing columns that are available remotely
-        ligands = self._add_missing_columns_ligands(ligands)
-        # Format DataFrame
-        ligands = self._format_dataframe(
-            ligands, COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"],
+        # Standardize DataFrame
+        ligands = self._standardize_dataframe(
+            ligands, COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"]
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -497,19 +472,8 @@ class Ligands(LigandsProvider):
         # Get local database and select rows
         ligands = self._database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
-        # Add missing columns that are available remotely
-        ligands = self._add_missing_columns_ligands(ligands)
-        # Format DataFrame
-        ligands = self._format_dataframe(ligands, COLUMN_NAMES["ligands"],)
-        return ligands
-
-    def _add_missing_columns_ligands(self, ligands):
-        """
-        Add missing columns that are available remotely.
-        """
-
-        missing_columns = {"ligand.id": None, "ligand.smiles": None, "ligand.inchikey": None}
-        ligands = self._add_missing_columns(ligands, missing_columns)
+        # Standardize DataFrame
+        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"],)
         return ligands
 
 
@@ -533,12 +497,10 @@ class Structures(StructuresProvider):
 
     def all_structures(self):
 
-        # Get local database and select rows
+        # Get local database
         structures = self._database.copy()
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_ids(self, structure_ids):
@@ -547,10 +509,8 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
@@ -564,10 +524,8 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_structure_pdbs(
@@ -583,10 +541,8 @@ class Structures(StructuresProvider):
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             )
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_ligand_pdbs(self, ligand_pdbs):
@@ -595,10 +551,8 @@ class Structures(StructuresProvider):
         # Get local database and select rows
         structures = self._database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
     def from_kinase_names(self, kinase_names):
@@ -614,26 +568,8 @@ class Structures(StructuresProvider):
                 axis=1,
             )
         ]
-        # Add missing columns that are available remotely
-        structures = self._add_missing_columns_structures(structures)
-        # Format DataFrame
-        structures = self._format_dataframe(structures, COLUMN_NAMES["structures"],)
-        return structures
-
-    def _add_missing_columns_structures(self, structures):
-        """
-        Add missing columns that are available remotely.
-        """
-
-        missing_columns = {
-            "structure.front": None,
-            "structure.gate": None,
-            "structure.back": None,
-            "structure.grich_distance": None,
-            "structure.grich_angle": None,
-            "structure.grich_rotation": None,
-        }
-        structures = self._add_missing_columns(structures, missing_columns)
+        # Standardize DataFrame
+        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
 
@@ -650,7 +586,9 @@ class Bioactivities(BioactivitiesProvider):
         Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
+    def __init__(
+        self, database, path_to_klifs_download, *args, **kwargs
+    ):  # TODO how to handle this empty class?
 
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
@@ -676,10 +614,10 @@ class Interactions(InteractionsProvider):
 
     def all_interactions(self):
 
-        # Get local database and select rows
+        # Get local database
         interactions = self._database.copy()
-        # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
+        # Standardize DataFrame
+        interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_structure_ids(self, structure_ids):
@@ -688,8 +626,8 @@ class Interactions(InteractionsProvider):
         # Get local database and select rows
         interactions = self._database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
-        # Format DataFrame
-        interactions = self._format_dataframe(interactions, COLUMN_NAMES["interactions"],)
+        # Standardize DataFrame
+        interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
     def from_kinase_ids(self, kinase_ids):
@@ -698,8 +636,8 @@ class Interactions(InteractionsProvider):
         # Get local database and select rows
         interactions = self._database.copy()
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
-        # Format DataFrame
-        interactions = self._format_dataframe(
+        # Standardize DataFrame
+        interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
@@ -765,11 +703,10 @@ class Pockets(PocketsProvider):
         mol2_df = mol2_df.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
         mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
 
-        # Add KLIFS region and color
+        # Standardize DataFrame
+        mol2_df = self._standardize_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
+        # Add KLIFS region and color  TODO not so nice to have this after standardization
         mol2_df = self._add_klifs_region_details(mol2_df)
-
-        # Format DataFrame
-        mol2_df = self._format_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
 
         return mol2_df
 

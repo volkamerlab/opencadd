@@ -65,24 +65,76 @@ class BaseProvider:
         return pd.DataFrame(results_dict)
 
     @staticmethod
-    def _standardize_dataframe(dataframe, columns_mapping):
+    def _map_old_to_new_column_names(dataframe, columns_mapping=None):
         """
-        Standardize DataFrame: Rename columns and replace column values.
-        # TODO homogenize remote/local responses/returns.
-        # TODO _cleaning_dataframe
+        Rename column names that are returned from local or remote queries (old column names) 
+        into standardized column names to be used in this module (new column names).
 
         Parameters
         ----------
         dataframe : pandas.DataFrame
-            Remote query result.
-        columns_mapping : dict
-            Mapping of old to new column names.
+            KLIFS data.
+        columns_mapping : dict or None
+            Mapping of old to new column names. If None, no changes are made.
+
+        Notes
+        -----
+        This method will only change remote data, since column name standardization for
+        local data is already performed upon session initialization.
         """
 
-        # Rename columns
-        dataframe.rename(columns=columns_mapping, inplace=True)
+        if columns_mapping:
+            dataframe.rename(columns=columns_mapping, inplace=True)
 
-        # Change remote column values
+        return dataframe
+
+    @staticmethod
+    def _add_missing_columns(dataframe, column_names):
+        """
+        Add missing columns in local or remote result that are available in result pendant
+        from remote or local module, respectively.
+
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+            Result from query in local or remote session.
+        column_names : list of str
+            Column names.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Input DataFrame with additional columns representing missing data.
+        """
+
+        for column_name in column_names:
+            if column_name not in dataframe.columns:
+                dataframe[column_name] = None
+
+        return dataframe
+
+    @staticmethod
+    def _standardize_column_values(dataframe):
+        """
+        Standardize column values to be consistent across local and remote return/response values. 
+        Mainly, this concerns the notation of missing values (0, "-", "", ...).
+
+        Parameters
+        ----------
+        dataframe : pandas.DataFrame
+            KLIFS data.
+        
+        Returns
+        -------
+        pandas.DataFrame
+            KLIFS data.
+
+        Notes
+        -----
+        This method will only change remote data, since column value standardization for
+        local data is already performed upon session initialization.
+        """
+
         if "structure.alternate_model" in dataframe.columns:
             # Remote
             dataframe["structure.alternate_model"].replace("", "-", inplace=True)
@@ -98,26 +150,42 @@ class BaseProvider:
 
         return dataframe
 
-    @staticmethod
-    def _format_dataframe(dataframe, column_names):
+    def _standardize_dataframe(self, dataframe, column_names, columns_mapping=None):
         """
-        Format a DataFrame: Sort columns, drop duplicate rows, and reset index.
-
-        # TODO _standardize_dataframe
-        # TODO can we merge this with the function before???
+        Standardize a DataFrame across local and remote query results. 
+        - Map old to new column names (applied to remote data only, local data is standardized upon 
+          session initialization already).
+        - Add missing columns (if a column is missing in remote data, add empty column to local 
+          data - and vice versa).
+        - Standardize column values (applies mostly to missing value notations).
+        - Select and sort column names.
+        - Drop duplicate rows.
+        - Reset dataframe index.
+        - Handle empty dataframes: raise ValueError.
 
         Parameters
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
         column_names : list of str
-            Column names in the order of interest for output.
+            Column names (in the order of interest for output).
+        columns_mapping : dict or None
+            Mapping of old to new column names. If None, no changes are made.
 
         Raises
         ------
         ValueError
             If DataFrame is empty.
         """
+
+        # Standardize column names
+        dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
+
+        # Add missing columns (None values)
+        dataframe = self._add_missing_columns(dataframe, column_names)
+
+        # Standardize column values
+        dataframe = self._standardize_column_values(dataframe)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()
@@ -133,34 +201,6 @@ class BaseProvider:
             return dataframe
         else:
             raise ValueError(f"Input values yield no results.")
-
-    @staticmethod
-    def _add_missing_columns(dataframe, missing_columns):
-        """
-        Add missing columns in local or remote result that are available in result pendant
-        from remote or local module, respectively.
-
-        # TODO infer missing columns from dataframe??
-
-        Parameters
-        ----------
-        dataframe : pandas.DataFrame
-            Result from query in local or remote session.
-        missing_columns : dict
-            Column names (keys) and their values (value) for columns that are not present
-            in local or remote result but in their pendant from te remote or local module,
-            respectively.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Input DataFrame with additional columns representing missing data.
-        """
-
-        for column_name, column_value in missing_columns.items():
-            dataframe[column_name] = column_value
-
-        return dataframe
 
     def _multiple_remote_requests(self, function, iterator, *args, **kwargs):
         """
