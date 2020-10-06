@@ -931,13 +931,13 @@ class BioactivitiesProvider(BaseProvider):
         pChEMBL value from ChEMBL: -Log(molar IC50, XC50, EC50, AC50, Ki, Kd or Potency).
     """
 
-    def all_bioactivities(self, n=None):
+    def all_bioactivities(self, _top_n=None):
         """
         Get all available bioactivities.
 
         Parameters
         ----------
-        n : None or int
+        _top_n: None or int
             If None, bioactivities for all ligands are returned (takes a few minutes).
             If set to n, bioactivities for the top n ligands are returned. This parameter
             is used for testing.

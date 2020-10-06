@@ -385,7 +385,7 @@ class Bioactivities(BioactivitiesProvider):
     Refer to BioactivitiesProvider documentation for more information.
     """
 
-    def __init__(self, client, *args, **kwargs):
+    def all_bioactivities(self, _top_n=None):
 
         self._client = client
 
@@ -395,8 +395,8 @@ class Bioactivities(BioactivitiesProvider):
         ligands_remote = Ligands(self._client)
         ligands = ligands_remote.all_ligands()
         # Optional: Select top n ligands for bioactivity query!
-        if n:
-            ligands = ligands[:n]
+        if _top_n:
+            ligands = ligands[:_top_n]
         # Use KLIFS API: Get all bioactivities from these ligand IDs
         ligand_ids = ligands["ligand.id"].to_list()
         # Many ligands do not have bioactivities in ChEMBL,
