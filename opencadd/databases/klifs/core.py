@@ -314,7 +314,7 @@ class KinasesProvider(BaseProvider):
         species.klifs : str
             Species (KLIFS notation).
         kinase.pocket : str
-            One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps notated with -).
+            One-letter amino acid sequence for the kinase's 85 residue KLIFS pocket (gaps "-").
     """
 
     def all_kinase_groups(self):
@@ -636,8 +636,8 @@ class StructuresProvider(BaseProvider):
     kinase.group : str
         Kinase group.
         Available locally only.
-    kinase.pocket : str
-        One-letter amino acid sequence for the 85 residue KLIFS pocket (gaps "-").
+    structure.pocket : str
+        One-letter amino acid sequence for the structure's 85 residue KLIFS pocket (gaps "-").
     ligand.pdb : str or int (0)
         Orthosteric ligand PDB ID. None if no ligand.
     ligand.pdb_allosteric : str or
