@@ -25,20 +25,26 @@ from opencadd.io import DataFrame, Rdkit
 _logger = logging.getLogger(__name__)
 
 
-class Kinases(KinasesProvider):
+class RemoteInitializer:
     """
-    Extends KinasesProvider to provide remote kinases requests.
-    Refer to KinasesProvider documentation for more information.
+    Base class used to define __init__ for all remote classes.
 
     Attributes
     ----------
     _client : bravado.client.SwaggerClient
-        KLIFS client (set if session type is remote).
+        KLIFS client.
     """
 
     def __init__(self, client, *args, **kwargs):
 
         self._client = client
+
+
+class Kinases(RemoteInitializer, KinasesProvider):
+    """
+    Extends KinasesProvider to provide remote kinases requests.
+    Refer to KinasesProvider documentation for more information.
+    """
 
     def all_kinase_groups(self):
 
@@ -131,15 +137,11 @@ class Kinases(KinasesProvider):
         return kinases
 
 
-class Ligands(LigandsProvider):
+class Ligands(RemoteInitializer, LigandsProvider):
     """
     Extends LigandsProvider to provide remote ligands requests.
     Refer to LigandsProvider documentation for more information.
     """
-
-    def __init__(self, client, *args, **kwargs):
-
-        self._client = client
 
     def all_ligands(self):
 
@@ -247,15 +249,11 @@ class Ligands(LigandsProvider):
         return ligands
 
 
-class Structures(StructuresProvider):
+class Structures(RemoteInitializer, StructuresProvider):
     """
     Extends StructuresProvider to provide remote structures requests.
     Refer to StructuresProvider documentation for more information.
     """
-
-    def __init__(self, client, *args, **kwargs):
-
-        self._client = client
 
     def all_structures(self):
 
@@ -379,17 +377,13 @@ class Structures(StructuresProvider):
         return structures
 
 
-class Bioactivities(BioactivitiesProvider):
+class Bioactivities(RemoteInitializer, BioactivitiesProvider):
     """
     Extends BioactivitiesProvider to provide remote bioactivities requests.
     Refer to BioactivitiesProvider documentation for more information.
     """
 
     def all_bioactivities(self, _top_n=None):
-
-        self._client = client
-
-    def all_bioactivities(self, n=None):
 
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self._client)
@@ -464,15 +458,11 @@ class Bioactivities(BioactivitiesProvider):
         return bioactivities
 
 
-class Interactions(InteractionsProvider):
+class Interactions(RemoteInitializer, InteractionsProvider):
     """
     Extends InteractionsProvider to provide remote kinases requests.
     Refer to InteractionsProvider documentation for more information.
     """
-
-    def __init__(self, client, *args, **kwargs):
-
-        self._client = client
 
     @property
     def interaction_types(self):
@@ -551,14 +541,10 @@ class Interactions(InteractionsProvider):
         return interactions
 
 
-class Pockets(PocketsProvider):
+class Pockets(RemoteInitializer, PocketsProvider):
     """
     Extends PocketsProvider to provide remote pocket requests.
     """
-
-    def __init__(self, client, *args, **kwargs):
-
-        self._client = client
 
     def from_structure_id(self, structure_id):
 

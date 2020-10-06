@@ -33,7 +33,25 @@ PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.zip"), key=lambda x: 
 _logger = logging.getLogger(__name__)
 
 
-class SessionInitializer:
+class LocalInitializer:
+    """
+    Base class used to define __init__ for all local classes.
+
+    Attributes
+    ----------
+    _database : pandas.DataFrame
+        KLIFS metadata.
+    _path_to_klifs_download : pathlib.Path
+        Path to folder with KLIFS download files.
+    """
+
+    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
+
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
+
+
+class SessionInitializer:  # TODO private!!
     """
     Class for local session initialization.
 
@@ -325,23 +343,11 @@ class SessionInitializer:
         return klifs_metadata_with_ids
 
 
-class Kinases(KinasesProvider):
+class Kinases(LocalInitializer, KinasesProvider):
     """
     Extends KinasesProvider to provide local kinases requests.
     Refer to KinasesProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
-
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
 
     def all_kinase_groups(self):
 
@@ -400,23 +406,11 @@ class Kinases(KinasesProvider):
         return kinases
 
 
-class Ligands(LigandsProvider):
+class Ligands(LocalInitializer, LigandsProvider):
     """
     Extends LigandsProvider to provide local ligands requests.
     Refer to LigandsProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
-
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
 
     def all_ligands(self):
 
@@ -471,23 +465,11 @@ class Ligands(LigandsProvider):
         return ligands
 
 
-class Structures(StructuresProvider):
+class Structures(LocalInitializer, StructuresProvider):
     """
     Extends StructuresProvider to provide local structures requests.
     Refer to StructuresProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
-
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
 
     def all_structures(self):
 
@@ -567,44 +549,18 @@ class Structures(StructuresProvider):
         return structures
 
 
-class Bioactivities(BioactivitiesProvider):
+class Bioactivities(LocalInitializer, BioactivitiesProvider):
     """
     Extends BioactivitiesProvider to provide local bioactivities requests.
     Refer to BioactivitiesProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
 
-    def __init__(
-        self, database, path_to_klifs_download, *args, **kwargs
-    ):  # TODO how to handle this empty class?
 
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
-
-
-class Interactions(InteractionsProvider):
+class Interactions(LocalInitializer, InteractionsProvider):  # TODO check if order matters
     """
     Extends InteractionsProvider to provide local kinases requests.
     Refer to InteractionsProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
-
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
 
     def all_interactions(self):
 
@@ -641,24 +597,13 @@ class Interactions(InteractionsProvider):
         return interactions
 
 
-class Pockets(PocketsProvider):
+class Pockets(LocalInitializer, PocketsProvider):
     """
     Extends PocketsProvider to provide local pocket requests.
     Refer to PocketsProvider documentation for more information.
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
-
+    # TODO from_xxx implies a classmethod? # def by_structure_id()
     def from_structure_id(self, structure_id):
 
         # Get kinase pocket from structure ID
@@ -666,7 +611,9 @@ class Pockets(PocketsProvider):
         structure = structures_local.from_structure_ids(structure_id).squeeze()
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
-            index for index, residue in enumerate(structure["kinase.pocket"], 1) if residue != "_"
+            index
+            for index, residue in enumerate(structure["structure.pocket"], 1)
+            if residue != "_"
         ]
 
         # Load pocket coordinates from file
@@ -705,24 +652,23 @@ class Pockets(PocketsProvider):
         return mol2_df
 
 
-class Coordinates(CoordinatesProvider):
+class Coordinates(LocalInitializer, CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide local coordinates requests,
     i.e. loading structural data (coordinates).
-
-    Attributes
-    ----------
-    _database : pandas.DataFrame
-        KLIFS metadata (set if session type is local).
-    _path_to_klifs_download : pathlib.Path
-        Path to folder with KLIFS download files.
     """
 
-    def __init__(self, database, path_to_klifs_download, *args, **kwargs):
+    def to_dataframe(self, structure_id_or_filepath, entity="complex", extension="mol2"):
 
-        super().__init__()
-        self._database = database
-        self._path_to_klifs_download = path_to_klifs_download
+        # TODO pdb not available.
+        mol2_df = DataFrame.from_file(filepath, extension)
+        mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
+        return mol2_df
+
+    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+
+        rdkit_mol = Rdkit.from_file(filepath, compute2d)
+        return rdkit_mol
 
     def from_file(self, filepath, output_format="biopandas", compute2d=True):
         """
