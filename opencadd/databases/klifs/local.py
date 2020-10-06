@@ -27,7 +27,8 @@ from .schema import (
 from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, Rdkit
 
-PATH_TO_KLIFS_IDS = PATH_DATA / "klifs_ids.csv"
+# Get the newest file version (* = YYYYMMDD)
+PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.zip"), key=lambda x: x.suffixes[0])[-1]
 
 # TODO move this to schema?
 POCKET_KLIFS_REGIONS = (
