@@ -1143,33 +1143,35 @@ class InteractionsProvider(BaseProvider):
 class PocketsProvider(BaseProvider):
     """
     Class for pocket requests.
-    Get PDB and KLIFS pocket residues numbering (plus kinase region label for each residue).
-    # FIXME really PDB?
-    # FIXME why not in schema.py????
+    Get residue ID and the corresponding residue KLIFS ID (plus kinase region label for each residue).
 
     Methods
     -------
     from_structure_id()
-        Get a structure's residue numbering in PDB and KLIFS by structure ID
-        (plus kinase region label for each residue).  # FIXME really PDB?
+        Get a structure's residue ID and KLIFS ID by structure ID
+        (plus kinase region label for each residue).
 
     Notes
     -----
     Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
     the) following attributes (columns):
 
-    structure.pocket_klifs_numbering : int
-        KLIFS numbering for pocket residues.
-    structure.pocket_pdb_numbering : int  # FIXME really PDB?
-        PDB numbering for pocket residues.
-    structure.pocket_klifs_regions : str
-        KLIFS regions assigned to pocket residues.
+    residue.klifs_id : int
+        Residue KLIFS ID.
+    residue.id : str
+        Residue ID.
+    residue.klifs_region_id : str
+        KLIFS region assigned to pocket residue.
+    residue.klifs_region : str
+        KLIFS region name assigned to pocket residue.
+    residue.klifs_color : str
+        KLIFS color assigned to pocket residue.
     """
 
     def from_structure_id(self, structure_id):
         """
-        Get a structure's residue numbering in PDB and KLIFS by structure ID
-        (plus kinase region label for each residue).  # FIXME really PDB?
+        Get a structure's residue ID and KLIFS ID by structure ID
+        (plus kinase region label for each residue).
 
         Parameters
         ----------
@@ -1264,7 +1266,7 @@ class CoordinatesProvider(BaseProvider):
     residue.name : float
         Residue name.
     residue.id : float
-        Residue PDB ID. # FIXME really PDB?
+        Residue ID.
     residue.klifs_id : int
         Residue KLIFS ID (pocket residues only, other NaN).
     residue.klifs_region : float
