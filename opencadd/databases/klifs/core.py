@@ -9,7 +9,7 @@ import logging
 from bravado_core.exception import SwaggerMappingError
 import numpy as np
 import pandas as pd
-from tqdm import tqdm  # TODO from tqdm.auto import tqdm
+from tqdm.auto import tqdm
 
 from .schema import POCKET_KLIFS_REGION_COLORS
 
