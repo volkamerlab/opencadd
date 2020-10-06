@@ -238,16 +238,16 @@ COLUMN_NAMES = {
     ],
 }
 
-POCKET_KLIFS_REGION_IDS = [
+POCKET_KLIFS_REGIONS = [
     (1, "I"),
     (2, "I"),
     (3, "I"),
-    (4, "g"),
-    (5, "g"),
-    (6, "g"),
-    (7, "g"),
-    (8, "g"),
-    (9, "g"),
+    (4, "g.l"),
+    (5, "g.l"),
+    (6, "g.l"),
+    (7, "g.l"),
+    (8, "g.l"),
+    (9, "g.l"),
     (10, "II"),
     (11, "II"),
     (12, "II"),
@@ -269,13 +269,13 @@ POCKET_KLIFS_REGION_IDS = [
     (28, "αC"),
     (29, "αC"),
     (30, "αC"),
-    (31, "b"),
-    (32, "b"),
-    (33, "b"),
-    (34, "b"),
-    (35, "b"),
-    (36, "b"),
-    (37, "b"),
+    (31, "b.l"),
+    (32, "b.l"),
+    (33, "b.l"),
+    (34, "b.l"),
+    (35, "b.l"),
+    (36, "b.l"),
+    (37, "b.l"),
     (38, "IV"),
     (39, "IV"),
     (40, "IV"),
@@ -306,14 +306,14 @@ POCKET_KLIFS_REGION_IDS = [
     (65, "VI"),
     (66, "VI"),
     (67, "VI"),
-    (68, "c"),
-    (69, "c"),
-    (70, "c"),
-    (71, "c"),
-    (72, "c"),
-    (73, "c"),
-    (74, "c"),
-    (75, "c"),
+    (68, "c.l"),
+    (69, "c.l"),
+    (70, "c.l"),
+    (71, "c.l"),
+    (72, "c.l"),
+    (73, "c.l"),
+    (74, "c.l"),
+    (75, "c.l"),
     (76, "VII"),
     (77, "VII"),
     (78, "VII"),
@@ -322,15 +322,15 @@ POCKET_KLIFS_REGION_IDS = [
     (81, "xDFG"),
     (82, "xDFG"),
     (83, "xDFG"),
-    (84, "a"),
-    (85, "a"),
+    (84, "a.l"),
+    (85, "a.l"),
 ]
 POCKET_KLIFS_REGIONS = pd.DataFrame(
     [
-        (klifs_id, ".".join([klifs_region_id, str(klifs_id)]))
-        for (klifs_id, klifs_region_id) in POCKET_KLIFS_REGION_IDS
+        (klifs_id, klifs_region, ".".join([klifs_region, str(klifs_id)]))
+        for (klifs_id, klifs_region) in POCKET_KLIFS_REGIONS
     ],
-    columns=["residue.klifs_id", "residue.klifs_region_id"],
+    columns=["residue.klifs_id", "residue.klifs_region", "residue.klifs_region_id"],
 )
 
 POCKET_KLIFS_REGION_COLORS = {
