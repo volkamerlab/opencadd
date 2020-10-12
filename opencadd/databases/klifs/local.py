@@ -297,7 +297,7 @@ class SessionInitializer:  # TODO private!!
                 row["structure.alternate_model"],
                 row["structure.chain"],
                 entity="",
-                input_format="",
+                extension="",
                 in_dir=True,
             )
             filepaths.append(mol2_path)
@@ -428,7 +428,8 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
-        # Rename columns to indicate columns involved in query
+        # Rename columns to indicate columns involved in query TODO remove (query) stuff
+        # can columns have metadata? https://github.com/pandas-dev/pandas/issues/2485#issuecomment-608227532
         ligands.rename(
             columns={"kinase.id": "kinase.id (query)",}, inplace=True,
         )
@@ -660,87 +661,59 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
     def to_dataframe(self, structure_id_or_filepath, entity="complex", extension="mol2"):
 
-        # TODO pdb not available.
-        mol2_df = DataFrame.from_file(filepath, extension)
+        filepath = self._to_filepath(structure_id_or_filepath, entity, extension)
+        mol2_df = DataFrame.from_file(filepath)
         mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
         return mol2_df
 
-    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+    def to_rdkit(
+        self, structure_id_or_filepath, entity="complex", extension="mol2", compute2d=True
+    ):
 
+        filepath = self._to_filepath(structure_id_or_filepath, entity, extension)
         rdkit_mol = Rdkit.from_file(filepath, compute2d)
         return rdkit_mol
 
-    def from_file(self, filepath, output_format="biopandas", compute2d=True):
+    def _to_filepath(self, structure_id_or_filepath, entity, extension):
         """
-        Load structural data from KLIFS file in different output formats.
+        If the input is a structure ID, return the associated filepath. 
+        If the input is a filepath already, return that filepath.
 
         Parameters
         ----------
-        filepath : pathlib.Path or str
-            Path to KLIFS file.
+        structure_id_or_filepath : int / str or pathlib.Path
+            KLIFS structure ID or path to file.
         entity : str
-            Structural entity: complex (default), ligand, pocket, protein, or water.
-        compute2d : bool
-            For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
+            Structural entity.
+        extension : str
+            Input file format.
 
-        Raises
-        ------
-        ValueError
-            If input yields not result.
-        FileNotFoundError
-            If input file does not exist.
+        Returns
+        -------
+        pathlib.Path
+            Path to file.
         """
 
-        filepath = Path(filepath)
-        if not filepath.exists():
-            raise FileNotFoundError(f"File does not exist: {filepath}.")
-
-        # Check if parameters are valid
-        entity = filepath.stem
-        input_format = filepath.suffix[1:]
-        self._check_parameter_validity(entity, input_format, output_format)
-
-        # Return different output formats
-        if output_format == "rdkit":
-            rdkit_mol = Rdkit.from_file(filepath, compute2d)
-            return rdkit_mol
-
-        elif output_format == "biopandas":
-            if input_format == "mol2":
-                mol2_df = DataFrame.from_file(filepath)
-                mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
-                return mol2_df
-            elif input_format == "pdb":
-                pass
-
-    def from_structure_id(
-        self,
-        structure_id,
-        entity="complex",
-        input_format="mol2",
-        output_format="biopandas",
-        compute2d=True,
-    ):
-        self._check_parameter_validity(entity, input_format, output_format)
-
-        # Get structure by structure ID
-        structures_local = Structures(self._database, self._path_to_klifs_download)
-        structure = structures_local.from_structure_ids(structure_id).squeeze()
-        # Get filepath from metadata
-        filepath = metadata_to_filepath(
-            self._path_to_klifs_download,
-            structure["species.klifs"],
-            structure["kinase.name"],
-            structure["structure.pdb"],
-            structure["structure.alternate_model"],
-            structure["structure.chain"],
-            entity,
-            input_format,
-            in_dir=True,
-        )
-        # Get coordinates from file
-        result = self.from_file(filepath, output_format, compute2d)
-        return result
+        if isinstance(structure_id_or_filepath, int):
+            structure_id = structure_id_or_filepath
+            # Get structure by structure ID
+            structures_local = Structures(self._database, self._path_to_klifs_download)
+            structure = structures_local.from_structure_ids(structure_id).squeeze()
+            # Get filepath from metadata
+            filepath = metadata_to_filepath(
+                self._path_to_klifs_download,
+                structure["species.klifs"],
+                structure["kinase.name"],
+                structure["structure.pdb"],
+                structure["structure.alternate_model"],
+                structure["structure.chain"],
+                entity,
+                extension,
+                in_dir=True,
+            )
+        else:
+            filepath = structure_id_or_filepath
+        return Path(filepath)
 
     def _add_residue_klifs_ids(self, mol2_df, filepath):
         """

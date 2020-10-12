@@ -11,10 +11,13 @@ from rdkit import Chem
 
 from opencadd.databases.klifs.api import setup_local, setup_remote
 from opencadd.databases.klifs.schema import COLUMN_NAMES
+from opencadd.utils import enter_temp_directory
 
 # Set local and remote session
 REMOTE = setup_remote()
 LOCAL = setup_local(Path(__name__).parent / "opencadd" / "tests" / "data" / "klifs")
+
+PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "klifs"
 
 
 def check_dataframe(dataframe, column_names):
@@ -189,7 +192,7 @@ class TestsAllQueries:
 
         # Usually this class method is used to get ALL bioactivities from ALL ligands
         # Since this query takes a few minutes, only the frist 3 ligands are used here for testing
-        result_remote = REMOTE.bioactivities.all_bioactivities(n=3)
+        result_remote = REMOTE.bioactivities.all_bioactivities(_top_n=3)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.all_bioactivities()
 
@@ -507,58 +510,112 @@ class TestsCoordinates:
     """
 
     @pytest.mark.parametrize(
-        "structure_id, entity, input_format, output_format, n_atoms, centroid",
+        "structure_id, entity, extension, n_atoms, centroid",
         [
-            (12347, "complex", "mol2", "biopandas", 3604, [-3.996449, 17.509910, 31.077763]),
-            (12347, "ligand", "mol2", "biopandas", 49, [2.291216, 20.590290, 39.074586]),
-            (12347, "ligand", "mol2", "rdkit", None, None),
-            (12347, "pocket", "mol2", "biopandas", 1156, [0.308657, 21.880768, 35.903844]),
-            (12347, "protein", "mol2", "biopandas", 3552, [-4.061604, 17.472405, 30.976719]),
+            (12347, "complex", "mol2", 3604, [-3.996449, 17.509910, 31.077763]),
+            (12347, "complex", "pdb", 1819, [-3.903167, 17.447048, 31.263985]),
+            (12347, "protein", "mol2", 3552, [-4.061604, 17.472406, 30.976721]),
+            (12347, "pocket", "mol2", 1156, [0.308657, 21.880768, 35.903843]),
+            (12347, "ligand", "mol2", 49, [2.291216, 20.590290, 39.074585]),
         ],
     )
-    def test_from_structure_id(
-        self, structure_id, entity, input_format, output_format, n_atoms, centroid
-    ):
+    def test_remote(self, structure_id, entity, extension, n_atoms, centroid):
         """
-        Test retrieval of coordinates data from structure ID.
+        Test remote retrieval of coordinates data from structure ID.
         """
 
-        result_remote = REMOTE.coordinates.from_structure_id(
-            structure_id, entity, input_format, output_format
-        )
-        result_local = LOCAL.coordinates.from_structure_id(
-            structure_id, entity, input_format, output_format
-        )
+        # Load coordinates as DataFrame
+        dataframe = REMOTE.coordinates.to_dataframe(structure_id, entity, extension)
+        self._test_to_dataframe(dataframe, n_atoms, centroid)
 
-        self._test_from_structure_id(result_remote, output_format, n_atoms, centroid)
-        self._test_from_structure_id(result_local, output_format, n_atoms, centroid)
+        # Load coordinates as RDKit molecule
+        if entity == "ligand" and extension == "mol2":
+            rdkit_molecule = REMOTE.coordinates.to_rdkit(structure_id, entity, extension)
+            self._test_to_rdkit(rdkit_molecule)
 
-    @staticmethod
-    def _test_from_structure_id(coordinates, output_format, n_atoms, centroid):
-
-        if output_format == "biopandas":
-            assert isinstance(coordinates, pd.DataFrame)
-            assert coordinates.columns.to_list() == COLUMN_NAMES["coordinates"]
-            assert coordinates.shape[0] == n_atoms
-            assert pytest.approx(coordinates["atom.x"].mean(), centroid[0], abs=1.0e-6)
-            assert pytest.approx(coordinates["atom.y"].mean(), centroid[1], abs=1.0e-6)
-            assert pytest.approx(coordinates["atom.z"].mean(), centroid[2], abs=1.0e-6)
-        elif output_format == "rdkit":
-            assert isinstance(coordinates, Chem.rdchem.Mol)
+        # Save coordinates to file (to temporary directory)
+        with enter_temp_directory():
+            if extension == "mol2":
+                filepath = REMOTE.coordinates.to_mol2(structure_id, ".", entity)
+                assert filepath.exists()
+            if extension == "pdb":
+                filepath = REMOTE.coordinates.to_pdb(structure_id, ".", entity)
+                assert filepath.exists()
 
     @pytest.mark.parametrize(
-        "structure_id, entity, input_format, output_format",
-        [
-            (12347, "complex", "mol2", "rdkit"),
-            (12347, "ligand", "pdb", "biopandas"),
-            (12347, "water", "mol2", "biopandas"),
-        ],
+        "structure_id, entity, extension", [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
     )
-    def test_from_structure_id_raise(self, structure_id, entity, input_format, output_format):
+    def test_remote_raise(self, structure_id, entity, extension):
         """
-        Test retrieval of coordinates data from structure ID: Error raised if input invalid?
+        Test remote retrieval of coordinates data from structure ID: 
+        Error raised if input invalid?
         """
 
         with pytest.raises(ValueError):
-            REMOTE.coordinates.from_structure_id(structure_id, entity, input_format, output_format)
-            LOCAL.coordinates.from_structure_id(structure_id, entity, input_format, output_format)
+            REMOTE.coordinates.to_dataframe(structure_id, entity, extension)
+            REMOTE.coordinates.to_rdkit(structure_id, entity, extension)
+
+    @pytest.mark.parametrize(
+        "structure_id, entity, extension, n_atoms, centroid",
+        [
+            (12347, "complex", "mol2", 3604, [-3.996449, 17.509910, 31.077763]),
+            (12347, "complex", "pdb", 1819, [-3.903167, 17.447048, 31.263985]),
+            (12347, "protein", "mol2", 3552, [-4.061604, 17.472406, 30.976721]),
+            (12347, "pocket", "mol2", 1156, [0.308657, 21.880768, 35.903843]),
+            (12347, "pocket", "pdb", 1156, [0.308650, 21.880758, 35.903843]),
+            (12347, "ligand", "mol2", 49, [2.291216, 20.590290, 39.074585]),
+            (12347, "ligand", "pdb", 31, [2.427290, 20.193062, 39.483578]),
+            (12347, "water", "mol2", 3, [-29.550966, 11.602567, 20.098101]),
+        ],
+    )
+    def test_local(self, structure_id, entity, extension, n_atoms, centroid):
+        """
+        Test local retrieval of coordinates data from structure ID.
+        Coordinates can also be loaded locally from file, which is not tested individually, since 
+        loading from structure ID means (1) convert structure ID > filepath and (2) load 
+        coordinates from file.
+        """
+
+        # Load coordinates as DataFrame
+        dataframe = LOCAL.coordinates.to_dataframe(structure_id, entity, extension)
+        self._test_to_dataframe(dataframe, n_atoms, centroid)
+
+        # Load coordinates as RDKit molecule
+        if entity == "ligand":
+            rdkit_molecule = LOCAL.coordinates.to_rdkit(structure_id, entity, extension)
+            self._test_to_rdkit(rdkit_molecule)
+
+    @pytest.mark.parametrize(
+        "structure_id, entity, extension", [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
+    )
+    def test_local_raise(self, structure_id, entity, extension):
+        """
+        Test local retrieval of coordinates data from structure ID or file: 
+        Error raised if input invalid?
+        """
+
+        with pytest.raises(FileNotFoundError):
+            LOCAL.coordinates.to_dataframe(structure_id, entity, extension)
+            LOCAL.coordinates.to_rdkit(structure_id, entity, extension)
+
+    @staticmethod
+    def _test_to_dataframe(dataframe, n_atoms, centroid):
+        """
+        Test coordinates DataFrame that was loaded locally or remotely.
+        """
+
+        assert isinstance(dataframe, pd.DataFrame)
+        assert dataframe.columns.to_list() == COLUMN_NAMES["coordinates"]
+        assert dataframe.shape[0] == n_atoms
+        assert centroid[0] == pytest.approx(dataframe["atom.x"].mean(), abs=1.0e-6)
+        assert centroid[1] == pytest.approx(dataframe["atom.y"].mean(), abs=1.0e-6)
+        assert centroid[2] == pytest.approx(dataframe["atom.z"].mean(), abs=1.0e-6)
+
+    @staticmethod
+    def _test_to_rdkit(rdkit_molecule):
+        """
+        Test RDKit molecule that was loaded locally or remotely.
+        """
+
+        assert isinstance(rdkit_molecule, Chem.rdchem.Mol)
+

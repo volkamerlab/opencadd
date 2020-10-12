@@ -11,7 +11,7 @@ from opencadd.databases.klifs.utils import (
 
 
 @pytest.mark.parametrize(
-    "path_to_klifs_download, species, kinase_name, structure_pdb, structure_alternate_model, structure_chain, entity, input_format, in_dir, filepath_template",
+    "path_to_klifs_download, species, kinase_name, structure_pdb, structure_alternate_model, structure_chain, entity, extension, in_dir, filepath_template",
     [
         (
             "/path/to",
@@ -71,7 +71,7 @@ def test_metadata_to_filepath(
     structure_alternate_model,
     structure_chain,
     entity,
-    input_format,
+    extension,
     in_dir,
     filepath_template,
 ):
@@ -86,7 +86,7 @@ def test_metadata_to_filepath(
         structure_alternate_model,
         structure_chain,
         entity,
-        input_format,
+        extension,
         in_dir,
     )
     assert str(filepath) == filepath_template
@@ -104,7 +104,7 @@ def test_metadata_to_filepath(
                 "structure_alternate_model": None,
                 "structure_chain": None,
                 "entity": "pocket",
-                "input_format": "mol2",
+                "extension": "mol2",
             },
         ),
         (
@@ -116,7 +116,7 @@ def test_metadata_to_filepath(
                 "structure_alternate_model": None,
                 "structure_chain": "A",
                 "entity": "pocket",
-                "input_format": "mol2",
+                "extension": "mol2",
             },
         ),
         (
@@ -128,7 +128,7 @@ def test_metadata_to_filepath(
                 "structure_alternate_model": "B",
                 "structure_chain": "A",
                 "entity": "pocket",
-                "input_format": "mol2",
+                "extension": "mol2",
             },
         ),
     ],

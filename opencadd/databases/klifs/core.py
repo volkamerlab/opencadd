@@ -21,6 +21,9 @@ class BaseProvider:
     Base class for KLIFS requests (local and remote).
     """
 
+    # def __init__(self, *args, **kwargs):
+    #    raise NotImplementedError("Implement in your subclass!")
+
     @staticmethod
     def _ensure_list(value):
         """
@@ -30,6 +33,8 @@ class BaseProvider:
         # TODO python iterator protocol
         # check items (if they are str or int)
         # https://stackoverflow.com/questions/16301253/what-exactly-is-pythons-iterator-protocol
+        # test for behaviour (value.__iter__()) instead of type
+        # can be removed once input lists are unpacked *kinases_ids
         if not isinstance(value, list):
             return [value]
         else:
@@ -379,8 +384,9 @@ class KinasesProvider(BaseProvider):
 
         Raises
         ------
-        bravado_core.exception.SwaggerMappingError  # TODO ValueError (keep the original message)
-            Remote module: If group or family or species do not exist.
+        bravado_core.exception.SwaggerMappingError  
+            Remote module: If group or family or species do not exist
+            # TODO in the future: use ValueError instead but keep the original message
         ValueError
             If DataFrame is empty.
         """
@@ -1243,7 +1249,7 @@ class CoordinatesProvider(BaseProvider):
     the) following attributes (columns):
 
     atom.id : int
-        Atom PDB ID. # FIXME really PDB?
+        Atom ID.
     atom.name : str
         Atom name.
     atom.x : float
@@ -1253,14 +1259,11 @@ class CoordinatesProvider(BaseProvider):
     atom.z : float
         Atom z coordinate.
     atom.type : float
-        Atom type.
-        TODO from where?
+        Atom type. TODO from where?
     residue.subst_id : str
-        Residue's substructure ID.
-        TODO from where?
+        Residue's substructure ID. TODO from where?
     residue.subst_name : str
-        Residue's substructure name.
-        TODO from where?
+        Residue's substructure name. TODO from where?
     atom.charge : float
         Atom charge.
     residue.name : float
@@ -1273,35 +1276,92 @@ class CoordinatesProvider(BaseProvider):
         KLIFS region that the residue belongs to (pocket residues only, other NaN).
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
 
         self.options = {
             "entities": ["complex", "ligand", "pocket", "protein", "water"],
-            "input_formats": ["mol2", "pdb"],
+            "extensions": ["mol2", "pdb"],
             "output_formats": ["text", "biopandas", "rdkit"],
         }
 
-    def from_structure_id(
-        self,
-        structure_id,
-        entity="complex",
-        input_format="mol2",
-        output_format="biopandas",
-        compute2d=True,
-    ):
+    def to_text(self, structure_id, entity="complex", extension="mol2"):
         """
-        Fetch/load structural data from KLIFS server/file.
+        Get structural data content from KLIFS database as string (text).
 
         Parameters
         ----------
         structure_id : int
             KLIFS structure ID.
+            In the local module, this parameter is called "structure_id_or_filepath".
+        structure_id_or_filepath : int / str or pathlib.Path
+            KLIFS structure ID or path to file.
+            In the remote module, this parameter is called "structure_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-        input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
-        output_format : str
-            Output format: text, biopandas (default), or rdkit (only for entity=ligand).
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
+        extension : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb.
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
+
+        Returns
+        -------
+        str
+            Structural data.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def to_dataframe(self, structure_id, entity="complex", extension="mol2"):
+        """
+        Get structural data content as DataFrame.
+
+        Parameters
+        ----------
+        structure_id : int
+            KLIFS structure ID.
+            In the local module, this parameter is called "structure_id_or_filepath".
+        structure_id_or_filepath : int / str or pathlib.Path
+            KLIFS structure ID or path to file.
+            In the remote module, this parameter is called "structure_id".
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
+        extension : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb.
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure ID does not exist.
+        ValueError
+            If input yields not result.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+        """
+        Get structural data content as RDKit molecule.
+
+        Parameters
+        ----------
+        structure_id : int
+            KLIFS structure ID.
+            In the local module, this parameter is called "structure_id_or_filepath".
+        structure_id_or_filepath : int / str or pathlib.Path
+            KLIFS structure ID or path to file.
+            In the remote module, this parameter is called "structure_id".
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
+        extension : str
+            Input file format (fetched from KLIFS): mol2 (default) or pdb.
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            parameter will be ignored and inferred from the filepath instead.
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
 
@@ -1314,7 +1374,27 @@ class CoordinatesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def _check_parameter_validity(self, entity, input_format, output_format=None):
+    @staticmethod
+    def _raise_invalid_extension(extension):
+        """
+        Check if extension is valid.
+
+        Parameters
+        ----------
+        extension : str
+            Extension name.
+
+        Returns
+        -------
+        bool
+            Extension is valid or invalid.
+        """
+
+        extensions = ["pdb", "mol2"]  # TODO make global?
+        if extension not in extensions:
+            raise ValueError(f"Invalid extension. Select from: {', '.join(extensions)}")
+
+    def _check_parameter_validity(self, entity, extension, output_format=None):
         """
         Check if entity and input/output format (and their combinations) are valid.
 
@@ -1322,7 +1402,7 @@ class CoordinatesProvider(BaseProvider):
         ----------
         entity : str
             Structural entity: complex, ligand, pocket, protein, or water (only in local module).
-        input_format : str
+        extension : str
             File input format: mol2 or pdb (only for entity=complex).
         output_format : None or str
             Output format: text (only in remote module), biopandas, or rdkit (only for entity=ligand).
@@ -1331,9 +1411,9 @@ class CoordinatesProvider(BaseProvider):
         # Check if parameters are valid
         if entity not in self.options["entities"]:
             raise ValueError(f"Invalid entity. Select from {', '.join(self.options['entities'])}.")
-        if input_format not in self.options["input_formats"]:
+        if extension not in self.options["extensions"]:
             raise ValueError(
-                f"Invalid input format. Select from {', '.join(self.options['input_formats'])}."
+                f"Invalid input format. Select from {', '.join(self.options['extensions'])}."
             )
         if output_format:
             if output_format not in self.options["output_formats"]:
@@ -1342,7 +1422,7 @@ class CoordinatesProvider(BaseProvider):
                 )
 
         # Check if parameter combination is valid
-        if input_format == "pdb" and entity != "complex":
+        if extension == "pdb" and entity != "complex":
             raise ValueError(f"Entity {entity} is only available in mol2 format.")
         if output_format:
             if output_format == "rdkit" and entity != "ligand":

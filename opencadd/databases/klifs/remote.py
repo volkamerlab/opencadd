@@ -288,7 +288,7 @@ class Structures(RemoteInitializer, StructuresProvider):
 
     def from_ligand_ids(self, ligand_ids):
 
-        # TODO Approach incorrect: One PDB can have multiple IDs
+        # TODO in the future: Approach incorrect: One PDB can have multiple IDs
 
         _logger.warning(
             f"This method uses the following lookup: ligand KLIFS ID > ligand PDB ID > structures."
@@ -565,53 +565,70 @@ class Pockets(RemoteInitializer, PocketsProvider):
         return pocket
 
 
-class Coordinates(CoordinatesProvider):
+class Coordinates(RemoteInitializer, CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide remote coordinates requests,
     i.e. fetching and saving structural data (coordinates).
     """
 
-    def __init__(self, client, *args, **kwargs):
+    def to_text(self, structure_id, entity="complex", extension="mol2"):
 
-        super().__init__()
-        self._client = client
+        self._raise_invalid_extension(extension)
 
-    def from_structure_id(
-        self,
-        structure_id,
-        entity="complex",
-        input_format="mol2",
-        output_format="biopandas",
-        compute2d=True,
-    ):
+        if entity == "complex" and extension == "mol2":
+            text = (
+                self._client.Structures.get_structure_get_complex(structure_ID=structure_id)
+                .response()
+                .result
+            )
+        elif entity == "complex" and extension == "pdb":
+            text = (
+                self._client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
+                .response()
+                .result
+            )
+        elif entity == "ligand" and extension == "mol2":
+            text = (
+                self._client.Structures.get_structure_get_ligand(structure_ID=structure_id)
+                .response()
+                .result
+            )
+        elif entity == "pocket" and extension == "mol2":
+            text = (
+                self._client.Structures.get_structure_get_pocket(structure_ID=structure_id)
+                .response()
+                .result
+            )
+        elif entity == "protein" and extension == "mol2":
+            text = (
+                self._client.Structures.get_structure_get_protein(structure_ID=structure_id)
+                .response()
+                .result
+            )
+        else:
+            raise ValueError(f"Entity {entity} is not available or not available remotely.")
 
-        self._check_parameter_validity(entity, input_format, output_format)
-
-        # Fetch text from KLIFS
-        text = self._fetch_text(structure_id, entity, input_format)
-
-        # Return different output formats
-        if output_format == "text":
+        if text:
             return text
+        else:
+            raise ValueError(f"Data could not be fetched.")
 
-        elif output_format == "rdkit":
-            rdkit_mol = Rdkit.from_text(text, input_format, compute2d)
-            return rdkit_mol
+    def to_dataframe(self, structure_id, entity="complex", extension="mol2"):
 
-        elif output_format == "biopandas":
-            if input_format == "mol2":
-                mol2_df = DataFrame.from_text(text, input_format)
-                mol2_df = self._add_residue_klifs_ids(mol2_df, structure_id)
-                return mol2_df
-            elif input_format == "pdb":
-                pdb_df = DataFrame.from_text(text, input_format)
-                return pdb_df
+        text = self.to_text(structure_id, entity, extension)
+        dataframe = DataFrame.from_text(text, extension)
+        dataframe = self._add_residue_klifs_ids(dataframe, structure_id)
+        return dataframe
 
-    def to_file(
-        self, structure_id, output_path, entity="complex", input_format="mol2", in_dir=False,
-    ):
+    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+
+        text = self.to_text(structure_id, entity, extension)
+        rdkit_mol = Rdkit.from_text(text, extension, compute2d)
+        return rdkit_mol
+
+    def to_pdb(self, structure_id, output_path, entity="complex", in_dir=False):
         """
-        Save structural data to file.
+        Save structural data as pdb file.
 
         Parameters
         ----------
@@ -621,8 +638,6 @@ class Coordinates(CoordinatesProvider):
             Path to output folder.
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-        input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
         in_dir : bool
             Save file in KLIFS directory structure (default: False).
 
@@ -637,7 +652,65 @@ class Coordinates(CoordinatesProvider):
             If input yields not result.
         """
 
-        self._check_parameter_validity(entity, input_format)
+        return self._to_file(structure_id, output_path, entity, "pdb", in_dir)
+
+    def to_mol2(self, structure_id, output_path, entity="complex", in_dir=False):
+        """
+        Save structural data as mol2 file.
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+        output_path : pathlib.Path or str
+            Path to output folder.
+        entity : str
+            Structural entity: complex (default), ligand, pocket, or protein.
+        in_dir : bool
+            Save file in KLIFS directory structure (default: False).
+
+        Returns
+        -------
+        pathlib.Path
+            Path to file.
+
+        Raises
+        ------
+        ValueError
+            If input yields not result.
+        """
+
+        return self._to_file(structure_id, output_path, entity, "mol2", in_dir)
+
+    def _to_file(self, structure_id, output_path, entity, extension, in_dir=False):
+        """
+        Save structural data to file.
+
+        Parameters
+        ----------
+        structure_id : str
+            KLIFS structure ID.
+        output_path : pathlib.Path or str
+            Path to output folder.
+        entity : str
+            Structural entity: complex, ligand, pocket, or protein.
+        extension : str
+            Input file format (fetched from KLIFS): mol2 or pdb (only for entity=complex).
+        in_dir : bool
+            Save file in KLIFS directory structure (default: False).
+
+        Returns
+        -------
+        pathlib.Path
+            Path to file.
+
+        Raises
+        ------
+        ValueError
+            If input yields not result.
+        """
+
+        # self._check_parameter_validity(entity, extension)
         output_path = Path(output_path)
 
         # Use KLIFS API: Get structure metadata
@@ -653,7 +726,7 @@ class Coordinates(CoordinatesProvider):
             metadata["structure.alternate_model"],
             metadata["structure.chain"],
             entity,
-            input_format,
+            extension,
             in_dir,
         )
 
@@ -661,7 +734,7 @@ class Coordinates(CoordinatesProvider):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Get text
-        text = self.from_structure_id(structure_id, entity, input_format, output_format="text")
+        text = self.to_text(structure_id, entity, extension)
 
         # Save text to file
         with open(output_path, "w") as f:
@@ -669,70 +742,13 @@ class Coordinates(CoordinatesProvider):
 
         return output_path
 
-    def _fetch_text(self, structure_id, entity="complex", input_format="mol2"):
-        """
-        Get structural data content from KLIFS database as string (text).
-
-        Parameters
-        ----------
-        structure_id : str
-            KLIFS structure ID.
-        entity : str
-            Structural entity: complex (default), ligand, pocket, or protein.
-        input_format : str
-            Input file format (fetched from KLIFS): mol2 (default) or pdb (only for entity=complex).
-
-        Returns
-        -------
-        str
-            Structural data.
-        """
-
-        if entity == "complex" and input_format == "mol2":
-            text = (
-                self._client.Structures.get_structure_get_complex(structure_ID=structure_id)
-                .response()
-                .result
-            )
-        elif entity == "complex" and input_format == "pdb":
-            text = (
-                self._client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
-                .response()
-                .result
-            )
-        elif entity == "ligand" and input_format == "mol2":
-            text = (
-                self._client.Structures.get_structure_get_ligand(structure_ID=structure_id)
-                .response()
-                .result
-            )
-        elif entity == "pocket" and input_format == "mol2":
-            text = (
-                self._client.Structures.get_structure_get_pocket(structure_ID=structure_id)
-                .response()
-                .result
-            )
-        elif entity == "protein" and input_format == "mol2":
-            text = (
-                self._client.Structures.get_structure_get_protein(structure_ID=structure_id)
-                .response()
-                .result
-            )
-        else:
-            raise ValueError(f"Entity {entity} is not available remotely.")
-
-        if text is not None:
-            return text
-        else:
-            raise ValueError(f"Data could not be fetched (returned None).")
-
-    def _add_residue_klifs_ids(self, mol2_df, structure_id):
+    def _add_residue_klifs_ids(self, dataframe, structure_id):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
         ----------
-        mol2_df : pandas.DataFrame
+        dataframe : pandas.DataFrame
             Structural data.
 
         Returns
@@ -745,7 +761,7 @@ class Coordinates(CoordinatesProvider):
         pockets_remote = Pockets(self._client)
         pocket = pockets_remote.from_structure_id(structure_id)
         # Merge DataFrames
-        mol2_df = mol2_df.merge(pocket, on="residue.id", how="left")
-        mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
+        dataframe = dataframe.merge(pocket, on="residue.id", how="left")
+        dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
-        return mol2_df
+        return dataframe
