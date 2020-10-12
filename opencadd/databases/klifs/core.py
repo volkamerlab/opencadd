@@ -1236,7 +1236,7 @@ class CoordinatesProvider(BaseProvider):
 
     Methods
     -------
-    from_structure_id(structure_id, entity, input_format, output_format, compute2d)
+    from_structure_id(structure_id, entity, extension, output_format, compute2d)
         Fetch/load structural data from KLIFS server/file.
     from_file(filepath, output_format, compute2d)
         Load structural data from KLIFS file (local only).
