@@ -39,10 +39,7 @@ class Session:
         Coordinates object for coordinates requests.
     """
 
-    def __init__(self, backend, path_to_klifs_download=None, path_to_klifs_metadata=None):
-        """
-        TODO
-        """
+    def __init__(self):
 
         # Not None in local only
         self.path_to_klifs_download = None
@@ -60,57 +57,6 @@ class Session:
         self.pockets = None
         self.coordinates = None
 
-        # If path to a KLIFS download is set, initialize a local session
-        if path_to_klifs_download:
-            self.path_to_klifs_download = Path(path_to_klifs_download)
-
-            if path_to_klifs_metadata:
-                self.database = pd.read_csv(path_to_klifs_metadata)
-            else:
-                # TODO make simpler!
-                session_initializer = local._SessionInitializer(self.path_to_klifs_download)
-                self.database = session_initializer.klifs_metadata
-
-        else:
-            self.client = KLIFS_CLIENT
-
-        # Set attributes using a backend (i.e. the local or remote module)
-        self.kinases = backend.Kinases(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.ligands = backend.Ligands(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.structures = backend.Structures(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.bioactivities = backend.Bioactivities(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.interactions = backend.Interactions(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.pockets = backend.Pockets(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-        self.coordinates = backend.Coordinates(
-            client=self.client,
-            database=self.database,
-            path_to_klifs_download=self.path_to_klifs_download,
-        )
-
     @classmethod
     def from_local(cls, path_to_klifs_download, path_to_klifs_metadata=None):
         """
@@ -126,14 +72,82 @@ class Session:
             Set this parameter, if you have initialized a local session before and therefore
             already have a KLIFS metadata file.
             You could pass here a filtered version of this KLIFS metadata file.
+
+        Returns
+        -------
+        opencadd.databases.klifs.Session
+            Local KLIFS session.
         """
 
-        return cls(local, path_to_klifs_download, path_to_klifs_metadata)
+        path_to_klifs_download = Path(path_to_klifs_download)
+        if path_to_klifs_metadata:
+            database = pd.read_csv(path_to_klifs_metadata)
+        else:
+            database = local._LocalDatabaseGenerator.from_files(path_to_klifs_download)
+
+        session = cls()
+        session._set_attributes(
+            local, database=database, path_to_klifs_download=path_to_klifs_download
+        )
+
+        return session
 
     @classmethod
     def from_remote(cls):
         """
         Set up remote session using the KLIFS swagger client.
+
+        Returns
+        -------
+        opencadd.databases.klifs.Session
+            Remote KLIFS session.
         """
 
-        return cls(remote)
+        client = KLIFS_CLIENT
+
+        session = cls()
+        session._set_attributes(remote, client=client)
+
+        return session
+
+    def _set_attributes(self, backend, path_to_klifs_download=None, database=None, client=None):
+        """
+        Set attributes using a backend (i.e. the local or remote module).
+        
+        Parameters
+        ----------
+        backend : opencadd.databases.klifs.local or opencadd.databases.klifs.remote
+            Local or remote module.
+        path_to_klifs_download : None or pathlib.Path
+            Path to folder with KLIFS download files.
+        client : None or bravado.client.SwaggerClient
+            KLIFS client (set if session type is remote).
+        database : None or pandas.DataFrame
+            KLIFS metadata (set if session type is local).
+        """
+
+        self.client = client
+        self.database = database
+        self.path_to_klifs_download = path_to_klifs_download
+
+        self.kinases = backend.Kinases(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.ligands = backend.Ligands(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.structures = backend.Structures(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.bioactivities = backend.Bioactivities(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.interactions = backend.Interactions(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.pockets = backend.Pockets(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
+        self.coordinates = backend.Coordinates(
+            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+        )
