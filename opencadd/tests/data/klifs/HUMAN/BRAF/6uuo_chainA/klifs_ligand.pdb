@@ -1,0 +1,66 @@
+HEADER    6uuo.A                                                      
+REMARK  99                                                                      
+REMARK  99 MOE v2014.09 (Chemical Computing Group Inc.) Wed Jun  3 14:52:03 2020
+HETATM    1  C11 QH1 A   0       3.539  20.551  39.175  1.00  0.00           C  
+HETATM    2  C13 QH1 A   0       2.187  20.169  41.317  1.00  0.00           C  
+HETATM    3  C14 QH1 A   0       1.615  19.137  42.073  1.00  0.00           C  
+HETATM    4  C15 QH1 A   0       1.940  17.886  41.331  1.00  0.00           C  
+HETATM    5  C01 QH1 A   0       0.964  26.233  35.045  1.00  0.00           C  
+HETATM    6  C02 QH1 A   0       2.088  25.196  35.191  1.00  0.00           C  
+HETATM    7  C03 QH1 A   0       1.828  23.815  34.589  1.00  0.00           C  
+HETATM    8  C08 QH1 A   0       3.882  21.406  36.802  1.00  0.00           C  
+HETATM    9  C09 QH1 A   0       3.255  20.616  37.794  1.00  0.00           C  
+HETATM   10  C16 QH1 A   0       2.694  18.269  40.166  1.00  0.00           C  
+HETATM   11  C17 QH1 A   0       3.112  17.224  39.313  1.00  0.00           C  
+HETATM   12  C18 QH1 A   0       2.791  15.896  39.612  1.00  0.00           C  
+HETATM   13  C19 QH1 A   0       2.034  15.541  40.785  1.00  0.00           C  
+HETATM   14  C32 QH1 A   0       0.845  19.296  43.345  1.00  0.00           C  
+HETATM   15  C33 QH1 A   0       0.553  20.524  43.991  1.00  0.00           C  
+HETATM   16  C35 QH1 A   0      -0.614  19.528  45.731  1.00  0.00           C  
+HETATM   17  C37 QH1 A   0       0.297  18.207  44.067  1.00  0.00           C  
+HETATM   18  C38 QH1 A   0       4.602  21.410  39.522  1.00  0.00           C  
+HETATM   19  C40 QH1 A   0       5.292  22.235  38.624  1.00  0.00           C  
+HETATM   20  C41 QH1 A   0       4.922  22.225  37.279  1.00  0.00           C  
+HETATM   21  F10 QH1 A   0       2.242  19.823  37.361  1.00  0.00           F  
+HETATM   22  F39 QH1 A   0       4.992  21.450  40.815  1.00  0.00           F  
+HETATM   23  N07 QH1 A   0       3.507  21.415  35.422  1.00  0.00           N  
+HETATM   24  N12 QH1 A   0       2.849  19.701  40.147  1.00  0.00           N  
+HETATM   25  N20 QH1 A   0       1.626  16.565  41.621  1.00  0.00           N  
+HETATM   26  N21 QH1 A   0       1.693  14.134  41.105  1.00  0.00           N  
+HETATM   27  N34 QH1 A   0      -0.149  20.669  45.146  1.00  0.00           N  
+HETATM   28  N36 QH1 A   0      -0.411  18.285  45.221  1.00  0.00           N  
+HETATM   29  O05 QH1 A   0       3.183  22.128  32.825  1.00  0.00           O1-
+HETATM   30  O06 QH1 A   0       4.592  23.724  34.233  1.00  0.00           O1-
+HETATM   31  S04 QH1 A   0       3.296  22.727  34.343  1.00  0.00           S  
+CONECT    1    9    9   18   24
+CONECT    2    3    3   24
+CONECT    3    2    2    4   14
+CONECT    4    3   10   25   25
+CONECT    5    6
+CONECT    6    5    7
+CONECT    7    6   31
+CONECT    8    9   20   20   23
+CONECT    9    1    1    8   21
+CONECT   10    4   11   11   24
+CONECT   11   10   10   12
+CONECT   12   11   13   13
+CONECT   13   12   12   25   26
+CONECT   14    3   15   17   17
+CONECT   15   14   27   27
+CONECT   16   27   28   28
+CONECT   17   14   14   28
+CONECT   18    1   19   19   22
+CONECT   19   18   18   20
+CONECT   20    8    8   19
+CONECT   21    9
+CONECT   22   18
+CONECT   23    8   31
+CONECT   24    1    2   10
+CONECT   25    4    4   13
+CONECT   26   13
+CONECT   27   15   15   16
+CONECT   28   16   16   17
+CONECT   29   31
+CONECT   30   31
+CONECT   31    7   23   29   30
+END
