@@ -27,7 +27,7 @@ def metadata_to_filepath(
     structure_alternate_model,
     structure_chain,
     entity="complex",
-    input_format="mol2",
+    extension="mol2",
     in_dir=False,
 ):
     """
@@ -49,7 +49,7 @@ def metadata_to_filepath(
         Chain ID.
     entity : str
         Structural entity: complex (default), ligand, pocket, protein, or water (only in local module).
-    input_format : str
+    extension : str
         File format: mol2 (default) or pdb (only for entity=complex).
     in_dir : bool
         Use KLIFS directory structure (default: False).
@@ -70,14 +70,16 @@ def metadata_to_filepath(
     structure_chain = structure_chain.replace("-", "")
     structure = f"{structure_pdb}{f'_alt{structure_alternate_model}' if bool(structure_alternate_model) else ''}{f'_chain{structure_chain}' if bool(structure_chain) else ''}"
 
+    # FIXME: The PDB download for ligands in KLIFS is named "klifs_ligand.pdb"
+    # instead of "ligand.pdb". For the time being (until KLIFS maybe streamlines the file name
+    # with all the other file names), rename the file here.
+    if entity == "ligand" and extension == "pdb":
+        entity = "klifs_ligand"
+
     if in_dir:
-        path = (
-            path_to_klifs_download / species / kinase_name / structure / f"{entity}.{input_format}"
-        )
+        path = path_to_klifs_download / species / kinase_name / structure / f"{entity}.{extension}"
     else:
-        path = (
-            path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{input_format}"
-        )
+        path = path_to_klifs_download / f"{species}_{kinase_name}_{structure}_{entity}.{extension}"
 
     return path
 
@@ -107,12 +109,17 @@ def filepath_to_metadata(filepath):
             Chain ID.
         entity : str
             Structural entity: complex, ligand, pocket, protein, or water.
-        input_format : str
+        extension : str
             File format: mol2 or pdb.
     """
 
     # Cast to string
     filepath = str(filepath)
+    # FIXME: The PDB download for ligands in KLIFS is named "klifs_ligand.pdb"
+    # instead of "ligand.pdb". For the time being (until KLIFS maybe streamlines the file name
+    # with all the other file names), rename the file here.
+    if "klifs_ligand" in filepath:
+        filepath = filepath.replace("klifs_ligand", "ligand")
 
     # Split filepath
     metadata = re.split(r"/|_|\.", filepath)
@@ -125,7 +132,7 @@ def filepath_to_metadata(filepath):
             "structure_alternate_model": metadata[-4][-1],
             "structure_chain": metadata[-3][-1],
             "entity": metadata[-2],
-            "input_format": metadata[-1],
+            "extension": metadata[-1],
         }
     elif ("chain" in filepath) and ("alt" not in filepath):
         metadata = {
@@ -135,7 +142,7 @@ def filepath_to_metadata(filepath):
             "structure_alternate_model": None,
             "structure_chain": metadata[-3][-1],
             "entity": metadata[-2],
-            "input_format": metadata[-1],
+            "extension": metadata[-1],
         }
     else:
         metadata = {
@@ -145,7 +152,7 @@ def filepath_to_metadata(filepath):
             "structure_alternate_model": None,
             "structure_chain": None,
             "entity": metadata[-2],
-            "input_format": metadata[-1],
+            "extension": metadata[-1],
         }
     return metadata
 
