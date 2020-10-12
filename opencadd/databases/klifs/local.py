@@ -51,9 +51,9 @@ class LocalInitializer:
         self._path_to_klifs_download = path_to_klifs_download
 
 
-class _SessionInitializer:
+class _LocalDatabaseGenerator:
     """
-    Class for local session initialization.
+    Class that generates a local database containing metadata for all downloaded structures.
 
     Attributes
     ----------
@@ -61,31 +61,14 @@ class _SessionInitializer:
         Path to folder with KLIFS download files, including
         - `overview.csv`, containing mainly KLIFS alignment-related metadata, and
         - `KLIFS_export.csv` containing mainly structure-related metadata.
-    klifs_overview_path : pathlib.Path
-        Path to `overview.csv` file.
-    klifs_export_path : pathlib.Path
-        Path to `KLIFS_export.csv` file.
-    klifs_metadata : pandas.DataFrame
-        Metadata of KLIFS download, merged from two KLIFS metadata files.
     """
 
-    def __init__(self, path_to_klifs_download):
+    def __init__(self):
 
-        self.path_to_klifs_download = Path(path_to_klifs_download)
-        if not self.path_to_klifs_download.exists():
-            raise FileNotFoundError(f"No such directory: {self.path_to_klifs_download}")
+        self.path_to_klifs_download = None
 
-        self.klifs_overview_path = self.path_to_klifs_download / "overview.csv"
-        if not self.klifs_overview_path.exists():
-            raise FileNotFoundError(f"No such file: {self.klifs_overview_path}")
-
-        self.klifs_export_path = self.path_to_klifs_download / "KLIFS_export.csv"
-        if not self.klifs_export_path.exists():
-            raise FileNotFoundError(f"No such file: {self.klifs_export_path}")
-
-        self.klifs_metadata = self.from_files()
-
-    def from_files(self):
+    @classmethod
+    def from_files(cls, path_to_klifs_download):
         """
         Get KLIFS metadata as DataFrame and save as file in same folder as input files.
 
@@ -96,8 +79,9 @@ class _SessionInitializer:
         Parameters
         ----------
         path_to_klifs_download : pathlib.Path or str
-            Path to folder with KLIFS download files `overview.csv`, containing mainly KLIFS alignment-related metadata, and
-            `KLIFS_export.csv` containing mainly structure-related metadata.
+            Path to folder with KLIFS download files, including
+            - `overview.csv`, containing mainly KLIFS alignment-related metadata, and
+            - `KLIFS_export.csv` containing mainly structure-related metadata.
 
         Returns
         -------
@@ -105,25 +89,43 @@ class _SessionInitializer:
             Metadata of KLIFS download, merged from two KLIFS metadata files.
         """
 
+        local_database_generator = cls()
+
+        path_to_klifs_download = Path(path_to_klifs_download)
+        klifs_overview_path = path_to_klifs_download / "overview.csv"
+        klifs_export_path = path_to_klifs_download / "KLIFS_export.csv"
+        if not path_to_klifs_download.exists():
+            raise FileNotFoundError(f"No such directory: {path_to_klifs_download}")
+        if not klifs_overview_path.exists():
+            raise FileNotFoundError(f"No such file: {klifs_overview_path}")
+        if not klifs_export_path.exists():
+            raise FileNotFoundError(f"No such file: {klifs_export_path}")
+
         _logger.info(f"Load overview.csv...")
-        klifs_overview = self._from_klifs_overview_file()
+        klifs_overview = local_database_generator._from_klifs_overview_file(klifs_overview_path)
         _logger.info(f"Load KLIFS_export.csv...")
-        klifs_export = self._from_klifs_export_file()
+        klifs_export = local_database_generator._from_klifs_export_file(klifs_export_path)
 
         _logger.info(f"Merge both csv files...")
-        klifs_metadata = self._merge_files(klifs_overview, klifs_export)
+        database = local_database_generator._merge_files(klifs_overview, klifs_export)
         _logger.info(f"Add paths to coordinate folders to structures...")
-        klifs_metadata = self._add_filepaths(klifs_metadata)
+        database = local_database_generator._add_filepaths(database)
         _logger.info(f"Add KLIFS IDs to structures (uses remote since not available locally!)...")
-        klifs_metadata = self._add_klifs_ids(klifs_metadata)
+        database = local_database_generator._add_klifs_ids(database)
 
-        klifs_metadata.to_csv(self.path_to_klifs_download / "klifs_metadata.csv", index=False)
+        database.to_csv(path_to_klifs_download / "klifs_metadata.csv", index=False)
 
-        return klifs_metadata
+        return database
 
-    def _from_klifs_export_file(self):
+    def _from_klifs_export_file(self, klifs_export_path):
         """
-        Read KLIFS_export.csv file from KLIFS database download as DataFrame and unify format with overview.csv format.
+        Read KLIFS_export.csv file from KLIFS database download as DataFrame and unify format with 
+        overview.csv format.
+
+        Parameters
+        ----------
+        klifs_export_path : pathlib.Path
+            Path to `KLIFS_export.csv` file.
 
         Returns
         -------
@@ -131,7 +133,7 @@ class _SessionInitializer:
             Data loaded and formatted: KLIFS_export.csv file from KLIFS database download.
         """
 
-        klifs_export = pd.read_csv(self.klifs_export_path)
+        klifs_export = pd.read_csv(klifs_export_path)
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
@@ -147,9 +149,16 @@ class _SessionInitializer:
 
         return klifs_export
 
-    def _from_klifs_overview_file(self):
+    @staticmethod
+    def _from_klifs_overview_file(klifs_overview_path):
         """
-        Read overview.csv file from KLIFS database download as DataFrame and unify format with KLIFS_export.csv format.
+        Read overview.csv file from KLIFS database download as DataFrame and unify format with 
+        KLIFS_export.csv format.
+
+        Parameters
+        ----------
+        klifs_overview_path : pathlib.Path
+            Path to `overview.csv` file.
 
         Returns
         -------
@@ -157,7 +166,7 @@ class _SessionInitializer:
             Data loaded and formatted: overview.csv file from KLIFS database download.
         """
 
-        klifs_overview = pd.read_csv(self.klifs_overview_path)
+        klifs_overview = pd.read_csv(klifs_overview_path)
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
@@ -174,8 +183,8 @@ class _SessionInitializer:
     @staticmethod
     def _format_kinase_name(kinase_name):
         """
-        Format kinase name(s): One or multiple kinase names (additional names in brackets) are formatted to list of
-        kinase names.
+        Format kinase name(s): One or multiple kinase names (additional names in brackets) are 
+        formatted to list of kinase names.
 
         Examples:
         Input: "EPHA7 (EphA7)", output: ["EPHA7", "EphA7"].
@@ -202,7 +211,8 @@ class _SessionInitializer:
     @staticmethod
     def _merge_files(klifs_export, klifs_overview):
         """
-        Merge data contained in overview.csv and KLIFS_export.csv files from KLIFS database download.
+        Merge data contained in overview.csv and KLIFS_export.csv files from KLIFS database 
+        download.
 
         Parameters
         ----------
@@ -429,7 +439,8 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
-        # can columns have metadata? https://github.com/pandas-dev/pandas/issues/2485#issuecomment-608227532
+        # can columns have metadata?
+        # https://github.com/pandas-dev/pandas/issues/2485#issuecomment-608227532
         ligands.rename(
             columns={"kinase.id": "kinase.id (query)",}, inplace=True,
         )
