@@ -123,7 +123,7 @@ class DataFrame(_Base):
         )
 
         # Use biopandas to parse the pdb format and return DataFrames
-        # TODO biopandas: wait for pdb equivalent of PandasMol2.read_mol2_from_list
+        # TODO in the future: BioPandas: wait for pdb equivalent of PandasMol2.read_mol2_from_list
         ppdb = PandasPdb()
         pdb_dict = ppdb._construct_df(pdb_text.splitlines(True))
 
@@ -276,7 +276,7 @@ class DataFrame(_Base):
         - 1 ("residue.id").
         """
 
-        # FIXME in the future: Use regex!
+        # TODO in the future: Use regex!
 
         # Handle "residues" that are elements such as CA or MG.
         if subst_name[:2] == atom_type.upper():
