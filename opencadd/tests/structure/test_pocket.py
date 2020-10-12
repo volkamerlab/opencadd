@@ -9,50 +9,11 @@ import pandas as pd
 import pytest
 
 from opencadd.io.dataframe import DataFrame
-from opencadd.structure.pocket.api import Pocket
 from opencadd.structure.pocket.core import Base
+from opencadd.structure.pocket.pocket import Pocket
 from opencadd.structure.pocket.subpocket import AnchorResidue
 
-
-def load_dataframe_protein(klifs_structure_id=None):
-    """
-    Load protein DataFrame by KLIFS structure ID. If ID is None, load simple DataFrame.
-    """
-
-    if klifs_structure_id:
-
-        KLIFS_API_DEFINITIONS = "http://klifs.vu-compmedchem.nl/swagger/swagger.json"
-        KLIFS_CLIENT = SwaggerClient.from_url(
-            KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-        )
-
-        result = (
-            KLIFS_CLIENT.Structures.get_structure_get_protein(structure_ID=klifs_structure_id)
-            .response()
-            .result
-        )
-
-        with open("protein.mol2", "w") as f:
-            f.write(result)
-
-        dataframe = DataFrame.from_file("protein.mol2")
-
-        # Delete file
-        Path("protein.mol2").unlink()
-
-    else:
-
-        dataframe = pd.DataFrame(
-            {
-                "residue.id": ["1", "2", "3", "7", "8", "9", "11"],
-                "atom.name": ["CA", "CA", "CA", "CA", "CA", "CA", "CA"],
-                "atom.x": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-                "atom.y": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-                "atom.z": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-            }
-        )
-
-    return dataframe
+PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/pocket"
 
 
 class TestsBase:
@@ -99,7 +60,15 @@ class TestsAnchorResidue:
         Test anchor residue cases.
         """
 
-        dataframe = load_dataframe_protein()
+        dataframe = pd.DataFrame(
+            {
+                "residue.id": ["1", "2", "3", "7", "8", "9", "11"],
+                "atom.name": ["CA", "CA", "CA", "CA", "CA", "CA", "CA"],
+                "atom.x": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
+                "atom.y": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
+                "atom.z": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
+            }
+        )
 
         residue = AnchorResidue()
         residue.from_dataframe(dataframe, residue_id)
@@ -115,13 +84,20 @@ class TestsPocket:
     """
 
     @pytest.mark.parametrize(
-        "name, residue_ids, residue_labels, centroid",
-        [("example kinase", [127, 128, 129], [1, 2, 3], [-1.178433, 23.859733, 45.091933])],
+        "filepath, name, residue_ids, residue_labels, centroid",
+        [
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                "example kinase",
+                [127, 128, 129],
+                [1, 2, 3],
+                [-1.178433, 23.859733, 45.091933],
+            )
+        ],
     )
-    def test_init(self, name, residue_ids, residue_labels, centroid):
+    def test_from_file(self, filepath, name, residue_ids, residue_labels, centroid):
 
-        dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, name, residue_ids, residue_labels)
+        pocket = Pocket.from_file(filepath, residue_ids, name, residue_labels)
 
         assert pocket.name == name
         assert pocket.residues.equals(
@@ -135,15 +111,21 @@ class TestsPocket:
         assert pytest.approx(pocket.centroid, centroid, abs=1.0e-6)
 
     @pytest.mark.parametrize(
-        "name, color, residue_ids, residue_labels",
-        [("hinge", "magenta", [127, 128, 129], [46, 47, 48])],
+        "filepath, name, residue_ids, color, residue_labels",
+        [
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                "hinge",
+                [127, 128, 129],
+                "magenta",
+                [46, 47, 48],
+            )
+        ],
     )
-    def test_add_regions(self, name, color, residue_ids, residue_labels):
+    def test_add_regions(self, filepath, name, residue_ids, color, residue_labels):
 
-        dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, "", residue_ids, residue_labels)
-
-        pocket.add_region(name, color, residue_ids, residue_labels)
+        pocket = Pocket.from_file(filepath, residue_ids, "", residue_labels)
+        pocket.add_region(name, residue_ids, color, residue_labels)
 
         n_region_residues = len(residue_ids)
         region = pd.DataFrame(
@@ -157,23 +139,25 @@ class TestsPocket:
         assert pocket.regions.equals(region)
 
     @pytest.mark.parametrize(
-        "name, color, residue_ids, residue_labels, center",
+        "filepath, name, residue_ids, color, residue_labels, center",
         [
             (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
                 "hinge_region",
-                "magenta",
                 [73, 128, 193],
+                "magenta",
                 [16, 47, 80],
                 [1.957633, 21.923767, 41.69003333],
             )
         ],
     )
-    def test_add_subpocket(self, name, color, residue_ids, residue_labels, center):
+    def test_add_subpocket(self, filepath, name, residue_ids, color, residue_labels, center):
 
-        dataframe = load_dataframe_protein(3834)
-        pocket = Pocket("", dataframe, "", residue_ids, residue_labels)
+        print(residue_ids)
+        print(residue_labels)
+        pocket = Pocket.from_file(filepath, residue_ids, "", residue_labels)
 
-        pocket.add_subpocket(name, color, residue_ids, residue_labels)
+        pocket.add_subpocket(name, residue_ids, color, residue_labels)
         subpocket = pocket._subpockets[0]
 
         assert subpocket.name == name
