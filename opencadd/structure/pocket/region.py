@@ -32,7 +32,7 @@ class Region(Base):
         self.residue_ids = None
         self.residue_labels = None
 
-    def from_dataframe(self, dataframe, name, color, residue_ids, residue_labels=None):
+    def from_dataframe(self, dataframe, name, residue_ids, color="blue", residue_labels=None):
         """
         Set region properties.
 
@@ -43,10 +43,10 @@ class Region(Base):
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
         name : str
             Region name.
-        color : str
-            Region color.
         residue_ids : list of (int, str)
             List of residue PDB IDs defining the region.
+        color : str
+            Region color (matplotlib name), blue by default
         residue_labels : list of (int, str) or None
             List of residue labels. Must be of same length as residue_ids.
         """

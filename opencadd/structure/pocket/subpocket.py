@@ -59,7 +59,10 @@ class Subpocket(Base):
 
         return anchor_residues_df
 
-    def from_dataframe(self, dataframe, name, color, anchor_residue_ids, anchor_residue_labels):
+    # TODO classmethod
+    def from_dataframe(
+        self, dataframe, name, anchor_residue_ids, color="blue", anchor_residue_labels=None
+    ):
         """
         Set subpocket properties.
 
@@ -70,10 +73,10 @@ class Subpocket(Base):
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
         name : str
             Subpocket name.
-        color : str
-            Subpocket color (matplotlib name).
         anchor_residue_ids : list of (int, str)
             List of anchor residue PDB IDs.
+        color : str
+            Subpocket color (matplotlib name), blue by default.
         anchor_residue_labels : list of (int, str) or None
             List of anchor residue labels. Must be of same length as residue_ids.
         """
@@ -91,9 +94,14 @@ class Subpocket(Base):
             residue.from_dataframe(dataframe, residue_id, residue_label, color)
             anchor_residues.append(residue)
 
-        self._from_anchor_residues(name, color, anchor_residues)
+        # TODO subpocket = cls()
+        # subpocket._from_anchor_residues
 
-    def _from_anchor_residues(self, name, color, anchor_residues):
+        self._from_anchor_residues(name, anchor_residues, color)
+
+    def _from_anchor_residues(
+        self, name, anchor_residues, color="blue"
+    ):  # TODO see above (my __init__)
         """
         Set subpocket from given anchor residues.
 
@@ -101,10 +109,10 @@ class Subpocket(Base):
         ----------
         name : str
             Subpocket name.
-        color : str
-            Subpocket color (matplotlib name).
         anchor_residues : list of Residue
             List of anchor residues.
+        color : str
+            Subpocket color (matplotlib name), blue by default.
         """
 
         self.name = name
@@ -167,7 +175,8 @@ class AnchorResidue(Base):
         self.color = None
         self.center = None
 
-    def from_dataframe(self, dataframe, residue_id, residue_label=None, color="green"):
+    # TODO classmethod
+    def from_dataframe(self, dataframe, residue_id, color="blue", residue_label=None):
         """
         Set residue properties.
 
@@ -178,10 +187,10 @@ class AnchorResidue(Base):
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
         residue_id : str
             Residue PDB ID.
+        color : str
+            Residue color (matplotlib name), blue by default.
         residue_label : str
             Residue label, e.g. some non-PDB ID (default None).
-        color : str
-            Residue color (matplotlib name: default green).
         """
 
         # Set class attributes
@@ -269,13 +278,11 @@ class AnchorResidue(Base):
             & (dataframe["atom.name"] == "CA")
         ]
 
-        if len(atoms) == 2:
-            return atoms
-        elif len(atoms) == 1:
-            return atoms
-        elif len(atoms) == 0:
+        if len(atoms) == 0:
             return None
+        elif len(atoms) <= 2:
+            return atoms
         else:
             raise ValueError(
-                f"Unambiguous atom selection. {len(atom)} atoms found instead of 0 or 1."
+                f"Unambiguous atom selection. {len(atom)} atoms found instead of 0, 1, or 2."
             )

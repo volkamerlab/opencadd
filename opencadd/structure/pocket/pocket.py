@@ -1,7 +1,7 @@
 """
-opencadd.structure.pocket.api
+opencadd.structure.pocket.pocket
 
-Defines the opencadd.structure.pocket API.
+Defines pockets.
 """
 
 from matplotlib import colors
@@ -42,22 +42,19 @@ class Pocket(Base):
         List of user-defined regions.
     """
 
-    def __init__(self, filepath, data, name, residue_ids, residue_labels):
+    def __init__(self):
 
-        self.filepath = filepath
-        self.data = data
-        self.name = name
-        residue_ids, residue_labels = self._format_residue_ids_and_labels(
-            residue_ids, residue_labels
-        )
-        self.residue_ids = residue_ids
-        self.residue_labels = residue_labels
-        self.centroid = self._centroid()
+        self.filepath = None
+        self.data = None
+        self.name = None
+        self.residue_ids = None
+        self.residue_labels = None
+        self.centroid = None
         self._subpockets = []
         self._regions = []
 
     @classmethod
-    def from_file(cls, filepath, name, residue_ids, residue_labels):
+    def from_file(cls, filepath, residue_ids, name="", residue_labels=None):
         """
         Initialize Pocket object from structure protein file.
 
@@ -65,12 +62,12 @@ class Pocket(Base):
         ----------
         filepath : str or pathlib.Path
             File path to structural protein data.
-        name : str
-            Name of protein.
         residue_ids : list of str
             Pocket residue PDB IDs.
-        residue_labels : list of str
-            Pocket residue labels.
+        name : str
+            Name of protein (default: empty string).
+        residue_labels : None or list of str
+            Pocket residue labels. Set to None by default.
 
         Returns
         -------
@@ -78,14 +75,29 @@ class Pocket(Base):
             Pocket object.
         """
 
-        dataframe = DataFrame.from_file(filepath)
+        pocket = cls()
 
-        return cls(filepath, dataframe, name, residue_ids, residue_labels)
+        pocket.filepath = filepath
+        pocket.data = DataFrame.from_file(filepath)
+        pocket.name = name
+        residue_ids, residue_labels = pocket._format_residue_ids_and_labels(
+            residue_ids, residue_labels
+        )
+        pocket.residue_ids = residue_ids
+        pocket.residue_labels = residue_labels
+        pocket.centroid = pocket._centroid()
+
+        return pocket
 
     @property
     def residues(self):
         """
-        Return pocket residues (PDB ID and labels).
+        All pocket's residues.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Residue ID and residue label (columns) for all pocket residues (rows).
         """
 
         residues = {"residue.id": self.residue_ids, "residue.label": self.residue_labels}
@@ -95,11 +107,15 @@ class Pocket(Base):
     @property
     def subpockets(self):
         """
-        Return subpockets data as DataFrame:
-        Name, color and subpocket center (columns) for all subpockets (rows).
+        All pocket's subpockets.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Name, color and subpocket center (columns) for all subpockets (rows).
         """
 
-        if self._subpockets == []:
+        if not self._subpockets:
             return None
 
         subpockets = pd.DataFrame(
@@ -115,8 +131,12 @@ class Pocket(Base):
     @property
     def regions(self):
         """
-        Return region data as DataFrame:
-        Name, color, involved residue PDB IDs and labels (columns) for all regions.
+        All pocket's regions.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Name, color, involved residue PDB IDs and labels (columns) for all regions.
         """
         if self._regions == []:
             return None
@@ -145,12 +165,17 @@ class Pocket(Base):
     @property
     def anchor_residues(self):
         """
-        Return anchor residue data as DataFrame:
-        - Subpocket name and color
-        - Anchor residue PDB IDs (user-defined input IDs or alternative
-          IDs if input was not available)
-        - Anchor residue labels
-        - Ahe anchor residue centers (coordinates)
+        All pocket's anchor residues.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Anchor residues (rows) with the following columns:
+            - Subpocket name and color
+            - Anchor residue PDB IDs (user-defined input IDs or alternative
+            IDs if input was not available)
+            - Anchor residue labels
+            - The anchor residue centers (coordinates)
         """
 
         if self._subpockets == []:
@@ -191,14 +216,14 @@ class Pocket(Base):
             (dataframe["residue.id"].isin(self.residue_ids)) & (dataframe["atom.name"] == "CA")
         ]
 
-        print(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
+        print(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")  # TODO logger
 
         centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
 
         return centroid
 
     def add_subpocket(
-        self, name, color, anchor_residue_ids, anchor_residue_labels=None,
+        self, name, anchor_residue_ids, color="blue", anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue PDB IDs.
@@ -207,19 +232,19 @@ class Pocket(Base):
         ----------
         name : str
             Subpocket name.
-        color : str
-            Subpocket color (matplotlib name).
         anchor_residue_ids : list of (int, str)
             List of anchor residue PDB IDs.
+        color : str
+            Subpocket color (matplotlib name), blue by default.
         anchor_residue_labels : list of (int, str) or None
             List of anchor residue labels. Must be of same length as anchor_residue_ids.
         """
 
         subpocket = Subpocket()
-        subpocket.from_dataframe(self.data, name, color, anchor_residue_ids, anchor_residue_labels)
+        subpocket.from_dataframe(self.data, name, anchor_residue_ids, color, anchor_residue_labels)
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, color, residue_ids, residue_labels=None):
+    def add_region(self, name, residue_ids, color="blue", residue_labels=None):
         """
         Add region based on given input residue PDB IDs.
 
@@ -227,16 +252,16 @@ class Pocket(Base):
         ----------
         name : str
             Region name.
-        color : str
-            Region color (matplotlib name).
         residue_ids : list of (int, str)
             List of residue PDB IDs defining the region.
+        color : str
+            Region color (matplotlib name), blue by default.
         residue_labels : list of (int, str) or None
             List of residue labels. Must be of same length as residue_ids.
         """
 
         region = Region()
-        region.from_dataframe(self.data, name, color, residue_ids, residue_labels)
+        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
         self._regions.append(region)
 
     def visualize(self):
