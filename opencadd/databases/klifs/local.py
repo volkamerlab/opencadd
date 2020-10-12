@@ -568,7 +568,7 @@ class Bioactivities(LocalInitializer, BioactivitiesProvider):
     """
 
 
-class Interactions(LocalInitializer, InteractionsProvider):  # TODO check if order matters
+class Interactions(LocalInitializer, InteractionsProvider):
     """
     Extends InteractionsProvider to provide local kinases requests.
     Refer to InteractionsProvider documentation for more information.
@@ -615,7 +615,6 @@ class Pockets(LocalInitializer, PocketsProvider):
     Refer to PocketsProvider documentation for more information.
     """
 
-    # TODO from_xxx implies a classmethod? # def by_structure_id()
     def by_structure_id(self, structure_id):
 
         # Get kinase pocket from structure ID

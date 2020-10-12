@@ -13,11 +13,11 @@ from opencadd.databases.klifs.api import setup_local, setup_remote
 from opencadd.databases.klifs.schema import COLUMN_NAMES
 from opencadd.utils import enter_temp_directory
 
+PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
+
 # Set local and remote session
 REMOTE = setup_remote()
-LOCAL = setup_local(Path(__name__).parent / "opencadd" / "tests" / "data" / "klifs")
-
-PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "klifs"
+LOCAL = setup_local(PATH_TEST_DATA)
 
 
 def check_dataframe(dataframe, column_names):

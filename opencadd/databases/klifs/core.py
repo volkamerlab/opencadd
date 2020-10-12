@@ -1390,40 +1390,6 @@ class CoordinatesProvider(BaseProvider):
             Extension is valid or invalid.
         """
 
-        extensions = ["pdb", "mol2"]  # TODO make global?
+        extensions = ["pdb", "mol2"]
         if extension not in extensions:
             raise ValueError(f"Invalid extension. Select from: {', '.join(extensions)}")
-
-    def _check_parameter_validity(self, entity, extension, output_format=None):
-        """
-        Check if entity and input/output format (and their combinations) are valid.
-
-        Parameters
-        ----------
-        entity : str
-            Structural entity: complex, ligand, pocket, protein, or water (only in local module).
-        extension : str
-            File input format: mol2 or pdb (only for entity=complex).
-        output_format : None or str
-            Output format: text (only in remote module), biopandas, or rdkit (only for entity=ligand).
-        """
-
-        # Check if parameters are valid
-        if entity not in self.options["entities"]:
-            raise ValueError(f"Invalid entity. Select from {', '.join(self.options['entities'])}.")
-        if extension not in self.options["extensions"]:
-            raise ValueError(
-                f"Invalid input format. Select from {', '.join(self.options['extensions'])}."
-            )
-        if output_format:
-            if output_format not in self.options["output_formats"]:
-                raise ValueError(
-                    f"Invalid output format. Select from {', '.join(self.options['output_formats'])}."
-                )
-
-        # Check if parameter combination is valid
-        if extension == "pdb" and entity != "complex":
-            raise ValueError(f"Entity {entity} is only available in mol2 format.")
-        if output_format:
-            if output_format == "rdkit" and entity != "ligand":
-                raise ValueError(f"Only entity ligand can be fetched as rdkit molecule.")
