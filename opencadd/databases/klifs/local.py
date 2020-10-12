@@ -51,7 +51,7 @@ class LocalInitializer:
         self._path_to_klifs_download = path_to_klifs_download
 
 
-class SessionInitializer:  # TODO private!!
+class _SessionInitializer:
     """
     Class for local session initialization.
 

@@ -68,7 +68,7 @@ class Session:
                 self.database = pd.read_csv(path_to_klifs_metadata)
             else:
                 # TODO make simpler!
-                session_initializer = local.SessionInitializer(self.path_to_klifs_download)
+                session_initializer = local._SessionInitializer(self.path_to_klifs_download)
                 self.database = session_initializer.klifs_metadata
 
         else:
