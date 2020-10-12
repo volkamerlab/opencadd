@@ -41,6 +41,8 @@ class Rdkit(_Base):
 
         if filepath.suffix == ".mol2":
             return cls._from_mol2_file(filepath, compute2d)
+        elif filepath.suffix == ".pdb":
+            return cls._from_pdb_file(filepath, compute2d)
         else:
             raise ValueError(f"The {filepath.suffix} format is not supported or invalid.")
 
@@ -113,6 +115,56 @@ class Rdkit(_Base):
         """
 
         mol = Chem.MolFromMol2Block(mol2_text)
+
+        if compute2d:
+            AllChem.Compute2DCoords(mol)
+
+        return mol
+
+    @classmethod
+    def _from_pdb_file(cls, pdb_file, compute2d=True):
+        """
+        Get structural data from pdb file as RDKit molecule.
+
+        Parameters
+        ----------
+        pdb_file : pathlib.Path or str
+            Path to pdb file.
+        compute2d : bool
+            Compute 2D coordinates for ligand (default).
+
+        Returns
+        -------
+        rdkit.Chem.rdchem.Mol
+            Molecule.
+        """
+
+        mol = Chem.MolFromPDBFile(str(pdb_file))
+
+        if compute2d:
+            AllChem.Compute2DCoords(mol)
+
+        return mol
+
+    @classmethod
+    def _from_pdb_text(cls, pdb_text, compute2d=True):
+        """
+        Get structural data from pdb text as RDKit molecule.
+
+        Parameters
+        ----------
+        mol2_text : str
+            Pdb file content from KLIFS database.
+        compute2d : bool
+            Compute 2D coordinates for ligand (default).
+
+        Returns
+        -------
+        rdkit.Chem.rdchem.Mol
+            Molecule.
+        """
+
+        mol = Chem.MolFromPDBBlock(pdb_text)
 
         if compute2d:
             AllChem.Compute2DCoords(mol)
