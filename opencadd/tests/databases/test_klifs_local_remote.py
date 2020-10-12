@@ -205,63 +205,63 @@ class TestsFromKinaseIds:
     """
 
     @pytest.mark.parametrize("kinase_ids", [472, [472, 509], [472, 509, 10000]])
-    def test_from_kinase_ids(self, kinase_ids):
+    def test_by_kinase_ids(self, kinase_ids):
         """
         Test all class methods with kinase IDs as input.
         """
 
         # Kinases
-        result_remote = REMOTE.kinases.from_kinase_ids(kinase_ids)
-        result_local = LOCAL.kinases.from_kinase_ids(kinase_ids)
+        result_remote = REMOTE.kinases.by_kinase_ids(kinase_ids)
+        result_local = LOCAL.kinases.by_kinase_ids(kinase_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["kinases"])
         check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
-        result_remote = REMOTE.ligands.from_kinase_ids(kinase_ids)
-        result_local = LOCAL.ligands.from_kinase_ids(kinase_ids)
+        result_remote = REMOTE.ligands.by_kinase_ids(kinase_ids)
+        result_local = LOCAL.ligands.by_kinase_ids(kinase_ids)
         check_dataframe(result_remote, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
 
         # Structures
-        result_remote = REMOTE.structures.from_kinase_ids(kinase_ids)
-        result_local = LOCAL.structures.from_kinase_ids(kinase_ids)
+        result_remote = REMOTE.structures.by_kinase_ids(kinase_ids)
+        result_local = LOCAL.structures.by_kinase_ids(kinase_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Bioactivities
-        result_remote = REMOTE.bioactivities.from_kinase_ids(kinase_ids)
+        result_remote = REMOTE.bioactivities.by_kinase_ids(kinase_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.bioactivities.from_kinase_ids(kinase_ids)
+            LOCAL.bioactivities.by_kinase_ids(kinase_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
-        result_remote = REMOTE.interactions.from_kinase_ids(kinase_ids)
-        result_local = LOCAL.interactions.from_kinase_ids(kinase_ids)
+        result_remote = REMOTE.interactions.by_kinase_ids(kinase_ids)
+        result_local = LOCAL.interactions.by_kinase_ids(kinase_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
         check_dataframe(result_local, COLUMN_NAMES["interactions"] + ["kinase.id (query)"])
 
     @pytest.mark.parametrize("kinase_ids", [10000, "XXX"])
-    def test_from_kinase_ids_raise(self, kinase_ids):
+    def test_by_kinase_ids_raise(self, kinase_ids):
         """
         Test all class methods with kinase IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.kinases.from_kinase_ids(kinase_ids)
-            REMOTE.ligands.from_kinase_ids(kinase_ids)
-            REMOTE.structures.from_kinase_ids(kinase_ids)
-            REMOTE.bioactivities.from_kinase_ids(kinase_ids)
-            REMOTE.interactions.from_kinase_ids(kinase_ids)
+            REMOTE.kinases.by_kinase_ids(kinase_ids)
+            REMOTE.ligands.by_kinase_ids(kinase_ids)
+            REMOTE.structures.by_kinase_ids(kinase_ids)
+            REMOTE.bioactivities.by_kinase_ids(kinase_ids)
+            REMOTE.interactions.by_kinase_ids(kinase_ids)
 
         with pytest.raises(ValueError):
-            LOCAL.kinases.from_kinase_ids(kinase_ids)
-            LOCAL.ligands.from_kinase_ids(kinase_ids)
-            LOCAL.structures.from_kinase_ids(kinase_ids)
-            LOCAL.interactions.from_kinase_ids(kinase_ids)
+            LOCAL.kinases.by_kinase_ids(kinase_ids)
+            LOCAL.ligands.by_kinase_ids(kinase_ids)
+            LOCAL.structures.by_kinase_ids(kinase_ids)
+            LOCAL.interactions.by_kinase_ids(kinase_ids)
 
 
 class TestsFromLigandIds:
@@ -270,52 +270,52 @@ class TestsFromLigandIds:
     """
 
     @pytest.mark.parametrize("ligand_ids", [10, [10, 20], [10, 20, 10000]])
-    def test_from_ligand_ids(self, ligand_ids):
+    def test_by_ligand_ids(self, ligand_ids):
         """
         Test all class methods with ligand IDs as input.
         """
 
         # Ligands
-        result_remote = REMOTE.ligands.from_ligand_ids(ligand_ids)
+        result_remote = REMOTE.ligands.by_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.ligands.from_ligand_ids(ligand_ids)
+            LOCAL.ligands.by_ligand_ids(ligand_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
 
         # Structures
-        result_remote = REMOTE.structures.from_ligand_ids(ligand_ids)
+        result_remote = REMOTE.structures.by_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.structures.from_ligand_ids(ligand_ids)
+            LOCAL.structures.by_ligand_ids(ligand_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
 
         # Bioactivities
-        result_remote = REMOTE.bioactivities.from_ligand_ids(ligand_ids)
+        result_remote = REMOTE.bioactivities.by_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.bioactivities.from_ligand_ids(ligand_ids)
+            LOCAL.bioactivities.by_ligand_ids(ligand_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
-        result_remote = REMOTE.interactions.from_ligand_ids(ligand_ids)
+        result_remote = REMOTE.interactions.by_ligand_ids(ligand_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.interactions.from_ligand_ids(ligand_ids)
+            LOCAL.interactions.by_ligand_ids(ligand_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
 
     @pytest.mark.parametrize("ligand_ids", [10000, "XXX"])
-    def test_from_ligand_ids_raise(self, ligand_ids):
+    def test_by_ligand_ids_raise(self, ligand_ids):
         """
         Test all class methods with ligand IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.bioactivities.from_ligand_ids(ligand_ids)
-            REMOTE.interactions.from_ligand_ids(ligand_ids)
+            REMOTE.bioactivities.by_ligand_ids(ligand_ids)
+            REMOTE.interactions.by_ligand_ids(ligand_ids)
 
         with pytest.raises(ValueError):
-            REMOTE.ligands.from_ligand_ids(ligand_ids)
-            REMOTE.structures.from_ligand_ids(ligand_ids)
+            REMOTE.ligands.by_ligand_ids(ligand_ids)
+            REMOTE.structures.by_ligand_ids(ligand_ids)
 
 
 class TestsFromStructureIds:
@@ -324,21 +324,21 @@ class TestsFromStructureIds:
     """
 
     @pytest.mark.parametrize("structure_ids", [12347, [12347, 100000]])
-    def test_from_structure_ids(self, structure_ids):
+    def test_by_structure_ids(self, structure_ids):
         """
         Test class methods with structure IDs as input.
         """
 
         # Structures
-        result_remote = REMOTE.structures.from_structure_ids(structure_ids)
-        result_local = LOCAL.structures.from_structure_ids(structure_ids)
+        result_remote = REMOTE.structures.by_structure_ids(structure_ids)
+        result_local = LOCAL.structures.by_structure_ids(structure_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Interactions
-        result_remote = REMOTE.interactions.from_structure_ids(structure_ids)
-        result_local = LOCAL.interactions.from_structure_ids(structure_ids)
+        result_remote = REMOTE.interactions.by_structure_ids(structure_ids)
+        result_local = LOCAL.interactions.by_structure_ids(structure_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
         check_dataframe(result_local, COLUMN_NAMES["interactions"])
@@ -347,8 +347,8 @@ class TestsFromStructureIds:
         if isinstance(structure_ids, int):
             structure_id = structure_ids
 
-            result_remote = REMOTE.pockets.from_structure_id(structure_ids)
-            result_local = LOCAL.pockets.from_structure_id(structure_ids)
+            result_remote = REMOTE.pockets.by_structure_id(structure_ids)
+            result_local = LOCAL.pockets.by_structure_id(structure_ids)
 
             check_dataframe(result_remote, COLUMN_NAMES["pockets"])
             check_dataframe(result_local, COLUMN_NAMES["pockets"])
@@ -356,21 +356,21 @@ class TestsFromStructureIds:
             assert all(result_local == result_remote)
 
     @pytest.mark.parametrize("structure_ids", [100000, "XXX"])
-    def test_from_structure_ids_raise(self, structure_ids):
+    def test_by_structure_ids_raise(self, structure_ids):
         """
         Test class methods with structure IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.structures.from_structure_ids(structure_ids)
-            REMOTE.interactions.from_structure_ids(structure_ids)
+            REMOTE.structures.by_structure_ids(structure_ids)
+            REMOTE.interactions.by_structure_ids(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
-                REMOTE.pockets.from_structure_id(structure_id)
+                REMOTE.pockets.by_structure_id(structure_id)
 
         with pytest.raises(ValueError):
-            LOCAL.structures.from_structure_ids(structure_ids)
-            LOCAL.interactions.from_structure_ids(structure_ids)
+            LOCAL.structures.by_structure_ids(structure_ids)
+            LOCAL.interactions.by_structure_ids(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
 
@@ -383,21 +383,21 @@ class TestsFromKinaseNames:
     @pytest.mark.parametrize(
         "kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)],
     )
-    def test_from_kinase_names(self, kinase_names, species):
+    def test_by_kinase_names(self, kinase_names, species):
         """
         Test class methods with kinase names as input.
         """
 
         # Kinases
-        result_remote = REMOTE.kinases.from_kinase_names(kinase_names, species)
-        result_local = LOCAL.kinases.from_kinase_names(kinase_names, species)
+        result_remote = REMOTE.kinases.by_kinase_names(kinase_names, species)
+        result_local = LOCAL.kinases.by_kinase_names(kinase_names, species)
 
         check_dataframe(result_remote, COLUMN_NAMES["kinases"])
         check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
-        result_remote = REMOTE.ligands.from_kinase_names(kinase_names)
-        result_local = LOCAL.ligands.from_kinase_names(kinase_names)
+        result_remote = REMOTE.ligands.by_kinase_names(kinase_names)
+        result_local = LOCAL.ligands.by_kinase_names(kinase_names)
 
         check_dataframe(
             result_remote,
@@ -410,27 +410,27 @@ class TestsFromKinaseNames:
         )
 
         # Structures
-        result_remote = REMOTE.structures.from_kinase_names(kinase_names)
-        result_local = LOCAL.structures.from_kinase_names(kinase_names)
+        result_remote = REMOTE.structures.by_kinase_names(kinase_names)
+        result_local = LOCAL.structures.by_kinase_names(kinase_names)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("kinase_names, species", [("XXX", None), ("XXX", "XXX")])
-    def test_from_kinase_names_raise(self, kinase_names, species):
+    def test_by_kinase_names_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.kinases.from_kinase_names(kinase_names, species)
-            REMOTE.ligands.from_kinase_names(kinase_names)
+            REMOTE.kinases.by_kinase_names(kinase_names, species)
+            REMOTE.ligands.by_kinase_names(kinase_names)
 
         with pytest.raises(ValueError):
-            REMOTE.structures.from_kinase_names(kinase_names)
-            LOCAL.kinases.from_kinase_names(kinase_names, species)
-            LOCAL.ligands.from_kinase_names(kinase_names)
-            LOCAL.structures.from_kinase_names(kinase_names)
+            REMOTE.structures.by_kinase_names(kinase_names)
+            LOCAL.kinases.by_kinase_names(kinase_names, species)
+            LOCAL.ligands.by_kinase_names(kinase_names)
+            LOCAL.structures.by_kinase_names(kinase_names)
 
 
 class TestsFromLigandPdbs:
@@ -439,36 +439,36 @@ class TestsFromLigandPdbs:
     """
 
     @pytest.mark.parametrize("ligand_pdbs", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
-    def test_from_ligand_pdbs(self, ligand_pdbs):
+    def test_by_ligand_pdbs(self, ligand_pdbs):
         """
         Test class methods with ligand PDB IDs as input.
         """
 
         # Ligands
-        result_remote = REMOTE.ligands.from_ligand_pdbs(ligand_pdbs)
-        result_local = LOCAL.ligands.from_ligand_pdbs(ligand_pdbs)
+        result_remote = REMOTE.ligands.by_ligand_pdbs(ligand_pdbs)
+        result_local = LOCAL.ligands.by_ligand_pdbs(ligand_pdbs)
 
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
         # Structure
-        result_remote = REMOTE.structures.from_ligand_pdbs(ligand_pdbs)
-        result_local = LOCAL.structures.from_ligand_pdbs(ligand_pdbs)
+        result_remote = REMOTE.structures.by_ligand_pdbs(ligand_pdbs)
+        result_local = LOCAL.structures.by_ligand_pdbs(ligand_pdbs)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("ligand_pdbs", [1, "XXX"])
-    def test_from_ligand_pdbs_raise(self, ligand_pdbs):
+    def test_by_ligand_pdbs_raise(self, ligand_pdbs):
         """
         Test class methods with ligand PDB IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(ValueError):
-            REMOTE.ligands.from_ligand_pdbs(ligand_pdbs)
-            REMOTE.structures.from_ligand_pdbs(ligand_pdbs)
-            LOCAL.ligands.from_ligand_pdbs(ligand_pdbs)
-            LOCAL.structures.from_ligand_pdbs(ligand_pdbs)
+            REMOTE.ligands.by_ligand_pdbs(ligand_pdbs)
+            REMOTE.structures.by_ligand_pdbs(ligand_pdbs)
+            LOCAL.ligands.by_ligand_pdbs(ligand_pdbs)
+            LOCAL.structures.by_ligand_pdbs(ligand_pdbs)
 
 
 class TestsFromStructurePdbs:
@@ -477,20 +477,20 @@ class TestsFromStructurePdbs:
     """
 
     @pytest.mark.parametrize("structure_pdbs", ["3sxr", ["3sxr", "1fpu", "xxxx"]])
-    def test_from_structure_pdbs(self, structure_pdbs):
+    def test_by_structure_pdbs(self, structure_pdbs):
         """
         Test class methods with structure PDB IDs as input.
         """
 
         # Structure
-        result_remote = REMOTE.structures.from_structure_pdbs(structure_pdbs)
-        result_local = LOCAL.structures.from_structure_pdbs(structure_pdbs)
+        result_remote = REMOTE.structures.by_structure_pdbs(structure_pdbs)
+        result_local = LOCAL.structures.by_structure_pdbs(structure_pdbs)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("structure_pdbs", [1, "xxxx"])
-    def test_from_structure_pdbs_raise(self, structure_pdbs):
+    def test_by_structure_pdbs_raise(self, structure_pdbs):
         """
         Test class methods with structure PDB IDs as input: Error raised if input invalid?
         """
@@ -499,9 +499,9 @@ class TestsFromStructurePdbs:
         # Note: Integer input raises jsonschema.exceptions.ValidationError,
         # here tested using Exception
         with pytest.raises((SwaggerMappingError, Exception)):
-            REMOTE.structures.from_structure_pdbs(structure_pdbs)
+            REMOTE.structures.by_structure_pdbs(structure_pdbs)
         with pytest.raises(ValueError):
-            LOCAL.structures.from_structure_pdbs(structure_pdbs)
+            LOCAL.structures.by_structure_pdbs(structure_pdbs)
 
 
 class TestsCoordinates:
@@ -618,4 +618,3 @@ class TestsCoordinates:
         """
 
         assert isinstance(rdkit_molecule, Chem.rdchem.Mol)
-

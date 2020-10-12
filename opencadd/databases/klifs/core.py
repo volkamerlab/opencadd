@@ -274,9 +274,9 @@ class KinasesProvider(BaseProvider):
         Get all available kinase groups.
     all_kinases(groups=None, families=None, species=None)
         Get all available kinase names (optional: select kinase group, family and/or species).
-    from_kinase_ids(kinase_ids)
+    by_kinase_ids(kinase_ids)
         Get kinases by one or more kinase IDs.
-    from_kinase_names(kinase_names)
+    by_kinase_names(kinase_names)
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
     Notes
@@ -392,7 +392,7 @@ class KinasesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):  # TODO *kinases_ids
+    def by_kinase_ids(self, kinase_ids):  # TODO *kinases_ids
         """
         Get kinases by one or more kinase IDs.
 
@@ -415,7 +415,7 @@ class KinasesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_names(self, kinase_names, species=None):
+    def by_kinase_names(self, kinase_names, species=None):
         """
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
@@ -450,13 +450,13 @@ class LigandsProvider(BaseProvider):
     -------
     all_ligands()
         Get all available ligands.
-    from_kinase_ids(kinase_ids)
+    by_kinase_ids(kinase_ids)
         Get ligands by one or more kinase IDs.
-    from_kinase_names(kinase_names)
+    by_kinase_names(kinase_names)
         Get ligands by one or more kinase names (KLIFS or HGNC name).
-    from_ligand_ids(ligand_ids)
+    by_ligand_ids(ligand_ids)
         Get ligands by one or more ligand IDs.
-    from_ligand_pdbs(ligand_pdbs)
+    by_ligand_pdbs(ligand_pdbs)
         Get ligands by one or more ligand PDB IDs.
 
     Notes
@@ -504,7 +504,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
         """
         Get ligands by one or more kinase IDs.
 
@@ -527,7 +527,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
         """
         Get ligands by one or more kinase names (KLIFS or HGNC name).
 
@@ -550,7 +550,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
         """
         Get ligands by one or more ligand IDs.
 
@@ -571,7 +571,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
         """
         Get ligands by one or more ligand PDB IDs.
 
@@ -601,17 +601,17 @@ class StructuresProvider(BaseProvider):
     -------
     all_structures()
         Get all available structures.
-    from_structure_ids(structure_ids)
+    by_structure_ids(structure_ids)
         Get structures by one or more structure IDs.
-    from_ligand_ids(ligand_ids)
+    by_ligand_ids(ligand_ids)
         Get structures by one or more ligand IDs.
-    from_kinase_ids(kinase_ids)
+    by_kinase_ids(kinase_ids)
         Get structures by one or more kinase IDs.
-    from_structure_pdbs(structure_pdbs)
+    by_structure_pdbs(structure_pdbs)
         Get structures by one or more structure PDB IDs.
-    from_ligand_pdbs(ligand_pdbs)
+    by_ligand_pdbs(ligand_pdbs)
         Get structures by one or more ligand PDB IDs.
-    from_kinase_names(kinase_names)
+    by_kinase_names(kinase_names)
         Get structures by one or more kinase names (KLIFS or HGNC name).
 
     Notes
@@ -733,7 +733,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
         """
         Get structures by one or more structure IDs.
 
@@ -756,7 +756,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
         """
         Get structures by one or more ligand IDs.
 
@@ -779,7 +779,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
         """
         Get structures by one or more kinase IDs.
 
@@ -802,7 +802,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_structure_pdbs(
+    def by_structure_pdbs(
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
         """
@@ -861,7 +861,7 @@ class StructuresProvider(BaseProvider):
             structures = structures[structures["structure.chain"] == structure_chain]
         return structures
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
         """
         Get structures by one or more ligand PDB IDs.
 
@@ -882,7 +882,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
         """
         Get structures by one or more kinase names (KLIFS or HGNC name).
 
@@ -912,9 +912,9 @@ class BioactivitiesProvider(BaseProvider):
     -------
     all_bioactivities()
         Get all available bioactivities.
-    from_kinase_ids(kinase_ids)
+    by_kinase_ids(kinase_ids)
         Get bioactivities by one or more kinase IDs.
-    from_ligand_ids(ligand_ids)
+    by_ligand_ids(ligand_ids)
         Get bioactivities by one or more ligand IDs.
 
     Notes
@@ -960,7 +960,7 @@ class BioactivitiesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
         """
         Get bioactivities by one or more kinase IDs.
 
@@ -983,7 +983,7 @@ class BioactivitiesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
         """
         Get bioactivities by one or more ligand IDs.
 
@@ -1017,11 +1017,11 @@ class InteractionsProvider(BaseProvider):
         Get all available interaction types.
     all_interactions()
         Get all available interaction fingerprints.
-    from_structure_ids(structure_ids)
+    by_structure_ids(structure_ids)
         Get interactions by one or more structure IDs.
-    from_ligand_ids(ligand_ids)
+    by_ligand_ids(ligand_ids)
         Get interactions by one or more ligand IDs.
-    from_kinase_ids(kinase_ids)
+    by_kinase_ids(kinase_ids)
         Get interactions by one or more kinase IDs.
 
     Notes
@@ -1072,7 +1072,7 @@ class InteractionsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
         """
         Get interactions by one or more structure IDs.
 
@@ -1097,7 +1097,7 @@ class InteractionsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
         """
         Get interactions by one or more ligand IDs.
 
@@ -1120,7 +1120,7 @@ class InteractionsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
         """
         Get interactions by one or more kinase IDs.
 
@@ -1153,7 +1153,7 @@ class PocketsProvider(BaseProvider):
 
     Methods
     -------
-    from_structure_id()
+    by_structure_id()
         Get a structure's residue ID and KLIFS ID by structure ID
         (plus kinase region label for each residue).
 
@@ -1174,7 +1174,7 @@ class PocketsProvider(BaseProvider):
         KLIFS color assigned to pocket residue.
     """
 
-    def from_structure_id(self, structure_id):
+    def by_structure_id(self, structure_id):
         """
         Get a structure's residue ID and KLIFS ID by structure ID
         (plus kinase region label for each residue).
@@ -1236,12 +1236,12 @@ class CoordinatesProvider(BaseProvider):
 
     Methods
     -------
-    from_structure_id(structure_id, entity, extension, output_format, compute2d)
-        Fetch/load structural data from KLIFS server/file.
-    from_file(filepath, output_format, compute2d)
-        Load structural data from KLIFS file (local only).
-    to_file()
-        Save structural data to file (remote only).
+    to_text(structure_id, entity, extension)
+        Load coordinates as text.
+    to_dataframe(structure_id, entity, extension)
+        Load coordinates as DataFrame.
+    to_rdkit(structure_id, entity, extension, compute2d)
+        Load coordinates as RDKit molecule.
 
     Notes
     -----

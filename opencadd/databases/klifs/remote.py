@@ -80,7 +80,7 @@ class Kinases(RemoteInitializer, KinasesProvider):
         )
         return kinases
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API
@@ -95,18 +95,18 @@ class Kinases(RemoteInitializer, KinasesProvider):
         )
         return kinases
 
-    def from_kinase_names(self, kinase_names, species=None):
+    def by_kinase_names(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API (send requests iteratively)
-        kinases = self._multiple_remote_requests(self._from_kinase_name, kinase_names, species)
+        kinases = self._multiple_remote_requests(self._by_kinase_name, kinase_names, species)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
             kinases, COLUMN_NAMES["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
         )
         return kinases
 
-    def _from_kinase_name(self, kinase_name, species=None):
+    def _by_kinase_name(self, kinase_name, species=None):
         """
         Get kinases by kinase name.
 
@@ -159,10 +159,10 @@ class Ligands(RemoteInitializer, LigandsProvider):
         )
         return ligands
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         # Use KLIFS API (send requests iteratively)
-        ligands = self._multiple_remote_requests(self._from_kinase_id, kinase_ids)
+        ligands = self._multiple_remote_requests(self._by_kinase_id, kinase_ids)
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
@@ -171,7 +171,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         )
         return ligands
 
-    def _from_kinase_id(self, kinase_id):
+    def _by_kinase_id(self, kinase_id):
         """
         Get ligands by kinase ID.
 
@@ -198,13 +198,13 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands["kinase.id (query)"] = kinase_id
         return ligands
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
         kinases_remote = Kinases(self._client)
-        kinases = kinases_remote.from_kinase_names(kinase_names)
+        kinases = kinases_remote.by_kinase_names(kinase_names)
         # Select and rename columns to indicate columns involved in query
         kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
         kinases.rename(
@@ -217,12 +217,12 @@ class Ligands(RemoteInitializer, LigandsProvider):
         )
         # Use KLIFS API: Get ligands by kinase IDs
         kinase_ids = kinases["kinase.id (query)"].to_list()
-        ligands = self.from_kinase_ids(kinase_ids)
+        ligands = self.by_kinase_ids(kinase_ids)
         # Add kinase name and species details to rationalize kinase IDs
         ligands = ligands.merge(kinases, on="kinase.id (query)", how="left")
         return ligands
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
 
         ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get all ligands
@@ -235,7 +235,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         )
         return ligands
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
 
         ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Use KLIFS API: Get all ligands
@@ -262,14 +262,14 @@ class Structures(RemoteInitializer, StructuresProvider):
         kinases = kinases_remote.all_kinases()
         # Use KLIFS API: Get all structures from these kinase IDs
         kinase_ids = kinases["kinase.id"].to_list()
-        structures = self.from_kinase_ids(kinase_ids)
+        structures = self.by_kinase_ids(kinase_ids)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
         return structures
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
 
         structure_ids = self._ensure_list(structure_ids)
         # Use KLIFS API
@@ -286,7 +286,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
 
         # TODO in the future: Approach incorrect: One PDB can have multiple IDs
 
@@ -301,17 +301,17 @@ class Structures(RemoteInitializer, StructuresProvider):
         ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get ligand PDB IDs for ligand IDs
         remote_ligands = Ligands(self._client)
-        ligands = remote_ligands.from_ligand_ids(ligand_ids)
+        ligands = remote_ligands.by_ligand_ids(ligand_ids)
         # Use KLIFS API: Get structures from ligand PDBs
         ligand_pdbs = ligands["ligand.pdb"].to_list()
-        structures = self.from_ligand_pdbs(ligand_pdbs)
+        structures = self.by_ligand_pdbs(ligand_pdbs)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
         return structures
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API
@@ -326,7 +326,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def from_structure_pdbs(
+    def by_structure_pdbs(
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
 
@@ -350,7 +350,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
 
         ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Use KLIFS API: Get all structures
@@ -363,7 +363,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get all structures
@@ -396,39 +396,39 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Many ligands do not have bioactivities in ChEMBL,
         # Thus, disable logging messages for this query
         with silence_logging():
-            bioactivities = self.from_ligand_ids(ligand_ids)
+            bioactivities = self.by_ligand_ids(ligand_ids)
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities, COLUMN_NAMES["bioactivities"], REMOTE_COLUMNS_MAPPING["bioactivities"]
         )
         return bioactivities
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API: Get all kinase IDs
         ligands_remote = Ligands(self._client)
-        ligands = ligands_remote.from_kinase_ids(kinase_ids)
+        ligands = ligands_remote.by_kinase_ids(kinase_ids)
         # Use KLIFS API: Get all bioactivities from these ligand IDs
         ligand_ids = ligands["ligand.id"].to_list()
-        bioactivities = self.from_ligand_ids(ligand_ids)
+        bioactivities = self.by_ligand_ids(ligand_ids)
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities, COLUMN_NAMES["bioactivities"], REMOTE_COLUMNS_MAPPING["bioactivities"]
         )
         return bioactivities
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
 
         # Use KLIFS API (send requests iteratively)
-        bioactivities = self._multiple_remote_requests(self._from_ligand_id, ligand_ids)
+        bioactivities = self._multiple_remote_requests(self._by_ligand_id, ligand_ids)
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities, COLUMN_NAMES["bioactivities"], REMOTE_COLUMNS_MAPPING["bioactivities"]
         )
         return bioactivities
 
-    def _from_ligand_id(self, ligand_id):
+    def _by_ligand_id(self, ligand_id):
         """
         Get bioactivities by ligand ID.
 
@@ -486,14 +486,14 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         structures = structures_remote.all_structures()
         # Use KLIFS API: Get all interactions from these structures IDs
         structure_ids = structures["structure.id"].to_list()
-        interactions = self.from_structure_ids(structure_ids)
+        interactions = self.by_structure_ids(structure_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interaction_types"]
         )
         return interactions
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
 
         structure_ids = self._ensure_list(structure_ids)
         # Use KLIFS API
@@ -510,30 +510,30 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         )
         return interactions
 
-    def from_ligand_ids(self, ligand_ids):
+    def by_ligand_ids(self, ligand_ids):
 
         ligand_ids = self._ensure_list(ligand_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self._client)
-        structures = structures_remote.from_ligand_ids(ligand_ids)
+        structures = structures_remote.by_ligand_ids(ligand_ids)
         # Use KLIFS API: Get interactions from these structure IDs
         structure_ids = structures["structure.id"].to_list()
-        interactions = self.from_structure_ids(structure_ids)
+        interactions = self.by_structure_ids(structure_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
         )
         return interactions
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Use KLIFS API: Get structure IDs from ligand IDs
         structures_remote = Structures(self._client)
-        structures = structures_remote.from_kinase_ids(kinase_ids)
+        structures = structures_remote.by_kinase_ids(kinase_ids)
         # Use KLIFS API: Get interactions from these structure IDs
         structure_ids = structures["structure.id"].to_list()
-        interactions = self.from_structure_ids(structure_ids)
+        interactions = self.by_structure_ids(structure_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
@@ -546,7 +546,7 @@ class Pockets(RemoteInitializer, PocketsProvider):
     Extends PocketsProvider to provide remote pocket requests.
     """
 
-    def from_structure_id(self, structure_id):
+    def by_structure_id(self, structure_id):
 
         # Use KLIFS API
         result = (
@@ -715,7 +715,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
 
         # Use KLIFS API: Get structure metadata
         structures_remote = Structures(self._client)
-        metadata = structures_remote.from_structure_ids(structure_id).iloc[0]
+        metadata = structures_remote.by_structure_ids(structure_id).iloc[0]
 
         # Set up output path (metadata in the form of directory structure or file name)
         output_path = metadata_to_filepath(
@@ -759,7 +759,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
 
         # Get pocket residue details: KLIFS and PDB residue IDs
         pockets_remote = Pockets(self._client)
-        pocket = pockets_remote.from_structure_id(structure_id)
+        pocket = pockets_remote.by_structure_id(structure_id)
         # Merge DataFrames
         dataframe = dataframe.merge(pocket, on="residue.id", how="left")
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})

@@ -329,7 +329,7 @@ class SessionInitializer:  # TODO private!!
             klifs_metadata_with_ids["structure.id"].isna()
         ].iterrows():
             # Get IDs from remote
-            structure = remote_structures.from_structure_pdbs(
+            structure = remote_structures.by_structure_pdbs(
                 row["structure.pdb"], row["structure.alternate_model"], row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
@@ -383,7 +383,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases_all"])
         return kinases
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
@@ -393,7 +393,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
-    def from_kinase_names(self, kinase_names, species=None):
+    def by_kinase_names(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
@@ -420,7 +420,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
@@ -435,7 +435,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         )
         return ligands
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
@@ -455,7 +455,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         )
         return ligands
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
 
         ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Get local database and select rows
@@ -480,7 +480,7 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
 
         structure_ids = self._ensure_list(structure_ids)
         # Get local database and select rows
@@ -495,7 +495,7 @@ class Structures(LocalInitializer, StructuresProvider):
 
         return structures
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
@@ -505,7 +505,7 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
-    def from_structure_pdbs(
+    def by_structure_pdbs(
         self, structure_pdbs, structure_alternate_model=None, structure_chain=None
     ):
 
@@ -522,7 +522,7 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
-    def from_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdbs(self, ligand_pdbs):
 
         ligand_pdbs = self._ensure_list(ligand_pdbs)
         # Get local database and select rows
@@ -532,7 +532,7 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
         return structures
 
-    def from_kinase_names(self, kinase_names):
+    def by_kinase_names(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
@@ -571,7 +571,7 @@ class Interactions(LocalInitializer, InteractionsProvider):  # TODO check if ord
         interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
-    def from_structure_ids(self, structure_ids):
+    def by_structure_ids(self, structure_ids):
 
         structure_ids = self._ensure_list(structure_ids)
         # Get local database and select rows
@@ -581,7 +581,7 @@ class Interactions(LocalInitializer, InteractionsProvider):  # TODO check if ord
         interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
         return interactions
 
-    def from_kinase_ids(self, kinase_ids):
+    def by_kinase_ids(self, kinase_ids):
 
         kinase_ids = self._ensure_list(kinase_ids)
         # Get local database and select rows
@@ -605,11 +605,11 @@ class Pockets(LocalInitializer, PocketsProvider):
     """
 
     # TODO from_xxx implies a classmethod? # def by_structure_id()
-    def from_structure_id(self, structure_id):
+    def by_structure_id(self, structure_id):
 
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
-        structure = structures_local.from_structure_ids(structure_id).squeeze()
+        structure = structures_local.by_structure_ids(structure_id).squeeze()
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
             index
@@ -698,7 +698,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             structure_id = structure_id_or_filepath
             # Get structure by structure ID
             structures_local = Structures(self._database, self._path_to_klifs_download)
-            structure = structures_local.from_structure_ids(structure_id).squeeze()
+            structure = structures_local.by_structure_ids(structure_id).squeeze()
             # Get filepath from metadata
             filepath = metadata_to_filepath(
                 self._path_to_klifs_download,
@@ -733,7 +733,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
         # Get structure ID from file path
         metadata = filepath_to_metadata(filepath)
         structures_local = Structures(self._database, self._path_to_klifs_download)
-        structure = structures_local.from_structure_pdbs(
+        structure = structures_local.by_structure_pdbs(
             metadata["structure_pdb"],
             metadata["structure_alternate_model"],
             metadata["structure_chain"],
@@ -742,7 +742,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
         # Get pocket
         pockets_local = Pockets(self._database, self._path_to_klifs_download)
-        mol2_df_pocket = pockets_local.from_structure_id(structure_id)
+        mol2_df_pocket = pockets_local.by_structure_id(structure_id)
 
         # Merge pocket DataFrame with input DataFrame
         mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.id", how="left")
