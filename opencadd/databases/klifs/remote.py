@@ -43,7 +43,8 @@ class RemoteInitializer:
 class Kinases(RemoteInitializer, KinasesProvider):
     """
     Extends KinasesProvider to provide remote kinases requests.
-    Refer to KinasesProvider documentation for more information.
+    Refer to KinasesProvider documentation for more information:
+    opencadd.databases.klifs.core.KinasesProvider
     """
 
     def all_kinase_groups(self):
@@ -140,7 +141,8 @@ class Kinases(RemoteInitializer, KinasesProvider):
 class Ligands(RemoteInitializer, LigandsProvider):
     """
     Extends LigandsProvider to provide remote ligands requests.
-    Refer to LigandsProvider documentation for more information.
+    Refer to LigandsProvider documentation for more information:
+    opencadd.databases.klifs.core.LigandsProvider
     """
 
     def all_ligands(self):
@@ -252,7 +254,8 @@ class Ligands(RemoteInitializer, LigandsProvider):
 class Structures(RemoteInitializer, StructuresProvider):
     """
     Extends StructuresProvider to provide remote structures requests.
-    Refer to StructuresProvider documentation for more information.
+    Refer to StructuresProvider documentation for more information:
+    opencadd.databases.klifs.core.StructuresProvider
     """
 
     def all_structures(self):
@@ -380,7 +383,8 @@ class Structures(RemoteInitializer, StructuresProvider):
 class Bioactivities(RemoteInitializer, BioactivitiesProvider):
     """
     Extends BioactivitiesProvider to provide remote bioactivities requests.
-    Refer to BioactivitiesProvider documentation for more information.
+    Refer to BioactivitiesProvider documentation for more information:
+    opencadd.databases.klifs.core.BioactivitiesProvider
     """
 
     def all_bioactivities(self, _top_n=None):
@@ -461,7 +465,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
 class Interactions(RemoteInitializer, InteractionsProvider):
     """
     Extends InteractionsProvider to provide remote kinases requests.
-    Refer to InteractionsProvider documentation for more information.
+    Refer to InteractionsProvider documentation for more information:
+    opencadd.databases.klifs.core.InteractionsProvider
     """
 
     @property
@@ -544,6 +549,8 @@ class Interactions(RemoteInitializer, InteractionsProvider):
 class Pockets(RemoteInitializer, PocketsProvider):
     """
     Extends PocketsProvider to provide remote pocket requests.
+    Refer to PocketsProvider documentation for more information:
+    opencadd.databases.klifs.core.PocketsProvider
     """
 
     def by_structure_id(self, structure_id):
@@ -569,6 +576,8 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide remote coordinates requests,
     i.e. fetching and saving structural data (coordinates).
+    Refer to CoordinatesProvider documentation for more information:
+    opencadd.databases.klifs.core.CoordinatesProvider
     """
 
     def to_text(self, structure_id, entity="complex", extension="mol2"):

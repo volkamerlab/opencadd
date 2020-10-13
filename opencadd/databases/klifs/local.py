@@ -356,7 +356,8 @@ class _LocalDatabaseGenerator:
 class Kinases(LocalInitializer, KinasesProvider):
     """
     Extends KinasesProvider to provide local kinases requests.
-    Refer to KinasesProvider documentation for more information.
+    Refer to KinasesProvider documentation for more information:
+    opencadd.databases.klifs.core.KinasesProvider
     """
 
     def all_kinase_groups(self):
@@ -419,7 +420,8 @@ class Kinases(LocalInitializer, KinasesProvider):
 class Ligands(LocalInitializer, LigandsProvider):
     """
     Extends LigandsProvider to provide local ligands requests.
-    Refer to LigandsProvider documentation for more information.
+    Refer to LigandsProvider documentation for more information:
+    opencadd.databases.klifs.core.LigandsProvider
     """
 
     def all_ligands(self):
@@ -480,7 +482,8 @@ class Ligands(LocalInitializer, LigandsProvider):
 class Structures(LocalInitializer, StructuresProvider):
     """
     Extends StructuresProvider to provide local structures requests.
-    Refer to StructuresProvider documentation for more information.
+    Refer to StructuresProvider documentation for more information:
+    opencadd.databases.klifs.core.StructuresProvider
     """
 
     def all_structures(self):
@@ -564,14 +567,16 @@ class Structures(LocalInitializer, StructuresProvider):
 class Bioactivities(LocalInitializer, BioactivitiesProvider):
     """
     Extends BioactivitiesProvider to provide local bioactivities requests.
-    Refer to BioactivitiesProvider documentation for more information.
+    Refer to BioactivitiesProvider documentation for more information:
+    opencadd.databases.klifs.core.BioactivitiesProvider
     """
 
 
 class Interactions(LocalInitializer, InteractionsProvider):
     """
     Extends InteractionsProvider to provide local kinases requests.
-    Refer to InteractionsProvider documentation for more information.
+    Refer to InteractionsProvider documentation for more information:
+    opencadd.databases.klifs.core.InteractionsProvider
     """
 
     def all_interactions(self):
@@ -612,7 +617,8 @@ class Interactions(LocalInitializer, InteractionsProvider):
 class Pockets(LocalInitializer, PocketsProvider):
     """
     Extends PocketsProvider to provide local pocket requests.
-    Refer to PocketsProvider documentation for more information.
+    Refer to PocketsProvider documentation for more information:
+    opencadd.databases.klifs.core.PocketsProvider
     """
 
     def by_structure_id(self, structure_id):
