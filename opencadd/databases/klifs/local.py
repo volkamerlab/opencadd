@@ -673,6 +673,8 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     """
     Extends CoordinatesProvider to provide local coordinates requests,
     i.e. loading structural data (coordinates).
+    Refer to CoordinatesProvider documentation for more information:
+    opencadd.databases.klifs.core.CoordinatesProvider
     """
 
     def to_dataframe(self, structure_id_or_filepath, entity="complex", extension="mol2"):
