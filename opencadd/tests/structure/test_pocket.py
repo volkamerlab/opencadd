@@ -4,40 +4,30 @@ Tests for opencadd.structure.pocket.core
 
 from pathlib import Path
 
-from bravado.client import SwaggerClient
 import pandas as pd
 import pytest
 
-from opencadd.io.dataframe import DataFrame
-from opencadd.structure.pocket.core import Base
-from opencadd.structure.pocket.pocket import Pocket
+from opencadd.structure.pocket.core import Pocket
 from opencadd.structure.pocket.subpocket import AnchorResidue
+from opencadd.structure.pocket.utils import _format_residue_ids_and_labels
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/pocket"
 
 
-class TestsBase:
-    """
-    Test Base class methods.
-    """
+@pytest.mark.parametrize(
+    "residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted",
+    [
+        ([1, 2, 3], [1, 2, 3], ["1", "2", "3"], ["1", "2", "3"]),
+        ([1, 2], None, ["1", "2"], [None, None]),
+    ],
+)
+def test_format_residue_ids_and_labels(
+    residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted
+):
 
-    @pytest.mark.parametrize(
-        "residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted",
-        [
-            ([1, 2, 3], [1, 2, 3], ["1", "2", "3"], ["1", "2", "3"]),
-            ([1, 2], None, ["1", "2"], [None, None]),
-        ],
-    )
-    def test_format_residue_ids_and_labels(
-        self, residue_ids, residue_labels, residue_ids_formatted, residue_labels_formatted
-    ):
-
-        base = Base()
-        residue_ids, residue_labels = base._format_residue_ids_and_labels(
-            residue_ids, residue_labels
-        )
-        assert residue_ids == residue_ids_formatted
-        assert residue_labels == residue_labels_formatted
+    residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
+    assert residue_ids == residue_ids_formatted
+    assert residue_labels == residue_labels_formatted
 
 
 class TestsAnchorResidue:
@@ -70,8 +60,7 @@ class TestsAnchorResidue:
             }
         )
 
-        residue = AnchorResidue()
-        residue.from_dataframe(dataframe, residue_id)
+        residue = AnchorResidue.from_dataframe(dataframe, residue_id)
 
         assert residue.id_alternative == residue_id_alternative
         if residue_center:

@@ -6,10 +6,10 @@ Defines pocket regions.
 
 import pandas as pd
 
-from .core import Base
+from .utils import _format_residue_ids_and_labels
 
 
-class Region(Base):
+class Region:
     """
     Class defining a region.
 
@@ -20,7 +20,7 @@ class Region(Base):
     color : str
         Region color (matplotlib name).
     residue_ids : list of (int, str)
-        List of residue PDB IDs defining the region.
+        List of residue IDs defining the region.
     residue_labels : list of (int, str)
         List of residue labels.
     """
@@ -44,7 +44,7 @@ class Region(Base):
         name : str
             Region name.
         residue_ids : list of (int, str)
-            List of residue PDB IDs defining the region.
+            List of residue IDs defining the region.
         color : str
             Region color (matplotlib name), blue by default
         residue_labels : list of (int, str) or None
@@ -54,10 +54,8 @@ class Region(Base):
         self.name = name
         self.color = color
 
-        # Format residue PDB IDs and labels
-        residue_ids, residue_labels = self._format_residue_ids_and_labels(
-            residue_ids, residue_labels
-        )
+        # Format residue IDs and labels
+        residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
 
         # Add residue labels to dataframe
         residue_labels_df = pd.DataFrame(
@@ -65,7 +63,7 @@ class Region(Base):
         )
         dataframe = dataframe.merge(residue_labels_df, on="residue.id", how="left")
 
-        # Keep only existing residue PDB IDs
+        # Keep only existing residue IDs
         residues = dataframe[["residue.id", "residue.label"]].drop_duplicates()
         residues.reset_index(drop=True, inplace=True)
         residues = residues[residues["residue.id"].isin(residue_ids)]

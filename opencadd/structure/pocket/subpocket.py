@@ -7,10 +7,10 @@ Defines subpockets.
 import numpy as np
 import pandas as pd
 
-from .core import Base
+from .utils import _format_residue_ids_and_labels
 
 
-class Subpocket(Base):
+class Subpocket:
     """
     Class defining a subpocket.
 
@@ -39,7 +39,7 @@ class Subpocket(Base):
         """
         Return anchor residue data as DataFrame:
         - Subpocket name and color
-        - Anchor residue PDB IDs (user-defined input IDs or alternative
+        - Anchor residue IDs (user-defined input IDs or alternative
           IDs if input was not available)
         - Anchor residue labels
         - Ahe anchor residue centers (coordinates)
@@ -59,12 +59,12 @@ class Subpocket(Base):
 
         return anchor_residues_df
 
-    # TODO classmethod
+    @classmethod
     def from_dataframe(
-        self, dataframe, name, anchor_residue_ids, color="blue", anchor_residue_labels=None
+        cls, dataframe, name, anchor_residue_ids, color="blue", anchor_residue_labels=None
     ):
         """
-        Set subpocket properties.
+        Initialize a Subpocket object from a DataFrame.
 
         Parameters
         ----------
@@ -74,53 +74,59 @@ class Subpocket(Base):
         name : str
             Subpocket name.
         anchor_residue_ids : list of (int, str)
-            List of anchor residue PDB IDs.
+            List of anchor residue IDs.
         color : str
             Subpocket color (matplotlib name), blue by default.
         anchor_residue_labels : list of (int, str) or None
             List of anchor residue labels. Must be of same length as residue_ids.
+
+        Returns
+        -------
+        opencadd.structure.pocket.subpocket.Subpocket
+            Subpocket object.
         """
 
-        # Format residue PDB IDs and labels
-        anchor_residue_ids, anchor_residue_labels = self._format_residue_ids_and_labels(
+        # Format residue IDs and labels
+        anchor_residue_ids, anchor_residue_labels = _format_residue_ids_and_labels(
             anchor_residue_ids, anchor_residue_labels
         )
 
+        # Get list of AnchorResidue objects
         anchor_residues = []
-
         for residue_id, residue_label in zip(anchor_residue_ids, anchor_residue_labels):
-
-            residue = AnchorResidue()
-            residue.from_dataframe(dataframe, residue_id, residue_label, color)
+            residue = AnchorResidue.from_dataframe(dataframe, residue_id, color, residue_label)
             anchor_residues.append(residue)
 
-        # TODO subpocket = cls()
-        # subpocket._from_anchor_residues
+        subpocket = cls.from_anchor_residues(anchor_residues, name, color)
+        return subpocket
 
-        self._from_anchor_residues(name, anchor_residues, color)
-
-    def _from_anchor_residues(
-        self, name, anchor_residues, color="blue"
-    ):  # TODO see above (my __init__)
+    @classmethod
+    def from_anchor_residues(cls, anchor_residues, name, color="blue"):
         """
-        Set subpocket from given anchor residues.
+        Initialize a Subpocket object from a list of anchor residues.
 
         Parameters
         ----------
-        name : str
-            Subpocket name.
         anchor_residues : list of Residue
             List of anchor residues.
+        name : str
+            Subpocket name.
         color : str
             Subpocket color (matplotlib name), blue by default.
+
+        Returns
+        -------
+        opencadd.structure.pocket.subpocket.Subpocket
+            Subpocket object.
         """
 
-        self.name = name
-        self._anchor_residues = anchor_residues
-        self.color = color
+        subpocket = cls()
+        subpocket.name = name
+        subpocket._anchor_residues = anchor_residues
+        subpocket.color = color
+        subpocket.center = subpocket._centroid()
 
-        # Calculate subpocket center
-        self.center = self._centroid()
+        return subpocket
 
     def _centroid(self):
         """
@@ -149,18 +155,18 @@ class Subpocket(Base):
             return subpocket_center
 
 
-class AnchorResidue(Base):
+class AnchorResidue:
     """
     Class defining an anchor residue.
 
     Attributes
     ----------
     id : str
-        Residue PDB ID.
+        Residue ID.
     id_alternative : list of str
-        Alternative residue PDB ID(s) in case input PDB ID not available.
+        Alternative residue ID(s) in case input ID not available.
     label : str
-        Residue label, e.g. some non-PDB ID.
+        Residue label.
     color : str
         Residue color (matplotlib name).
     center : numpy.array
@@ -175,8 +181,8 @@ class AnchorResidue(Base):
         self.color = None
         self.center = None
 
-    # TODO classmethod
-    def from_dataframe(self, dataframe, residue_id, color="blue", residue_label=None):
+    @classmethod
+    def from_dataframe(cls, dataframe, residue_id, color="blue", residue_label=None):
         """
         Set residue properties.
 
@@ -186,36 +192,40 @@ class AnchorResidue(Base):
             Structural data with the following mandatory columns:
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
         residue_id : str
-            Residue PDB ID.
+            Residue ID.
         color : str
             Residue color (matplotlib name), blue by default.
         residue_label : str
-            Residue label, e.g. some non-PDB ID (default None).
+            Residue label (default None).
         """
+
+        anchor_residue = cls()
 
         # Set class attributes
         if isinstance(residue_id, int):
             residue_id = str(residue_id)
 
-        self.id = residue_id
-        self.label = residue_label
-        self.color = color
+        anchor_residue.id = residue_id
+        anchor_residue.label = residue_label
+        anchor_residue.color = color
 
-        # Select atom from residue PDB ID and atom name
-        atom = self._ca_atom(dataframe)
+        # Select atom from residue ID and atom name
+        atom = anchor_residue._ca_atom(dataframe)
 
-        # If residue PDB ID exists, get atom coordinates.
+        # If residue ID exists, get atom coordinates.
         if atom is not None:
-            self.center = atom[["atom.x", "atom.y", "atom.z"]].squeeze().to_numpy()
+            anchor_residue.center = atom[["atom.x", "atom.y", "atom.z"]].squeeze().to_numpy()
 
         # If not, get atom coordinates for residue before/after.
         else:
-            atoms = self._ca_atom_before_after(dataframe)
+            atoms = anchor_residue._ca_atom_before_after(dataframe)
             if atoms is not None:
-                self.id_alternative = atoms["residue.id"].to_list()
-                self.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+                anchor_residue.id_alternative = atoms["residue.id"].to_list()
+                anchor_residue.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
             else:
-                self.center = None
+                anchor_residue.center = None
+
+        return anchor_residue
 
     def _ca_atom(self, dataframe):
         """
