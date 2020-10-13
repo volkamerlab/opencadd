@@ -318,7 +318,7 @@ class DataFrame(_Base):
 
             if column_name not in dataframe.columns:
 
-                if column_dtype == "object":
+                if column_dtype == "string":
                     dataframe.insert(len(dataframe.columns), column_name, None)
                 elif column_dtype == "float32":
                     dataframe.insert(len(dataframe.columns), column_name, np.nan)
