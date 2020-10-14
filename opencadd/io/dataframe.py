@@ -233,7 +233,8 @@ class DataFrame(_Base):
         """
 
         result = mol2_df.apply(
-            lambda x: cls._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]), axis=1,
+            lambda x: cls._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]),
+            axis=1,
         )
         res_names = [res_name for res_name, res_id in result]
         res_ids = [res_id for res_name, res_id in result]

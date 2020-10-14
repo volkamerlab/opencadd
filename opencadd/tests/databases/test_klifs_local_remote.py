@@ -64,7 +64,8 @@ class TestsAllQueries:
         assert sorted(result_local["kinase.group"].to_list()) == ["TK", "TKL"]
 
     @pytest.mark.parametrize(
-        "group, local_families", [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
+        "group, local_families",
+        [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
     )
     def test_all_kinase_families(self, group, local_families):
         """
@@ -120,7 +121,8 @@ class TestsAllQueries:
         # since too many and may vary if structures are added to KLIFS.
 
     @pytest.mark.parametrize(
-        "group, family, species", [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
+        "group, family, species",
+        [("XXX", None, None), (None, "XXX", None), ("XXX", None, "XXX")],
     )
     def test_all_kinases_raise(self, group, family, species):
         """
@@ -381,7 +383,8 @@ class TestsFromKinaseNames:
     """
 
     @pytest.mark.parametrize(
-        "kinase_names, species", [("BMX", None), (["BMX", "BRAF"], None)],
+        "kinase_names, species",
+        [("BMX", None), (["BMX", "BRAF"], None)],
     )
     def test_by_kinase_names(self, kinase_names, species):
         """
@@ -402,11 +405,19 @@ class TestsFromKinaseNames:
         check_dataframe(
             result_remote,
             COLUMN_NAMES["ligands"]
-            + ["kinase.id (query)", "kinase.name (query)", "species.klifs (query)",],
+            + [
+                "kinase.id (query)",
+                "kinase.name (query)",
+                "species.klifs (query)",
+            ],
         )
         check_dataframe(
             result_local,
-            COLUMN_NAMES["ligands"] + ["kinase.name (query)", "species.klifs (query)",],
+            COLUMN_NAMES["ligands"]
+            + [
+                "kinase.name (query)",
+                "species.klifs (query)",
+            ],
         )
 
         # Structures
@@ -543,11 +554,12 @@ class TestsCoordinates:
                 assert filepath.exists()
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension", [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
+        "structure_id, entity, extension",
+        [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
     )
     def test_remote_raise(self, structure_id, entity, extension):
         """
-        Test remote retrieval of coordinates data from structure ID: 
+        Test remote retrieval of coordinates data from structure ID:
         Error raised if input invalid?
         """
 
@@ -571,8 +583,8 @@ class TestsCoordinates:
     def test_local(self, structure_id, entity, extension, n_atoms, centroid):
         """
         Test local retrieval of coordinates data from structure ID.
-        Coordinates can also be loaded locally from file, which is not tested individually, since 
-        loading from structure ID means (1) convert structure ID > filepath and (2) load 
+        Coordinates can also be loaded locally from file, which is not tested individually, since
+        loading from structure ID means (1) convert structure ID > filepath and (2) load
         coordinates from file.
         """
 
@@ -586,11 +598,12 @@ class TestsCoordinates:
             self._test_to_rdkit(rdkit_molecule)
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension", [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
+        "structure_id, entity, extension",
+        [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
     )
     def test_local_raise(self, structure_id, entity, extension):
         """
-        Test local retrieval of coordinates data from structure ID or file: 
+        Test local retrieval of coordinates data from structure ID or file:
         Error raised if input invalid?
         """
 

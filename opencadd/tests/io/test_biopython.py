@@ -18,7 +18,8 @@ class TestsBiopython:
     """
 
     @pytest.mark.parametrize(
-        "filepath", [PATH_TEST_DATA / "2itz.pdb"],
+        "filepath",
+        [PATH_TEST_DATA / "2itz.pdb"],
     )
     def test_from_file(self, filepath):
         """
@@ -29,7 +30,8 @@ class TestsBiopython:
         self._biopython_format_tests(biopython_structure)
 
     @pytest.mark.parametrize(
-        "filepath", [PATH_TEST_DATA / "2itz_chainA_protein.mol2"],
+        "filepath",
+        [PATH_TEST_DATA / "2itz_chainA_protein.mol2"],
     )
     def test_from_file_raises(self, filepath):
         """

@@ -119,7 +119,7 @@ class _LocalDatabaseGenerator:
 
     def _from_klifs_export_file(self, klifs_export_path):
         """
-        Read KLIFS_export.csv file from KLIFS database download as DataFrame and unify format with 
+        Read KLIFS_export.csv file from KLIFS database download as DataFrame and unify format with
         overview.csv format.
 
         Parameters
@@ -137,7 +137,8 @@ class _LocalDatabaseGenerator:
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_export"], inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_export"],
+            inplace=True,
         )
 
         # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
@@ -152,7 +153,7 @@ class _LocalDatabaseGenerator:
     @staticmethod
     def _from_klifs_overview_file(klifs_overview_path):
         """
-        Read overview.csv file from KLIFS database download as DataFrame and unify format with 
+        Read overview.csv file from KLIFS database download as DataFrame and unify format with
         KLIFS_export.csv format.
 
         Parameters
@@ -170,7 +171,8 @@ class _LocalDatabaseGenerator:
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"], inplace=True,
+            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"],
+            inplace=True,
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
@@ -183,7 +185,7 @@ class _LocalDatabaseGenerator:
     @staticmethod
     def _format_kinase_name(kinase_name):
         """
-        Format kinase name(s): One or multiple kinase names (additional names in brackets) are 
+        Format kinase name(s): One or multiple kinase names (additional names in brackets) are
         formatted to list of kinase names.
 
         Examples:
@@ -211,7 +213,7 @@ class _LocalDatabaseGenerator:
     @staticmethod
     def _merge_files(klifs_export, klifs_overview):
         """
-        Merge data contained in overview.csv and KLIFS_export.csv files from KLIFS database 
+        Merge data contained in overview.csv and KLIFS_export.csv files from KLIFS database
         download.
 
         Parameters
@@ -340,7 +342,9 @@ class _LocalDatabaseGenerator:
         ].iterrows():
             # Get IDs from remote
             structure = remote_structures.by_structure_pdbs(
-                row["structure.pdb"], row["structure.alternate_model"], row["structure.chain"],
+                row["structure.pdb"],
+                row["structure.alternate_model"],
+                row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
             kinase_id = structure["kinase.id"][0]
@@ -439,12 +443,18 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = self._database.copy()
         ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
         # Standardize DataFrame
-        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"] + ["kinase.id"],)
+        ligands = self._standardize_dataframe(
+            ligands,
+            COLUMN_NAMES["ligands"] + ["kinase.id"],
+        )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
         # https://github.com/pandas-dev/pandas/issues/2485#issuecomment-608227532
         ligands.rename(
-            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
+            columns={
+                "kinase.id": "kinase.id (query)",
+            },
+            inplace=True,
         )
         return ligands
 
@@ -475,7 +485,10 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = self._database.copy()
         ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
         # Standardize DataFrame
-        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"],)
+        ligands = self._standardize_dataframe(
+            ligands,
+            COLUMN_NAMES["ligands"],
+        )
         return ligands
 
 
@@ -491,7 +504,10 @@ class Structures(LocalInitializer, StructuresProvider):
         # Get local database
         structures = self._database.copy()
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         return structures
 
     def by_structure_ids(self, structure_ids):
@@ -501,7 +517,10 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._database.copy()
         structures = structures[structures["structure.id"].isin(structure_ids)]
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_ids) == 1:
             if len(structures) != 1:
@@ -516,7 +535,10 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._database.copy()
         structures = structures[structures["kinase.id"].isin(kinase_ids)]
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         return structures
 
     def by_structure_pdbs(
@@ -533,7 +555,10 @@ class Structures(LocalInitializer, StructuresProvider):
                 structures, structure_alternate_model, structure_chain
             )
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         return structures
 
     def by_ligand_pdbs(self, ligand_pdbs):
@@ -543,7 +568,10 @@ class Structures(LocalInitializer, StructuresProvider):
         structures = self._database.copy()
         structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         return structures
 
     def by_kinase_names(self, kinase_names):
@@ -560,7 +588,10 @@ class Structures(LocalInitializer, StructuresProvider):
             )
         ]
         # Standardize DataFrame
-        structures = self._standardize_dataframe(structures, COLUMN_NAMES["structures"],)
+        structures = self._standardize_dataframe(
+            structures,
+            COLUMN_NAMES["structures"],
+        )
         return structures
 
 
@@ -584,7 +615,10 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Get local database
         interactions = self._database.copy()
         # Standardize DataFrame
-        interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
+        interactions = self._standardize_dataframe(
+            interactions,
+            COLUMN_NAMES["interactions"],
+        )
         return interactions
 
     def by_structure_ids(self, structure_ids):
@@ -594,7 +628,10 @@ class Interactions(LocalInitializer, InteractionsProvider):
         interactions = self._database.copy()
         interactions = interactions[interactions["structure.id"].isin(structure_ids)]
         # Standardize DataFrame
-        interactions = self._standardize_dataframe(interactions, COLUMN_NAMES["interactions"],)
+        interactions = self._standardize_dataframe(
+            interactions,
+            COLUMN_NAMES["interactions"],
+        )
         return interactions
 
     def by_kinase_ids(self, kinase_ids):
@@ -605,11 +642,15 @@ class Interactions(LocalInitializer, InteractionsProvider):
         interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
-            interactions, COLUMN_NAMES["interactions"] + ["kinase.id"],
+            interactions,
+            COLUMN_NAMES["interactions"] + ["kinase.id"],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
-            columns={"kinase.id": "kinase.id (query)",}, inplace=True,
+            columns={
+                "kinase.id": "kinase.id (query)",
+            },
+            inplace=True,
         )
         return interactions
 
@@ -662,7 +703,10 @@ class Pockets(LocalInitializer, PocketsProvider):
         mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
 
         # Standardize DataFrame
-        mol2_df = self._standardize_dataframe(mol2_df, COLUMN_NAMES["pockets"],)
+        mol2_df = self._standardize_dataframe(
+            mol2_df,
+            COLUMN_NAMES["pockets"],
+        )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
         mol2_df = self._add_klifs_region_details(mol2_df)
 
@@ -694,7 +738,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
     def _to_filepath(self, structure_id_or_filepath, entity, extension):
         """
-        If the input is a structure ID, return the associated filepath. 
+        If the input is a structure ID, return the associated filepath.
         If the input is a filepath already, return that filepath.
 
         Parameters

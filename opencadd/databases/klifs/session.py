@@ -113,7 +113,7 @@ class Session:
     def _set_attributes(self, backend, path_to_klifs_download=None, database=None, client=None):
         """
         Set attributes using a backend (i.e. the local or remote module).
-        
+
         Parameters
         ----------
         backend : opencadd.databases.klifs.local or opencadd.databases.klifs.remote
@@ -131,23 +131,37 @@ class Session:
         self.path_to_klifs_download = path_to_klifs_download
 
         self.kinases = backend.Kinases(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.ligands = backend.Ligands(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.structures = backend.Structures(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.bioactivities = backend.Bioactivities(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.interactions = backend.Interactions(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.pockets = backend.Pockets(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )
         self.coordinates = backend.Coordinates(
-            client=client, database=database, path_to_klifs_download=path_to_klifs_download,
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
         )

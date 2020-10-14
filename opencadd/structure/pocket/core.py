@@ -225,7 +225,11 @@ class Pocket:
         return centroid
 
     def add_subpocket(
-        self, name, anchor_residue_ids, color="blue", anchor_residue_labels=None,
+        self,
+        name,
+        anchor_residue_ids,
+        color="blue",
+        anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue IDs.

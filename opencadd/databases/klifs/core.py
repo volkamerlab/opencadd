@@ -21,9 +21,6 @@ class BaseProvider:
     Base class for KLIFS requests (local and remote).
     """
 
-    # def __init__(self, *args, **kwargs):
-    #    raise NotImplementedError("Implement in your subclass!")
-
     @staticmethod
     def _ensure_list(value):
         """
@@ -44,7 +41,7 @@ class BaseProvider:
     def _abc_to_dataframe(abc_object):
         """
         Transform ABC object into a DataFrame (needed for KLIFS API results).
-        Note: These ABC objects are bravado wrappers for KLIFS responses. 
+        Note: These ABC objects are bravado wrappers for KLIFS responses.
 
         Parameters
         ----------
@@ -72,7 +69,7 @@ class BaseProvider:
     @staticmethod
     def _map_old_to_new_column_names(dataframe, columns_mapping=None):
         """
-        Rename column names that are returned from local or remote queries (old column names) 
+        Rename column names that are returned from local or remote queries (old column names)
         into standardized column names to be used in this module (new column names).
 
         Parameters
@@ -121,14 +118,14 @@ class BaseProvider:
     @staticmethod
     def _standardize_column_values(dataframe):
         """
-        Standardize column values to be consistent across local and remote return/response values. 
+        Standardize column values to be consistent across local and remote return/response values.
         Mainly, this concerns the notation of missing values (0, "-", "", ...).
 
         Parameters
         ----------
         dataframe : pandas.DataFrame
             KLIFS data.
-        
+
         Returns
         -------
         pandas.DataFrame
@@ -157,10 +154,10 @@ class BaseProvider:
 
     def _standardize_dataframe(self, dataframe, column_names, columns_mapping=None):
         """
-        Standardize a DataFrame across local and remote query results. 
-        - Map old to new column names (applied to remote data only, local data is standardized upon 
+        Standardize a DataFrame across local and remote query results.
+        - Map old to new column names (applied to remote data only, local data is standardized upon
           session initialization already).
-        - Add missing columns (if a column is missing in remote data, add empty column to local 
+        - Add missing columns (if a column is missing in remote data, add empty column to local
           data - and vice versa).
         - Standardize column values (applies mostly to missing value notations).
         - Select and sort column names.
@@ -384,7 +381,7 @@ class KinasesProvider(BaseProvider):
 
         Raises
         ------
-        bravado_core.exception.SwaggerMappingError  
+        bravado_core.exception.SwaggerMappingError
             Remote module: If group or family or species do not exist
             # TODO in the future: use ValueError instead but keep the original message
         ValueError
@@ -1205,7 +1202,7 @@ class PocketsProvider(BaseProvider):
         ----------
         pandas.DataFrame
             Pocket data.
-        
+
         Returns
         -------
         pandas.DataFrame
@@ -1298,11 +1295,11 @@ class CoordinatesProvider(BaseProvider):
             In the remote module, this parameter is called "structure_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
 
         Returns
@@ -1326,11 +1323,11 @@ class CoordinatesProvider(BaseProvider):
             In the remote module, this parameter is called "structure_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
 
         Raises
@@ -1356,11 +1353,11 @@ class CoordinatesProvider(BaseProvider):
             In the remote module, this parameter is called "structure_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this 
+            In the local module, when a filepath is passed to "structure_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
