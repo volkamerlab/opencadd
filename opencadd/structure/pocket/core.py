@@ -27,19 +27,23 @@ class Pocket:
 
     Attributes
     ----------
-    filepath : str or pathlib.Path
-        File path to structural protein data.
-    data : pandas.DataFrame
-        Structural protein data with the following mandatory columns:
-        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    residues
+    subpockets
+    regions
+    anchor_residues
+    centroid
+    filepath
     name : str
         Name of protein.
-    residue_ids : list of str
+    _filepath : str or pathlib.Path
+        File path to structural protein data.
+    _data : pandas._dataFrame
+        Structural protein data with the following mandatory columns:
+        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    _residue_ids : list of str
         Pocket residue IDs.
-    residue_labels : list of str
+    _residue_labels : list of str
         Pocket residue labels.
-    centroid : numpy.array
-        Pocket centroid based on all pocket residues' CA atoms.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
     _region : list of Region
@@ -48,12 +52,10 @@ class Pocket:
 
     def __init__(self):
 
-        self.filepath = None
-        self.data = None
         self.name = None
-        self.residue_ids = None
-        self.residue_labels = None
-        self.centroid = None
+        self._filepath = None
+        self._residue_ids = None
+        self._residue_labels = None
         self._subpockets = []
         self._regions = []
 
@@ -75,19 +77,18 @@ class Pocket:
 
         Returns
         -------
-        Pocket
+        opencadd.structure.pocket.Pocket
             Pocket object.
         """
 
         pocket = cls()
 
-        pocket.filepath = filepath
-        pocket.data = DataFrame.from_file(filepath)
         pocket.name = name
+        pocket._filepath = filepath
+        pocket._data = DataFrame.from_file(filepath)
         residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
-        pocket.residue_ids = residue_ids
-        pocket.residue_labels = residue_labels
-        pocket.centroid = pocket._centroid()
+        pocket._residue_ids = residue_ids
+        pocket._residue_labels = residue_labels
 
         return pocket
 
@@ -98,11 +99,11 @@ class Pocket:
 
         Returns
         -------
-        pandas.DataFrame
+        pandas._dataFrame
             Residue ID and residue label (columns) for all pocket residues (rows).
         """
 
-        residues = {"residue.id": self.residue_ids, "residue.label": self.residue_labels}
+        residues = {"residue.id": self._residue_ids, "residue.label": self._residue_labels}
         residues = pd.DataFrame(residues)
         return residues.reset_index(drop=True)
 
@@ -113,7 +114,7 @@ class Pocket:
 
         Returns
         -------
-        pandas.DataFrame
+        pandas._dataFrame
             Name, color and subpocket center (columns) for all subpockets (rows).
         """
 
@@ -137,7 +138,7 @@ class Pocket:
 
         Returns
         -------
-        pandas.DataFrame
+        pandas._dataFrame
             Name, color, involved residue IDs and labels (columns) for all regions.
         """
         if self._regions == []:
@@ -171,7 +172,7 @@ class Pocket:
 
         Returns
         -------
-        pandas.DataFrame
+        pandas._dataFrame
             Anchor residues (rows) with the following columns:
             - Subpocket name and color
             - Anchor residue IDs (user-defined input IDs or alternative
@@ -188,6 +189,42 @@ class Pocket:
 
         return anchor_residues.reset_index(drop=True)
 
+    @property
+    def centroid(self):
+        """
+        Centroid of all input residues' CA atoms.
+
+        Returns
+        ----------
+        numpy.array
+            Pocket centroid (coordinates).
+        """
+
+        dataframe = self._data
+
+        atoms = dataframe[
+            (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
+        ]
+
+        _logger.info(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
+
+        centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+
+        return centroid
+
+    @property
+    def filepath(self):
+        """
+        File path to structural protein data.
+
+        Returns
+        -------
+        pathlib.Path
+            File path to structural protein data.
+        """
+
+        return self._filepath
+
     def clear_subpockets(self):
         """
         Clear subpockets, i.e. remove all defined subpockets.
@@ -202,27 +239,12 @@ class Pocket:
 
         self._regions = []
 
-    def _centroid(self):
+    def delete_file(self):
         """
-        Add centroid of all input residues' CA atoms.
-
-        Returns
-        ----------
-        numpy.array
-            Pocket centroid (coordinates).
+        Delete file with structural protein data.
         """
 
-        dataframe = self.data
-
-        atoms = dataframe[
-            (dataframe["residue.id"].isin(self.residue_ids)) & (dataframe["atom.name"] == "CA")
-        ]
-
-        _logger.info(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
-
-        centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
-
-        return centroid
+        self.filepath.unlink()
 
     def add_subpocket(
         self,
@@ -247,7 +269,7 @@ class Pocket:
         """
 
         subpocket = Subpocket.from_dataframe(
-            self.data, name, anchor_residue_ids, color, anchor_residue_labels
+            self._data, name, anchor_residue_ids, color, anchor_residue_labels
         )
         self._subpockets.append(subpocket)
 
@@ -268,12 +290,19 @@ class Pocket:
         """
 
         region = Region()
-        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
+        region.from_dataframe(self._data, name, residue_ids, color, residue_labels)
         self._regions.append(region)
 
-    def visualize(self):
+    def visualize(self, show_pocket_centroid=True, show_anchor_residues=True):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
+
+        Parameters
+        ----------
+        show_pocket_centroid : bool
+            Show the pocket centroid as sphere (default) or not.
+        show_anchor_residues : bool
+            Show the anchor residues as spheres (default) or not.
 
         Returns
         -------
@@ -281,9 +310,9 @@ class Pocket:
             Pocket visualization.
         """
 
-        filepath = str(self.filepath)
+        filepath = str(self._filepath)
 
-        # Load structure from file in nglview
+        # Load structure from file in nglview  # TODO show_file > show_text?
         view = nglview.show_file(filepath)
         view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         view.clear()
@@ -306,7 +335,8 @@ class Pocket:
         view.add_representation("cartoon", selection="protein", color=scheme_regions)
 
         # Show pocket centroids
-        view.shape.add_sphere(list(self.centroid), [0, 0, 1], 2, "centroid")
+        if show_pocket_centroid:
+            view.shape.add_sphere(list(self.centroid), [0, 0, 1], 2, "centroid")
 
         # Show subpockets
         for index, subpocket in self.subpockets.iterrows():
@@ -316,10 +346,11 @@ class Pocket:
             view.shape.add_sphere(center, color_rgb, 2, name)
 
         # Show anchor points
-        for index, anchor_residue in self.anchor_residues.iterrows():
-            center = list(anchor_residue["anchor_residue.center"])
-            color_rgb = colors.to_rgb(anchor_residue["subpocket.color"])
-            view.shape.add_sphere(center, color_rgb, 0.5)
+        if show_anchor_residues:
+            for index, anchor_residue in self.anchor_residues.iterrows():
+                center = list(anchor_residue["anchor_residue.center"])
+                color_rgb = colors.to_rgb(anchor_residue["subpocket.color"])
+                view.shape.add_sphere(center, color_rgb, 0.5)
 
         # Show
         return view
@@ -342,7 +373,7 @@ class Pocket:
         """
 
         # Get all residue names
-        residue_id2ix = self.data[["residue.name", "residue.id"]].drop_duplicates()
+        residue_id2ix = self._data[["residue.name", "residue.id"]].drop_duplicates()
 
         if file_format == "mol2":
 
