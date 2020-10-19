@@ -28,7 +28,7 @@ def setup_remote():
 
     Returns
     -------
-    opencadd.databases.klifs.api.Session
+    opencadd.databases.klifs.session.Session
         Remote session.
     """
     _logger.info("Set up remote session...")
@@ -53,7 +53,7 @@ def setup_local(path_to_klifs_download, path_to_klifs_metadata=None):
 
     Returns
     -------
-    opencadd.databases.klifs.api.Session
+    opencadd.databases.klifs.session.Session
         Remote session.
     """
     _logger.info("Set up local session...")
