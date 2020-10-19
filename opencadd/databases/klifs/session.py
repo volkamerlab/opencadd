@@ -19,11 +19,11 @@ class Session:
 
     Attributes
     ----------
-    path_to_klifs_download : None or pathlib.Path
+    _path_to_klifs_download : None or pathlib.Path
         Path to folder with KLIFS download files.
-    client : None or bravado.client.SwaggerClient
+    _client : None or bravado.client.SwaggerClient
         KLIFS client (set if session type is remote).
-    database : None or pandas.DataFrame
+    _database : None or pandas.DataFrame
         KLIFS metadata (set if session type is local).
     kinases : None or opencadd.databases.klifs.remote.Kinases/local.Kinases
         Kinases object for kinases requests.
@@ -42,11 +42,11 @@ class Session:
     def __init__(self):
 
         # Not None in local only
-        self.path_to_klifs_download = None
-        self.database = None
+        self._path_to_klifs_download = None
+        self._database = None
 
         # Not None in remote only
-        self.client = None
+        self._client = None
 
         # Not None in local and remote
         self.kinases = None
@@ -126,9 +126,9 @@ class Session:
             KLIFS metadata (set if session type is local).
         """
 
-        self.client = client
-        self.database = database
-        self.path_to_klifs_download = path_to_klifs_download
+        self._client = client
+        self._database = database
+        self._path_to_klifs_download = path_to_klifs_download
 
         self.kinases = backend.Kinases(
             client=client,
