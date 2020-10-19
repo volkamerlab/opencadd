@@ -143,9 +143,9 @@ class BaseProvider:
         if "ligand.pdb" in dataframe.columns:
             # Remote
             dataframe["ligand.pdb"].replace(0, "-", inplace=True)
-        if "ligand.pdb_allosteric" in dataframe.columns:
+        if "ligand_allosteric.pdb" in dataframe.columns:
             # Remote
-            dataframe["ligand.pdb_allosteric"].replace(0, "-", inplace=True)
+            dataframe["ligand_allosteric.pdb"].replace(0, "-", inplace=True)
         if "structure.resolution" in dataframe.columns:
             # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
@@ -643,12 +643,12 @@ class StructuresProvider(BaseProvider):
         One-letter amino acid sequence for the structure's 85 residue KLIFS pocket (gaps "-").
     ligand.pdb : str or int (0)
         Orthosteric ligand PDB ID. None if no ligand.
-    ligand.pdb_allosteric : str or
+    ligand_allosteric.pdb : str or
         Allosteric ligand PDB ID.  None if no ligand.
     ligand.name : str
         Orthosteric ligand name. None if no ligand.
         Available locally only.
-    ligand.name_allosteric : str
+    ligand_allosteric.name : str
         Allosteric ligand name. None if no ligand.
         Available locally only.
     structure.dfg : str

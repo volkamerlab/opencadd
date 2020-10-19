@@ -254,7 +254,7 @@ class _LocalDatabaseGenerator:
             "structure.chain",
             "structure.alternate_model",
             "ligand.pdb",
-            "ligand.pdb_allosteric",
+            "ligand_allosteric.pdb",
         ]
 
         klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
