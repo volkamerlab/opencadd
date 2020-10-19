@@ -574,7 +574,7 @@ class LigandsProvider(BaseProvider):
 
         Parameters
         ----------
-        ligand.pdb : str or list of str
+        ligand_pdb : str or list of str
             Ligand PDB ID(s).
 
         Returns
