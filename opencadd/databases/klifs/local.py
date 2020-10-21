@@ -740,7 +740,9 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     opencadd.databases.klifs.core.CoordinatesProvider
     """
 
-    def to_dataframe(self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"):
+    def to_dataframe(
+        self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
+    ):  # pylint: disable=W0221
 
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         mol2_df = DataFrame.from_file(filepath)
@@ -749,7 +751,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
     def to_rdkit(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2", compute2d=True
-    ):
+    ):  # pylint: disable=W0221
 
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         rdkit_mol = Rdkit.from_file(filepath, compute2d)

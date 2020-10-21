@@ -23,7 +23,7 @@ class DataFrame(_Base):
     """
 
     @classmethod
-    def from_file(cls, filepath, verbose=False, **kwargs):
+    def from_file(cls, filepath, verbose=False, **kwargs):  # pylint: disable=W0221
         """
         Load structures as DataFrame from file.
 
@@ -52,7 +52,7 @@ class DataFrame(_Base):
         return dataframe
 
     @classmethod
-    def from_text(cls, text, ext, verbose=False, **kwargs):
+    def from_text(cls, text, ext, verbose=False, **kwargs):  # pylint: disable=W0221
         """
         Load structures as DataFrame from text (file content as string).
 

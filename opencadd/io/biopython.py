@@ -19,7 +19,7 @@ class Biopython(_Base):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath):  # pylint: disable=W0221
         """
         Load structures as biopython structure object from file.
 

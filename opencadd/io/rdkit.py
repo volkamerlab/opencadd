@@ -20,7 +20,7 @@ class Rdkit(_Base):
     """
 
     @classmethod
-    def from_file(cls, filepath, compute2d=True):
+    def from_file(cls, filepath, compute2d=True):  # pylint: disable=W0221
         """
         Load structures as RDKit molecule from file.
 
@@ -47,7 +47,7 @@ class Rdkit(_Base):
             raise ValueError(f"The {filepath.suffix} format is not supported or invalid.")
 
     @classmethod
-    def from_text(cls, text, ext, compute2d=True):
+    def from_text(cls, text, ext, compute2d=True):  # pylint: disable=W0221
         """
         Load structures as RDKit molecule from text (file content as string).
 
