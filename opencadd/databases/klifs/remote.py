@@ -342,21 +342,21 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def by_structure_pdbs(
-        self, structure_pdbs, structure_alternate_model=None, structure_chain=None
+    def by_structure_pdb_id(
+        self, structure_pdb_ids, structure_alternate_model=None, structure_chain=None
     ):
 
-        structure_pdbs = self._ensure_list(structure_pdbs)
+        structure_pdb_ids = self._ensure_list(structure_pdb_ids)
         # Use KLIFS API
         result = (
-            self._client.Structures.get_structures_pdb_list(pdb_codes=structure_pdbs)
+            self._client.Structures.get_structures_pdb_list(pdb_codes=structure_pdb_ids)
             .response()
             .result
         )
         # Convert list of ABC objects to DataFrame
         structures = self._abc_to_dataframe(result)
         # If only one structure PDB ID is given, check alternate model and chain filters
-        if len(structure_pdbs) == 1:
+        if len(structure_pdb_ids) == 1:
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             )
@@ -750,7 +750,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
             output_path,
             metadata["species.klifs"].upper(),
             metadata["kinase.klifs_name"],
-            metadata["structure.pdb"],
+            metadata["structure.pdb_id"],
             metadata["structure.alternate_model"],
             metadata["structure.chain"],
             entity,

@@ -606,7 +606,7 @@ class StructuresProvider(BaseProvider):
         Get structures by one or more ligand IDs.
     by_kinase_klifs_id(kinase_klifs_ids)
         Get structures by one or more kinase IDs.
-    by_structure_pdbs(structure_pdbs)
+    by_structure_pdb_id(structure_pdb_ids)
         Get structures by one or more structure PDB IDs.
     by_ligand_expo_id(ligand_expo_ids)
         Get structures by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
@@ -621,7 +621,7 @@ class StructuresProvider(BaseProvider):
 
     structure.klifs_id : int
         Structure ID.
-    structure.pdb : str
+    structure.pdb_id : str
         Structure PDB ID.
     structure.alternate_model : str
         Alternate model. "-" if no alternate model.
@@ -806,15 +806,15 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_structure_pdbs(
-        self, structure_pdbs, structure_alternate_model=None, structure_chain=None
+    def by_structure_pdb_id(
+        self, structure_pdb_ids, structure_alternate_model=None, structure_chain=None
     ):
         """
         Get structures by one or more structure PDB IDs.
 
         Parameters
         ----------
-        structure_pdbs : str or list of str
+        structure_pdb_ids : str or list of str
             Structure PDB ID(s).
         structure_alternate_model : None or str
             Alternate model (only used if only one structure PDB ID is given).

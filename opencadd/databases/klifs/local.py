@@ -238,10 +238,10 @@ class _LocalDatabaseGenerator:
 
         # Check if PDB IDs occur in one file but not the other
         not_in_export = klifs_export[
-            ~klifs_export["structure.pdb"].isin(klifs_overview["structure.pdb"])
+            ~klifs_export["structure.pdb_id"].isin(klifs_overview["structure.pdb_id"])
         ]
         not_in_overview = klifs_overview[
-            ~klifs_overview["structure.pdb"].isin(klifs_export["structure.pdb"])
+            ~klifs_overview["structure.pdb_id"].isin(klifs_export["structure.pdb_id"])
         ]
 
         if not_in_export.size > 0:
@@ -257,7 +257,7 @@ class _LocalDatabaseGenerator:
         # Merge on mutual columns
         mutual_columns = [
             "species.klifs",
-            "structure.pdb",
+            "structure.pdb_id",
             "structure.chain",
             "structure.alternate_model",
             "ligand.expo_id",
@@ -312,7 +312,7 @@ class _LocalDatabaseGenerator:
                 ".",
                 row["species.klifs"],
                 row["kinase.klifs_name"],
-                row["structure.pdb"],
+                row["structure.pdb_id"],
                 row["structure.alternate_model"],
                 row["structure.chain"],
                 entity="",
@@ -337,7 +337,7 @@ class _LocalDatabaseGenerator:
         # Merge KLIFS metadata with local copy of KLIFS IDs
         klifs_metadata_with_ids = klifs_metadata.merge(
             klifs_ids.drop(["kinase.klifs_name", "ligand.expo_id"], axis=1),
-            on=["structure.pdb", "structure.alternate_model", "structure.chain"],
+            on=["structure.pdb_id", "structure.alternate_model", "structure.chain"],
             how="left",
         )
         if klifs_metadata_with_ids.shape[0] != klifs_metadata.shape[0]:
@@ -348,8 +348,8 @@ class _LocalDatabaseGenerator:
             klifs_metadata_with_ids["structure.klifs_id"].isna()
         ].iterrows():
             # Get IDs from remote
-            structure = remote_structures.by_structure_pdbs(
-                row["structure.pdb"],
+            structure = remote_structures.by_structure_pdb_id(
+                row["structure.pdb_id"],
                 row["structure.alternate_model"],
                 row["structure.chain"],
             )
@@ -562,16 +562,16 @@ class Structures(LocalInitializer, StructuresProvider):
         )
         return structures
 
-    def by_structure_pdbs(
-        self, structure_pdbs, structure_alternate_model=None, structure_chain=None
+    def by_structure_pdb_id(
+        self, structure_pdb_ids, structure_alternate_model=None, structure_chain=None
     ):
 
-        structure_pdbs = self._ensure_list(structure_pdbs)
+        structure_pdb_ids = self._ensure_list(structure_pdb_ids)
         # Get local database and select rows
         structures = self._database.copy()
-        structures = structures[structures["structure.pdb"].isin(structure_pdbs)]
+        structures = structures[structures["structure.pdb_id"].isin(structure_pdb_ids)]
         # If only one structure PDB ID is given, check alternate model and chain filters
-        if len(structure_pdbs) == 1:
+        if len(structure_pdb_ids) == 1:
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             )
@@ -785,7 +785,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
                 self._path_to_klifs_download,
                 structure["species.klifs"],
                 structure["kinase.klifs_name"],
-                structure["structure.pdb"],
+                structure["structure.pdb_id"],
                 structure["structure.alternate_model"],
                 structure["structure.chain"],
                 entity,
@@ -814,7 +814,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
         # Get structure ID from file path
         metadata = filepath_to_metadata(filepath)
         structures_local = Structures(self._database, self._path_to_klifs_download)
-        structure = structures_local.by_structure_pdbs(
+        structure = structures_local.by_structure_pdb_id(
             metadata["structure_pdb"],
             metadata["structure_alternate_model"],
             metadata["structure_chain"],

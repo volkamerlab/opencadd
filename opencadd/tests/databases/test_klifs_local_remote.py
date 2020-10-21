@@ -489,21 +489,21 @@ class TestsFromStructurePdbs:
     Test class methods with structure PDB IDs as input.
     """
 
-    @pytest.mark.parametrize("structure_pdbs", ["3sxr", ["3sxr", "1fpu", "xxxx"]])
-    def test_by_structure_pdbs(self, structure_pdbs):
+    @pytest.mark.parametrize("structure_pdb_ids", ["3sxr", ["3sxr", "1fpu", "xxxx"]])
+    def test_by_structure_pdb_id(self, structure_pdb_ids):
         """
         Test class methods with structure PDB IDs as input.
         """
 
         # Structure
-        result_remote = REMOTE.structures.by_structure_pdbs(structure_pdbs)
-        result_local = LOCAL.structures.by_structure_pdbs(structure_pdbs)
+        result_remote = REMOTE.structures.by_structure_pdb_id(structure_pdb_ids)
+        result_local = LOCAL.structures.by_structure_pdb_id(structure_pdb_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
-    @pytest.mark.parametrize("structure_pdbs", [1, "xxxx"])
-    def test_by_structure_pdbs_raise(self, structure_pdbs):
+    @pytest.mark.parametrize("structure_pdb_ids", [1, "xxxx"])
+    def test_by_structure_pdb_id_raise(self, structure_pdb_ids):
         """
         Test class methods with structure PDB IDs as input: Error raised if input invalid?
         """
@@ -512,9 +512,9 @@ class TestsFromStructurePdbs:
         # Note: Integer input raises jsonschema.exceptions.ValidationError,
         # here tested using Exception
         with pytest.raises((SwaggerMappingError, Exception)):
-            REMOTE.structures.by_structure_pdbs(structure_pdbs)
+            REMOTE.structures.by_structure_pdb_id(structure_pdb_ids)
         with pytest.raises(ValueError):
-            LOCAL.structures.by_structure_pdbs(structure_pdbs)
+            LOCAL.structures.by_structure_pdb_id(structure_pdb_ids)
 
 
 class TestsCoordinates:

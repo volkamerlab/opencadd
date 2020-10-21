@@ -12,7 +12,7 @@ LOCAL_COLUMNS_MAPPING = {
         "NAME": "kinase.names",  # HGNC and KLIFS (?) name  TODO where is KLIFS name from?
         "FAMILY": "kinase.family",
         "GROUPS": "kinase.group",
-        "PDB": "structure.pdb",
+        "PDB": "structure.pdb_id",
         "CHAIN": "structure.chain",
         "ALTERNATE_MODEL": "structure.alternate_model",
         "SPECIES": "species.klifs",
@@ -26,7 +26,7 @@ LOCAL_COLUMNS_MAPPING = {
     "klifs_overview": {
         "species": "species.klifs",
         "kinase": "kinase.klifs_name",
-        "pdb": "structure.pdb",
+        "pdb": "structure.pdb_id",
         "alt": "structure.alternate_model",
         "chain": "structure.chain",
         "orthosteric_PDB": "ligand.expo_id",
@@ -91,7 +91,7 @@ REMOTE_COLUMNS_MAPPING = {
         "kinase": "kinase.klifs_name",
         "species": "species.klifs",
         "kinase_ID": "kinase.klifs_id",
-        "pdb": "structure.pdb",
+        "pdb": "structure.pdb_id",
         "alt": "structure.alternate_model",
         "chain": "structure.chain",
         "rmsd1": "structure.rmsd1",
@@ -184,7 +184,7 @@ COLUMN_NAMES = {
     ],
     "structures": [
         "structure.klifs_id",
-        "structure.pdb",
+        "structure.pdb_id",
         "structure.alternate_model",
         "structure.chain",
         "species.klifs",
