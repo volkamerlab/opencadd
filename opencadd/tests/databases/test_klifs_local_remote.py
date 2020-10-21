@@ -271,53 +271,53 @@ class TestsFromLigandIds:
     Test all class methods with ligand IDs as input.
     """
 
-    @pytest.mark.parametrize("ligand_ids", [10, [10, 20], [10, 20, 10000]])
-    def test_by_ligand_ids(self, ligand_ids):
+    @pytest.mark.parametrize("ligand_klifs_ids", [10, [10, 20], [10, 20, 10000]])
+    def test_by_ligand_klifs_id(self, ligand_klifs_ids):
         """
         Test all class methods with ligand IDs as input.
         """
 
         # Ligands
-        result_remote = REMOTE.ligands.by_ligand_ids(ligand_ids)
+        result_remote = REMOTE.ligands.by_ligand_klifs_id(ligand_klifs_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.ligands.by_ligand_ids(ligand_ids)
+            LOCAL.ligands.by_ligand_klifs_id(ligand_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
 
         # Structures
-        result_remote = REMOTE.structures.by_ligand_ids(ligand_ids)
+        result_remote = REMOTE.structures.by_ligand_klifs_id(ligand_klifs_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.structures.by_ligand_ids(ligand_ids)
+            LOCAL.structures.by_ligand_klifs_id(ligand_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
 
         # Bioactivities
-        result_remote = REMOTE.bioactivities.by_ligand_ids(ligand_ids)
+        result_remote = REMOTE.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.bioactivities.by_ligand_ids(ligand_ids)
+            LOCAL.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
-        result_remote = REMOTE.interactions.by_ligand_ids(ligand_ids)
+        result_remote = REMOTE.interactions.by_ligand_klifs_id(ligand_klifs_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.interactions.by_ligand_ids(ligand_ids)
+            LOCAL.interactions.by_ligand_klifs_id(ligand_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
 
-    @pytest.mark.parametrize("ligand_ids", [10000, "XXX"])
-    def test_by_ligand_ids_raise(self, ligand_ids):
+    @pytest.mark.parametrize("ligand_klifs_ids", [10000, "XXX"])
+    def test_by_ligand_klifs_id_raise(self, ligand_klifs_ids):
         """
         Test all class methods with ligand IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.bioactivities.by_ligand_ids(ligand_ids)
-            REMOTE.interactions.by_ligand_ids(ligand_ids)
+            REMOTE.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
+            REMOTE.interactions.by_ligand_klifs_id(ligand_klifs_ids)
 
         with pytest.raises(ValueError):
-            REMOTE.ligands.by_ligand_ids(ligand_ids)
-            REMOTE.structures.by_ligand_ids(ligand_ids)
+            REMOTE.ligands.by_ligand_klifs_id(ligand_klifs_ids)
+            REMOTE.structures.by_ligand_klifs_id(ligand_klifs_ids)
 
 
 class TestsFromStructureIds:

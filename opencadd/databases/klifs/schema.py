@@ -78,7 +78,7 @@ REMOTE_COLUMNS_MAPPING = {
     },
     # Ligands.get_ligands_list
     "ligands": {
-        "ligand_ID": "ligand.id",
+        "ligand_ID": "ligand.klifs_id",
         "PDB-code": "ligand.pdb",
         "Name": "ligand.name",
         "SMILES": "ligand.smiles",
@@ -175,7 +175,7 @@ COLUMN_NAMES = {
         "kinase.iuphar",
         "kinase.pocket",
     ],
-    "ligands": ["ligand.id", "ligand.pdb", "ligand.name", "ligand.smiles", "ligand.inchikey"],
+    "ligands": ["ligand.klifs_id", "ligand.pdb", "ligand.name", "ligand.smiles", "ligand.inchikey"],
     "structures": [
         "structure.id",
         "structure.pdb",
@@ -224,7 +224,7 @@ COLUMN_NAMES = {
         # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
         "kinase.pref_name",
         "kinase.uniprot",
-        # TODO in the future: "ligand.id"  # Add if added to KLIFS API?
+        # TODO in the future: "ligand.klifs_id"  # Add if added to KLIFS API?
         "ligand.bioactivity_standard_type",
         "ligand.bioactivity_standard_relation",
         "ligand.bioactivity_standard_value",
