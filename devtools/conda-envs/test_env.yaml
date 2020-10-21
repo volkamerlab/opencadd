@@ -9,10 +9,12 @@ dependencies:
   - pip
   - MDAnalysis
   - nglview
-  - bravado
   - pandas
+  # databases.klifs
+  - bravado
   - biopandas
   - rdkit
+  - tqdm
   # Chimera reimplementation
   - biotite
   - biopython 1.77
@@ -29,3 +31,6 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
+## For Jupyter lab extensions, run:
+# conda install nodejs
+# jupyter labextension install @jupyter-widgets/jupyterlab-manager nglview-js-widgets @jupyterlab/toc

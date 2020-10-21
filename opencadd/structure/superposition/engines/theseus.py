@@ -122,7 +122,10 @@ class TheseusAligner(BaseAligner):
 
             # 3rd - Run theseus superposition itself
             theseus_output = subprocess.check_output(
-                ["theseus", "-f",]
+                [
+                    "theseus",
+                    "-f",
+                ]
                 + (["-I"] if self.statistics_only else [])
                 + [
                     "-M",

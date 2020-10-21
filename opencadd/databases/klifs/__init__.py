@@ -1,7 +1,5 @@
 """
-opencadd.databases.klifs
-Utility functions to work with KLIFS data
+opencadd.databases.klifs module
 """
 
-# Add imports here
-from . import remote, local, utils
+from .api import setup_local, setup_remote
