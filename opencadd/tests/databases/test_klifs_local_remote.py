@@ -386,21 +386,21 @@ class TestsFromKinaseNames:
         "kinase_names, species",
         [("BMX", None), (["BMX", "BRAF"], None)],
     )
-    def test_by_kinase_names(self, kinase_names, species):
+    def test_by_kinase_name(self, kinase_names, species):
         """
         Test class methods with kinase names as input.
         """
 
         # Kinases
-        result_remote = REMOTE.kinases.by_kinase_names(kinase_names, species)
-        result_local = LOCAL.kinases.by_kinase_names(kinase_names, species)
+        result_remote = REMOTE.kinases.by_kinase_name(kinase_names, species)
+        result_local = LOCAL.kinases.by_kinase_name(kinase_names, species)
 
         check_dataframe(result_remote, COLUMN_NAMES["kinases"])
         check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
-        result_remote = REMOTE.ligands.by_kinase_names(kinase_names)
-        result_local = LOCAL.ligands.by_kinase_names(kinase_names)
+        result_remote = REMOTE.ligands.by_kinase_name(kinase_names)
+        result_local = LOCAL.ligands.by_kinase_name(kinase_names)
 
         check_dataframe(
             result_remote,
@@ -423,27 +423,27 @@ class TestsFromKinaseNames:
         )
 
         # Structures
-        result_remote = REMOTE.structures.by_kinase_names(kinase_names)
-        result_local = LOCAL.structures.by_kinase_names(kinase_names)
+        result_remote = REMOTE.structures.by_kinase_name(kinase_names)
+        result_local = LOCAL.structures.by_kinase_name(kinase_names)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
     @pytest.mark.parametrize("kinase_names, species", [("XXX", None), ("XXX", "XXX")])
-    def test_by_kinase_names_raise(self, kinase_names, species):
+    def test_by_kinase_name_raise(self, kinase_names, species):
         """
         Test class methods with kinase names as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.kinases.by_kinase_names(kinase_names, species)
-            REMOTE.ligands.by_kinase_names(kinase_names)
+            REMOTE.kinases.by_kinase_name(kinase_names, species)
+            REMOTE.ligands.by_kinase_name(kinase_names)
 
         with pytest.raises(ValueError):
-            REMOTE.structures.by_kinase_names(kinase_names)
-            LOCAL.kinases.by_kinase_names(kinase_names, species)
-            LOCAL.ligands.by_kinase_names(kinase_names)
-            LOCAL.structures.by_kinase_names(kinase_names)
+            REMOTE.structures.by_kinase_name(kinase_names)
+            LOCAL.kinases.by_kinase_name(kinase_names, species)
+            LOCAL.ligands.by_kinase_name(kinase_names)
+            LOCAL.structures.by_kinase_name(kinase_names)
 
 
 class TestsFromLigandPdbs:

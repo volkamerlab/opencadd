@@ -273,7 +273,7 @@ class KinasesProvider(BaseProvider):
         Get all available kinase names (optional: select kinase group, family and/or species).
     by_kinase_klifs_id(kinase_klifs_ids)
         Get kinases by one or more kinase IDs.
-    by_kinase_names(kinase_names)
+    by_kinase_name(kinase_names)
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
     Notes
@@ -412,7 +412,7 @@ class KinasesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_names(self, kinase_names, species=None):
+    def by_kinase_name(self, kinase_names, species=None):
         """
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
@@ -449,7 +449,7 @@ class LigandsProvider(BaseProvider):
         Get all available ligands.
     by_kinase_klifs_id(kinase_klifs_ids)
         Get ligands by one or more kinase IDs.
-    by_kinase_names(kinase_names)
+    by_kinase_name(kinase_names)
         Get ligands by one or more kinase names (KLIFS or HGNC name).
     by_ligand_ids(ligand_ids)
         Get ligands by one or more ligand IDs.
@@ -524,7 +524,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
         """
         Get ligands by one or more kinase names (KLIFS or HGNC name).
 
@@ -608,7 +608,7 @@ class StructuresProvider(BaseProvider):
         Get structures by one or more structure PDB IDs.
     by_ligand_pdbs(ligand_pdbs)
         Get structures by one or more ligand PDB IDs.
-    by_kinase_names(kinase_names)
+    by_kinase_name(kinase_names)
         Get structures by one or more kinase names (KLIFS or HGNC name).
 
     Notes
@@ -879,7 +879,7 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
         """
         Get structures by one or more kinase names (KLIFS or HGNC name).
 

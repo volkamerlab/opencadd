@@ -98,7 +98,7 @@ class Kinases(RemoteInitializer, KinasesProvider):
         )
         return kinases
 
-    def by_kinase_names(self, kinase_names, species=None):
+    def by_kinase_name(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API (send requests iteratively)
@@ -206,14 +206,14 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands["kinase.klifs_id (query)"] = kinase_klifs_id
         return ligands
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
         _logger.info(f"Fetch kinase KLIFS IDs for input kinase names...")
         kinases_remote = Kinases(self._client)
-        kinases = kinases_remote.by_kinase_names(kinase_names)
+        kinases = kinases_remote.by_kinase_name(kinase_names)
         # Select and rename columns to indicate columns involved in query
         kinases = kinases[
             ["kinase.klifs_id", "kinase.klifs_name", "kinase.hgnc_name", "species.klifs"]
@@ -379,7 +379,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get all structures

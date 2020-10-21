@@ -416,7 +416,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
 
-    def by_kinase_names(self, kinase_names, species=None):
+    def by_kinase_name(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
@@ -472,7 +472,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         )
         return ligands
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
@@ -595,7 +595,7 @@ class Structures(LocalInitializer, StructuresProvider):
         )
         return structures
 
-    def by_kinase_names(self, kinase_names):
+    def by_kinase_name(self, kinase_names):
 
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
