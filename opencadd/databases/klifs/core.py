@@ -271,7 +271,7 @@ class KinasesProvider(BaseProvider):
         Get all available kinase groups.
     all_kinases(groups=None, families=None, species=None)
         Get all available kinase names (optional: select kinase group, family and/or species).
-    by_kinase_ids(kinase_ids)
+    by_kinase_klifs_id(kinase_klifs_ids)
         Get kinases by one or more kinase IDs.
     by_kinase_names(kinase_names)
         Get kinases by one or more kinase names (KLIFS or HGNC name).
@@ -304,8 +304,8 @@ class KinasesProvider(BaseProvider):
 
     Both local and remote:
 
-        kinase.id : int
-            Kinase ID.
+        kinase.klifs_id : int
+            Kinase KLIFS ID.
         kinase.hgnc : str
             Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
@@ -376,7 +376,7 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinases (rows) with the following columns: "kinase.id", "kinase.hgnc", "kinase.name_full",
+            Kinases (rows) with the following columns: "kinase.klifs_id", "kinase.hgnc", "kinase.name_full",
             "species.klifs". Check class docstring for more information on columns.
 
         Raises
@@ -389,14 +389,14 @@ class KinasesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_ids(self, kinase_ids):  # TODO *kinases_ids
+    def by_kinase_klifs_id(self, kinase_klifs_ids):  # TODO *kinases_ids
         """
         Get kinases by one or more kinase IDs.
 
         Parameters
         ----------
-        kinase_ids : int or list of int
-            KLIFS kinase ID(s).
+        kinase_klifs_ids : int or list of int
+            Kinase KLIFS ID(s).
 
         Returns
         -------
@@ -447,7 +447,7 @@ class LigandsProvider(BaseProvider):
     -------
     all_ligands()
         Get all available ligands.
-    by_kinase_ids(kinase_ids)
+    by_kinase_klifs_id(kinase_klifs_ids)
         Get ligands by one or more kinase IDs.
     by_kinase_names(kinase_names)
         Get ligands by one or more kinase names (KLIFS or HGNC name).
@@ -501,14 +501,14 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
         Get ligands by one or more kinase IDs.
 
         Parameters
         ----------
-        kinase_ids : int or list of int
-            KLIFS kinase ID(s).
+        kinase_klifs_ids : int or list of int
+            Kinase KLIFS ID(s).
 
         Returns
         -------
@@ -602,7 +602,7 @@ class StructuresProvider(BaseProvider):
         Get structures by one or more structure IDs.
     by_ligand_ids(ligand_ids)
         Get structures by one or more ligand IDs.
-    by_kinase_ids(kinase_ids)
+    by_kinase_klifs_id(kinase_klifs_ids)
         Get structures by one or more kinase IDs.
     by_structure_pdbs(structure_pdbs)
         Get structures by one or more structure PDB IDs.
@@ -626,7 +626,7 @@ class StructuresProvider(BaseProvider):
         Chain.
     species.klifs : str
         Species (KLIFS notation).
-    kinase.id : int
+    kinase.klifs_id : int
         Kinase ID.
     kinase.name : str  # TODO or kinase.hgnc?
         Kinase name according to KLIFS.
@@ -776,14 +776,14 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
         Get structures by one or more kinase IDs.
 
         Parameters
         ----------
-        kinase_ids : int or list of int
-            KLIFS kinase ID(s).
+        kinase_klifs_ids : int or list of int
+            Kinase KLIFS ID(s).
 
         Returns
         -------
@@ -909,7 +909,7 @@ class BioactivitiesProvider(BaseProvider):
     -------
     all_bioactivities()
         Get all available bioactivities.
-    by_kinase_ids(kinase_ids)
+    by_kinase_klifs_id(kinase_klifs_ids)
         Get bioactivities by one or more kinase IDs.
     by_ligand_ids(ligand_ids)
         Get bioactivities by one or more ligand IDs.
@@ -957,14 +957,14 @@ class BioactivitiesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
         Get bioactivities by one or more kinase IDs.
 
         Parameters
         ----------
-        kinase_ids : int or list of int
-            KLIFS kinase ID(s).
+        kinase_klifs_ids : int or list of int
+            Kinase KLIFS ID(s).
 
         Returns
         -------
@@ -1018,7 +1018,7 @@ class InteractionsProvider(BaseProvider):
         Get interactions by one or more structure IDs.
     by_ligand_ids(ligand_ids)
         Get interactions by one or more ligand IDs.
-    by_kinase_ids(kinase_ids)
+    by_kinase_klifs_id(kinase_klifs_ids)
         Get interactions by one or more kinase IDs.
 
     Notes
@@ -1117,14 +1117,14 @@ class InteractionsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
         Get interactions by one or more kinase IDs.
 
         Parameters
         ----------
-        kinase_ids : int or list of int
-            KLIFS kinase ID(s).
+        kinase_klifs_ids : int or list of int
+            Kinase KLIFS ID(s).
 
         Returns
         -------

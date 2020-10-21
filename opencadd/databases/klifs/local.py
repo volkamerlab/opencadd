@@ -328,7 +328,7 @@ class _LocalDatabaseGenerator:
     @staticmethod
     def _add_klifs_ids(klifs_metadata):
         """
-        Add KLIFS kinase and structure IDs to KLIFS metadata (from local copy of KLIFS IDs
+        Add kinase and structure KLIFS IDs to KLIFS metadata (from local copy of KLIFS IDs
         and if not found there from remote). Remove local structures that have no structure ID.
         """
 
@@ -354,10 +354,10 @@ class _LocalDatabaseGenerator:
                 row["structure.chain"],
             )
             structure_id = structure["structure.id"][0]
-            kinase_id = structure["kinase.id"][0]
+            kinase_klifs_id = structure["kinase.klifs_id"][0]
             # Set IDs locally
             klifs_metadata_with_ids.loc[index, "structure.id"] = structure_id
-            klifs_metadata_with_ids.loc[index, "kinase.id"] = kinase_id
+            klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
         # Remove structures that have no KLIFS ID
         klifs_metadata_with_ids.dropna(subset=["structure.id"], inplace=True)
 
@@ -405,12 +405,13 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases_all"])
         return kinases
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
 
-        kinase_ids = self._ensure_list(kinase_ids)
+        kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         kinases = self._database.copy()
-        kinases = kinases[kinases["kinase.id"].isin(kinase_ids)]
+        print(kinases.columns)
+        kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
@@ -449,23 +450,23 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"])
         return ligands
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
 
-        kinase_ids = self._ensure_list(kinase_ids)
+        kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         ligands = self._database.copy()
-        ligands = ligands[ligands["kinase.id"].isin(kinase_ids)]
+        ligands = ligands[ligands["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.id"],
+            COLUMN_NAMES["ligands"] + ["kinase.klifs_id"],
         )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
         # https://github.com/pandas-dev/pandas/issues/2485#issuecomment-608227532
         ligands.rename(
             columns={
-                "kinase.id": "kinase.id (query)",
+                "kinase.klifs_id": "kinase.klifs_id (query)",
             },
             inplace=True,
         )
@@ -548,12 +549,12 @@ class Structures(LocalInitializer, StructuresProvider):
 
         return structures
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
 
-        kinase_ids = self._ensure_list(kinase_ids)
+        kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         structures = self._database.copy()
-        structures = structures[structures["kinase.id"].isin(kinase_ids)]
+        structures = structures[structures["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
@@ -652,21 +653,21 @@ class Interactions(LocalInitializer, InteractionsProvider):
         )
         return interactions
 
-    def by_kinase_ids(self, kinase_ids):
+    def by_kinase_klifs_id(self, kinase_klifs_ids):
 
-        kinase_ids = self._ensure_list(kinase_ids)
+        kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         interactions = self._database.copy()
-        interactions = interactions[interactions["kinase.id"].isin(kinase_ids)]
+        interactions = interactions[interactions["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"] + ["kinase.id"],
+            COLUMN_NAMES["interactions"] + ["kinase.klifs_id"],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
             columns={
-                "kinase.id": "kinase.id (query)",
+                "kinase.klifs_id": "kinase.klifs_id (query)",
             },
             inplace=True,
         )

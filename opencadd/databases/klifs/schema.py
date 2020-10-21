@@ -57,14 +57,14 @@ LOCAL_COLUMNS_MAPPING = {
 REMOTE_COLUMNS_MAPPING = {
     # Information.get_kinase_names()
     "kinases_all": {
-        "kinase_ID": "kinase.id",
+        "kinase_ID": "kinase.klifs_id",
         "name": "kinase.hgnc_name",
         "full_name": "kinase.full_name",
         "species": "species.klifs",
     },
     # Information.get_kinase_information()
     "kinases": {
-        "kinase_ID": "kinase.id",
+        "kinase_ID": "kinase.klifs_id",
         "name": "kinase.klifs_name",
         "HGNC": "kinase.hgnc_name",
         "family": "kinase.family",
@@ -90,7 +90,7 @@ REMOTE_COLUMNS_MAPPING = {
         "structure_ID": "structure.id",
         "kinase": "kinase.klifs_name",
         "species": "species.klifs",
-        "kinase_ID": "kinase.id",
+        "kinase_ID": "kinase.klifs_id",
         "pdb": "structure.pdb",
         "alt": "structure.alternate_model",
         "chain": "structure.chain",
@@ -157,13 +157,13 @@ COLUMN_NAMES = {
     "kinase_groups": ["kinase.group"],
     "kinase_families": ["kinase.family"],
     "kinases_all": [
-        "kinase.id",
+        "kinase.klifs_id",
         "kinase.hgnc_name",  # TODO except for kinase KLIFS IDs: 529, 530
         "kinase.full_name",
         "species.klifs",
     ],
     "kinases": [
-        "kinase.id",
+        "kinase.klifs_id",
         "kinase.klifs_name",
         "kinase.hgnc_name",
         "kinase.family",
@@ -182,7 +182,7 @@ COLUMN_NAMES = {
         "structure.alternate_model",
         "structure.chain",
         "species.klifs",
-        "kinase.id",
+        "kinase.klifs_id",
         "kinase.klifs_name",  # TODO
         # "kinase.all_names",  # Excluded, otherwise operations like drop_duplicates() do not work
         "kinase.family",
@@ -221,7 +221,7 @@ COLUMN_NAMES = {
         "structure.filepath",
     ],
     "bioactivities": [
-        # TODO in the future: "kinase.id"  # Add if added to KLIFS API?
+        # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
         "kinase.pref_name",
         "kinase.uniprot",
         # TODO in the future: "ligand.id"  # Add if added to KLIFS API?

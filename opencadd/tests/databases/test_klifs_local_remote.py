@@ -206,64 +206,64 @@ class TestsFromKinaseIds:
     Test all class methods with kinase IDs as input.
     """
 
-    @pytest.mark.parametrize("kinase_ids", [472, [472, 509], [472, 509, 10000]])
-    def test_by_kinase_ids(self, kinase_ids):
+    @pytest.mark.parametrize("kinase_klifs_ids", [472, [472, 509], [472, 509, 10000]])
+    def test_by_kinase_klifs_id(self, kinase_klifs_ids):
         """
         Test all class methods with kinase IDs as input.
         """
 
         # Kinases
-        result_remote = REMOTE.kinases.by_kinase_ids(kinase_ids)
-        result_local = LOCAL.kinases.by_kinase_ids(kinase_ids)
+        result_remote = REMOTE.kinases.by_kinase_klifs_id(kinase_klifs_ids)
+        result_local = LOCAL.kinases.by_kinase_klifs_id(kinase_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["kinases"])
         check_dataframe(result_local, COLUMN_NAMES["kinases"])
 
         # Ligands
-        result_remote = REMOTE.ligands.by_kinase_ids(kinase_ids)
-        result_local = LOCAL.ligands.by_kinase_ids(kinase_ids)
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
-        check_dataframe(result_local, COLUMN_NAMES["ligands"] + ["kinase.id (query)"])
+        result_remote = REMOTE.ligands.by_kinase_klifs_id(kinase_klifs_ids)
+        result_local = LOCAL.ligands.by_kinase_klifs_id(kinase_klifs_ids)
+        check_dataframe(result_remote, COLUMN_NAMES["ligands"] + ["kinase.klifs_id (query)"])
+        check_dataframe(result_local, COLUMN_NAMES["ligands"] + ["kinase.klifs_id (query)"])
 
         # Structures
-        result_remote = REMOTE.structures.by_kinase_ids(kinase_ids)
-        result_local = LOCAL.structures.by_kinase_ids(kinase_ids)
+        result_remote = REMOTE.structures.by_kinase_klifs_id(kinase_klifs_ids)
+        result_local = LOCAL.structures.by_kinase_klifs_id(kinase_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Bioactivities
-        result_remote = REMOTE.bioactivities.by_kinase_ids(kinase_ids)
+        result_remote = REMOTE.bioactivities.by_kinase_klifs_id(kinase_klifs_ids)
         with pytest.raises(NotImplementedError):
-            LOCAL.bioactivities.by_kinase_ids(kinase_ids)
+            LOCAL.bioactivities.by_kinase_klifs_id(kinase_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["bioactivities"])
 
         # Interactions
-        result_remote = REMOTE.interactions.by_kinase_ids(kinase_ids)
-        result_local = LOCAL.interactions.by_kinase_ids(kinase_ids)
+        result_remote = REMOTE.interactions.by_kinase_klifs_id(kinase_klifs_ids)
+        result_local = LOCAL.interactions.by_kinase_klifs_id(kinase_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
-        check_dataframe(result_local, COLUMN_NAMES["interactions"] + ["kinase.id (query)"])
+        check_dataframe(result_local, COLUMN_NAMES["interactions"] + ["kinase.klifs_id (query)"])
 
-    @pytest.mark.parametrize("kinase_ids", [10000, "XXX"])
-    def test_by_kinase_ids_raise(self, kinase_ids):
+    @pytest.mark.parametrize("kinase_klifs_ids", [10000, "XXX"])
+    def test_by_kinase_klifs_id_raise(self, kinase_klifs_ids):
         """
         Test all class methods with kinase IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.kinases.by_kinase_ids(kinase_ids)
-            REMOTE.ligands.by_kinase_ids(kinase_ids)
-            REMOTE.structures.by_kinase_ids(kinase_ids)
-            REMOTE.bioactivities.by_kinase_ids(kinase_ids)
-            REMOTE.interactions.by_kinase_ids(kinase_ids)
+            REMOTE.kinases.by_kinase_klifs_id(kinase_klifs_ids)
+            REMOTE.ligands.by_kinase_klifs_id(kinase_klifs_ids)
+            REMOTE.structures.by_kinase_klifs_id(kinase_klifs_ids)
+            REMOTE.bioactivities.by_kinase_klifs_id(kinase_klifs_ids)
+            REMOTE.interactions.by_kinase_klifs_id(kinase_klifs_ids)
 
         with pytest.raises(ValueError):
-            LOCAL.kinases.by_kinase_ids(kinase_ids)
-            LOCAL.ligands.by_kinase_ids(kinase_ids)
-            LOCAL.structures.by_kinase_ids(kinase_ids)
-            LOCAL.interactions.by_kinase_ids(kinase_ids)
+            LOCAL.kinases.by_kinase_klifs_id(kinase_klifs_ids)
+            LOCAL.ligands.by_kinase_klifs_id(kinase_klifs_ids)
+            LOCAL.structures.by_kinase_klifs_id(kinase_klifs_ids)
+            LOCAL.interactions.by_kinase_klifs_id(kinase_klifs_ids)
 
 
 class TestsFromLigandIds:
@@ -406,7 +406,7 @@ class TestsFromKinaseNames:
             result_remote,
             COLUMN_NAMES["ligands"]
             + [
-                "kinase.id (query)",
+                "kinase.klifs_id (query)",
                 "kinase.klifs_name (query)",
                 "kinase.hgnc_name (query)",
                 "species.klifs (query)",
