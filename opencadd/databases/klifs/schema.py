@@ -164,11 +164,11 @@ COLUMN_NAMES = {
     ],
     "kinases": [
         "kinase.klifs_id",
-        "kinase.klifs_name",
+        "kinase.klifs_name",  # TODO where from?
         "kinase.hgnc_name",
         "kinase.family",
         "kinase.group",
-        "kinase.class",
+        "kinase.class",  # TODO where from?
         "species.klifs",
         "kinase.full_name",
         "kinase.uniprot",
@@ -189,8 +189,8 @@ COLUMN_NAMES = {
         "structure.chain",
         "species.klifs",
         "kinase.klifs_id",
-        "kinase.klifs_name",  # TODO
-        # "kinase.all_names",  # Excluded, otherwise operations like drop_duplicates() do not work
+        "kinase.klifs_name",  # TODO where from?
+        # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
         "kinase.family",
         "kinase.group",
         "structure.pocket",

@@ -312,7 +312,7 @@ class Pocket:
 
         filepath = str(self._filepath)
 
-        # Load structure from file in nglview  # TODO show_file > show_text?
+        # Load structure from file in nglview  # TODO in the future: show_file > show_text?
         view = nglview.show_file(filepath)
         view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         view.clear()

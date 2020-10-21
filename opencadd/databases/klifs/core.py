@@ -284,9 +284,9 @@ class KinasesProvider(BaseProvider):
     Remote only:
 
         kinase.klifs_name : str
-            Kinase name according to KLIFS.  # TODO where does the name come from?
+            Kinase name according to KLIFS.
         kinase.class : str
-            Kinase class.  # TODO where from?
+            Kinase class.
             Available remotely only.
         kinase.full_name : str
             Full kinase name.
