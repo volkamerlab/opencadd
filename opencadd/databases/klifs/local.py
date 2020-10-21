@@ -260,8 +260,8 @@ class _LocalDatabaseGenerator:
             "structure.pdb",
             "structure.chain",
             "structure.alternate_model",
-            "ligand.pdb_id",
-            "ligand_allosteric.pdb_id",
+            "ligand.expo_id",
+            "ligand_allosteric.expo_id",
         ]
 
         klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
@@ -336,7 +336,7 @@ class _LocalDatabaseGenerator:
         klifs_ids = pd.read_csv(PATH_TO_KLIFS_IDS)
         # Merge KLIFS metadata with local copy of KLIFS IDs
         klifs_metadata_with_ids = klifs_metadata.merge(
-            klifs_ids.drop(["kinase.klifs_name", "ligand.pdb_id"], axis=1),
+            klifs_ids.drop(["kinase.klifs_name", "ligand.expo_id"], axis=1),
             on=["structure.pdb", "structure.alternate_model", "structure.chain"],
             how="left",
         )
@@ -499,12 +499,12 @@ class Ligands(LocalInitializer, LigandsProvider):
         )
         return ligands
 
-    def by_ligand_pdb_id(self, ligand_pdb_ids):
+    def by_ligand_expo_id(self, ligand_expo_ids):
 
-        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
+        ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Get local database and select rows
         ligands = self._database.copy()
-        ligands = ligands[ligands["ligand.pdb_id"].isin(ligand_pdb_ids)]
+        ligands = ligands[ligands["ligand.expo_id"].isin(ligand_expo_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
@@ -582,12 +582,12 @@ class Structures(LocalInitializer, StructuresProvider):
         )
         return structures
 
-    def by_ligand_pdb_id(self, ligand_pdb_ids):
+    def by_ligand_expo_id(self, ligand_expo_ids):
 
-        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
+        ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Get local database and select rows
         structures = self._database.copy()
-        structures = structures[structures["ligand.pdb_id"].isin(ligand_pdb_ids)]
+        structures = structures[structures["ligand.expo_id"].isin(ligand_expo_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,

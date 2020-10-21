@@ -10,22 +10,22 @@ from .core import Pocket
 
 class KlifsPocket(Pocket):
     """
-    Extends Pocket to initialize a kinase pocket from a KLIFS structure ID and define standard
+    Extends Pocket to initialize a kinase pocket from a structure KLIFS ID and define standard
     KLIFS regions.
     Refer to Pocket documentation for more information:
     opencadd.structure.pocket.Pocket
     """
 
     @classmethod
-    def from_structure_id(cls, structure_id, subpockets=None):
+    def from_structure_klifs_id(cls, structure_klifs_id, subpockets=None):
         """
-        Get a KLIFS pocket (remotely by a KLIFS structure ID) that defines the KLIFS regions and
+        Get a KLIFS pocket (remotely by a structure KLIFS ID) that defines the KLIFS regions and
         subpockets.
 
         Parameters
         ----------
-        structure_id : int
-            KLIFS structure ID.
+        structure_klifs_id : int
+            Structure KLIFS ID.
         subpockets : pandas.DataFrame
             Subpockets (row) with the following details (columns):
             "anchor_residue.klifs_id" : list of int
@@ -45,9 +45,9 @@ class KlifsPocket(Pocket):
         # Set up remote KLIFS session
         remote = setup_remote()
 
-        # Get pocket and coordinates for a structure (by a KLIFS structure ID)
-        pocket = remote.pockets.by_structure_id(structure_id)
-        filepath = remote.coordinates.to_pdb(structure_id, ".", entity="complex")
+        # Get pocket and coordinates for a structure (by a structure KLIFS ID)
+        pocket = remote.pockets.by_structure_klifs_id(structure_klifs_id)
+        filepath = remote.coordinates.to_pdb(structure_klifs_id, ".", entity="complex")
 
         pocket_3d = cls.from_file(
             filepath,

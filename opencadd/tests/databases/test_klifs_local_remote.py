@@ -145,7 +145,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
-        assert result_local["ligand.pdb_id"].to_list() == ["1N1", "QH1", "PRC"]
+        assert result_local["ligand.expo_id"].to_list() == ["1N1", "QH1", "PRC"]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
 
@@ -325,56 +325,56 @@ class TestsFromStructureIds:
     Test class methods with structure IDs as input.
     """
 
-    @pytest.mark.parametrize("structure_ids", [12347, [12347, 100000]])
-    def test_by_structure_klifs_id(self, structure_ids):
+    @pytest.mark.parametrize("structure_klifs_ids", [12347, [12347, 100000]])
+    def test_by_structure_klifs_id(self, structure_klifs_ids):
         """
         Test class methods with structure IDs as input.
         """
 
         # Structures
-        result_remote = REMOTE.structures.by_structure_klifs_id(structure_ids)
-        result_local = LOCAL.structures.by_structure_klifs_id(structure_ids)
+        result_remote = REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
+        result_local = LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Interactions
-        result_remote = REMOTE.interactions.by_structure_klifs_id(structure_ids)
-        result_local = LOCAL.interactions.by_structure_klifs_id(structure_ids)
+        result_remote = REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
+        result_local = LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
         check_dataframe(result_local, COLUMN_NAMES["interactions"])
 
         # Pockets (takes only one structure ID as input!)
-        if isinstance(structure_ids, int):
-            structure_id = structure_ids
+        if isinstance(structure_klifs_ids, int):
+            structure_klifs_id = structure_klifs_ids
 
-            result_remote = REMOTE.pockets.by_structure_klifs_id(structure_ids)
-            result_local = LOCAL.pockets.by_structure_klifs_id(structure_ids)
+            result_remote = REMOTE.pockets.by_structure_klifs_id(structure_klifs_ids)
+            result_local = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids)
 
             check_dataframe(result_remote, COLUMN_NAMES["pockets"])
             check_dataframe(result_local, COLUMN_NAMES["pockets"])
 
             assert all(result_local == result_remote)
 
-    @pytest.mark.parametrize("structure_ids", [100000, "XXX"])
-    def test_by_structure_klifs_id_raise(self, structure_ids):
+    @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
+    def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
         """
         Test class methods with structure IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.structures.by_structure_klifs_id(structure_ids)
-            REMOTE.interactions.by_structure_klifs_id(structure_ids)
-            if isinstance(structure_ids, int):
-                structure_id = structure_ids
-                REMOTE.pockets.by_structure_klifs_id(structure_id)
+            REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
+            REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
+            if isinstance(structure_klifs_ids, int):
+                structure_klifs_id = structure_klifs_ids
+                REMOTE.pockets.by_structure_klifs_id(structure_klifs_id)
 
         with pytest.raises(ValueError):
-            LOCAL.structures.by_structure_klifs_id(structure_ids)
-            LOCAL.interactions.by_structure_klifs_id(structure_ids)
-            if isinstance(structure_ids, int):
-                structure_id = structure_ids
+            LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
+            LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
+            if isinstance(structure_klifs_ids, int):
+                structure_klifs_id = structure_klifs_ids
 
 
 class TestsFromKinaseNames:
@@ -448,40 +448,40 @@ class TestsFromKinaseNames:
 
 class TestsFromLigandPdbs:
     """
-    Test class methods with ligand PDB IDs as input.
+    Test class methods with Ligand Expo IDs as input.
     """
 
-    @pytest.mark.parametrize("ligand_pdb_ids", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
-    def test_by_ligand_pdb_id(self, ligand_pdb_ids):
+    @pytest.mark.parametrize("ligand_expo_ids", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
+    def test_by_ligand_expo_id(self, ligand_expo_ids):
         """
-        Test class methods with ligand PDB IDs as input.
+        Test class methods with Ligand Expo IDs as input.
         """
 
         # Ligands
-        result_remote = REMOTE.ligands.by_ligand_pdb_id(ligand_pdb_ids)
-        result_local = LOCAL.ligands.by_ligand_pdb_id(ligand_pdb_ids)
+        result_remote = REMOTE.ligands.by_ligand_expo_id(ligand_expo_ids)
+        result_local = LOCAL.ligands.by_ligand_expo_id(ligand_expo_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
         # Structure
-        result_remote = REMOTE.structures.by_ligand_pdb_id(ligand_pdb_ids)
-        result_local = LOCAL.structures.by_ligand_pdb_id(ligand_pdb_ids)
+        result_remote = REMOTE.structures.by_ligand_expo_id(ligand_expo_ids)
+        result_local = LOCAL.structures.by_ligand_expo_id(ligand_expo_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
-    @pytest.mark.parametrize("ligand_pdb_ids", [1, "XXX"])
-    def test_by_ligand_pdb_id_raise(self, ligand_pdb_ids):
+    @pytest.mark.parametrize("ligand_expo_ids", [1, "XXX"])
+    def test_by_ligand_expo_id_raise(self, ligand_expo_ids):
         """
-        Test class methods with ligand PDB IDs as input: Error raised if input invalid?
+        Test class methods with Ligand Expo IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(ValueError):
-            REMOTE.ligands.by_ligand_pdb_id(ligand_pdb_ids)
-            REMOTE.structures.by_ligand_pdb_id(ligand_pdb_ids)
-            LOCAL.ligands.by_ligand_pdb_id(ligand_pdb_ids)
-            LOCAL.structures.by_ligand_pdb_id(ligand_pdb_ids)
+            REMOTE.ligands.by_ligand_expo_id(ligand_expo_ids)
+            REMOTE.structures.by_ligand_expo_id(ligand_expo_ids)
+            LOCAL.ligands.by_ligand_expo_id(ligand_expo_ids)
+            LOCAL.structures.by_ligand_expo_id(ligand_expo_ids)
 
 
 class TestsFromStructurePdbs:
@@ -523,7 +523,7 @@ class TestsCoordinates:
     """
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension, n_atoms, centroid",
+        "structure_klifs_id, entity, extension, n_atoms, centroid",
         [
             (12347, "complex", "mol2", 3604, [-3.996449, 17.509910, 31.077763]),
             (12347, "complex", "pdb", 1819, [-3.903167, 17.447048, 31.263985]),
@@ -532,45 +532,45 @@ class TestsCoordinates:
             (12347, "ligand", "mol2", 49, [2.291216, 20.590290, 39.074585]),
         ],
     )
-    def test_remote(self, structure_id, entity, extension, n_atoms, centroid):
+    def test_remote(self, structure_klifs_id, entity, extension, n_atoms, centroid):
         """
         Test remote retrieval of coordinates data from structure ID.
         """
 
         # Load coordinates as DataFrame
-        dataframe = REMOTE.coordinates.to_dataframe(structure_id, entity, extension)
+        dataframe = REMOTE.coordinates.to_dataframe(structure_klifs_id, entity, extension)
         self._test_to_dataframe(dataframe, n_atoms, centroid)
 
         # Load coordinates as RDKit molecule
         if entity == "ligand" and extension == "mol2":
-            rdkit_molecule = REMOTE.coordinates.to_rdkit(structure_id, entity, extension)
+            rdkit_molecule = REMOTE.coordinates.to_rdkit(structure_klifs_id, entity, extension)
             self._test_to_rdkit(rdkit_molecule)
 
         # Save coordinates to file (to temporary directory)
         with enter_temp_directory():
             if extension == "mol2":
-                filepath = REMOTE.coordinates.to_mol2(structure_id, ".", entity)
+                filepath = REMOTE.coordinates.to_mol2(structure_klifs_id, ".", entity)
                 assert filepath.exists()
             if extension == "pdb":
-                filepath = REMOTE.coordinates.to_pdb(structure_id, ".", entity)
+                filepath = REMOTE.coordinates.to_pdb(structure_klifs_id, ".", entity)
                 assert filepath.exists()
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension",
+        "structure_klifs_id, entity, extension",
         [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
     )
-    def test_remote_raise(self, structure_id, entity, extension):
+    def test_remote_raise(self, structure_klifs_id, entity, extension):
         """
         Test remote retrieval of coordinates data from structure ID:
         Error raised if input invalid?
         """
 
         with pytest.raises(ValueError):
-            REMOTE.coordinates.to_dataframe(structure_id, entity, extension)
-            REMOTE.coordinates.to_rdkit(structure_id, entity, extension)
+            REMOTE.coordinates.to_dataframe(structure_klifs_id, entity, extension)
+            REMOTE.coordinates.to_rdkit(structure_klifs_id, entity, extension)
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension, n_atoms, centroid",
+        "structure_klifs_id, entity, extension, n_atoms, centroid",
         [
             (12347, "complex", "mol2", 3604, [-3.996449, 17.509910, 31.077763]),
             (12347, "complex", "pdb", 1819, [-3.903167, 17.447048, 31.263985]),
@@ -582,7 +582,7 @@ class TestsCoordinates:
             (12347, "water", "mol2", 3, [-29.550966, 11.602567, 20.098101]),
         ],
     )
-    def test_local(self, structure_id, entity, extension, n_atoms, centroid):
+    def test_local(self, structure_klifs_id, entity, extension, n_atoms, centroid):
         """
         Test local retrieval of coordinates data from structure ID.
         Coordinates can also be loaded locally from file, which is not tested individually, since
@@ -591,27 +591,27 @@ class TestsCoordinates:
         """
 
         # Load coordinates as DataFrame
-        dataframe = LOCAL.coordinates.to_dataframe(structure_id, entity, extension)
+        dataframe = LOCAL.coordinates.to_dataframe(structure_klifs_id, entity, extension)
         self._test_to_dataframe(dataframe, n_atoms, centroid)
 
         # Load coordinates as RDKit molecule
         if entity == "ligand":
-            rdkit_molecule = LOCAL.coordinates.to_rdkit(structure_id, entity, extension)
+            rdkit_molecule = LOCAL.coordinates.to_rdkit(structure_klifs_id, entity, extension)
             self._test_to_rdkit(rdkit_molecule)
 
     @pytest.mark.parametrize(
-        "structure_id, entity, extension",
+        "structure_klifs_id, entity, extension",
         [(12347, "XXX", "mol2"), (12347, "complex", "XXX")],
     )
-    def test_local_raise(self, structure_id, entity, extension):
+    def test_local_raise(self, structure_klifs_id, entity, extension):
         """
         Test local retrieval of coordinates data from structure ID or file:
         Error raised if input invalid?
         """
 
         with pytest.raises(FileNotFoundError):
-            LOCAL.coordinates.to_dataframe(structure_id, entity, extension)
-            LOCAL.coordinates.to_rdkit(structure_id, entity, extension)
+            LOCAL.coordinates.to_dataframe(structure_klifs_id, entity, extension)
+            LOCAL.coordinates.to_rdkit(structure_klifs_id, entity, extension)
 
     @staticmethod
     def _test_to_dataframe(dataframe, n_atoms, centroid):

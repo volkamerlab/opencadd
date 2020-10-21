@@ -140,12 +140,12 @@ class BaseProvider:
         if "structure.alternate_model" in dataframe.columns:
             # Remote
             dataframe["structure.alternate_model"].replace("", "-", inplace=True)
-        if "ligand.pdb_id" in dataframe.columns:
+        if "ligand.expo_id" in dataframe.columns:
             # Remote
-            dataframe["ligand.pdb_id"].replace(0, "-", inplace=True)
-        if "ligand_allosteric.pdb_id" in dataframe.columns:
+            dataframe["ligand.expo_id"].replace(0, "-", inplace=True)
+        if "ligand_allosteric.expo_id" in dataframe.columns:
             # Remote
-            dataframe["ligand_allosteric.pdb_id"].replace(0, "-", inplace=True)
+            dataframe["ligand_allosteric.expo_id"].replace(0, "-", inplace=True)
         if "structure.resolution" in dataframe.columns:
             # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
@@ -453,8 +453,9 @@ class LigandsProvider(BaseProvider):
         Get ligands by one or more kinase names (KLIFS or HGNC name).
     by_ligand_klifs_id(ligand_klifs_ids)
         Get ligands by one or more ligand IDs.
-    by_ligand_pdb_id(ligand_pdb_ids)
-        Get ligands by one or more ligand PDB IDs.
+    by_ligand_expo_id(ligand_expo_ids)
+        Get ligands by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
+        identifiers as defined by Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
 
     Notes
     -----
@@ -479,7 +480,7 @@ class LigandsProvider(BaseProvider):
 
     Both local and remote:
 
-        ligand.pdb_id : str
+        ligand.expo_id : str
             Ligand PDB name.
         ligand.name : str
             Ligand name.
@@ -568,14 +569,15 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_ligand_pdb_id(self, ligand_pdb_ids):
+    def by_ligand_expo_id(self, ligand_expo_ids):
         """
-        Get ligands by one or more ligand PDB IDs.
+        Get ligands by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
+        identifiers as defined by Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
 
         Parameters
         ----------
-        ligand_pdb : str or list of str
-            Ligand PDB ID(s).
+        ligand_expo_id : str or list of str
+            Ligand Expo ID(s).
 
         Returns
         -------
@@ -606,8 +608,9 @@ class StructuresProvider(BaseProvider):
         Get structures by one or more kinase IDs.
     by_structure_pdbs(structure_pdbs)
         Get structures by one or more structure PDB IDs.
-    by_ligand_pdb_id(ligand_pdb_ids)
-        Get structures by one or more ligand PDB IDs.
+    by_ligand_expo_id(ligand_expo_ids)
+        Get structures by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
+        identifiers as defined by Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
     by_kinase_name(kinase_names)
         Get structures by one or more kinase names (KLIFS or HGNC name).
 
@@ -641,10 +644,14 @@ class StructuresProvider(BaseProvider):
         Available locally only.
     structure.pocket : str
         One-letter amino acid sequence for the structure's 85 residue KLIFS pocket (gaps "-").
-    ligand.pdb_id : str or int (0)
-        Orthosteric ligand PDB ID. None if no ligand.
+    ligand.expo_id : str or int (0)
+        Orthosteric ligand Ligand Expo ID. None if no ligand.
+        Ligand Expo IDs (3-letter codes) are chemical component identifiers as defined by
+        Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
     ligand_allosteric.pdb : str or
-        Allosteric ligand PDB ID.  None if no ligand.
+        Allosteric ligand Ligand Expo ID. None if no ligand.
+        Ligand Expo IDs (3-letter codes) are chemical component identifiers as defined by
+        Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
     ligand.name : str
         Orthosteric ligand name. None if no ligand.
         Available locally only.
@@ -858,14 +865,15 @@ class StructuresProvider(BaseProvider):
             structures = structures[structures["structure.chain"] == structure_chain]
         return structures
 
-    def by_ligand_pdb_id(self, ligand_pdb_ids):
+    def by_ligand_expo_id(self, ligand_expo_ids):
         """
-        Get structures by one or more ligand PDB IDs.
+        Get structures by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
+        identifiers as defined by Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
 
         Parameters
         ----------
-        ligand_pdb_ids : str or list of str
-            Ligand PDB ID(s).
+        ligand_expo_ids : str or list of str
+            Ligand Expo ID(s).
 
         Returns
         -------
