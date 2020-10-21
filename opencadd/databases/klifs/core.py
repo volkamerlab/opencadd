@@ -283,11 +283,10 @@ class KinasesProvider(BaseProvider):
 
     Remote only:
 
-        kinase.hgnc : str
-            Kinase name according to the HUGO Gene Nomenclature Committee.
-            Available remotely only.
+        kinase.name : str
+            Kinase name according to KLIFS.  # TODO where does the name come from?
         kinase.class : str
-            Kinase class.
+            Kinase class.  # TODO where from?
             Available remotely only.
         kinase.name_full : str
             Full kinase name.
@@ -307,8 +306,9 @@ class KinasesProvider(BaseProvider):
 
         kinase.id : int
             Kinase ID.
-        kinase.name : str
-            Kinase name according to KLIFS.
+        kinase.hgnc : str
+            Kinase name according to the HUGO Gene Nomenclature Committee.
+            Available remotely only.
         kinase.family : str
             Kinase family.
         kinase.group : str
@@ -376,7 +376,7 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinases (rows) with the following columns: "kinase.id", "kinase.name", "kinase.name_",
+            Kinases (rows) with the following columns: "kinase.id", "kinase.hgnc", "kinase.name_full",
             "species.klifs". Check class docstring for more information on columns.
 
         Raises
@@ -628,7 +628,7 @@ class StructuresProvider(BaseProvider):
         Species (KLIFS notation).
     kinase.id : int
         Kinase ID.
-    kinase.name : str
+    kinase.name : str  # TODO or kinase.hgnc?
         Kinase name according to KLIFS.
     kinase.name_full : str
         Full kinase name.

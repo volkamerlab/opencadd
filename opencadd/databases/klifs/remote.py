@@ -77,7 +77,7 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
-            kinases, COLUMN_NAMES["kinases_all"], REMOTE_COLUMNS_MAPPING["kinases"]
+            kinases, COLUMN_NAMES["kinases_all"], REMOTE_COLUMNS_MAPPING["kinases_all"]
         )
         return kinases
 
@@ -205,19 +205,22 @@ class Ligands(RemoteInitializer, LigandsProvider):
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get kinase IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase IDs (due to multiple species)
+        _logger.info(f"Fetch kinase KLIFS IDs for input kinase names...")
         kinases_remote = Kinases(self._client)
         kinases = kinases_remote.by_kinase_names(kinase_names)
         # Select and rename columns to indicate columns involved in query
-        kinases = kinases[["kinase.id", "kinase.name", "species.klifs"]]
+        kinases = kinases[["kinase.id", "kinase.klifs_name", "kinase.hgnc_name", "species.klifs"]]
         kinases.rename(
             columns={
                 "kinase.id": "kinase.id (query)",
-                "kinase.name": "kinase.name (query)",
+                "kinase.klifs_name": "kinase.klifs_name (query)",
+                "kinase.hgnc_name": "kinase.hgnc_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,
         )
         # Use KLIFS API: Get ligands by kinase IDs
+        _logger.info(f"Fetch ligands based on these KLIFS IDs...")
         kinase_ids = kinases["kinase.id (query)"].to_list()
         ligands = self.by_kinase_ids(kinase_ids)
         # Add kinase name and species details to rationalize kinase IDs
@@ -372,7 +375,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
         # Select structures by kinase names
-        structures = structures[structures["kinase.name"].isin(kinase_names)]
+        structures = structures[structures["kinase.klifs_name"].isin(kinase_names)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
@@ -730,7 +733,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         output_path = metadata_to_filepath(
             output_path,
             metadata["species.klifs"].upper(),
-            metadata["kinase.name"],
+            metadata["kinase.klifs_name"],
             metadata["structure.pdb"],
             metadata["structure.alternate_model"],
             metadata["structure.chain"],

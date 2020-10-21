@@ -141,12 +141,13 @@ class _LocalDatabaseGenerator:
             inplace=True,
         )
 
-        # Unify column 'kinase.name': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
-        # Column "kinase.name": Retain only first kinase name, e.g. EPHA7
-        # Column "kinase.name_all": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_name(i) for i in klifs_export["kinase.name"]]
-        klifs_export["kinase.name"] = [i[0] for i in kinase_names]
-        klifs_export.insert(loc=1, column="kinase.name_all", value=kinase_names)
+        # Unify column 'kinase.hgnc': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
+        # Column "kinase.hgnc": Retain only first kinase name, e.g. EPHA7
+        # Column "kinase.all_names": Save all kinase names as list, e.g. [EPHA7, EphA7]
+        kinase_names = [self._format_kinase_names(i) for i in klifs_export["kinase.names"]]
+        klifs_export["kinase.names"] = kinase_names
+        klifs_export.insert(1, "kinase.hgnc_name", [i[0] for i in kinase_names])
+        klifs_export.insert(2, "kinase.klifs_name", [i[-1] for i in kinase_names])
 
         return klifs_export
 
@@ -178,12 +179,12 @@ class _LocalDatabaseGenerator:
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
         klifs_overview["structure.alternate_model"].replace(" ", "-", inplace=True)
         # Drop column for kinase name; will be taken from KLIFS_export.csv file upon table merge
-        klifs_overview.drop(columns=["kinase.name"], inplace=True)
+        klifs_overview.drop(columns=["kinase.klifs_name"], inplace=True)
 
         return klifs_overview
 
     @staticmethod
-    def _format_kinase_name(kinase_name):
+    def _format_kinase_names(kinase_names):
         """
         Format kinase name(s): One or multiple kinase names (additional names in brackets) are
         formatted to list of kinase names.
@@ -194,7 +195,7 @@ class _LocalDatabaseGenerator:
 
         Parameters
         ----------
-        kinase_name : str
+        kinase_names : str
             String, here kinase name(s).
 
         Returns
@@ -203,12 +204,18 @@ class _LocalDatabaseGenerator:
             List of strings, here list of kinase name(s).
         """
 
-        kinase_name = kinase_name.replace("(", "")
-        kinase_name = kinase_name.replace(")", "")
-        kinase_name = kinase_name.replace(",", "")
-        kinase_name = kinase_name.split()
+        kinase_names = kinase_names.replace("(", "")
+        kinase_names = kinase_names.replace(")", "")
+        kinase_names = kinase_names.replace(",", "")
+        kinase_names = kinase_names.split()
 
-        return kinase_name
+        if len(kinase_names) > 2:
+            _logger.info(
+                f"More than two file names are given: {kinase_names}."
+                f"Please file an issue at https://github.com/volkamerlab/opencadd/issues"
+            )
+
+        return kinase_names
 
     @staticmethod
     def _merge_files(klifs_export, klifs_overview):
@@ -304,7 +311,7 @@ class _LocalDatabaseGenerator:
             mol2_path = metadata_to_filepath(
                 ".",
                 row["species.klifs"],
-                row["kinase.name"],
+                row["kinase.klifs_name"],
                 row["structure.pdb"],
                 row["structure.alternate_model"],
                 row["structure.chain"],
@@ -329,7 +336,7 @@ class _LocalDatabaseGenerator:
         klifs_ids = pd.read_csv(PATH_TO_KLIFS_IDS)
         # Merge KLIFS metadata with local copy of KLIFS IDs
         klifs_metadata_with_ids = klifs_metadata.merge(
-            klifs_ids.drop(["kinase.name", "ligand.pdb"], axis=1),
+            klifs_ids.drop(["kinase.klifs_name", "ligand.pdb"], axis=1),
             on=["structure.pdb", "structure.alternate_model", "structure.chain"],
             how="left",
         )
@@ -413,9 +420,15 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         kinases = self._database.copy()
-        kinases = kinases[kinases["kinase.name"].isin(kinase_names)]
+        # Search in HGNC and KLIFS name columns (case insensitive)
+        kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
+        kinases = kinases[
+            kinases["kinase.klifs_name"].str.upper().isin(kinase_names)
+            | kinases["kinase.hgnc_name"].str.upper().isin(kinase_names)
+        ]
+        # Search for species (case insensitive)
         if species:
-            kinases = kinases[kinases["species.klifs"] == species]
+            kinases = kinases[kinases["species.klifs"].str.upper() == species.upper()]
         # Standardize DataFrame
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
         return kinases
@@ -463,15 +476,22 @@ class Ligands(LocalInitializer, LigandsProvider):
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         ligands = self._database.copy()
-        ligands = ligands[ligands["kinase.name"].isin(kinase_names)]
+        # Search in HGNC and KLIFS name columns (case insensitive)
+        kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
+        ligands = ligands[
+            ligands["kinase.klifs_name"].str.upper().isin(kinase_names)
+            | ligands["kinase.hgnc_name"].str.upper().isin(kinase_names)
+        ]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands, COLUMN_NAMES["ligands"] + ["kinase.name", "species.klifs"]
+            ligands,
+            COLUMN_NAMES["ligands"] + ["kinase.klifs_name", "kinase.hgnc_name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={
-                "kinase.name": "kinase.name (query)",
+                "kinase.klifs_name": "kinase.klifs_name (query)",
+                "kinase.hgnc_name": "kinase.hgnc_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,
@@ -579,13 +599,11 @@ class Structures(LocalInitializer, StructuresProvider):
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
         structures = self._database.copy()
+        # Search in HGNC and KLIFS name columns (case insensitive)
+        kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         structures = structures[
-            structures.apply(
-                lambda x: any(
-                    [kinase_name in kinase_names for kinase_name in x["kinase.name_all"]]
-                ),
-                axis=1,
-            )
+            structures["kinase.klifs_name"].str.upper().isin(kinase_names)
+            | structures["kinase.hgnc_name"].str.upper().isin(kinase_names)
         ]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
@@ -765,7 +783,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             filepath = metadata_to_filepath(
                 self._path_to_klifs_download,
                 structure["species.klifs"],
-                structure["kinase.name"],
+                structure["kinase.klifs_name"],
                 structure["structure.pdb"],
                 structure["structure.alternate_model"],
                 structure["structure.chain"],

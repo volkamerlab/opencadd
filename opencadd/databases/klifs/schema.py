@@ -9,7 +9,7 @@ import pandas as pd
 
 LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {
-        "NAME": "kinase.name",
+        "NAME": "kinase.names",  # HGNC and KLIFS (?) name  TODO where is KLIFS name from?
         "FAMILY": "kinase.family",
         "GROUPS": "kinase.group",
         "PDB": "structure.pdb",
@@ -25,7 +25,7 @@ LOCAL_COLUMNS_MAPPING = {
     },
     "klifs_overview": {
         "species": "species.klifs",
-        "kinase": "kinase.name",
+        "kinase": "kinase.klifs_name",
         "pdb": "structure.pdb",
         "alt": "structure.alternate_model",
         "chain": "structure.chain",
@@ -55,16 +55,23 @@ LOCAL_COLUMNS_MAPPING = {
 }
 
 REMOTE_COLUMNS_MAPPING = {
+    # Information.get_kinase_names()
+    "kinases_all": {
+        "kinase_ID": "kinase.id",
+        "name": "kinase.hgnc_name",
+        "full_name": "kinase.full_name",
+        "species": "species.klifs",
+    },
     # Information.get_kinase_information()
     "kinases": {
         "kinase_ID": "kinase.id",
-        "name": "kinase.name",
-        "HGNC": "kinase.hgnc",
+        "name": "kinase.klifs_name",
+        "HGNC": "kinase.hgnc_name",
         "family": "kinase.family",
         "group": "kinase.group",
         "kinase_class": "kinase.class",
         "species": "species.klifs",
-        "full_name": "kinase.name_full",
+        "full_name": "kinase.full_name",
         "uniprot": "kinase.uniprot",
         "iuphar": "kinase.iuphar",
         "pocket": "kinase.pocket",
@@ -81,7 +88,7 @@ REMOTE_COLUMNS_MAPPING = {
     # Structures.get_structure_lists()
     "structures": {
         "structure_ID": "structure.id",
-        "kinase": "kinase.name",
+        "kinase": "kinase.klifs_name",  # TODO which name?
         "species": "species.klifs",
         "kinase_ID": "kinase.id",
         "pdb": "structure.pdb",
@@ -151,19 +158,19 @@ COLUMN_NAMES = {
     "kinase_families": ["kinase.family"],
     "kinases_all": [
         "kinase.id",
-        "kinase.name",
-        "kinase.name_full",
+        "kinase.hgnc_name",  # TODO except for kinase KLIFS IDs: 529, 530
+        "kinase.full_name",
         "species.klifs",
     ],
     "kinases": [
         "kinase.id",
-        "kinase.name",
-        "kinase.hgnc",
+        "kinase.klifs_name",
+        "kinase.hgnc_name",
         "kinase.family",
         "kinase.group",
         "kinase.class",
         "species.klifs",
-        "kinase.name_full",
+        "kinase.full_name",
         "kinase.uniprot",
         "kinase.iuphar",
         "kinase.pocket",
@@ -176,8 +183,8 @@ COLUMN_NAMES = {
         "structure.chain",
         "species.klifs",
         "kinase.id",
-        "kinase.name",
-        # "kinase.name_all",  # Excluded, otherwise operations like drop_duplicates() do not work
+        "kinase.klifs_name",  # TODO
+        # "kinase.all_names",  # Excluded, otherwise operations like drop_duplicates() do not work
         "kinase.family",
         "kinase.group",
         "structure.pocket",

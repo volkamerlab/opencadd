@@ -115,7 +115,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, COLUMN_NAMES["kinases_all"])
         check_dataframe(result_local, COLUMN_NAMES["kinases_all"])
 
-        assert result_local["kinase.name"].to_list() == local_kinases[0]
+        assert result_local["kinase.hgnc_name"].to_list() == local_kinases[0]
         assert result_local["species.klifs"].to_list() == local_kinases[1]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
@@ -407,7 +407,8 @@ class TestsFromKinaseNames:
             COLUMN_NAMES["ligands"]
             + [
                 "kinase.id (query)",
-                "kinase.name (query)",
+                "kinase.klifs_name (query)",
+                "kinase.hgnc_name (query)",
                 "species.klifs (query)",
             ],
         )
@@ -415,7 +416,8 @@ class TestsFromKinaseNames:
             result_local,
             COLUMN_NAMES["ligands"]
             + [
-                "kinase.name (query)",
+                "kinase.klifs_name (query)",
+                "kinase.hgnc_name (query)",
                 "species.klifs (query)",
             ],
         )
