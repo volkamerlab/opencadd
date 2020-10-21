@@ -24,8 +24,8 @@ such as the KLIFS residue ID (pocket residues 1-85 are aligned across all kinase
 
     pocket = Pocket.from_file(
         filepath="protein.mol2",  # Dummy file path
-        name="example kinase", 
         pocket_residue_pdb_ids=[50, 51, ..., 198], 
+        name="example kinase", 
         pocket_residue_labels=[1, 2, ..., 85]
     )
 
@@ -50,8 +50,8 @@ visualized in magenta and whose center is calculated based on the CA atoms of re
 
     pocket.add_subpocket(
         name="hinge", 
-        color="magenta", 
         anchor_residue_pdb_ids=[73, 128, 193], 
+        color="magenta", 
         anchor_residue_labels=[16, 47, 80]  # Optionally
     )
 
@@ -70,10 +70,11 @@ We use the hinge region residues to add a region to our ``Pocket`` object.
 
     pocket.add_region(
         name="hinge region", 
-        color="magenta", 
         residue_pdb_ids=[127, 128, 129], 
+        color="magenta", 
         residue_labels=[46, 47, 48]  # Optionally
     )
+
 
 Visualize the pocket
 --------------------
@@ -82,7 +83,7 @@ Now we can visualize the pocket using:
 
 .. code-block:: python
 
-    pocket.visualize("protein.mol2")
+    pocket.visualize()
 
 
 Check out our tutorial to find out more!

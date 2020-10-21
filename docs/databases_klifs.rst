@@ -41,7 +41,7 @@ This module uses the official KLIFS API: https://klifs.net/swagger.
     remote.kinases.all_kinases()
 
     # Get kinases by kinase name
-    remote.kinases.from_kinase_names(["EGFR", "BRAF"])
+    remote.kinases.by_kinase_name(["EGFR", "BRAF"])
 
 Work with KLIFS data from disc (locally)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ The ``opencadd.databases.klifs.local`` submodule offers you to access KLIFS data
     local.kinases.all_kinases()
 
     # Get kinases by kinase name
-    local.kinases.from_kinase_names(["EGFR", "BRAF"])
+    local.kinases.by_kinase_name(["EGFR", "BRAF"])
 
 
 How is ``opencadd.databases.klifs`` structured?
