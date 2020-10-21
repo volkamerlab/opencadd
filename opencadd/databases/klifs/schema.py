@@ -88,7 +88,7 @@ REMOTE_COLUMNS_MAPPING = {
     # Structures.get_structure_lists()
     "structures": {
         "structure_ID": "structure.id",
-        "kinase": "kinase.klifs_name",  # TODO which name?
+        "kinase": "kinase.klifs_name",
         "species": "species.klifs",
         "kinase_ID": "kinase.id",
         "pdb": "structure.pdb",
