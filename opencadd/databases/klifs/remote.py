@@ -248,13 +248,13 @@ class Ligands(RemoteInitializer, LigandsProvider):
         )
         return ligands
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
 
-        ligand_pdbs = self._ensure_list(ligand_pdbs)
+        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
         # Select ligands by ligand PDB IDs
-        ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
+        ligands = ligands[ligands["ligand.pdb_id"].isin(ligand_pdb_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands, COLUMN_NAMES["ligands"], REMOTE_COLUMNS_MAPPING["ligands"]
@@ -283,12 +283,12 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
 
-        structure_ids = self._ensure_list(structure_ids)
+        structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Use KLIFS API
         result = (
-            self._client.Structures.get_structure_list(structure_ID=structure_ids)
+            self._client.Structures.get_structure_list(structure_ID=structure_klifs_ids)
             .response()
             .result
         )
@@ -317,8 +317,8 @@ class Structures(RemoteInitializer, StructuresProvider):
         remote_ligands = Ligands(self._client)
         ligands = remote_ligands.by_ligand_klifs_id(ligand_klifs_ids)
         # Use KLIFS API: Get structures from ligand PDBs
-        ligand_pdbs = ligands["ligand.pdb"].to_list()
-        structures = self.by_ligand_pdbs(ligand_pdbs)
+        ligand_pdb_ids = ligands["ligand.pdb_id"].to_list()
+        structures = self.by_ligand_pdb_id(ligand_pdb_ids)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
@@ -366,13 +366,13 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         return structures
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
 
-        ligand_pdbs = self._ensure_list(ligand_pdbs)
+        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
         # Select structures by ligand PDB IDs
-        structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        structures = structures[structures["ligand.pdb_id"].isin(ligand_pdb_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
@@ -462,7 +462,9 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
 
         # Use KLIFS API
         result = (
-            self._client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_klifs_id).response().result
+            self._client.Ligands.get_bioactivity_list_id(ligand_ID=ligand_klifs_id)
+            .response()
+            .result
         )
         # Convert list of ABC objects to DataFrame
         bioactivities = self._abc_to_dataframe(result)
@@ -503,20 +505,20 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         structures_remote = Structures(self._client)
         structures = structures_remote.all_structures()
         # Use KLIFS API: Get all interactions from these structures IDs
-        structure_ids = structures["structure.id"].to_list()
-        interactions = self.by_structure_ids(structure_ids)
+        structure_klifs_ids = structures["structure.klifs_id"].to_list()
+        interactions = self.by_structure_klifs_id(structure_klifs_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interaction_types"]
         )
         return interactions
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
 
-        structure_ids = self._ensure_list(structure_ids)
+        structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Use KLIFS API
         result = (
-            self._client.Interactions.get_interactions_get_IFP(structure_ID=structure_ids)
+            self._client.Interactions.get_interactions_get_IFP(structure_ID=structure_klifs_ids)
             .response()
             .result
         )
@@ -535,8 +537,8 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         structures_remote = Structures(self._client)
         structures = structures_remote.by_ligand_klifs_id(ligand_klifs_ids)
         # Use KLIFS API: Get interactions from these structure IDs
-        structure_ids = structures["structure.id"].to_list()
-        interactions = self.by_structure_ids(structure_ids)
+        structure_klifs_ids = structures["structure.klifs_id"].to_list()
+        interactions = self.by_structure_klifs_id(structure_klifs_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
@@ -550,8 +552,8 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         structures_remote = Structures(self._client)
         structures = structures_remote.by_kinase_klifs_id(kinase_klifs_ids)
         # Use KLIFS API: Get interactions from these structure IDs
-        structure_ids = structures["structure.id"].to_list()
-        interactions = self.by_structure_ids(structure_ids)
+        structure_klifs_ids = structures["structure.klifs_id"].to_list()
+        interactions = self.by_structure_klifs_id(structure_klifs_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions, COLUMN_NAMES["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
@@ -566,11 +568,11 @@ class Pockets(RemoteInitializer, PocketsProvider):
     opencadd.databases.klifs.core.PocketsProvider
     """
 
-    def by_structure_id(self, structure_id):
+    def by_structure_klifs_id(self, structure_klifs_id):
 
         # Use KLIFS API
         result = (
-            self._client.Interactions.get_interactions_match_residues(structure_ID=structure_id)
+            self._client.Interactions.get_interactions_match_residues(structure_ID=structure_klifs_id)
             .response()
             .result
         )
@@ -593,37 +595,37 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
     opencadd.databases.klifs.core.CoordinatesProvider
     """
 
-    def to_text(self, structure_id, entity="complex", extension="mol2"):
+    def to_text(self, structure_klifs_id, entity="complex", extension="mol2"):
 
         self._raise_invalid_extension(extension)
 
         if entity == "complex" and extension == "mol2":
             text = (
-                self._client.Structures.get_structure_get_complex(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_complex(structure_ID=structure_klifs_id)
                 .response()
                 .result
             )
         elif entity == "complex" and extension == "pdb":
             text = (
-                self._client.Structures.get_structure_get_pdb_complex(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_pdb_complex(structure_ID=structure_klifs_id)
                 .response()
                 .result
             )
         elif entity == "ligand" and extension == "mol2":
             text = (
-                self._client.Structures.get_structure_get_ligand(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_ligand(structure_ID=structure_klifs_id)
                 .response()
                 .result
             )
         elif entity == "pocket" and extension == "mol2":
             text = (
-                self._client.Structures.get_structure_get_pocket(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_pocket(structure_ID=structure_klifs_id)
                 .response()
                 .result
             )
         elif entity == "protein" and extension == "mol2":
             text = (
-                self._client.Structures.get_structure_get_protein(structure_ID=structure_id)
+                self._client.Structures.get_structure_get_protein(structure_ID=structure_klifs_id)
                 .response()
                 .result
             )
@@ -635,27 +637,27 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         else:
             raise ValueError(f"Data could not be fetched.")
 
-    def to_dataframe(self, structure_id, entity="complex", extension="mol2"):
+    def to_dataframe(self, structure_klifs_id, entity="complex", extension="mol2"):
 
-        text = self.to_text(structure_id, entity, extension)
+        text = self.to_text(structure_klifs_id, entity, extension)
         dataframe = DataFrame.from_text(text, extension)
-        dataframe = self._add_residue_klifs_ids(dataframe, structure_id)
+        dataframe = self._add_residue_klifs_ids(dataframe, structure_klifs_id)
         return dataframe
 
-    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+    def to_rdkit(self, structure_klifs_id, entity="complex", extension="mol2", compute2d=True):
 
-        text = self.to_text(structure_id, entity, extension)
+        text = self.to_text(structure_klifs_id, entity, extension)
         rdkit_mol = Rdkit.from_text(text, extension, compute2d)
         return rdkit_mol
 
-    def to_pdb(self, structure_id, output_path, entity="complex", in_dir=False):
+    def to_pdb(self, structure_klifs_id, output_path, entity="complex", in_dir=False):
         """
         Save structural data as pdb file.
 
         Parameters
         ----------
-        structure_id : str
-            KLIFS structure ID.
+        structure_klifs_id : str
+            Structure KLIFS ID.
         output_path : pathlib.Path or str
             Path to output folder.
         entity : str
@@ -674,16 +676,16 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
             If input yields not result.
         """
 
-        return self._to_file(structure_id, output_path, entity, "pdb", in_dir)
+        return self._to_file(structure_klifs_id, output_path, entity, "pdb", in_dir)
 
-    def to_mol2(self, structure_id, output_path, entity="complex", in_dir=False):
+    def to_mol2(self, structure_klifs_id, output_path, entity="complex", in_dir=False):
         """
         Save structural data as mol2 file.
 
         Parameters
         ----------
-        structure_id : str
-            KLIFS structure ID.
+        structure_klifs_id : str
+            Structure KLIFS ID.
         output_path : pathlib.Path or str
             Path to output folder.
         entity : str
@@ -702,16 +704,16 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
             If input yields not result.
         """
 
-        return self._to_file(structure_id, output_path, entity, "mol2", in_dir)
+        return self._to_file(structure_klifs_id, output_path, entity, "mol2", in_dir)
 
-    def _to_file(self, structure_id, output_path, entity, extension, in_dir=False):
+    def _to_file(self, structure_klifs_id, output_path, entity, extension, in_dir=False):
         """
         Save structural data to file.
 
         Parameters
         ----------
-        structure_id : str
-            KLIFS structure ID.
+        structure_klifs_id : str
+            Structure KLIFS ID.
         output_path : pathlib.Path or str
             Path to output folder.
         entity : str
@@ -737,7 +739,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
 
         # Use KLIFS API: Get structure metadata
         structures_remote = Structures(self._client)
-        metadata = structures_remote.by_structure_ids(structure_id).iloc[0]
+        metadata = structures_remote.by_structure_klifs_id(structure_klifs_id).iloc[0]
 
         # Set up output path (metadata in the form of directory structure or file name)
         output_path = metadata_to_filepath(
@@ -756,7 +758,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Get text
-        text = self.to_text(structure_id, entity, extension)
+        text = self.to_text(structure_klifs_id, entity, extension)
 
         # Save text to file
         with open(output_path, "w") as f:
@@ -764,7 +766,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
 
         return output_path
 
-    def _add_residue_klifs_ids(self, dataframe, structure_id):
+    def _add_residue_klifs_ids(self, dataframe, structure_klifs_id):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
@@ -781,7 +783,7 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
 
         # Get pocket residue details: KLIFS and PDB residue IDs
         pockets_remote = Pockets(self._client)
-        pocket = pockets_remote.by_structure_id(structure_id)
+        pocket = pockets_remote.by_structure_klifs_id(structure_klifs_id)
         # Merge DataFrames
         dataframe = dataframe.merge(pocket, on="residue.id", how="left")
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})

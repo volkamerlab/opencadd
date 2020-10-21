@@ -145,7 +145,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
-        assert result_local["ligand.pdb"].to_list() == ["1N1", "QH1", "PRC"]
+        assert result_local["ligand.pdb_id"].to_list() == ["1N1", "QH1", "PRC"]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
 
@@ -160,7 +160,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
-        assert result_local["structure.id"].to_list() == [3482, 12347, 5728, 5705]
+        assert result_local["structure.klifs_id"].to_list() == [3482, 12347, 5728, 5705]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
 
@@ -326,21 +326,21 @@ class TestsFromStructureIds:
     """
 
     @pytest.mark.parametrize("structure_ids", [12347, [12347, 100000]])
-    def test_by_structure_ids(self, structure_ids):
+    def test_by_structure_klifs_id(self, structure_ids):
         """
         Test class methods with structure IDs as input.
         """
 
         # Structures
-        result_remote = REMOTE.structures.by_structure_ids(structure_ids)
-        result_local = LOCAL.structures.by_structure_ids(structure_ids)
+        result_remote = REMOTE.structures.by_structure_klifs_id(structure_ids)
+        result_local = LOCAL.structures.by_structure_klifs_id(structure_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
         # Interactions
-        result_remote = REMOTE.interactions.by_structure_ids(structure_ids)
-        result_local = LOCAL.interactions.by_structure_ids(structure_ids)
+        result_remote = REMOTE.interactions.by_structure_klifs_id(structure_ids)
+        result_local = LOCAL.interactions.by_structure_klifs_id(structure_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
         check_dataframe(result_local, COLUMN_NAMES["interactions"])
@@ -349,8 +349,8 @@ class TestsFromStructureIds:
         if isinstance(structure_ids, int):
             structure_id = structure_ids
 
-            result_remote = REMOTE.pockets.by_structure_id(structure_ids)
-            result_local = LOCAL.pockets.by_structure_id(structure_ids)
+            result_remote = REMOTE.pockets.by_structure_klifs_id(structure_ids)
+            result_local = LOCAL.pockets.by_structure_klifs_id(structure_ids)
 
             check_dataframe(result_remote, COLUMN_NAMES["pockets"])
             check_dataframe(result_local, COLUMN_NAMES["pockets"])
@@ -358,21 +358,21 @@ class TestsFromStructureIds:
             assert all(result_local == result_remote)
 
     @pytest.mark.parametrize("structure_ids", [100000, "XXX"])
-    def test_by_structure_ids_raise(self, structure_ids):
+    def test_by_structure_klifs_id_raise(self, structure_ids):
         """
         Test class methods with structure IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(SwaggerMappingError):
-            REMOTE.structures.by_structure_ids(structure_ids)
-            REMOTE.interactions.by_structure_ids(structure_ids)
+            REMOTE.structures.by_structure_klifs_id(structure_ids)
+            REMOTE.interactions.by_structure_klifs_id(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
-                REMOTE.pockets.by_structure_id(structure_id)
+                REMOTE.pockets.by_structure_klifs_id(structure_id)
 
         with pytest.raises(ValueError):
-            LOCAL.structures.by_structure_ids(structure_ids)
-            LOCAL.interactions.by_structure_ids(structure_ids)
+            LOCAL.structures.by_structure_klifs_id(structure_ids)
+            LOCAL.interactions.by_structure_klifs_id(structure_ids)
             if isinstance(structure_ids, int):
                 structure_id = structure_ids
 
@@ -451,37 +451,37 @@ class TestsFromLigandPdbs:
     Test class methods with ligand PDB IDs as input.
     """
 
-    @pytest.mark.parametrize("ligand_pdbs", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
-    def test_by_ligand_pdbs(self, ligand_pdbs):
+    @pytest.mark.parametrize("ligand_pdb_ids", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
+    def test_by_ligand_pdb_id(self, ligand_pdb_ids):
         """
         Test class methods with ligand PDB IDs as input.
         """
 
         # Ligands
-        result_remote = REMOTE.ligands.by_ligand_pdbs(ligand_pdbs)
-        result_local = LOCAL.ligands.by_ligand_pdbs(ligand_pdbs)
+        result_remote = REMOTE.ligands.by_ligand_pdb_id(ligand_pdb_ids)
+        result_local = LOCAL.ligands.by_ligand_pdb_id(ligand_pdb_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["ligands"])
         check_dataframe(result_local, COLUMN_NAMES["ligands"])
 
         # Structure
-        result_remote = REMOTE.structures.by_ligand_pdbs(ligand_pdbs)
-        result_local = LOCAL.structures.by_ligand_pdbs(ligand_pdbs)
+        result_remote = REMOTE.structures.by_ligand_pdb_id(ligand_pdb_ids)
+        result_local = LOCAL.structures.by_ligand_pdb_id(ligand_pdb_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["structures"])
         check_dataframe(result_local, COLUMN_NAMES["structures"])
 
-    @pytest.mark.parametrize("ligand_pdbs", [1, "XXX"])
-    def test_by_ligand_pdbs_raise(self, ligand_pdbs):
+    @pytest.mark.parametrize("ligand_pdb_ids", [1, "XXX"])
+    def test_by_ligand_pdb_id_raise(self, ligand_pdb_ids):
         """
         Test class methods with ligand PDB IDs as input: Error raised if input invalid?
         """
 
         with pytest.raises(ValueError):
-            REMOTE.ligands.by_ligand_pdbs(ligand_pdbs)
-            REMOTE.structures.by_ligand_pdbs(ligand_pdbs)
-            LOCAL.ligands.by_ligand_pdbs(ligand_pdbs)
-            LOCAL.structures.by_ligand_pdbs(ligand_pdbs)
+            REMOTE.ligands.by_ligand_pdb_id(ligand_pdb_ids)
+            REMOTE.structures.by_ligand_pdb_id(ligand_pdb_ids)
+            LOCAL.ligands.by_ligand_pdb_id(ligand_pdb_ids)
+            LOCAL.structures.by_ligand_pdb_id(ligand_pdb_ids)
 
 
 class TestsFromStructurePdbs:

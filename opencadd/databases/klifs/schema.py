@@ -17,9 +17,9 @@ LOCAL_COLUMNS_MAPPING = {
         "ALTERNATE_MODEL": "structure.alternate_model",
         "SPECIES": "species.klifs",
         "LIGAND": "ligand.name",
-        "PDB_IDENTIFIER": "ligand.pdb",
+        "PDB_IDENTIFIER": "ligand.pdb_id",
         "ALLOSTERIC_NAME": "ligand_allosteric.name",
-        "ALLOSTERIC_PDB": "ligand_allosteric.pdb",
+        "ALLOSTERIC_PDB": "ligand_allosteric.pdb_id",
         "DFG": "structure.dfg",
         "AC_HELIX": "structure.ac_helix",
     },
@@ -29,8 +29,8 @@ LOCAL_COLUMNS_MAPPING = {
         "pdb": "structure.pdb",
         "alt": "structure.alternate_model",
         "chain": "structure.chain",
-        "orthosteric_PDB": "ligand.pdb",
-        "allosteric_PDB": "ligand_allosteric.pdb",
+        "orthosteric_PDB": "ligand.pdb_id",
+        "allosteric_PDB": "ligand_allosteric.pdb_id",
         "rmsd1": "structure.rmsd1",
         "rmsd2": "structure.rmsd2",
         "qualityscore": "structure.qualityscore",
@@ -79,7 +79,7 @@ REMOTE_COLUMNS_MAPPING = {
     # Ligands.get_ligands_list
     "ligands": {
         "ligand_ID": "ligand.klifs_id",
-        "PDB-code": "ligand.pdb",
+        "PDB-code": "ligand.pdb_id",
         "Name": "ligand.name",
         "SMILES": "ligand.smiles",
         "InChIKey": "ligand.inchikey",
@@ -87,7 +87,7 @@ REMOTE_COLUMNS_MAPPING = {
     # Structures.get_structure_list()
     # Structures.get_structure_lists()
     "structures": {
-        "structure_ID": "structure.id",
+        "structure_ID": "structure.klifs_id",
         "kinase": "kinase.klifs_name",
         "species": "species.klifs",
         "kinase_ID": "kinase.klifs_id",
@@ -101,8 +101,8 @@ REMOTE_COLUMNS_MAPPING = {
         "quality_score": "structure.qualityscore",
         "missing_residues": "structure.missing_residues",
         "missing_atoms": "structure.missing_atoms",
-        "ligand": "ligand.pdb",
-        "allosteric_ligand": "ligand_allosteric.pdb",
+        "ligand": "ligand.pdb_id",
+        "allosteric_ligand": "ligand_allosteric.pdb_id",
         "DFG": "structure.dfg",
         "aC_helix": "structure.ac_helix",
         "Grich_distance": "structure.grich_distance",
@@ -137,7 +137,7 @@ REMOTE_COLUMNS_MAPPING = {
     },
     # Interactions.get_interactions_get_IFP()
     "interactions": {
-        "structure_ID": "structure.id",
+        "structure_ID": "structure.klifs_id",
         "IFP": "interaction.fingerprint",
     },
     # Interactions.get_interactions_get_types()
@@ -175,9 +175,15 @@ COLUMN_NAMES = {
         "kinase.iuphar",
         "kinase.pocket",
     ],
-    "ligands": ["ligand.klifs_id", "ligand.pdb", "ligand.name", "ligand.smiles", "ligand.inchikey"],
+    "ligands": [
+        "ligand.klifs_id",
+        "ligand.pdb_id",
+        "ligand.name",
+        "ligand.smiles",
+        "ligand.inchikey",
+    ],
     "structures": [
-        "structure.id",
+        "structure.klifs_id",
         "structure.pdb",
         "structure.alternate_model",
         "structure.chain",
@@ -188,8 +194,8 @@ COLUMN_NAMES = {
         "kinase.family",
         "kinase.group",
         "structure.pocket",
-        "ligand.pdb",
-        "ligand_allosteric.pdb",
+        "ligand.pdb_id",
+        "ligand_allosteric.pdb_id",
         "ligand.name",
         "ligand_allosteric.name",
         "structure.dfg",
@@ -232,7 +238,7 @@ COLUMN_NAMES = {
         "ligand.bioactivity_pchembl_value",
         "species.chembl",
     ],
-    "interactions": ["structure.id", "interaction.fingerprint"],
+    "interactions": ["structure.klifs_id", "interaction.fingerprint"],
     "interaction_types": ["interaction.id", "interaction.name"],
     "pockets": [
         "residue.klifs_id",

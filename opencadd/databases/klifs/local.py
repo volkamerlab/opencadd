@@ -260,8 +260,8 @@ class _LocalDatabaseGenerator:
             "structure.pdb",
             "structure.chain",
             "structure.alternate_model",
-            "ligand.pdb",
-            "ligand_allosteric.pdb",
+            "ligand.pdb_id",
+            "ligand_allosteric.pdb_id",
         ]
 
         klifs_metadata = klifs_export.merge(right=klifs_overview, how="inner", on=mutual_columns)
@@ -336,7 +336,7 @@ class _LocalDatabaseGenerator:
         klifs_ids = pd.read_csv(PATH_TO_KLIFS_IDS)
         # Merge KLIFS metadata with local copy of KLIFS IDs
         klifs_metadata_with_ids = klifs_metadata.merge(
-            klifs_ids.drop(["kinase.klifs_name", "ligand.pdb"], axis=1),
+            klifs_ids.drop(["kinase.klifs_name", "ligand.pdb_id"], axis=1),
             on=["structure.pdb", "structure.alternate_model", "structure.chain"],
             how="left",
         )
@@ -345,7 +345,7 @@ class _LocalDatabaseGenerator:
         # If KLIFS IDs are missing (not in local copy), fetch individual structures from remote
         remote_structures = remote.Structures(KLIFS_CLIENT)
         for index, row in klifs_metadata_with_ids[
-            klifs_metadata_with_ids["structure.id"].isna()
+            klifs_metadata_with_ids["structure.klifs_id"].isna()
         ].iterrows():
             # Get IDs from remote
             structure = remote_structures.by_structure_pdbs(
@@ -353,13 +353,13 @@ class _LocalDatabaseGenerator:
                 row["structure.alternate_model"],
                 row["structure.chain"],
             )
-            structure_id = structure["structure.id"][0]
+            structure_klifs_id = structure["structure.klifs_id"][0]
             kinase_klifs_id = structure["kinase.klifs_id"][0]
             # Set IDs locally
-            klifs_metadata_with_ids.loc[index, "structure.id"] = structure_id
+            klifs_metadata_with_ids.loc[index, "structure.klifs_id"] = structure_klifs_id
             klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
         # Remove structures that have no KLIFS ID
-        klifs_metadata_with_ids.dropna(subset=["structure.id"], inplace=True)
+        klifs_metadata_with_ids.dropna(subset=["structure.klifs_id"], inplace=True)
 
         return klifs_metadata_with_ids
 
@@ -499,12 +499,12 @@ class Ligands(LocalInitializer, LigandsProvider):
         )
         return ligands
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
 
-        ligand_pdbs = self._ensure_list(ligand_pdbs)
+        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
         # Get local database and select rows
         ligands = self._database.copy()
-        ligands = ligands[ligands["ligand.pdb"].isin(ligand_pdbs)]
+        ligands = ligands[ligands["ligand.pdb_id"].isin(ligand_pdb_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
@@ -531,19 +531,19 @@ class Structures(LocalInitializer, StructuresProvider):
         )
         return structures
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
 
-        structure_ids = self._ensure_list(structure_ids)
+        structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Get local database and select rows
         structures = self._database.copy()
-        structures = structures[structures["structure.id"].isin(structure_ids)]
+        structures = structures[structures["structure.klifs_id"].isin(structure_klifs_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
             COLUMN_NAMES["structures"],
         )
         # Check: If only one structure ID was given, only one result is allowed
-        if len(structure_ids) == 1:
+        if len(structure_klifs_ids) == 1:
             if len(structures) != 1:
                 raise ValueError(f"More than one structure found for input structure ID.")
 
@@ -582,12 +582,12 @@ class Structures(LocalInitializer, StructuresProvider):
         )
         return structures
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
 
-        ligand_pdbs = self._ensure_list(ligand_pdbs)
+        ligand_pdb_ids = self._ensure_list(ligand_pdb_ids)
         # Get local database and select rows
         structures = self._database.copy()
-        structures = structures[structures["ligand.pdb"].isin(ligand_pdbs)]
+        structures = structures[structures["ligand.pdb_id"].isin(ligand_pdb_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
@@ -640,12 +640,12 @@ class Interactions(LocalInitializer, InteractionsProvider):
         )
         return interactions
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
 
-        structure_ids = self._ensure_list(structure_ids)
+        structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Get local database and select rows
         interactions = self._database.copy()
-        interactions = interactions[interactions["structure.id"].isin(structure_ids)]
+        interactions = interactions[interactions["structure.klifs_id"].isin(structure_klifs_ids)]
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
@@ -681,11 +681,11 @@ class Pockets(LocalInitializer, PocketsProvider):
     opencadd.databases.klifs.core.PocketsProvider
     """
 
-    def by_structure_id(self, structure_id):
+    def by_structure_klifs_id(self, structure_klifs_id):
 
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
-        structure = structures_local.by_structure_ids(structure_id).squeeze()
+        structure = structures_local.by_structure_klifs_id(structure_klifs_id).squeeze()
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
             index
@@ -740,30 +740,30 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     opencadd.databases.klifs.core.CoordinatesProvider
     """
 
-    def to_dataframe(self, structure_id_or_filepath, entity="complex", extension="mol2"):
+    def to_dataframe(self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"):
 
-        filepath = self._to_filepath(structure_id_or_filepath, entity, extension)
+        filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         mol2_df = DataFrame.from_file(filepath)
         mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
         return mol2_df
 
     def to_rdkit(
-        self, structure_id_or_filepath, entity="complex", extension="mol2", compute2d=True
+        self, structure_klifs_id_or_filepath, entity="complex", extension="mol2", compute2d=True
     ):
 
-        filepath = self._to_filepath(structure_id_or_filepath, entity, extension)
+        filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         rdkit_mol = Rdkit.from_file(filepath, compute2d)
         return rdkit_mol
 
-    def _to_filepath(self, structure_id_or_filepath, entity, extension):
+    def _to_filepath(self, structure_klifs_id_or_filepath, entity, extension):
         """
         If the input is a structure ID, return the associated filepath.
         If the input is a filepath already, return that filepath.
 
         Parameters
         ----------
-        structure_id_or_filepath : int / str or pathlib.Path
-            KLIFS structure ID or path to file.
+        structure_klifs_id_or_filepath : int / str or pathlib.Path
+            Structure KLIFS ID or path to file.
         entity : str
             Structural entity.
         extension : str
@@ -775,11 +775,11 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             Path to file.
         """
 
-        if isinstance(structure_id_or_filepath, int):
-            structure_id = structure_id_or_filepath
+        if isinstance(structure_klifs_id_or_filepath, int):
+            structure_klifs_id = structure_klifs_id_or_filepath
             # Get structure by structure ID
             structures_local = Structures(self._database, self._path_to_klifs_download)
-            structure = structures_local.by_structure_ids(structure_id).squeeze()
+            structure = structures_local.by_structure_klifs_id(structure_klifs_id).squeeze()
             # Get filepath from metadata
             filepath = metadata_to_filepath(
                 self._path_to_klifs_download,
@@ -793,7 +793,7 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
                 in_dir=True,
             )
         else:
-            filepath = structure_id_or_filepath
+            filepath = structure_klifs_id_or_filepath
         return Path(filepath)
 
     def _add_residue_klifs_ids(self, mol2_df, filepath):
@@ -819,11 +819,11 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             metadata["structure_alternate_model"],
             metadata["structure_chain"],
         ).squeeze()
-        structure_id = structure["structure.id"]
+        structure_klifs_id = structure["structure.klifs_id"]
 
         # Get pocket
         pockets_local = Pockets(self._database, self._path_to_klifs_download)
-        mol2_df_pocket = pockets_local.by_structure_id(structure_id)
+        mol2_df_pocket = pockets_local.by_structure_klifs_id(structure_klifs_id)
 
         # Merge pocket DataFrame with input DataFrame
         mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.id", how="left")

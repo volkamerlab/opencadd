@@ -140,12 +140,12 @@ class BaseProvider:
         if "structure.alternate_model" in dataframe.columns:
             # Remote
             dataframe["structure.alternate_model"].replace("", "-", inplace=True)
-        if "ligand.pdb" in dataframe.columns:
+        if "ligand.pdb_id" in dataframe.columns:
             # Remote
-            dataframe["ligand.pdb"].replace(0, "-", inplace=True)
-        if "ligand_allosteric.pdb" in dataframe.columns:
+            dataframe["ligand.pdb_id"].replace(0, "-", inplace=True)
+        if "ligand_allosteric.pdb_id" in dataframe.columns:
             # Remote
-            dataframe["ligand_allosteric.pdb"].replace(0, "-", inplace=True)
+            dataframe["ligand_allosteric.pdb_id"].replace(0, "-", inplace=True)
         if "structure.resolution" in dataframe.columns:
             # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
@@ -453,7 +453,7 @@ class LigandsProvider(BaseProvider):
         Get ligands by one or more kinase names (KLIFS or HGNC name).
     by_ligand_klifs_id(ligand_klifs_ids)
         Get ligands by one or more ligand IDs.
-    by_ligand_pdbs(ligand_pdbs)
+    by_ligand_pdb_id(ligand_pdb_ids)
         Get ligands by one or more ligand PDB IDs.
 
     Notes
@@ -479,7 +479,7 @@ class LigandsProvider(BaseProvider):
 
     Both local and remote:
 
-        ligand.pdb : str
+        ligand.pdb_id : str
             Ligand PDB name.
         ligand.name : str
             Ligand name.
@@ -568,7 +568,7 @@ class LigandsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
         """
         Get ligands by one or more ligand PDB IDs.
 
@@ -598,7 +598,7 @@ class StructuresProvider(BaseProvider):
     -------
     all_structures()
         Get all available structures.
-    by_structure_ids(structure_ids)
+    by_structure_klifs_id(structure_klifs_ids)
         Get structures by one or more structure IDs.
     by_ligand_klifs_id(ligand_klifs_ids)
         Get structures by one or more ligand IDs.
@@ -606,7 +606,7 @@ class StructuresProvider(BaseProvider):
         Get structures by one or more kinase IDs.
     by_structure_pdbs(structure_pdbs)
         Get structures by one or more structure PDB IDs.
-    by_ligand_pdbs(ligand_pdbs)
+    by_ligand_pdb_id(ligand_pdb_ids)
         Get structures by one or more ligand PDB IDs.
     by_kinase_name(kinase_names)
         Get structures by one or more kinase names (KLIFS or HGNC name).
@@ -616,7 +616,7 @@ class StructuresProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of ligands (rows) with the (or a subset of the)
     following attributes (columns):
 
-    structure.id : int
+    structure.klifs_id : int
         Structure ID.
     structure.pdb : str
         Structure PDB ID.
@@ -641,7 +641,7 @@ class StructuresProvider(BaseProvider):
         Available locally only.
     structure.pocket : str
         One-letter amino acid sequence for the structure's 85 residue KLIFS pocket (gaps "-").
-    ligand.pdb : str or int (0)
+    ligand.pdb_id : str or int (0)
         Orthosteric ligand PDB ID. None if no ligand.
     ligand_allosteric.pdb : str or
         Allosteric ligand PDB ID.  None if no ligand.
@@ -730,14 +730,14 @@ class StructuresProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
         """
         Get structures by one or more structure IDs.
 
         Parameters
         ----------
-        structure_ids : int or list of int
-            KLIFS structure ID(s).
+        structure_klifs_ids : int or list of int
+            Structure KLIFS ID(s).
 
         Returns
         -------
@@ -858,13 +858,13 @@ class StructuresProvider(BaseProvider):
             structures = structures[structures["structure.chain"] == structure_chain]
         return structures
 
-    def by_ligand_pdbs(self, ligand_pdbs):
+    def by_ligand_pdb_id(self, ligand_pdb_ids):
         """
         Get structures by one or more ligand PDB IDs.
 
         Parameters
         ----------
-        ligand_pdbs : str or list of str
+        ligand_pdb_ids : str or list of str
             Ligand PDB ID(s).
 
         Returns
@@ -1014,7 +1014,7 @@ class InteractionsProvider(BaseProvider):
         Get all available interaction types.
     all_interactions()
         Get all available interaction fingerprints.
-    by_structure_ids(structure_ids)
+    by_structure_klifs_id(structure_klifs_ids)
         Get interactions by one or more structure IDs.
     by_ligand_klifs_id(ligand_klifs_ids)
         Get interactions by one or more ligand IDs.
@@ -1026,7 +1026,7 @@ class InteractionsProvider(BaseProvider):
     Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
     the) following attributes (columns):
 
-    structure.id : int
+    structure.klifs_id : int
         Structure ID.
     interaction.fingerprint : str
         Interaction fingerprint, a string of 595 zeros and ones for
@@ -1059,7 +1059,7 @@ class InteractionsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Interactions (rows) with the following columns:
-            "structure.id", "interaction.fingerprint".
+            "structure.klifs_id", "interaction.fingerprint".
             Check class docstring for more information on columns.
 
         Raises
@@ -1069,20 +1069,20 @@ class InteractionsProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def by_structure_ids(self, structure_ids):
+    def by_structure_klifs_id(self, structure_klifs_ids):
         """
         Get interactions by one or more structure IDs.
 
         Parameters
         ----------
-        structure_ids : int or list of int
-            KLIFS structure ID(s).
+        structure_klifs_ids : int or list of int
+            Structure KLIFS ID(s).
 
         Returns
         -------
         pandas.DataFrame
             Interactions (rows) with the following columns:
-            "structure.id", "interaction.fingerprint".
+            "structure.klifs_id", "interaction.fingerprint".
             Check class docstring for more information on columns.
 
         Raises
@@ -1107,7 +1107,7 @@ class InteractionsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Interactions (rows) with the following columns:
-            "structure.id", "interaction.fingerprint".
+            "structure.klifs_id", "interaction.fingerprint".
             Check class docstring for more information on columns.
 
         Raises
@@ -1130,7 +1130,7 @@ class InteractionsProvider(BaseProvider):
         -------
         pandas.DataFrame
             Interactions (rows) with the following columns:
-            "structure.id", "interaction.fingerprint".
+            "structure.klifs_id", "interaction.fingerprint".
             Check class docstring for more information on columns.
 
         Raises
@@ -1150,7 +1150,7 @@ class PocketsProvider(BaseProvider):
 
     Methods
     -------
-    by_structure_id()
+    by_structure_klifs_id()
         Get a structure's residue ID and KLIFS ID by structure ID
         (plus kinase region label for each residue).
 
@@ -1171,15 +1171,15 @@ class PocketsProvider(BaseProvider):
         KLIFS color assigned to pocket residue.
     """
 
-    def by_structure_id(self, structure_id):
+    def by_structure_klifs_id(self, structure_klifs_id):
         """
         Get a structure's residue ID and KLIFS ID by structure ID
         (plus kinase region label for each residue).
 
         Parameters
         ----------
-        structure_id : str
-            KLIFS structure ID.
+        structure_klifs_id : str
+            Structure KLIFS ID.
 
         Returns
         -------
@@ -1233,11 +1233,11 @@ class CoordinatesProvider(BaseProvider):
 
     Methods
     -------
-    to_text(structure_id, entity, extension)
+    to_text(structure_klifs_id, entity, extension)
         Load coordinates as text.
-    to_dataframe(structure_id, entity, extension)
+    to_dataframe(structure_klifs_id, entity, extension)
         Load coordinates as DataFrame.
-    to_rdkit(structure_id, entity, extension, compute2d)
+    to_rdkit(structure_klifs_id, entity, extension, compute2d)
         Load coordinates as RDKit molecule.
 
     Notes
@@ -1281,25 +1281,25 @@ class CoordinatesProvider(BaseProvider):
             "output_formats": ["text", "biopandas", "rdkit"],
         }
 
-    def to_text(self, structure_id, entity="complex", extension="mol2"):
+    def to_text(self, structure_klifs_id, entity="complex", extension="mol2"):
         """
         Get structural data content from KLIFS database as string (text).
 
         Parameters
         ----------
-        structure_id : int
-            KLIFS structure ID.
-            In the local module, this parameter is called "structure_id_or_filepath".
-        structure_id_or_filepath : int / str or pathlib.Path
-            KLIFS structure ID or path to file.
-            In the remote module, this parameter is called "structure_id".
+        structure_klifs_id : int
+            Structure KLIFS ID.
+            In the local module, this parameter is called "structure_klifs_id_or_filepath".
+        structure_klifs_id_or_filepath : int / str or pathlib.Path
+            Structure KLIFS ID or path to file.
+            In the remote module, this parameter is called "structure_klifs_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
 
         Returns
@@ -1309,25 +1309,25 @@ class CoordinatesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def to_dataframe(self, structure_id, entity="complex", extension="mol2"):
+    def to_dataframe(self, structure_klifs_id, entity="complex", extension="mol2"):
         """
         Get structural data content as DataFrame.
 
         Parameters
         ----------
-        structure_id : int
-            KLIFS structure ID.
-            In the local module, this parameter is called "structure_id_or_filepath".
-        structure_id_or_filepath : int / str or pathlib.Path
-            KLIFS structure ID or path to file.
-            In the remote module, this parameter is called "structure_id".
+        structure_klifs_id : int
+            Structure KLIFS ID.
+            In the local module, this parameter is called "structure_klifs_id_or_filepath".
+        structure_klifs_id_or_filepath : int / str or pathlib.Path
+            Structure KLIFS ID or path to file.
+            In the remote module, this parameter is called "structure_klifs_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
 
         Raises
@@ -1339,25 +1339,25 @@ class CoordinatesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    def to_rdkit(self, structure_id, entity="complex", extension="mol2", compute2d=True):
+    def to_rdkit(self, structure_klifs_id, entity="complex", extension="mol2", compute2d=True):
         """
         Get structural data content as RDKit molecule.
 
         Parameters
         ----------
-        structure_id : int
-            KLIFS structure ID.
-            In the local module, this parameter is called "structure_id_or_filepath".
-        structure_id_or_filepath : int / str or pathlib.Path
-            KLIFS structure ID or path to file.
-            In the remote module, this parameter is called "structure_id".
+        structure_klifs_id : int
+            Structure KLIFS ID.
+            In the local module, this parameter is called "structure_klifs_id_or_filepath".
+        structure_klifs_id_or_filepath : int / str or pathlib.Path
+            Structure KLIFS ID or path to file.
+            In the remote module, this parameter is called "structure_klifs_id".
         entity : str
             Structural entity: complex (default), ligand, pocket, or protein.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         extension : str
             Input file format (fetched from KLIFS): mol2 (default) or pdb.
-            In the local module, when a filepath is passed to "structure_id_or_filepath", this
+            In the local module, when a filepath is passed to "structure_klifs_id_or_filepath", this
             parameter will be ignored and inferred from the filepath instead.
         compute2d : bool
             For entity=ligand only. Compute 2D coordinates (default) or keep 3D coordinates.
