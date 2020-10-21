@@ -283,12 +283,12 @@ class KinasesProvider(BaseProvider):
 
     Remote only:
 
-        kinase.name : str
+        kinase.klifs_name : str
             Kinase name according to KLIFS.  # TODO where does the name come from?
         kinase.class : str
             Kinase class.  # TODO where from?
             Available remotely only.
-        kinase.name_full : str
+        kinase.full_name : str
             Full kinase name.
             Available remotely only.
         kinase.uniprot : str
@@ -306,7 +306,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_id : int
             Kinase KLIFS ID.
-        kinase.hgnc : str
+        kinase.hgnc_name : str
             Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
         kinase.family : str
@@ -376,8 +376,9 @@ class KinasesProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            Kinases (rows) with the following columns: "kinase.klifs_id", "kinase.hgnc", "kinase.name_full",
-            "species.klifs". Check class docstring for more information on columns.
+            Kinases (rows) with the following columns: "kinase.klifs_id", "kinase.hgnc_name",
+            "kinase.full_name", "species.klifs". Check class docstring for more information on
+            columns.
 
         Raises
         ------
@@ -620,7 +621,7 @@ class StructuresProvider(BaseProvider):
     following attributes (columns):
 
     structure.klifs_id : int
-        Structure ID.
+        Structure KLIFS ID.
     structure.pdb_id : str
         Structure PDB ID.
     structure.alternate_model : str
@@ -630,8 +631,8 @@ class StructuresProvider(BaseProvider):
     species.klifs : str
         Species (KLIFS notation).
     kinase.klifs_id : int
-        Kinase ID.
-    kinase.name : str  # TODO or kinase.hgnc?
+        Kinase KLIFS ID.
+    kinase.klifs_name : str
         Kinase name according to KLIFS.
     kinase.name_full : str
         Full kinase name.
@@ -648,7 +649,7 @@ class StructuresProvider(BaseProvider):
         Orthosteric ligand Ligand Expo ID. None if no ligand.
         Ligand Expo IDs (3-letter codes) are chemical component identifiers as defined by
         Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
-    ligand_allosteric.pdb : str or
+    ligand_allosteric.expo_id : str or
         Allosteric ligand Ligand Expo ID. None if no ligand.
         Ligand Expo IDs (3-letter codes) are chemical component identifiers as defined by
         Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
@@ -1035,7 +1036,7 @@ class InteractionsProvider(BaseProvider):
     the) following attributes (columns):
 
     structure.klifs_id : int
-        Structure ID.
+        Structure KLIFS ID.
     interaction.fingerprint : str
         Interaction fingerprint, a string of 595 zeros and ones for
         85 (pocket residues) * 7 (interaction features).
@@ -1197,7 +1198,7 @@ class PocketsProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: Structure ID does not exist.
+            Remote module: Structure KLIFS ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
 
@@ -1341,7 +1342,7 @@ class CoordinatesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: Structure ID does not exist.
+            Remote module: Structure KLIFS ID does not exist.
         ValueError
             If input yields not result.
         """
@@ -1373,7 +1374,7 @@ class CoordinatesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: Structure ID does not exist.
+            Remote module: Structure KLIFS ID does not exist.
         ValueError
             If input yields not result.
         """
