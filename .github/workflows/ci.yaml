@@ -36,8 +36,8 @@ jobs:
           df -h
           ulimit -a
 
-      # More info on options: https://github.com/goanpeca/setup-miniconda
-      - uses: goanpeca/setup-miniconda@v1
+      # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - uses: conda-incubator/setup-miniconda@v1
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: devtools/conda-envs/test_env.yaml
@@ -88,8 +88,8 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v2
 
-      # More info on options: https://github.com/goanpeca/setup-miniconda
-      - uses: goanpeca/setup-miniconda@v1
+      # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - uses: conda-incubator/setup-miniconda@v1
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: devtools/conda-envs/test_env.yaml
@@ -128,8 +128,8 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v2
 
-      # More info on options: https://github.com/goanpeca/setup-miniconda
-      - uses: goanpeca/setup-miniconda@v1
+      # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - uses: conda-incubator/setup-miniconda@v1
         with:
           python-version: ${{ matrix.python-version }}
           environment-file: devtools/conda-envs/test_env.yaml
@@ -140,11 +140,15 @@ jobs:
           show-channel-urls: true
           # mamba-version: "*"
 
-      - name: Run sphinx
-        shell: bash
+      - name: Install package
+        shell: bash -l {0}
         run: |
-          . devtools/scripts/initialize_conda.sh
-          conda activate test
+          python -m pip install . --no-deps
+          conda list
+
+      - name: Run sphinx
+        shell: bash -l {0}
+        run: |
           cd docs
           make clean
           SPHINXOPTS="-W -T --keep-going" make html
