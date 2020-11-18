@@ -353,18 +353,15 @@ class Pocket:
             Pocket visualization.
         """
 
-        filepath = str(self._filepath)
-
-        # Load structure from file in nglview  # TODO in the future: show_file > show_text?
-        view = nglview.show_file(filepath)
+        # Load structure from text in nglview
+        structure = nglview.adaptor.TextStructure(self._text, ext=self._extension)
+        view = nglview.widget.NGLWidget(structure)
         view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         view.clear()
 
-        # Get file format (this is important to know how nglview will index residues)
-        file_format = filepath.split(".")[-1]
-
         # Get residue ID > nglview index mapping
-        residue_id2ix = self._map_residue_id2ix(file_format)
+        # based on file format (this is important to know how nglview will index residues)
+        residue_id2ix = self._map_residue_id2ix(self._extension)
 
         # Show regions
         scheme_regions_list = []
