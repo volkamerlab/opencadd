@@ -5,6 +5,7 @@ Defines pockets.
 """
 
 import logging
+from pathlib import Path
 
 from matplotlib import colors
 import nglview
@@ -81,7 +82,45 @@ class Pocket:
             Pocket object.
         """
 
+        filepath = Path(filepath)
+        extension = filepath.suffix[1:]
+        with open(filepath, "r") as f:
+            text = f.read()
+        pocket = cls.from_text(text, extension, residue_ids, name, residue_labels)
+        return pocket
+
+    @classmethod
+    def from_text(cls, text, extension, residue_ids, name="", residue_labels=None):
+        """
+        Initialize Pocket object from structure protein file.
+
+        Attributes
+        ----------
+        text : str
+            Structural protein data as string (file content).
+        extension : str
+            Structural protein data format (file extension).
+        residue_ids : list of str
+            Pocket residue IDs.
+        name : str
+            Name of protein (default: empty string).
+        residue_labels : None or list of str
+            Pocket residue labels. Set to None by default.
+
+        Returns
+        -------
+        opencadd.structure.pocket.Pocket
+            Pocket object.
+        """
+
         pocket = cls()
+        pocket.name = name
+        pocket._text = text
+        pocket._extension = extension
+        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
+            residue_ids, residue_labels
+        )
+        return pocket
 
     @property
     def data(self):
