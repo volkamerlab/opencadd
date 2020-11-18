@@ -83,14 +83,18 @@ class Pocket:
 
         pocket = cls()
 
-        pocket.name = name
-        pocket._filepath = filepath
-        pocket._data = DataFrame.from_file(filepath)
-        residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
-        pocket._residue_ids = residue_ids
-        pocket._residue_labels = residue_labels
+    @property
+    def data(self):
+        """
+        Structural protein data.
 
-        return pocket
+        Returns
+        -------
+        pandas.DataFrame
+            Structural protein data with the following mandatory columns:
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+        """
+        return DataFrame.from_text(self._text, self._extension)
 
     @property
     def residues(self):
