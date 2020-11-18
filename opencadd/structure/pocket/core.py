@@ -28,12 +28,12 @@ class Pocket:
 
     Attributes
     ----------
+    data
     residues
     subpockets
     regions
     anchor_residues
     centroid
-    filepath
     name : str
         Name of protein.
     _text : str
@@ -255,19 +255,6 @@ class Pocket:
 
         return centroid
 
-    @property
-    def filepath(self):
-        """
-        File path to structural protein data.
-
-        Returns
-        -------
-        pathlib.Path
-            File path to structural protein data.
-        """
-
-        return self._filepath
-
     def clear_subpockets(self):
         """
         Clear subpockets, i.e. remove all defined subpockets.
@@ -281,13 +268,6 @@ class Pocket:
         """
 
         self._regions = []
-
-    def delete_file(self):
-        """
-        Delete file with structural protein data.
-        """
-
-        self.filepath.unlink()
 
     def add_subpocket(
         self,
@@ -403,8 +383,8 @@ class Pocket:
 
         Parameters
         ----------
-        filepath : pathlib.Path or str
-            Path to structure file.
+        file_format : string
+            Structural protein data format.
 
         Returns
         -------
