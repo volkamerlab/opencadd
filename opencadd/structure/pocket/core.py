@@ -249,7 +249,12 @@ class Pocket:
             (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
         ]
 
-        _logger.info(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
+        if len(atoms) != len(self._residue_ids):
+            _logger.info(
+                f"Missing pocket CA atoms. "
+                f"The pocket centroid is calculated based on {len(atoms)} CA atoms "
+                f"(total number of pocket residues is {len(self._residue_ids)})."
+            )
 
         centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
 
