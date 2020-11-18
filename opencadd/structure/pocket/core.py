@@ -142,7 +142,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Residue ID and residue label (columns) for all pocket residues (rows).
         """
 
@@ -157,7 +157,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Name, color and subpocket center (columns) for all subpockets (rows).
         """
 
@@ -181,7 +181,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Name, color, involved residue IDs and labels (columns) for all regions.
         """
         if self._regions == []:
@@ -215,7 +215,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Anchor residues (rows) with the following columns:
             - Subpocket name and color
             - Anchor residue IDs (user-defined input IDs or alternative
@@ -243,7 +243,7 @@ class Pocket:
             Pocket centroid (coordinates).
         """
 
-        dataframe = self._data
+        dataframe = self.data
 
         atoms = dataframe[
             (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
@@ -312,7 +312,7 @@ class Pocket:
         """
 
         subpocket = Subpocket.from_dataframe(
-            self._data, name, anchor_residue_ids, color, anchor_residue_labels
+            self.data, name, anchor_residue_ids, color, anchor_residue_labels
         )
         self._subpockets.append(subpocket)
 
@@ -333,7 +333,7 @@ class Pocket:
         """
 
         region = Region()
-        region.from_dataframe(self._data, name, residue_ids, color, residue_labels)
+        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
         self._regions.append(region)
 
     def visualize(self, show_pocket_centroid=True, show_anchor_residues=True):
@@ -416,7 +416,7 @@ class Pocket:
         """
 
         # Get all residue names
-        residue_id2ix = self._data[["residue.name", "residue.id"]].drop_duplicates()
+        residue_id2ix = self.data[["residue.name", "residue.id"]].drop_duplicates()
 
         if file_format == "mol2":
 
