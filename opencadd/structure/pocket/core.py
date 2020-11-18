@@ -35,11 +35,10 @@ class Pocket:
     filepath
     name : str
         Name of protein.
-    _filepath : str or pathlib.Path
-        File path to structural protein data.
-    _data : pandas._dataFrame
-        Structural protein data with the following mandatory columns:
-        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    _text : str
+        Structural protein data as string (file content).
+    _extension : str
+        Structural protein data format (file extension).
     _residue_ids : list of str
         Pocket residue IDs.
     _residue_labels : list of str
@@ -53,7 +52,8 @@ class Pocket:
     def __init__(self):
 
         self.name = None
-        self._filepath = None
+        self._text = None
+        self._extension = None
         self._residue_ids = None
         self._residue_labels = None
         self._subpockets = []
