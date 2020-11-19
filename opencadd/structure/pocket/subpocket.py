@@ -4,10 +4,14 @@ opencadd.structure.pocket.subpocket
 Defines subpockets.
 """
 
+import logging
+
 import numpy as np
 import pandas as pd
 
 from .utils import _format_residue_ids_and_labels
+
+_logger = logging.getLogger(__name__)
 
 
 class Subpocket:
@@ -224,6 +228,17 @@ class AnchorResidue:
                 anchor_residue.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
             else:
                 anchor_residue.center = None
+
+        if anchor_residue.id_alternative:
+            _logger.info(
+                f"Anchor residue {anchor_residue.id} is missing, "
+                f"use {anchor_residue.id_alternative} instead."
+            )
+        if anchor_residue.center is None:
+            _logger.info(
+                f"Anchor residue {anchor_residue.id} and its neighbors are missing "
+                f"- no anchor residue could be set."
+            )
 
         return anchor_residue
 

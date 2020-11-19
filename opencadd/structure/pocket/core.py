@@ -5,6 +5,7 @@ Defines pockets.
 """
 
 import logging
+from pathlib import Path
 
 from matplotlib import colors
 import nglview
@@ -27,19 +28,18 @@ class Pocket:
 
     Attributes
     ----------
+    data
     residues
     subpockets
     regions
     anchor_residues
     centroid
-    filepath
     name : str
         Name of protein.
-    _filepath : str or pathlib.Path
-        File path to structural protein data.
-    _data : pandas._dataFrame
-        Structural protein data with the following mandatory columns:
-        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    _text : str
+        Structural protein data as string (file content).
+    _extension : str
+        Structural protein data format (file extension).
     _residue_ids : list of str
         Pocket residue IDs.
     _residue_labels : list of str
@@ -53,7 +53,8 @@ class Pocket:
     def __init__(self):
 
         self.name = None
-        self._filepath = None
+        self._text = None
+        self._extension = None
         self._residue_ids = None
         self._residue_labels = None
         self._subpockets = []
@@ -81,16 +82,58 @@ class Pocket:
             Pocket object.
         """
 
-        pocket = cls()
-
-        pocket.name = name
-        pocket._filepath = filepath
-        pocket._data = DataFrame.from_file(filepath)
-        residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
-        pocket._residue_ids = residue_ids
-        pocket._residue_labels = residue_labels
-
+        filepath = Path(filepath)
+        extension = filepath.suffix[1:]
+        with open(filepath, "r") as f:
+            text = f.read()
+        pocket = cls.from_text(text, extension, residue_ids, name, residue_labels)
         return pocket
+
+    @classmethod
+    def from_text(cls, text, extension, residue_ids, name="", residue_labels=None):
+        """
+        Initialize Pocket object from structure protein file.
+
+        Attributes
+        ----------
+        text : str
+            Structural protein data as string (file content).
+        extension : str
+            Structural protein data format (file extension).
+        residue_ids : list of str
+            Pocket residue IDs.
+        name : str
+            Name of protein (default: empty string).
+        residue_labels : None or list of str
+            Pocket residue labels. Set to None by default.
+
+        Returns
+        -------
+        opencadd.structure.pocket.Pocket
+            Pocket object.
+        """
+
+        pocket = cls()
+        pocket.name = name
+        pocket._text = text
+        pocket._extension = extension
+        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
+            residue_ids, residue_labels
+        )
+        return pocket
+
+    @property
+    def data(self):
+        """
+        Structural protein data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structural protein data with the following mandatory columns:
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+        """
+        return DataFrame.from_text(self._text, self._extension)
 
     @property
     def residues(self):
@@ -99,7 +142,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Residue ID and residue label (columns) for all pocket residues (rows).
         """
 
@@ -114,7 +157,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Name, color and subpocket center (columns) for all subpockets (rows).
         """
 
@@ -138,7 +181,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Name, color, involved residue IDs and labels (columns) for all regions.
         """
         if self._regions == []:
@@ -172,7 +215,7 @@ class Pocket:
 
         Returns
         -------
-        pandas._dataFrame
+        pandas.DataFrame
             Anchor residues (rows) with the following columns:
             - Subpocket name and color
             - Anchor residue IDs (user-defined input IDs or alternative
@@ -200,30 +243,22 @@ class Pocket:
             Pocket centroid (coordinates).
         """
 
-        dataframe = self._data
+        dataframe = self.data
 
         atoms = dataframe[
             (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
         ]
 
-        _logger.info(f"The pocket centroid is calculated based on {len(atoms)} CA atoms.")
+        if len(atoms) != len(self._residue_ids):
+            _logger.info(
+                f"Missing pocket CA atoms. "
+                f"The pocket centroid is calculated based on {len(atoms)} CA atoms "
+                f"(total number of pocket residues is {len(self._residue_ids)})."
+            )
 
         centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
 
         return centroid
-
-    @property
-    def filepath(self):
-        """
-        File path to structural protein data.
-
-        Returns
-        -------
-        pathlib.Path
-            File path to structural protein data.
-        """
-
-        return self._filepath
 
     def clear_subpockets(self):
         """
@@ -238,13 +273,6 @@ class Pocket:
         """
 
         self._regions = []
-
-    def delete_file(self):
-        """
-        Delete file with structural protein data.
-        """
-
-        self.filepath.unlink()
 
     def add_subpocket(
         self,
@@ -269,7 +297,7 @@ class Pocket:
         """
 
         subpocket = Subpocket.from_dataframe(
-            self._data, name, anchor_residue_ids, color, anchor_residue_labels
+            self.data, name, anchor_residue_ids, color, anchor_residue_labels
         )
         self._subpockets.append(subpocket)
 
@@ -290,7 +318,7 @@ class Pocket:
         """
 
         region = Region()
-        region.from_dataframe(self._data, name, residue_ids, color, residue_labels)
+        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
         self._regions.append(region)
 
     def visualize(self, show_pocket_centroid=True, show_anchor_residues=True):
@@ -310,18 +338,15 @@ class Pocket:
             Pocket visualization.
         """
 
-        filepath = str(self._filepath)
-
-        # Load structure from file in nglview  # TODO in the future: show_file > show_text?
-        view = nglview.show_file(filepath)
+        # Load structure from text in nglview
+        structure = nglview.adaptor.TextStructure(self._text, ext=self._extension)
+        view = nglview.widget.NGLWidget(structure)
         view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         view.clear()
 
-        # Get file format (this is important to know how nglview will index residues)
-        file_format = filepath.split(".")[-1]
-
         # Get residue ID > nglview index mapping
-        residue_id2ix = self._map_residue_id2ix(file_format)
+        # based on file format (this is important to know how nglview will index residues)
+        residue_id2ix = self._map_residue_id2ix(self._extension)
 
         # Show regions
         scheme_regions_list = []
@@ -363,8 +388,8 @@ class Pocket:
 
         Parameters
         ----------
-        filepath : pathlib.Path or str
-            Path to structure file.
+        file_format : string
+            Structural protein data format.
 
         Returns
         -------
@@ -373,7 +398,7 @@ class Pocket:
         """
 
         # Get all residue names
-        residue_id2ix = self._data[["residue.name", "residue.id"]].drop_duplicates()
+        residue_id2ix = self.data[["residue.name", "residue.id"]].drop_duplicates()
 
         if file_format == "mol2":
 

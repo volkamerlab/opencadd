@@ -17,7 +17,7 @@ class KlifsPocket(Pocket):
     """
 
     @classmethod
-    def from_structure_klifs_id(cls, structure_klifs_id, subpockets=None):
+    def from_structure_klifs_id(cls, structure_klifs_id, subpockets=None, extension="pdb"):
         """
         Get a KLIFS pocket (remotely by a structure KLIFS ID) that defines the KLIFS regions and
         subpockets.
@@ -35,6 +35,8 @@ class KlifsPocket(Pocket):
                 Subpocket name.
             "subpocket.color" : str
                 Subpocket color.
+        extension : str
+            Structure protein data file format. Defaults to PDB format.
 
         Returns
         -------
@@ -47,10 +49,13 @@ class KlifsPocket(Pocket):
 
         # Get pocket and coordinates for a structure (by a structure KLIFS ID)
         pocket = remote.pockets.by_structure_klifs_id(structure_klifs_id)
-        filepath = remote.coordinates.to_pdb(structure_klifs_id, ".", entity="complex")
+        text = remote.coordinates.to_text(
+            structure_klifs_id, entity="complex", extension=extension
+        )
 
-        pocket_3d = cls.from_file(
-            filepath,
+        pocket_3d = cls.from_text(
+            text,
+            extension,
             pocket["residue.id"].to_list(),
             "example kinase",
             pocket["residue.klifs_id"].to_list(),
