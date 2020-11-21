@@ -104,7 +104,9 @@ REMOTE_COLUMNS_MAPPING = {
         "missing_residues": "structure.missing_residues",
         "missing_atoms": "structure.missing_atoms",
         "ligand": "ligand.expo_id",
+        "ligand_ID": "ligand.klifs_id",
         "allosteric_ligand": "ligand_allosteric.expo_id",
+        "allosteric_ligand": "ligand_allosteric.klifs_id",
         "DFG": "structure.dfg",
         "aC_helix": "structure.ac_helix",
         "Grich_distance": "structure.grich_distance",
@@ -195,13 +197,15 @@ COLUMN_NAMES = {
         "structure.chain",
         "species.klifs",
         "kinase.klifs_id",
-        "kinase.klifs_name",  # TODO where from?
+        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
         # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
         "kinase.family",
         "kinase.group",
         "structure.pocket",
         "ligand.expo_id",
         "ligand_allosteric.expo_id",
+        "ligand.klifs_id",
+        "ligand_allosteric.klifs_id",
         "ligand.name",
         "ligand_allosteric.name",
         "structure.dfg",
