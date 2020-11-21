@@ -216,13 +216,13 @@ class Ligands(RemoteInitializer, LigandsProvider):
         kinases = kinases_remote.by_kinase_name(kinase_names)
         # Select and rename columns to indicate columns involved in query
         kinases = kinases[
-            ["kinase.klifs_id", "kinase.klifs_name", "kinase.hgnc_name", "species.klifs"]
+            ["kinase.klifs_id", "kinase.klifs_name", "kinase.gene_name", "species.klifs"]
         ]
         kinases.rename(
             columns={
                 "kinase.klifs_id": "kinase.klifs_id (query)",
                 "kinase.klifs_name": "kinase.klifs_name (query)",
-                "kinase.hgnc_name": "kinase.hgnc_name (query)",
+                "kinase.gene_name": "kinase.gene_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,

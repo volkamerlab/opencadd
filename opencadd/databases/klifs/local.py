@@ -146,7 +146,7 @@ class _LocalDatabaseGenerator:
         # Column "kinase.all_names": Save all kinase names as list, e.g. [EPHA7, EphA7]
         kinase_names = [self._format_kinase_names(i) for i in klifs_export["kinase.names"]]
         klifs_export["kinase.names"] = kinase_names
-        klifs_export.insert(1, "kinase.hgnc_name", [i[0] for i in kinase_names])
+        klifs_export.insert(1, "kinase.gene_name", [i[0] for i in kinase_names])
         klifs_export.insert(2, "kinase.klifs_name", [i[-1] for i in kinase_names])
 
         return klifs_export
@@ -425,7 +425,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         kinases = kinases[
             kinases["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | kinases["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | kinases["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Search for species (case insensitive)
         if species:
@@ -481,18 +481,18 @@ class Ligands(LocalInitializer, LigandsProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         ligands = ligands[
             ligands["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | ligands["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | ligands["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_name", "kinase.hgnc_name", "species.klifs"],
+            COLUMN_NAMES["ligands"] + ["kinase.klifs_name", "kinase.gene_name", "species.klifs"],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={
                 "kinase.klifs_name": "kinase.klifs_name (query)",
-                "kinase.hgnc_name": "kinase.hgnc_name (query)",
+                "kinase.gene_name": "kinase.gene_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,
@@ -604,7 +604,7 @@ class Structures(LocalInitializer, StructuresProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         structures = structures[
             structures["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | structures["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | structures["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Standardize DataFrame
         structures = self._standardize_dataframe(

@@ -58,21 +58,23 @@ REMOTE_COLUMNS_MAPPING = {
     # Information.get_kinase_names()
     "kinases_all": {
         "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.hgnc_name",
-        "full_name": "kinase.full_name",
+        "name": "kinase.klifs_name",  # NEW! Manning name or (if missing) UniProt gene name
+        "full_name": "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
+        "accesion": "kinase.uniprot",  # NEW! UniProt accession
         "species": "species.klifs",
     },
     # Information.get_kinase_information()
     "kinases": {
         "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.klifs_name",
-        "HGNC": "kinase.hgnc_name",
+        "name": "kinase.klifs_name",  # NEW! Manning name or (if missing) UniProt gene name
+        "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
         "family": "kinase.family",
         "group": "kinase.group",
         "kinase_class": "kinase.class",
         "species": "species.klifs",
-        "full_name": "kinase.full_name",
-        "uniprot": "kinase.uniprot",
+        "full_name": "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "uniprot": "kinase.uniprot",  # UniProt accession
         "iuphar": "kinase.iuphar",
         "pocket": "kinase.pocket",
     },
@@ -158,20 +160,22 @@ COLUMN_NAMES = {
     "kinase_families": ["kinase.family"],
     "kinases_all": [
         "kinase.klifs_id",
-        "kinase.hgnc_name",  # TODO except for kinase KLIFS IDs: 529, 530
-        "kinase.full_name",
+        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.gene_name",  # HGNC or MGI name (TODO check kinase KLIFS IDs: 529, 530)
+        "kinase.uniprot",  # UniProt accession
         "species.klifs",
     ],
     "kinases": [
         "kinase.klifs_id",
-        "kinase.klifs_name",  # TODO where from?
-        "kinase.hgnc_name",
+        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.gene_name",  # HGNC or MGI name
         "kinase.family",
         "kinase.group",
         "kinase.class",  # TODO where from?
         "species.klifs",
-        "kinase.full_name",
-        "kinase.uniprot",
+        "kinase.uniprot",  # UniProt accession
         "kinase.iuphar",
         "kinase.pocket",
     ],
