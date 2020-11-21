@@ -64,6 +64,14 @@ class Subpocket:
         return anchor_residues_df
 
     @classmethod
+    def from_residue_ids(dataframe, residue_id_ix_mapping, residue_ids, name, color="blue"):
+        pass
+
+    @classmethod
+    def from_residue_ixs(dataframe, residue_id_ix_mapping, residue_ixs, name, color="blue"):
+        pass
+
+    @classmethod
     def from_dataframe(
         cls, dataframe, name, anchor_residue_ids, color="blue", anchor_residue_labels=None
     ):
@@ -182,11 +190,16 @@ class AnchorResidue:
         self.id = None
         self.id_alternative = None
         self.label = None
+        self.label_alternative = None
         self.color = None
         self.center = None
 
     @classmethod
-    def from_dataframe(cls, dataframe, residue_id, color="blue", residue_label=None):
+    def from_residue_ix(cls, dataframe, residue_id_ix_mapping, residue_ix, color="blue"):
+        residue_id = residue_id_ix_mapping.set_index("residue.ix").squeeze().loc[residue_ix]
+
+    @classmethod
+    def from_residue_id(cls, dataframe, residue_id_ix_mapping, residue_id, color="blue"):
         """
         Set residue properties.
 
@@ -203,31 +216,24 @@ class AnchorResidue:
             Residue label (default None).
         """
 
-        anchor_residue = cls()
-
-        # Set class attributes
-        if isinstance(residue_id, int):
-            residue_id = str(residue_id)
-
-        anchor_residue.id = residue_id
-        anchor_residue.label = residue_label
-        anchor_residue.color = color
+        residue_ix = residue_id_ix_mapping.set_index("residue.id").squeeze().loc[residue_id]
 
         # Select atom from residue ID and atom name
-        atom = anchor_residue._ca_atom(dataframe)
+        anchor_residue = cls()
+        center = anchor_residue._ca_atom_center(dataframe, residue_id)
 
         # If residue ID exists, get atom coordinates.
-        if atom is not None:
-            anchor_residue.center = atom[["atom.x", "atom.y", "atom.z"]].squeeze().to_numpy()
+        if center:
+            return center
 
         # If not, get atom coordinates for residue before/after.
         else:
-            atoms = anchor_residue._ca_atom_before_after(dataframe)
-            if atoms is not None:
-                anchor_residue.id_alternative = atoms["residue.id"].to_list()
-                anchor_residue.center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
-            else:
-                anchor_residue.center = None
+            residue_id_before = str(int(self.id) - 1)
+            residue_id_after = str(int(self.id) + 1)
+            center = anchor_residue._ca_atom_before_after_center(
+                dataframe, residue_id_before, residue_id_after
+            )
+            return center
 
         if anchor_residue.id_alternative:
             _logger.info(
@@ -242,7 +248,28 @@ class AnchorResidue:
 
         return anchor_residue
 
-    def _ca_atom(self, dataframe):
+    def _ca_atom_center(self, dataframe, residue_id):
+        """TODO"""
+
+        atom = self._ca_atom(dataframe, residue_id)
+        # If residue ID exists, get atom coordinates.
+        if atom is not None:
+            return atom[["atom.x", "atom.y", "atom.z"]].squeeze().to_numpy()
+        else:
+            return None
+
+    def _ca_atom_before_after_center(self, dataframe, residue_id_before, residue_id_after):
+        """TODO"""
+
+        atoms = anchor_residue._ca_atom_before_after(
+            dataframe, residue_id_before, residue_id_after
+        )
+        if atoms is not None:
+            return atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+        else:
+            return None
+
+    def _ca_atom(self, dataframe, residue_id):
         """
         Select a CA atom based on a residue PBD ID.
 
@@ -251,6 +278,8 @@ class AnchorResidue:
         dataframe : pandas.DataFrame
             Structural data with the following mandatory columns:
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
+        residue_id : TODO
+            TODO
 
         Returns
         -------
@@ -263,7 +292,9 @@ class AnchorResidue:
             If returned number of atoms is larger than 1.
         """
 
-        atom = dataframe[(dataframe["residue.id"] == self.id) & (dataframe["atom.name"] == "CA")]
+        atom = dataframe[
+            (dataframe["residue.id"] == residue_id) & (dataframe["atom.name"] == "CA")
+        ]
 
         if len(atom) == 1:
             return atom
@@ -274,7 +305,7 @@ class AnchorResidue:
                 f"Unambiguous atom selection. {len(atom)} atoms found instead of 0 or 1."
             )
 
-    def _ca_atom_before_after(self, dataframe):
+    def _ca_atom_before_after(self, dataframe, residue_id_before, residue_id_after):
         """
         Select CA atoms from residues before and after a given residue PBD ID.
 
@@ -283,6 +314,10 @@ class AnchorResidue:
         dataframe : pandas.DataFrame
             Structural data with the following mandatory columns:
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
+        residue_id_before : TODO
+            TODO
+        residue_id_after : TODO
+            TODO
 
         Returns
         -------
@@ -294,9 +329,6 @@ class AnchorResidue:
         ValueError
             If returned number of atoms is larger than 2.
         """
-
-        residue_id_before = str(int(self.id) - 1)
-        residue_id_after = str(int(self.id) + 1)
 
         atoms = dataframe[
             (dataframe["residue.id"].isin([residue_id_before, residue_id_after]))
