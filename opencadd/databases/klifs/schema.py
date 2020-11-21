@@ -9,7 +9,7 @@ import pandas as pd
 
 LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {
-        "NAME": "kinase.names",  # HGNC and KLIFS (?) name  TODO where is KLIFS name from?
+        "NAME": "kinase.names",  # Kinase names: "kinase.gene_name (kinase.klifs_name)"
         "FAMILY": "kinase.family",
         "GROUPS": "kinase.group",
         "PDB": "structure.pdb_id",
@@ -58,8 +58,8 @@ REMOTE_COLUMNS_MAPPING = {
     # Information.get_kinase_names()
     "kinases_all": {
         "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.klifs_name",  # NEW! Manning name or (if missing) UniProt gene name
-        "full_name": "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "name": "kinase.klifs_name",  # NEW! Depending on availability: Manning name or UniProt gene name
+        "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
         "accesion": "kinase.uniprot",  # NEW! UniProt accession
         "species": "species.klifs",
@@ -67,13 +67,13 @@ REMOTE_COLUMNS_MAPPING = {
     # Information.get_kinase_information()
     "kinases": {
         "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.klifs_name",  # NEW! Manning name or (if missing) UniProt gene name
+        "name": "kinase.klifs_name",  # NEW! Depending on availability: Manning name or UniProt gene name
         "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
         "family": "kinase.family",
         "group": "kinase.group",
         "kinase_class": "kinase.class",
         "species": "species.klifs",
-        "full_name": "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "uniprot": "kinase.uniprot",  # UniProt accession
         "iuphar": "kinase.iuphar",
         "pocket": "kinase.pocket",
@@ -164,16 +164,16 @@ COLUMN_NAMES = {
     "kinase_families": ["kinase.family"],
     "kinases_all": [
         "kinase.klifs_id",
-        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
-        "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
+        "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "kinase.gene_name",  # HGNC or MGI name (TODO check kinase KLIFS IDs: 529, 530)
         "kinase.uniprot",  # UniProt accession
         "species.klifs",
     ],
     "kinases": [
         "kinase.klifs_id",
-        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
-        "kinase.full_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
+        "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "kinase.gene_name",  # HGNC or MGI name
         "kinase.family",
         "kinase.group",
@@ -197,7 +197,7 @@ COLUMN_NAMES = {
         "structure.chain",
         "species.klifs",
         "kinase.klifs_id",
-        "kinase.klifs_name",  # Manning name or (if missing) UniProt gene name
+        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
         # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
         "kinase.family",
         "kinase.group",
