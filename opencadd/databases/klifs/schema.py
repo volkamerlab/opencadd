@@ -106,7 +106,7 @@ REMOTE_COLUMNS_MAPPING = {
         "ligand": "ligand.expo_id",
         "ligand_ID": "ligand.klifs_id",
         "allosteric_ligand": "ligand_allosteric.expo_id",
-        "allosteric_ligand": "ligand_allosteric.klifs_id",
+        "allosteric_ligand_ID": "ligand_allosteric.klifs_id",
         "DFG": "structure.dfg",
         "aC_helix": "structure.ac_helix",
         "Grich_distance": "structure.grich_distance",
