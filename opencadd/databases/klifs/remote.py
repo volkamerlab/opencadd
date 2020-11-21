@@ -302,23 +302,11 @@ class Structures(RemoteInitializer, StructuresProvider):
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
 
-        # TODO in the future: Approach incorrect: One PDB can have multiple IDs
-
-        _logger.warning(
-            f"This method uses this lookup: ligand KLIFS ID > Ligand Expo ID > structures."
-            f"The KLIFS Swagger API offers no direct structure search by ligand KLIFS ID."
-            f"However, one Ligand Expo ID can be represented by multiple ligand KLIFS IDs. "
-            f"Thus, in rare cases, this method will return also structure that are not connected "
-            f"to the input ligand KLIFS ID but to a mutual Ligand Expo ID."
-        )
-
         ligand_klifs_ids = self._ensure_list(ligand_klifs_ids)
-        # Use KLIFS API: Get Ligand Expo IDs for ligand IDs
-        remote_ligands = Ligands(self._client)
-        ligands = remote_ligands.by_ligand_klifs_id(ligand_klifs_ids)
-        # Use KLIFS API: Get structures from Ligand Expo IDs
-        ligand_expo_ids = ligands["ligand.expo_id"].to_list()
-        structures = self.by_ligand_expo_id(ligand_expo_ids)
+        # Use KLIFS API: Get all structures
+        structures = self.all_structures()
+        # Select structures by ligand KLIFS IDs
+        structures = structures[structures["ligand.klifs_id"].isin(ligand_klifs_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, COLUMN_NAMES["structures"], REMOTE_COLUMNS_MAPPING["structures"]
