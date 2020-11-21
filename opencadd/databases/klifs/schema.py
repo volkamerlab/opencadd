@@ -130,7 +130,9 @@ REMOTE_COLUMNS_MAPPING = {
     "bioactivities": {
         "pref_name": "kinase.pref_name",
         "accession": "kinase.uniprot",
+        "target_chembl_id": "kinase.chembl_id",
         "organism": "species.chembl",
+        "chembl_id": "ligand.chembl_id",
         "standard_type": "ligand.bioactivity_standard_type",
         "standard_relation": "ligand.bioactivity_standard_relation",
         "standard_value": "ligand.bioactivity_standard_value",
@@ -234,7 +236,9 @@ COLUMN_NAMES = {
         # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
         "kinase.pref_name",
         "kinase.uniprot",
+        "kinase.chembl_id",
         # TODO in the future: "ligand.klifs_id"  # Add if added to KLIFS API?
+        "ligand.chembl_id",
         "ligand.bioactivity_standard_type",
         "ligand.bioactivity_standard_relation",
         "ligand.bioactivity_standard_value",
