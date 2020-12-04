@@ -100,9 +100,9 @@ def print_markdown(
     """
     if process_newlines:
         contents = sep.join(args)
-        if "\r\n\r\n" not in contents and not contents.startwith("\r\n"):
+        if "\r\n\r\n" not in contents and not contents.startswith("\r\n"):
             contents = contents.replace("\r\n", "<br />")
-        if "\n\n" not in contents and not contents.startwith("\n"):
+        if "\n\n" not in contents and not contents.startswith("\n"):
             contents = contents.replace("\n", "<br />")
         args = (contents,)
 
