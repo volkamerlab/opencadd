@@ -95,10 +95,17 @@ def print_markdown(
         on click.
     process_newlines : bool, optional=True
         If [\r]\n is present, replace with <br />  tags to mimic `print` as much
-        as possible.
+        as possible. This also applies to the value of `sep`. This does not apply
+        for contents that contain blank lines.
     """
     if process_newlines:
-        args = [a.replace("\r\n", "<br />").replace("\n", "<br />") for a in args]
+        contents = sep.join(args)
+        if "\r\n\r\n" not in contents:
+            contents = contents.replace("\r\n", "<br />")
+        if "\n\n" not in contents:
+            contents = contents.replace("\n", "<br />")
+        args = (contents,)
+
     return _rich_print(
         *args, engine=_Markdown, sep=sep, alert=alert, hidden=hidden, display=display, **kwargs
     )
