@@ -21,7 +21,7 @@ from .core import (
 )
 from .schema import (
     LOCAL_COLUMNS_MAPPING,
-    COLUMN_NAMES,
+    DATAFRAME_COLUMNS,
     POCKET_KLIFS_REGIONS,
 )
 from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
@@ -376,7 +376,9 @@ class Kinases(LocalInitializer, KinasesProvider):
         # Get local database
         kinase_groups = self._database.copy()
         # Standardize DataFrame
-        kinase_groups = self._standardize_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
+        kinase_groups = self._standardize_dataframe(
+            kinase_groups, DATAFRAME_COLUMNS["kinase_groups"]
+        )
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -387,7 +389,7 @@ class Kinases(LocalInitializer, KinasesProvider):
             kinase_families = kinase_families[kinase_families["kinase.group"] == group]
         # Standardize DataFrame
         kinase_families = self._standardize_dataframe(
-            kinase_families, COLUMN_NAMES["kinase_families"]
+            kinase_families, DATAFRAME_COLUMNS["kinase_families"]
         )
         return kinase_families
 
@@ -402,7 +404,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases_all"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases_all"])
         return kinases
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -413,7 +415,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         print(kinases.columns)
         kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
@@ -431,7 +433,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"].str.upper() == species.upper()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
         return kinases
 
 
@@ -447,7 +449,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Get local database
         ligands = self._database.copy()
         # Standardize DataFrame
-        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"])
+        ligands = self._standardize_dataframe(ligands, DATAFRAME_COLUMNS["ligands"])
         return ligands
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -459,7 +461,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + [("kinase.klifs_id", "int32")],
+            DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
@@ -486,7 +488,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"]
+            DATAFRAME_COLUMNS["ligands"]
             + [
                 ("kinase.klifs_name", "string"),
                 ("kinase.hgnc_name", "string"),
@@ -513,7 +515,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"],
+            DATAFRAME_COLUMNS["ligands"],
         )
         return ligands
 
@@ -532,7 +534,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -545,7 +547,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_klifs_ids) == 1:
@@ -563,7 +565,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -583,7 +585,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -596,7 +598,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -614,7 +616,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -641,7 +643,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"],
+            DATAFRAME_COLUMNS["interactions"],
         )
         return interactions
 
@@ -654,7 +656,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"],
+            DATAFRAME_COLUMNS["interactions"],
         )
         return interactions
 
@@ -667,7 +669,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"] + [("kinase.klifs_id", "int32")],
+            DATAFRAME_COLUMNS["interactions"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
@@ -729,7 +731,7 @@ class Pockets(LocalInitializer, PocketsProvider):
         # Standardize DataFrame
         mol2_df = self._standardize_dataframe(
             mol2_df,
-            COLUMN_NAMES["pockets"],
+            DATAFRAME_COLUMNS["pockets"],
         )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
         mol2_df = self._add_klifs_region_details(mol2_df)

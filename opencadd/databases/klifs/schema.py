@@ -6,7 +6,7 @@ Defines schema used across the klifs module.
 
 import pandas as pd
 
-COLUMN_NAMES = {
+DATAFRAME_COLUMNS = {
     "kinase_groups": [
         ("kinase.group", "string"),
     ],
