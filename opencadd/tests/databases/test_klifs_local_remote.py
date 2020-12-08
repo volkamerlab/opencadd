@@ -626,7 +626,8 @@ class TestsCoordinates:
         """
 
         assert isinstance(dataframe, pd.DataFrame)
-        assert dataframe.columns.to_list() == COLUMN_NAMES["coordinates"]
+        column_names = [column[0] for column in COLUMN_NAMES["coordinates"]]
+        assert dataframe.columns.to_list() == column_names
         assert dataframe.shape[0] == n_atoms
         assert centroid[0] == pytest.approx(dataframe["atom.x"].mean(), abs=1.0e-6)
         assert centroid[1] == pytest.approx(dataframe["atom.y"].mean(), abs=1.0e-6)
