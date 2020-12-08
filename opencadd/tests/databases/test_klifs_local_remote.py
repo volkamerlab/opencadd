@@ -20,7 +20,7 @@ REMOTE = setup_remote()
 LOCAL = setup_local(PATH_TEST_DATA)
 
 
-def check_dataframe(dataframe, column_names):
+def check_dataframe(dataframe, columns):
     """
     Base function that tests if input is a DataFrame, if column names and index is correct.
     """
@@ -28,7 +28,7 @@ def check_dataframe(dataframe, column_names):
     assert isinstance(dataframe, pd.DataFrame)
 
     # Are DataFrame column names and their order correct?
-    assert dataframe.columns.to_list() == column_names
+    assert dataframe.columns.to_list() == [column[0] for column in columns]
 
     # Are DataFrame indices enumerated starting from 0 to length of DataFrame - 1?
     assert dataframe.index.to_list() == list(range(0, len(dataframe)))
@@ -222,8 +222,12 @@ class TestsFromKinaseIds:
         # Ligands
         result_remote = REMOTE.ligands.by_kinase_klifs_id(kinase_klifs_ids)
         result_local = LOCAL.ligands.by_kinase_klifs_id(kinase_klifs_ids)
-        check_dataframe(result_remote, COLUMN_NAMES["ligands"] + ["kinase.klifs_id (query)"])
-        check_dataframe(result_local, COLUMN_NAMES["ligands"] + ["kinase.klifs_id (query)"])
+        check_dataframe(
+            result_remote, COLUMN_NAMES["ligands"] + [("kinase.klifs_id (query)", "int32")]
+        )
+        check_dataframe(
+            result_local, COLUMN_NAMES["ligands"] + [("kinase.klifs_id (query)", "int32")]
+        )
 
         # Structures
         result_remote = REMOTE.structures.by_kinase_klifs_id(kinase_klifs_ids)
@@ -244,7 +248,9 @@ class TestsFromKinaseIds:
         result_local = LOCAL.interactions.by_kinase_klifs_id(kinase_klifs_ids)
 
         check_dataframe(result_remote, COLUMN_NAMES["interactions"])
-        check_dataframe(result_local, COLUMN_NAMES["interactions"] + ["kinase.klifs_id (query)"])
+        check_dataframe(
+            result_local, COLUMN_NAMES["interactions"] + [("kinase.klifs_id (query)", "int32")]
+        )
 
     @pytest.mark.parametrize("kinase_klifs_ids", [10000, "XXX"])
     def test_by_kinase_klifs_id_raise(self, kinase_klifs_ids):
@@ -406,19 +412,19 @@ class TestsFromKinaseNames:
             result_remote,
             COLUMN_NAMES["ligands"]
             + [
-                "kinase.klifs_id (query)",
-                "kinase.klifs_name (query)",
-                "kinase.hgnc_name (query)",
-                "species.klifs (query)",
+                ("kinase.klifs_id (query)", "int32"),
+                ("kinase.klifs_name (query)", "string"),
+                ("kinase.hgnc_name (query)", "string"),
+                ("species.klifs (query)", "string"),
             ],
         )
         check_dataframe(
             result_local,
             COLUMN_NAMES["ligands"]
             + [
-                "kinase.klifs_name (query)",
-                "kinase.hgnc_name (query)",
-                "species.klifs (query)",
+                ("kinase.klifs_name (query)", "string"),
+                ("kinase.hgnc_name (query)", "string"),
+                ("species.klifs (query)", "string"),
             ],
         )
 
