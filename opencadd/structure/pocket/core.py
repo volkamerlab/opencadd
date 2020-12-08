@@ -11,7 +11,8 @@ import pandas as pd
 
 from opencadd.io import DataFrame
 from .region import Region
-from .subpocket import Subpocket, AnchorResidue
+from .subpocket import Subpocket
+from .anchor import AnchorResidue
 from .utils import _format_residue_ids_and_labels
 
 _logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class Pocket:
     def __init__(self):
 
         self.name = None
+        self.data = None
         self._text = None
         self._extension = None
         self._residue_ids = None
@@ -90,7 +92,7 @@ class Pocket:
     @classmethod
     def from_text(cls, text, extension, residue_ids, name="", residue_labels=None):
         """
-        Initialize Pocket object from structure protein file.
+        Initialize Pocket object from structure protein text.
 
         Attributes
         ----------
@@ -111,27 +113,42 @@ class Pocket:
             Pocket object.
         """
 
-        pocket = cls()
-        pocket.name = name
+        dataframe = DataFrame.from_text(text, extension)
+        pocket = cls._from_dataframe(dataframe, residue_ids, name, residue_labels)
         pocket._text = text
         pocket._extension = extension
-        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
-            residue_ids, residue_labels
-        )
         return pocket
 
-    @property
-    def data(self):
+    @classmethod
+    def _from_dataframe(cls, dataframe, residue_ids, name="", residue_labels=None):
         """
-        Structural protein data.
+        Initialize Pocket object from structure DataFrame.
+
+        Attributes
+        ----------
+        dataframe : pd.DataFrame
+            Structural protein data with the following mandatory columns:
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+        residue_ids : list of str
+            Pocket residue IDs.
+        name : str
+            Name of protein (default: empty string).
+        residue_labels : None or list of str
+            Pocket residue labels. Set to None by default.
 
         Returns
         -------
-        pandas.DataFrame
-            Structural protein data with the following mandatory columns:
-            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+        opencadd.structure.pocket.Pocket
+            Pocket object.
         """
-        return DataFrame.from_text(self._text, self._extension)  # TODO pocket only?
+
+        pocket = cls()
+        pocket.name = name
+        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
+            residue_ids, residue_labels
+        )
+        pocket.data = dataframe[dataframe["residue.id"].isin(pocket._residue_ids)]
+        return pocket
 
     @property
     def residues(self):
@@ -314,9 +331,21 @@ class Pocket:
         self._regions.append(region)
 
     def _residue_ix2id(self, residue_ix):
-        """TODO"""
+        """
+        Get residue PDB ID from residue index.
 
-        residue_ix = str(residue_ix)  # TODO int vs. str
+        Parameters
+        ----------
+        residue_ix : int or str
+            Residue index.
+
+        Returns
+        -------
+        str
+            Residue PDB ID.
+        """
+
+        residue_ix = str(residue_ix)
         residues = self.residues
         residues = residues[~residues["residue.label"].isin(["_", "-", "", " ", None])]
         try:
@@ -326,9 +355,21 @@ class Pocket:
         return residue_id
 
     def _residue_id2ix(self, residue_id):
-        """TODO"""
+        """
+        Get residue index from residue PDB ID.
 
-        residue_id = str(residue_id)  # TODO int vs. str
+        Parameters
+        ----------
+        residue_id : int or str
+            Residue PDB ID.
+
+        Returns
+        -------
+        str
+            Residue index.
+        """
+
+        residue_id = str(residue_id)
         residues = self.residues
         residues = residues[~residues["residue.id"].isin(["_", "-", "", " ", None])]
         try:
@@ -357,7 +398,7 @@ class Pocket:
             If returned number of atoms is larger than 1. TODO
         """
 
-        residue_ids = [str(residue_id) for residue_id in residue_ids]  # TODO remove str?
+        residue_ids = [str(residue_id) for residue_id in residue_ids]
         ca_atoms = self.data[
             (self.data["residue.id"].isin(residue_ids)) & (self.data["atom.name"] == "CA")
         ]
@@ -389,7 +430,21 @@ class Pocket:
         return ca_atoms_residue_ids, center
 
     def _anchor_residue_by_residue_id(self, residue_id, color="blue"):
-        """TODO"""
+        """
+        Get anchor residue (AnchorResidue object) based on a selected residue PDB ID.
+
+        Parameters
+        ----------
+        residue_id : int or str
+            Residue PDB ID.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.AnchorResidue
+            Anchor residue.
+        """
 
         residue_id = str(residue_id)
         residue_id_alternative = None
@@ -406,7 +461,21 @@ class Pocket:
         return subpocket_anchor
 
     def _anchor_residue_by_residue_ix(self, residue_ix, color="blue"):
-        """TODO"""
+        """
+        Get anchor residue (AnchorResidue object) based on a selected residue index.
+
+        Parameters
+        ----------
+        residue_ix : int or str
+            Residue index.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.AnchorResidue
+            Anchor residue.
+        """
 
         residue_ix = str(residue_ix)
         residue_id = self._residue_ix2id(residue_ix)
