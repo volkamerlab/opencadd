@@ -67,7 +67,7 @@ class BaseProvider:
         return pd.DataFrame(results_dict)
 
     @staticmethod
-    def _map_old_to_new_column_names(dataframe, columns_mapping=None):
+    def _map_old_to_new_column_names(dataframe, columns_mapping):
         """
         Rename column names that are returned from local or remote queries (old column names)
         into standardized column names to be used in this module (new column names).
@@ -76,7 +76,7 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             KLIFS data.
-        columns_mapping : dict or None
+        columns_mapping : dict
             Mapping of old to new column names. If None, no changes are made.
 
         Notes
@@ -85,9 +85,7 @@ class BaseProvider:
         local data is already performed upon session initialization.
         """
 
-        if columns_mapping:
-            dataframe.rename(columns=columns_mapping, inplace=True)
-
+        dataframe.rename(columns=columns_mapping, inplace=True)
         return dataframe
 
     @staticmethod
@@ -152,7 +150,7 @@ class BaseProvider:
 
         return dataframe
 
-    def _standardize_dataframe(self, dataframe, column_names, columns_mapping=None):
+    def _standardize_dataframe(self, dataframe, columns, columns_mapping=None):
         """
         Standardize a DataFrame across local and remote query results.
         - Map old to new column names (applied to remote data only, local data is standardized upon
@@ -169,8 +167,8 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
-        column_names : list of str
-            Column names (in the order of interest for output).
+        columns : list of (str, str)
+            Column names and dtypes(in the order of interest for output).
         columns_mapping : dict or None
             Mapping of old to new column names. If None, no changes are made.
 
@@ -181,13 +179,24 @@ class BaseProvider:
         """
 
         # Standardize column names
-        dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
+        if columns_mapping:
+            dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
 
         # Add missing columns (None values)
+        column_names = [column[0] for column in columns]
         dataframe = self._add_missing_columns(dataframe, column_names)
 
         # Standardize column values
         dataframe = self._standardize_column_values(dataframe)
+
+        # Standardize dtypes
+        print(columns)
+        column_dtypes_dict = {
+            column_name: column_dtype
+            for (column_name, column_dtype) in columns
+            if column_name in dataframe.columns
+        }
+        dataframe = dataframe.astype(column_dtypes_dict)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()
