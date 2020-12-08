@@ -49,6 +49,14 @@ class AnchorResidue:
 
     @property
     def data(self):
+        """
+        Anchor residue attributes.
+
+        Returns
+        -------
+        pd.Series
+            Anchor residue attributes.
+        """
         return pd.Series(
             {
                 "subpocket.color": self.color,
