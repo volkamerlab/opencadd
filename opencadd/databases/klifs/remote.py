@@ -174,7 +174,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_id (query)"],
+            COLUMN_NAMES["ligands"] + [("kinase.klifs_id (query)", "int32")],
             REMOTE_COLUMNS_MAPPING["ligands"],
         )
         return ligands

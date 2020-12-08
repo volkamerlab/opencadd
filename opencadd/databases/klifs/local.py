@@ -459,7 +459,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_id"],
+            COLUMN_NAMES["ligands"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
@@ -486,7 +486,12 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_name", "kinase.hgnc_name", "species.klifs"],
+            COLUMN_NAMES["ligands"]
+            + [
+                ("kinase.klifs_name", "string"),
+                ("kinase.hgnc_name", "string"),
+                ("species.klifs", "string"),
+            ],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
@@ -662,7 +667,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"] + ["kinase.klifs_id"],
+            COLUMN_NAMES["interactions"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(

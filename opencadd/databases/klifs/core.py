@@ -190,7 +190,6 @@ class BaseProvider:
         dataframe = self._standardize_column_values(dataframe)
 
         # Standardize dtypes
-        print(columns)
         column_dtypes_dict = {
             column_name: column_dtype
             for (column_name, column_dtype) in columns
