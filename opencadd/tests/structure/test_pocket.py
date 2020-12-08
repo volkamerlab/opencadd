@@ -30,43 +30,6 @@ def test_format_residue_ids_and_labels(
     assert residue_labels == residue_labels_formatted
 
 
-class TestsAnchorResidue:
-    """
-    Test AnchorResidue class methods.
-    """
-
-    @pytest.mark.parametrize(
-        "residue_id, residue_id_alternative, residue_center",
-        [
-            (1, None, [1, 1, 1]),
-            (10, ["9", "11"], [35, 35, 35]),
-            (4, ["3"], [3, 3, 3]),
-            (6, ["7"], [4, 4, 4]),
-            (5, None, None),
-        ],
-    )
-    def test_from_dataframe(self, residue_id, residue_id_alternative, residue_center):
-        """
-        Test anchor residue cases.
-        """
-
-        dataframe = pd.DataFrame(
-            {
-                "residue.id": ["1", "2", "3", "7", "8", "9", "11"],
-                "atom.name": ["CA", "CA", "CA", "CA", "CA", "CA", "CA"],
-                "atom.x": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-                "atom.y": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-                "atom.z": [1.0, 2.0, 3.0, 4.0, 20.0, 30.0, 40.0],
-            }
-        )
-
-        residue = AnchorResidue.from_dataframe(dataframe, residue_id)
-
-        assert residue.id_alternative == residue_id_alternative
-        if residue_center:
-            assert pytest.approx(residue.center, residue_center, abs=1.0e-6)
-
-
 class TestsPocket:
     """
     Test Pocket class methods.
@@ -84,8 +47,9 @@ class TestsPocket:
             )
         ],
     )
-    def test_from_file(self, filepath, name, residue_ids, residue_labels, centroid):
+    def test_from_file_text(self, filepath, name, residue_ids, residue_labels, centroid):
 
+        # Class method from_file calls from_text
         pocket = Pocket.from_file(filepath, residue_ids, name, residue_labels)
 
         assert pocket.name == name
@@ -98,6 +62,205 @@ class TestsPocket:
             )
         )
         assert pytest.approx(pocket.centroid, centroid, abs=1.0e-6)
+
+    @pytest.mark.parametrize(
+        "filepath, pocket_residue_ids, residue_ids, n_ca_atoms",
+        [
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                ["12"],  # TODO remove str
+                1,
+            ),  # KLIFS ID 7139
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                ["13"],  # TODO remove str
+                1,
+            ),
+        ],
+    )
+    def test_ca_atoms(self, filepath, pocket_residue_ids, residue_ids, n_ca_atoms):
+
+        pocket = Pocket.from_file(filepath, pocket_residue_ids)
+        ca_atoms = pocket._ca_atoms(*residue_ids)
+        assert len(ca_atoms) == n_ca_atoms
+
+    @pytest.mark.parametrize(
+        "filepath, residue_ids, anchor_residue_id, anchor_residue_id_alternative, anchor_residue_color, anchor_residue_center",
+        [
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",  # KLIFS ID 7139
+                [12, 16, 85, 87],
+                "12",  # TODO remove str
+                None,
+                "yellow",
+                [8.1173, 16.3077, 51.996],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                "86",
+                ["85", "87"],  # TODO remove str
+                "yellow",
+                [3.8648999, 26.4354, 42.65935],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                "17",
+                ["16"],
+                "yellow",
+                [9.3363, 11.0014, 42.1329],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                "18",
+                None,
+                "yellow",
+                None,
+            ),
+        ],
+    )
+    def test_anchor_residue_by_residue_id(
+        self,
+        filepath,
+        residue_ids,
+        anchor_residue_id,
+        anchor_residue_id_alternative,
+        anchor_residue_color,
+        anchor_residue_center,
+    ):
+
+        pocket = Pocket.from_file(filepath, residue_ids)
+        anchor_residue = pocket._anchor_residue_by_residue_id(
+            anchor_residue_id, anchor_residue_color
+        )
+        assert isinstance(anchor_residue, AnchorResidue)
+        assert anchor_residue.residue_id == anchor_residue_id
+        assert anchor_residue.residue_id_alternative == anchor_residue_id_alternative
+        assert anchor_residue.residue_ix == None
+        assert anchor_residue.color == anchor_residue_color
+        if anchor_residue_center:
+            assert pytest.approx(anchor_residue.center[0], anchor_residue_center[0])
+
+    @pytest.mark.parametrize(
+        "filepath, residue_ids, residue_ixs, anchor_residue_ix, anchor_residue_id, anchor_residue_id_alternative, anchor_residue_color, anchor_residue_center",
+        [
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",  # KLIFS ID 7139
+                [12, 16, 85, 87],
+                [1, 5, 44, 46],
+                "1",  # TODO remove str
+                "12",  # TODO remove str
+                None,
+                "yellow",
+                [8.1173, 16.3077, 51.996],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                [1, 5, 44, 46],
+                "45",
+                None,
+                ["85", "87"],  # TODO remove str
+                "yellow",
+                [3.8648999, 26.4354, 42.65935],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                [1, 5, 44, 46],
+                "6",
+                None,
+                ["16"],
+                "yellow",
+                [9.3363, 11.0014, 42.1329],
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
+                [12, 16, 85, 87],
+                [1, 5, 44, 46],
+                "7",
+                None,
+                None,
+                "yellow",
+                None,
+            ),
+        ],
+    )
+    def test_anchor_residue_by_residue_ix(
+        self,
+        filepath,
+        residue_ids,
+        residue_ixs,
+        anchor_residue_ix,
+        anchor_residue_id,
+        anchor_residue_id_alternative,
+        anchor_residue_color,
+        anchor_residue_center,
+    ):
+
+        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        anchor_residue = pocket._anchor_residue_by_residue_ix(
+            anchor_residue_ix, anchor_residue_color
+        )
+        assert isinstance(anchor_residue, AnchorResidue)
+        assert anchor_residue.residue_ix == anchor_residue_ix
+        assert anchor_residue.residue_id == anchor_residue_id
+        assert anchor_residue.residue_id_alternative == anchor_residue_id_alternative
+        assert anchor_residue.color == anchor_residue_color
+        if anchor_residue_center:
+            assert pytest.approx(anchor_residue.center[0], anchor_residue_center[0])
+
+    @pytest.mark.parametrize(
+        "filepath, residue_ids, residue_ixs, residue_id, residue_ix",
+        [
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                ["127", "128", "129"],  # TODO remove str
+                ["1", "2", "3"],  # TODO remove str
+                "127",
+                "1",
+            ),
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                ["127", "128", "129"],
+                ["1", "2", "3"],
+                1,
+                None,
+            ),
+        ],
+    )
+    def test_residue_id2ix(self, filepath, residue_ids, residue_ixs, residue_id, residue_ix):
+
+        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        assert pocket._residue_id2ix(residue_id) == residue_ix
+
+    @pytest.mark.parametrize(
+        "filepath, residue_ids, residue_ixs, residue_ix, residue_id",
+        [
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                ["127", "128", "129"],  # TODO remove str
+                ["1", "2", "3"],  # TODO remove str
+                "1",
+                "127",
+            ),
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                ["127", "128", "129"],  # TODO remove str
+                ["1", "2", "3"],  # TODO remove str
+                "4",
+                None,
+            ),
+        ],
+    )
+    def test_residue_ix2id(self, filepath, residue_ids, residue_ixs, residue_ix, residue_id):
+
+        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        assert pocket._residue_ix2id(residue_ix) == residue_id
 
     @pytest.mark.parametrize(
         "filepath, name, residue_ids, color, residue_labels",
@@ -142,21 +305,15 @@ class TestsPocket:
     )
     def test_add_subpocket(self, filepath, name, residue_ids, color, residue_labels, center):
 
-        print(residue_ids)
-        print(residue_labels)
         pocket = Pocket.from_file(filepath, residue_ids, "", residue_labels)
-
         pocket.add_subpocket(name, residue_ids, color, residue_labels)
-        subpocket = pocket._subpockets[0]
-
-        assert subpocket.name == name
-        assert subpocket.color == color
-        assert pytest.approx(subpocket.center, center, abs=1.0e-6)
         assert pocket.subpockets.columns.to_list() == [
             "subpocket.name",
             "subpocket.color",
             "subpocket.center",
         ]
 
-
-# TODO Test KlifsPocket
+        subpocket = pocket._subpockets[0]
+        assert subpocket.name == name
+        assert subpocket.color == color
+        assert pytest.approx(subpocket.center, center, abs=1.0e-6)
