@@ -52,7 +52,8 @@ class Kinases(RemoteInitializer, KinasesProvider):
         # Use KLIFS API
         result = self._client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
-        kinase_groups = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_groups"])
+        column = COLUMN_NAMES["kinase_groups"][0]
+        kinase_groups = pd.DataFrame({column[0]: pd.Series(result, dtype=column[1])})
         return kinase_groups
 
     def all_kinase_families(self, group=None):
@@ -60,7 +61,8 @@ class Kinases(RemoteInitializer, KinasesProvider):
         # Use KLIFS API
         result = self._client.Information.get_kinase_families(kinase_group=group).response().result
         # Convert list to DataFrame (1 column)
-        kinase_families = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_families"])
+        column = COLUMN_NAMES["kinase_families"][0]
+        kinase_families = pd.DataFrame({column[0]: pd.Series(result, dtype=column[1])})
         return kinase_families
 
     def all_kinases(self, group=None, family=None, species=None):
