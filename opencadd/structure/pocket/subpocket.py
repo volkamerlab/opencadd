@@ -9,8 +9,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-from .utils import _format_residue_ids_and_labels
-
 _logger = logging.getLogger(__name__)
 
 
@@ -39,6 +37,16 @@ class Subpocket:
         self._anchor_residues = None
 
     @property
+    def data(self):
+        return pd.Series(
+            {
+                "subpocket.name": self.name,
+                "subpocket.color": self.color,
+                "subpocket.center": self.center,
+            }
+        )
+
+    @property
     def anchor_residues(self):
         """
         Return anchor residue data as DataFrame:
@@ -46,71 +54,14 @@ class Subpocket:
         - Anchor residue IDs (user-defined input IDs or alternative
           IDs if input was not available)
         - Anchor residue labels
-        - Ahe anchor residue centers (coordinates)
+        - Anchor residue centers (coordinates)
         """
 
-        anchor_residues_dict = {
-            "subpocket.color": [residue.color for residue in self._anchor_residues],
-            "anchor_residue.id": [residue.id for residue in self._anchor_residues],
-            "anchor_residue.id_alternative": [
-                residue.id_alternative for residue in self._anchor_residues
-            ],
-            "anchor_residue.label": [residue.label for residue in self._anchor_residues],
-            "anchor_residue.center": [residue.center for residue in self._anchor_residues],
-        }
-        anchor_residues_df = pd.DataFrame(anchor_residues_dict)
-        anchor_residues_df.insert(0, "subpocket.name", self.name)
-
-        return anchor_residues_df
-
-    @classmethod
-    def from_residue_ids(dataframe, residue_id_ix_mapping, residue_ids, name, color="blue"):
-        pass
-
-    @classmethod
-    def from_residue_ixs(dataframe, residue_id_ix_mapping, residue_ixs, name, color="blue"):
-        pass
-
-    @classmethod
-    def from_dataframe(
-        cls, dataframe, name, anchor_residue_ids, color="blue", anchor_residue_labels=None
-    ):
-        """
-        Initialize a Subpocket object from a DataFrame.
-
-        Parameters
-        ----------
-        dataframe : pandas.DataFrame
-            Structural protein data with the following mandatory columns:
-            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
-        name : str
-            Subpocket name.
-        anchor_residue_ids : list of (int, str)
-            List of anchor residue IDs.
-        color : str
-            Subpocket color (matplotlib name), blue by default.
-        anchor_residue_labels : list of (int, str) or None
-            List of anchor residue labels. Must be of same length as residue_ids.
-
-        Returns
-        -------
-        opencadd.structure.pocket.subpocket.Subpocket
-            Subpocket object.
-        """
-
-        # Format residue IDs and labels
-        anchor_residue_ids, anchor_residue_labels = _format_residue_ids_and_labels(
-            anchor_residue_ids, anchor_residue_labels
+        anchor_residues = pd.DataFrame(
+            [anchor_residue.data for anchor_residue in self._anchor_residues]
         )
-
-        # Get list of AnchorResidue objects
-        anchor_residues = []
-        for residue_id, residue_label in zip(anchor_residue_ids, anchor_residue_labels):
-            residue = AnchorResidue.from_dataframe(dataframe, residue_id, color, residue_label)
-            anchor_residues.append(residue)
-
-        subpocket = cls.from_anchor_residues(anchor_residues, name, color)
-        return subpocket
+        anchor_residues.insert(0, "subpocket.name", self.name)
+        return anchor_residues
 
     @classmethod
     def from_anchor_residues(cls, anchor_residues, name, color="blue"):
