@@ -38,6 +38,14 @@ class Subpocket:
 
     @property
     def data(self):
+        """
+        Subpocket attributes.
+
+        Returns
+        -------
+        pd.Series
+            Subpocket attributes.
+        """
         return pd.Series(
             {
                 "subpocket.name": self.name,
@@ -49,12 +57,17 @@ class Subpocket:
     @property
     def anchor_residues(self):
         """
-        Return anchor residue data as DataFrame:
+        Anchor residues for all subpockets.
         - Subpocket name and color
         - Anchor residue IDs (user-defined input IDs or alternative
           IDs if input was not available)
         - Anchor residue labels
         - Anchor residue centers (coordinates)
+
+        Returns
+        -------
+        pd.DataFrame
+            Anchor residues for all subpockets.
         """
 
         anchor_residues = pd.DataFrame(
