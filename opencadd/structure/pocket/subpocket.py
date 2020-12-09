@@ -67,7 +67,7 @@ class Subpocket:
         )
 
     @property
-    def anchor_residues(self):
+    def data_anchor_residues(self):
         """
         Anchor residues for all subpockets.
         - Subpocket name and color

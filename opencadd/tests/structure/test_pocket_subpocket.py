@@ -49,10 +49,10 @@ class TestSubpocket:
             "subpocket.color",
             "subpocket.center",
         ]
-        assert isinstance(subpocket.anchor_residues, pd.DataFrame)
-        assert subpocket.anchor_residues.columns.to_list() == [
+        assert isinstance(subpocket.data_anchor_residues, pd.DataFrame)
+        assert subpocket.data_anchor_residues.columns.to_list() == [
             "subpocket.name",
-            "subpocket.color",
+            "anchor_residue.color",
             "anchor_residue.id",
             "anchor_residue.id_alternative",
             "anchor_residue.ix",
