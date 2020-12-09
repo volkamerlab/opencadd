@@ -25,8 +25,8 @@ class TestSubpocket:
             ([ANCHOR_RESIDUE3, ANCHOR_RESIDUE3], "hinge", "blue", None),
         ],
     )
-    def test_from_anchor_residue(self, anchor_residues, name, color, center):
-        subpocket = Subpocket.from_anchor_residues(anchor_residues, name, color)
+    def test_attributes_and_properties(self, anchor_residues, name, color, center):
+        subpocket = Subpocket(anchor_residues, name, color)
 
         # Test attributes
         assert subpocket.name == name

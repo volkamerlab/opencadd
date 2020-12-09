@@ -510,7 +510,7 @@ class Pocket:
             anchor_residue = self._anchor_residue_by_residue_id(residue_id, color)
             anchor_residues.append(anchor_residue)
 
-        subpocket = Subpocket.from_anchor_residues(anchor_residues, name, color)
+        subpocket = Subpocket(anchor_residues, name, color)
         return subpocket
 
     def _subpocket_by_residue_ixs(self, residue_ixs, name=None, color="blue"):
@@ -521,5 +521,5 @@ class Pocket:
             anchor_residue = self._anchor_residue_by_residue_ix(residue_ix, color)
             anchor_residues.append(anchor_residue)
 
-        subpocket = Subpocket.from_anchor_residues(anchor_residues, name, color)
+        subpocket = Subpocket(anchor_residues, name, color)
         return subpocket

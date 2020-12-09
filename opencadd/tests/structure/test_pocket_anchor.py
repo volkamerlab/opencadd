@@ -17,7 +17,7 @@ class TestAnchorResidue:
         "center, residue_id, residue_id_alternative, residue_ix, color",
         [([1, 1, 1], "1", ["1"], "1", "blue")],
     )
-    def test_attributes_and_property(
+    def test_attributes_and_properties(
         self, center, residue_id, residue_id_alternative, residue_ix, color
     ):
         anchor_residue = AnchorResidue(

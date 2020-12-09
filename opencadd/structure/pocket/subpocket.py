@@ -29,12 +29,24 @@ class Subpocket:
         List of anchor residues.
     """
 
-    def __init__(self):
+    def __init__(self, anchor_residues, name, color="blue"):
+        """
+        Initialize a Subpocket object from a list of anchor residues.
 
-        self.name = None
-        self.color = None
-        self.center = None
-        self._anchor_residues = None
+        Parameters
+        ----------
+        anchor_residues : list of Residue
+            List of anchor residues.
+        name : str
+            Subpocket name.
+        color : str
+            Subpocket color (matplotlib name), blue by default.
+        """
+
+        self._anchor_residues = anchor_residues
+        self.name = name
+        self.color = color
+        self.center = self._centroid()
 
     @property
     def data(self):
@@ -75,34 +87,6 @@ class Subpocket:
         )
         anchor_residues.insert(0, "subpocket.name", self.name)
         return anchor_residues
-
-    @classmethod
-    def from_anchor_residues(cls, anchor_residues, name, color="blue"):
-        """
-        Initialize a Subpocket object from a list of anchor residues.
-
-        Parameters
-        ----------
-        anchor_residues : list of Residue
-            List of anchor residues.
-        name : str
-            Subpocket name.
-        color : str
-            Subpocket color (matplotlib name), blue by default.
-
-        Returns
-        -------
-        opencadd.structure.pocket.subpocket.Subpocket
-            Subpocket object.
-        """
-
-        subpocket = cls()
-        subpocket.name = name
-        subpocket._anchor_residues = anchor_residues
-        subpocket.color = color
-        subpocket.center = subpocket._centroid()
-
-        return subpocket
 
     def _centroid(self):
         """
