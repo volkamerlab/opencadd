@@ -4,6 +4,10 @@ opencadd.structure.pocket.utils
 Defines utility functions.
 """
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     """
@@ -35,4 +39,23 @@ def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     residue_ids = [str(residue_id) if residue_id else residue_id for residue_id in residue_ids]
     residue_ixs = [str(residue_ix) if residue_ix else residue_ix for residue_ix in residue_ixs]
 
-    return residue_ids, residue_ixs
+    # Keep only residues that have IDs/indices that can be cast to an integer
+    residue_ids_kept = []
+    residue_ixs_kept = []
+    residues_dropped = []
+    for residue_id, residue_ix in zip(residue_ids, residue_ixs):
+        try:
+            int(residue_id)
+            int(residue_ix)
+            residue_ids_kept.append(residue_id)
+            residue_ixs_kept.append(residue_ix)
+        except ValueError:
+            residues_dropped.append((residue_id, residue_ix))
+
+    if len(residue_ids) > len(residue_ids_kept):
+        _logger.info(
+            f"Residues were dropped because they cannot be cast to an integer "
+            f"(residue PDB ID, residue index):\n{residues_dropped}"
+        )
+
+    return residue_ids_kept, residue_ixs_kept
