@@ -13,7 +13,7 @@ from opencadd.io import DataFrame
 from .region import Region
 from .subpocket import Subpocket
 from .anchor import AnchorResidue
-from .utils import _format_residue_ids_and_labels
+from .utils import _format_residue_ids_and_ixs
 
 _logger = logging.getLogger(__name__)
 
@@ -41,8 +41,8 @@ class Pocket:
         Structural protein data format (file extension).
     _residue_ids : list of str
         Pocket residue IDs.
-    _residue_labels : list of str
-        Pocket residue labels.
+    _residue_ixs : list of str
+        Pocket residue indices.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
     _region : list of Region
@@ -56,12 +56,12 @@ class Pocket:
         self._text = None
         self._extension = None
         self._residue_ids = None
-        self._residue_labels = None
+        self._residue_ixs = None
         self._subpockets = []
         self._regions = []
 
     @classmethod
-    def from_file(cls, filepath, residue_ids, name="", residue_labels=None):
+    def from_file(cls, filepath, residue_ids, name="", residue_ixs=None):
         """
         Initialize Pocket object from structure protein file.
 
@@ -73,8 +73,8 @@ class Pocket:
             Pocket residue IDs.
         name : str
             Name of protein (default: empty string).
-        residue_labels : None or list of str
-            Pocket residue labels. Set to None by default.
+        residue_ixs : None or list of str
+            Pocket residue indices. Set to None by default.
 
         Returns
         -------
@@ -86,11 +86,11 @@ class Pocket:
         extension = filepath.suffix[1:]
         with open(filepath, "r") as f:
             text = f.read()
-        pocket = cls.from_text(text, extension, residue_ids, name, residue_labels)
+        pocket = cls.from_text(text, extension, residue_ids, name, residue_ixs)
         return pocket
 
     @classmethod
-    def from_text(cls, text, extension, residue_ids, name="", residue_labels=None):
+    def from_text(cls, text, extension, residue_ids, name="", residue_ixs=None):
         """
         Initialize Pocket object from structure protein text.
 
@@ -104,8 +104,8 @@ class Pocket:
             Pocket residue IDs.
         name : str
             Name of protein (default: empty string).
-        residue_labels : None or list of str
-            Pocket residue labels. Set to None by default.
+        residue_ixs : None or list of str
+            Pocket residue indices. Set to None by default.
 
         Returns
         -------
@@ -114,13 +114,13 @@ class Pocket:
         """
 
         dataframe = DataFrame.from_text(text, extension)
-        pocket = cls._from_dataframe(dataframe, residue_ids, name, residue_labels)
+        pocket = cls._from_dataframe(dataframe, residue_ids, name, residue_ixs)
         pocket._text = text
         pocket._extension = extension
         return pocket
 
     @classmethod
-    def _from_dataframe(cls, dataframe, residue_ids, name="", residue_labels=None):
+    def _from_dataframe(cls, dataframe, residue_ids, name="", residue_ixs=None):
         """
         Initialize Pocket object from structure DataFrame.
 
@@ -133,8 +133,8 @@ class Pocket:
             Pocket residue IDs.
         name : str
             Name of protein (default: empty string).
-        residue_labels : None or list of str
-            Pocket residue labels. Set to None by default.
+        residue_ixs : None or list of str
+            Pocket residue indices. Set to None by default.
 
         Returns
         -------
@@ -144,8 +144,8 @@ class Pocket:
 
         pocket = cls()
         pocket.name = name
-        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
-            residue_ids, residue_labels
+        pocket._residue_ids, pocket._residue_ixs = _format_residue_ids_and_ixs(
+            residue_ids, residue_ixs
         )
         pocket.data = dataframe[dataframe["residue.id"].isin(pocket._residue_ids)]
         return pocket
@@ -158,10 +158,10 @@ class Pocket:
         Returns
         -------
         pandas.DataFrame
-            Residue ID and residue label (columns) for all pocket residues (rows).
+            Residue ID and residue index (columns) for all pocket residues (rows).
         """
 
-        residues = {"residue.id": self._residue_ids, "residue.label": self._residue_labels}
+        residues = {"residue.id": self._residue_ids, "residue.ix": self._residue_ixs}
         residues = pd.DataFrame(residues)
         return residues.reset_index(drop=True)
 
@@ -190,7 +190,7 @@ class Pocket:
         Returns
         -------
         pandas.DataFrame
-            Name, color, involved residue IDs and labels (columns) for all regions.
+            Name, color, involved residue IDs and indices (columns) for all regions.
         """
         if self._regions == []:
             return None
@@ -206,7 +206,7 @@ class Pocket:
                     "region.name": [region.name] * n_residues,
                     "region.color": [region.color] * n_residues,
                     "residue.id": region.residue_ids,
-                    "residue.label": region.residue_labels,
+                    "residue.ix": region.residue_ixs,
                 }
             )
 
@@ -228,7 +228,7 @@ class Pocket:
             - Subpocket name and color
             - Anchor residue IDs (user-defined input IDs or alternative
             IDs if input was not available)
-            - Anchor residue labels
+            - Anchor residue indices
             - The anchor residue centers (coordinates)
         """
 
@@ -287,7 +287,7 @@ class Pocket:
         name,
         anchor_residue_ids,
         color="blue",
-        anchor_residue_labels=None,
+        anchor_residue_ixs=None,
     ):
         """
         Add subpocket based on given anchor residue IDs.
@@ -300,17 +300,17 @@ class Pocket:
             List of anchor residue IDs.
         color : str
             Subpocket color (matplotlib name), blue by default.
-        anchor_residue_labels : list of (int, str) or None
-            List of anchor residue labels. Must be of same length as anchor_residue_ids.
+        anchor_residue_ixs : list of (int, str) or None
+            List of anchor residue indices. Must be of same length as anchor_residue_ids.
         """
 
-        if anchor_residue_labels:
-            subpocket = self._subpocket_by_residue_ixs(anchor_residue_labels, name, color)
+        if anchor_residue_ixs:
+            subpocket = self._subpocket_by_residue_ixs(anchor_residue_ixs, name, color)
         else:
             subpocket = self._subpocket_by_residue_ids(anchor_residue_ids, name, color)
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, residue_ids, color="blue", residue_labels=None):
+    def add_region(self, name, residue_ids, color="blue", residue_ixs=None):
         """
         Add region based on given input residue IDs.
 
@@ -322,12 +322,12 @@ class Pocket:
             List of residue IDs defining the region.
         color : str
             Region color (matplotlib name), blue by default.
-        residue_labels : list of (int, str) or None
-            List of residue labels. Must be of same length as residue_ids.
+        residue_ixs : list of (int, str) or None
+            List of residue indices. Must be of same length as residue_ids.
         """
 
         region = Region()
-        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
+        region.from_dataframe(self.data, name, residue_ids, color, residue_ixs)
         self._regions.append(region)
 
     def _residue_ix2id(self, residue_ix):
@@ -347,9 +347,9 @@ class Pocket:
 
         residue_ix = str(residue_ix)
         residues = self.residues
-        residues = residues[~residues["residue.label"].isin(["_", "-", "", " ", None])]
+        residues = residues[~residues["residue.ix"].isin(["_", "-", "", " ", None])]
         try:
-            residue_id = self.residues.set_index("residue.label").squeeze().loc[residue_ix]
+            residue_id = self.residues.set_index("residue.ix").squeeze().loc[residue_ix]
         except KeyError:
             residue_id = None
         return residue_id

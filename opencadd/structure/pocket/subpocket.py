@@ -73,7 +73,7 @@ class Subpocket:
         - Subpocket name and color
         - Anchor residue IDs (user-defined input IDs or alternative
           IDs if input was not available)
-        - Anchor residue labels
+        - Anchor residue indices
         - Anchor residue centers (coordinates)
 
         Returns

@@ -6,7 +6,7 @@ Defines pocket regions.
 
 import pandas as pd
 
-from .utils import _format_residue_ids_and_labels
+from .utils import _format_residue_ids_and_ixs
 
 
 class Region:
@@ -21,8 +21,8 @@ class Region:
         Region color (matplotlib name).
     residue_ids : list of (int, str)
         List of residue IDs defining the region.
-    residue_labels : list of (int, str)
-        List of residue labels.
+    residue_ixs : list of (int, str)
+        List of residue indices.
     """
 
     def __init__(self):
@@ -30,9 +30,9 @@ class Region:
         self.name = None
         self.color = None
         self.residue_ids = None
-        self.residue_labels = None
+        self.residue_ixs = None
 
-    def from_dataframe(self, dataframe, name, residue_ids, color="blue", residue_labels=None):
+    def from_dataframe(self, dataframe, name, residue_ids, color="blue", residue_ixs=None):
         """
         Set region properties.
 
@@ -47,25 +47,23 @@ class Region:
             List of residue IDs defining the region.
         color : str
             Region color (matplotlib name), blue by default
-        residue_labels : list of (int, str) or None
-            List of residue labels. Must be of same length as residue_ids.
+        residue_ixs : list of (int, str) or None
+            List of residue indices. Must be of same length as residue_ids.
         """
 
         self.name = name
         self.color = color
 
-        # Format residue IDs and labels
-        residue_ids, residue_labels = _format_residue_ids_and_labels(residue_ids, residue_labels)
+        # Format residue IDs and indices
+        residue_ids, residue_ixs = _format_residue_ids_and_ixs(residue_ids, residue_ixs)
 
-        # Add residue labels to dataframe
-        residue_labels_df = pd.DataFrame(
-            {"residue.id": residue_ids, "residue.label": residue_labels}
-        )
-        dataframe = dataframe.merge(residue_labels_df, on="residue.id", how="left")
+        # Add residue indices to dataframe
+        residue_ixs_df = pd.DataFrame({"residue.id": residue_ids, "residue.ix": residue_ixs})
+        dataframe = dataframe.merge(residue_ixs_df, on="residue.id", how="left")
 
         # Keep only existing residue IDs
-        residues = dataframe[["residue.id", "residue.label"]].drop_duplicates()
+        residues = dataframe[["residue.id", "residue.ix"]].drop_duplicates()
         residues.reset_index(drop=True, inplace=True)
         residues = residues[residues["residue.id"].isin(residue_ids)]
         self.residue_ids = residues["residue.id"].to_list()
-        self.residue_labels = residues["residue.label"].to_list()
+        self.residue_ixs = residues["residue.ix"].to_list()

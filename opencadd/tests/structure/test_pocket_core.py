@@ -18,7 +18,7 @@ class TestsPocket:
     """
 
     @pytest.mark.parametrize(
-        "filepath, residue_ids, name, residue_labels",
+        "filepath, residue_ids, name, residue_ixs",
         [
             (
                 PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
@@ -28,12 +28,12 @@ class TestsPocket:
             )
         ],
     )
-    def test_from_file(self, filepath, residue_ids, name, residue_labels):
+    def test_from_file(self, filepath, residue_ids, name, residue_ixs):
         """
         Initialize class from file and test class attributes and properties.
         """
 
-        pocket = Pocket.from_file(filepath, residue_ids, name, residue_labels)
+        pocket = Pocket.from_file(filepath, residue_ids, name, residue_ixs)
 
         # Test attributes
         assert pocket.name == name
@@ -42,13 +42,13 @@ class TestsPocket:
         assert isinstance(pocket._text, str)
         assert pocket._extension == filepath.suffix[1:]
         assert pocket._residue_ids == [str(i) for i in residue_ids]
-        if residue_labels:
-            assert pocket._residue_labels == [str(i) for i in residue_labels]
+        if residue_ixs:
+            assert pocket._residue_ixs == [str(i) for i in residue_ixs]
         else:
-            assert pocket._residue_labels == [None] * len(residue_ids)
+            assert pocket._residue_ixs == [None] * len(residue_ids)
 
         # Test properties
-        assert pocket.residues.columns.to_list() == ["residue.id", "residue.label"]
+        assert pocket.residues.columns.to_list() == ["residue.id", "residue.ix"]
 
     @pytest.mark.parametrize(
         "filepath, pocket_residue_ids, region_name, region_residue_ids, region_color",
@@ -81,7 +81,7 @@ class TestsPocket:
             "region.name",
             "region.color",
             "residue.id",
-            "residue.label",
+            "residue.ix",
         ]
 
         # Test an example region in the _regions attribute
