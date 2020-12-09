@@ -17,53 +17,38 @@ class Region:
     ----------
     name : str
         Region name.
+    residue_ids : list of (int or str)
+        List of residue IDs defining the region.
+    residue_ixs : list of (int or str) or None
+        List of residue indices.
     color : str
         Region color (matplotlib name).
-    residue_ids : list of (int, str)
-        List of residue IDs defining the region.
-    residue_ixs : list of (int, str)
-        List of residue indices.
     """
 
-    def __init__(self):
-
-        self.name = None
-        self.color = None
-        self.residue_ids = None
-        self.residue_ixs = None
-
-    def from_dataframe(self, dataframe, name, residue_ids, color="blue", residue_ixs=None):
-        """
-        Set region properties.
-
-        Parameters
-        ----------
-        dataframe : pandas.DataFrame
-            Structural data with the following mandatory columns:
-            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z"
-        name : str
-            Region name.
-        residue_ids : list of (int, str)
-            List of residue IDs defining the region.
-        color : str
-            Region color (matplotlib name), blue by default
-        residue_ixs : list of (int, str) or None
-            List of residue indices. Must be of same length as residue_ids.
-        """
+    def __init__(self, name, residue_ids, residue_ixs=None, color="blue"):
 
         self.name = name
         self.color = color
+        self.residue_ids = residue_ids
+        self.residue_ixs = residue_ixs
 
-        # Format residue IDs and indices
-        residue_ids, residue_ixs = _format_residue_ids_and_ixs(residue_ids, residue_ixs)
+    @property
+    def region(self):
+        """
+        Region attributes.
 
-        # Add residue indices to dataframe
-        residue_ixs_df = pd.DataFrame({"residue.id": residue_ids, "residue.ix": residue_ixs})
-        dataframe = dataframe.merge(residue_ixs_df, on="residue.id", how="left")
+        Returns
+        -------
+        pd.DataFrame
+            Region attributes (per row one region residue).
+        """
 
-        # Keep only existing residue IDs
-        residues = dataframe[["residue.id", "residue.ix"]].drop_duplicates()
-        residues.reset_index(drop=True, inplace=True)
-        residues = residues[residues["residue.id"].isin(residue_ids)]
-        self.residue_ids = residues["residue.id"].to_list()
-        self.residue_ixs = residues["residue.ix"].to_list()
+        n_residues = len(self.residue_ids)
+        return pd.DataFrame(
+            {
+                "region.name": [self.name] * n_residues,
+                "region.color": [self.color] * n_residues,
+                "residue.id": self.residue_ids,
+                "residue.ix": self.residue_ixs,
+            }
+        )
