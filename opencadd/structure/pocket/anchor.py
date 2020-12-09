@@ -48,14 +48,14 @@ class AnchorResidue:
             Residue color (matplotlib name).
         """
 
-        if center:
+        if center is not None:
             if len(center) != 3:
                 raise ValueError(f"Length of center vector must be 3 but is {len(center)}.")
             center = np.array(center)
         self.center = center
-        self.residue_id = str(residue_id)
+        self.residue_id = residue_id
         self.residue_id_alternative = residue_id_alternative
-        self.residue_ix = str(residue_ix)
+        self.residue_ix = residue_ix
         self.color = color
 
         if self.residue_id_alternative:
