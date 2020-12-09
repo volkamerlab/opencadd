@@ -30,7 +30,7 @@ class TestAnchorResidue:
         assert anchor_residue.color == color
         assert isinstance(anchor_residue.data, pd.Series)
         assert anchor_residue.data.index.to_list() == [
-            "subpocket.color",
+            "anchor_residue.color",
             "anchor_residue.id",
             "anchor_residue.id_alternative",
             "anchor_residue.ix",

@@ -59,7 +59,7 @@ class AnchorResidue:
         """
         return pd.Series(
             {
-                "subpocket.color": self.color,
+                "anchor_residue.color": self.color,
                 "anchor_residue.id": self.residue_id,
                 "anchor_residue.id_alternative": self.residue_id_alternative,
                 "anchor_residue.ix": self.residue_ix,
