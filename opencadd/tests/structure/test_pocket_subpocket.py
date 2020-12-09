@@ -43,14 +43,14 @@ class TestSubpocket:
             assert subpocket.center == center
 
         # Test properties
-        assert isinstance(subpocket.data, pd.Series)
-        assert subpocket.data.index.to_list() == [
+        assert isinstance(subpocket.subpocket, pd.Series)
+        assert subpocket.subpocket.index.to_list() == [
             "subpocket.name",
             "subpocket.color",
             "subpocket.center",
         ]
-        assert isinstance(subpocket.data_anchor_residues, pd.DataFrame)
-        assert subpocket.data_anchor_residues.columns.to_list() == [
+        assert isinstance(subpocket.anchor_residues, pd.DataFrame)
+        assert subpocket.anchor_residues.columns.to_list() == [
             "subpocket.name",
             "anchor_residue.color",
             "anchor_residue.id",

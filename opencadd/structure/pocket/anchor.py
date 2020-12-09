@@ -48,7 +48,7 @@ class AnchorResidue:
             )
 
     @property
-    def data(self):
+    def anchor_residue(self):
         """
         Anchor residue attributes.
 

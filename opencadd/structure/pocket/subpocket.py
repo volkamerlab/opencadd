@@ -49,7 +49,7 @@ class Subpocket:
         self.center = self._centroid()
 
     @property
-    def data(self):
+    def subpocket(self):
         """
         Subpocket attributes.
 
@@ -67,7 +67,7 @@ class Subpocket:
         )
 
     @property
-    def data_anchor_residues(self):
+    def anchor_residues(self):
         """
         Anchor residues for all subpockets.
         - Subpocket name and color
@@ -83,7 +83,7 @@ class Subpocket:
         """
 
         anchor_residues = pd.DataFrame(
-            [anchor_residue.data for anchor_residue in self._anchor_residues]
+            [anchor_residue.anchor_residue for anchor_residue in self._anchor_residues]
         )
         anchor_residues.insert(0, "subpocket.name", self.name)
         return anchor_residues

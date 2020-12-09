@@ -28,8 +28,8 @@ class TestAnchorResidue:
         assert anchor_residue.residue_id_alternative == residue_id_alternative
         assert anchor_residue.residue_ix == residue_ix
         assert anchor_residue.color == color
-        assert isinstance(anchor_residue.data, pd.Series)
-        assert anchor_residue.data.index.to_list() == [
+        assert isinstance(anchor_residue.anchor_residue, pd.Series)
+        assert anchor_residue.anchor_residue.index.to_list() == [
             "anchor_residue.color",
             "anchor_residue.id",
             "anchor_residue.id_alternative",
