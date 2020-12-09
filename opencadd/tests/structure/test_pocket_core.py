@@ -30,7 +30,7 @@ class TestsPocket:
     )
     def test_from_file(self, filepath, residue_ids, name, residue_labels):
         """
-        Initialize class from file.
+        Initialize class from file and test class attributes and properties.
         """
 
         pocket = Pocket.from_file(filepath, residue_ids, name, residue_labels)
@@ -169,6 +169,9 @@ class TestsPocket:
         subpocket_name,
         subpocket_color,
     ):
+        """
+        Test subpocket definitions generated based on residue PDB IDs.
+        """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
         subpocket = pocket._subpocket_by_residue_ids(
@@ -204,6 +207,9 @@ class TestsPocket:
         subpocket_name,
         subpocket_color,
     ):
+        """
+        Test subpocket definitions generated based on residue indices.
+        """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids, "", pocket_residue_ixs)
         subpocket = pocket._subpocket_by_residue_ixs(
@@ -261,6 +267,9 @@ class TestsPocket:
         anchor_residue_color,
         anchor_residue_center,
     ):
+        """
+        Test anchor residue definitions generated based on residue PDB IDs.
+        """
 
         pocket = Pocket.from_file(filepath, residue_ids)
         anchor_residue = pocket._anchor_residue_by_residue_id(
@@ -330,6 +339,9 @@ class TestsPocket:
         anchor_residue_color,
         anchor_residue_center,
     ):
+        """
+        Test anchor residue definitions generated based on residue indices.
+        """
 
         pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
         anchor_residue = pocket._anchor_residue_by_residue_ix(
@@ -366,6 +378,9 @@ class TestsPocket:
         ],
     )
     def test_residue_id2ix(self, filepath, residue_ids, residue_ixs, residue_id, residue_ix):
+        """
+        Test residue PDB ID to index mapping.
+        """
 
         pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
         assert pocket._residue_id2ix(residue_id) == residue_ix
@@ -390,6 +405,9 @@ class TestsPocket:
         ],
     )
     def test_residue_ix2id(self, filepath, residue_ids, residue_ixs, residue_ix, residue_id):
+        """
+        Test residue index to PDB ID  mapping.
+        """
 
         pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
         assert pocket._residue_ix2id(residue_ix) == residue_id
@@ -423,6 +441,9 @@ class TestsPocket:
     def test_ca_atoms_and_ca_atoms_center(
         self, filepath, pocket_residue_ids, residue_ids, n_ca_atoms, center
     ):
+        """
+        Test CA atoms retrieval and center calculation based on a set of residue PDB IDs.
+        """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
         ca_atoms = pocket._ca_atoms(*residue_ids)
@@ -444,6 +465,9 @@ class TestsPocket:
         ],
     )
     def test_center(self, filepath, pocket_residue_ids, pocket_center):
+        """
+        Test the pocket center calculation based on the pocket's residue PDB IDs.
+        """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
 
