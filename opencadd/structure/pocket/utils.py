@@ -25,8 +25,6 @@ def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     tuple of list of str
         Residue IDs, residue indices.
     """
-    print(len(residue_ids), len(residue_ixs))
-    print(residue_ixs)
 
     # If no residue indices are given, create list of None
     # (list length = number of anchor residue IDs)
@@ -37,7 +35,7 @@ def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     if len(residue_ids) != len(residue_ixs):
         raise ValueError(f"Number of residue IDs and indices must be of same length.")
 
-    # Cast residue IDs and indices to strings (except None)
+    # Cast residue IDs and indices to strings (except None) TODO
     residue_ids = [str(residue_id) if residue_id else residue_id for residue_id in residue_ids]
     residue_ixs = [str(residue_ix) if residue_ix else residue_ix for residue_ix in residue_ixs]
 
@@ -47,9 +45,11 @@ def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     residues_dropped = []
     for residue_id, residue_ix in zip(residue_ids, residue_ixs):
         if residue_id:
+            print(residue_id)
             try:
                 int(residue_id)
-                int(residue_ix)
+                if residue_ix:
+                    int(residue_ix)
                 residue_ids_kept.append(residue_id)
                 residue_ixs_kept.append(residue_ix)
             except ValueError:
