@@ -6,6 +6,7 @@ Defines anchor residues.
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 _logger = logging.getLogger(__name__)
@@ -30,11 +31,31 @@ class AnchorResidue:
     """
 
     def __init__(self, center, residue_id, residue_id_alternative, residue_ix, color):
+        """
+        Initialize an AnchorResidue object.
 
+        Parameters
+        ----------
+        center : list or numpy.array
+            Coordinates (x, y, z) of the residue center.
+        residue_id : str
+            Residue ID.
+        residue_id_alternative : list of str or None
+            Alternative residue ID(s) in case input ID is not available.
+        residue_ix : str
+            Residue index.
+        color : str
+            Residue color (matplotlib name).
+        """
+
+        if center:
+            if len(center) != 3:
+                raise ValueError(f"Length of center vector must be 3 but is {len(center)}.")
+            center = np.array(center)
         self.center = center
-        self.residue_id = residue_id
+        self.residue_id = str(residue_id)
         self.residue_id_alternative = residue_id_alternative
-        self.residue_ix = residue_ix
+        self.residue_ix = str(residue_ix)
         self.color = color
 
         if self.residue_id_alternative:

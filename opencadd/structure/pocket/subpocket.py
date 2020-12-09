@@ -31,7 +31,7 @@ class Subpocket:
 
     def __init__(self, anchor_residues, name, color="blue"):
         """
-        Initialize a Subpocket object from a list of anchor residues.
+        Initialize a Subpocket object.
 
         Parameters
         ----------

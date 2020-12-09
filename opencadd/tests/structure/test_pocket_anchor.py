@@ -23,7 +23,9 @@ class TestAnchorResidue:
         anchor_residue = AnchorResidue(
             center, residue_id, residue_id_alternative, residue_ix, color
         )
-        assert anchor_residue.center == center
+        if center:
+            for i, j in zip(anchor_residue.center, center):
+                assert pytest.approx(i, abs=1.0e-6) == j
         assert anchor_residue.residue_id == residue_id
         assert anchor_residue.residue_id_alternative == residue_id_alternative
         assert anchor_residue.residue_ix == residue_ix
