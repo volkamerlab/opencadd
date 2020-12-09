@@ -51,29 +51,39 @@ class TestsPocket:
         assert pocket.residues.columns.to_list() == ["residue.id", "residue.ix"]
 
     @pytest.mark.parametrize(
-        "filepath, pocket_residue_ids, region_name, region_residue_ids, region_color",
+        "filepath, pocket_residue_ids, pocket_residue_ixs, region_name, region_color",
         [
             (
                 PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
                 [127, 128, 129],
+                [16, 47, 80],
                 "hinge",
-                [127, 128, 129],
                 "magenta",
             )
         ],
     )
     def test_add_regions(
-        self, filepath, pocket_residue_ids, region_name, region_residue_ids, region_color
+        self,
+        filepath,
+        pocket_residue_ids,
+        pocket_residue_ixs,
+        region_name,
+        region_color,
     ):
         """
         Test adding regions and associated regions property and attribute.
         """
 
-        pocket = Pocket.from_file(filepath, pocket_residue_ids)
+        pocket = Pocket.from_file(filepath, pocket_residue_ids, pocket_residue_ixs)
         assert pocket.regions == None
 
         # Add region
-        pocket.add_region(region_name, region_residue_ids, region_color)
+        pocket.add_region(region_name, residue_ids=pocket_residue_ids, color=region_color)
+        pocket.add_region(region_name, residue_ixs=pocket_residue_ixs, color=region_color)
+
+        # Test the subpocket in the _subpockets attribute
+        assert pocket._regions[0].residue_ids == pocket._regions[1].residue_ids
+        assert pocket._regions[0].residue_ixs == pocket._regions[1].residue_ixs
 
         # Test regions property
         assert isinstance(pocket.regions, pd.DataFrame)
@@ -90,13 +100,13 @@ class TestsPocket:
         assert region.color == region_color
 
     @pytest.mark.parametrize(
-        "filepath, pocket_residue_ids, subpocket_name, subpocket_residue_ids, subpocket_color, subpocket_center",
+        "filepath, pocket_residue_ids, pocket_residue_ixs, subpocket_name, subpocket_color, subpocket_center",
         [
             (
                 PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
                 [73, 128, 193],
+                [16, 47, 80],
                 "hinge_region",
-                [73, 128, 193],
                 "magenta",
                 [1.957633, 21.923767, 41.69003333],
             )
@@ -106,8 +116,8 @@ class TestsPocket:
         self,
         filepath,
         pocket_residue_ids,
+        pocket_residue_ixs,
         subpocket_name,
-        subpocket_residue_ids,
         subpocket_color,
         subpocket_center,
     ):
@@ -115,12 +125,24 @@ class TestsPocket:
         Test adding subpocket and associated subpockets property and attribute.
         """
 
-        pocket = Pocket.from_file(filepath, pocket_residue_ids)
+        pocket = Pocket.from_file(filepath, pocket_residue_ids, pocket_residue_ixs)
         assert pocket.subpockets == None
         assert pocket.anchor_residues == None
 
         # Add subpocket
-        pocket.add_subpocket(subpocket_name, subpocket_residue_ids, subpocket_color)
+        pocket.add_subpocket(
+            subpocket_name, anchor_residue_ids=pocket_residue_ids, color=subpocket_color
+        )
+        pocket.add_subpocket(
+            subpocket_name, anchor_residue_ixs=pocket_residue_ixs, color=subpocket_color
+        )
+
+        # Test the subpocket in the _subpockets attribute
+        assert all(pocket._subpockets[0].center == pocket._subpockets[1].center)
+        subpocket = pocket._subpockets[0]
+        assert subpocket.name == subpocket_name
+        assert subpocket.color == subpocket_color
+        assert pytest.approx(subpocket.center, abs=1.0e-6) == subpocket_center
 
         # Test subpockets property
         assert isinstance(pocket.subpockets, pd.DataFrame)
@@ -140,12 +162,6 @@ class TestsPocket:
             "anchor_residue.ix",
             "anchor_residue.center",
         ]
-
-        # Test an example subpocket in the _subpockets attribute
-        subpocket = pocket._subpockets[0]
-        assert subpocket.name == subpocket_name
-        assert subpocket.color == subpocket_color
-        assert pytest.approx(subpocket.center, abs=1.0e-6) == subpocket_center
 
     @pytest.mark.parametrize(
         "filepath, pocket_residue_ids, subpocket_residue_ids, subpocket_center, subpocket_name, subpocket_color",

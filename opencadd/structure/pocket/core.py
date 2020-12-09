@@ -195,25 +195,8 @@ class Pocket:
         if self._regions == []:
             return None
 
-        regions = []
-
-        for region in self._regions:
-
-            n_residues = len(region.residue_ids)
-
-            region = pd.DataFrame(
-                {
-                    "region.name": [region.name] * n_residues,
-                    "region.color": [region.color] * n_residues,
-                    "residue.id": region.residue_ids,
-                    "residue.ix": region.residue_ixs,
-                }
-            )
-
-            regions.append(region)
-
+        regions = [region.region for region in self._regions]
         regions = pd.concat(regions)
-
         return regions.reset_index(drop=True)
 
     @property
@@ -285,9 +268,9 @@ class Pocket:
     def add_subpocket(
         self,
         name,
-        anchor_residue_ids,
-        color="blue",
+        anchor_residue_ids=None,
         anchor_residue_ixs=None,
+        color="blue",
     ):
         """
         Add subpocket based on given anchor residue IDs.
@@ -296,21 +279,27 @@ class Pocket:
         ----------
         name : str
             Subpocket name.
-        anchor_residue_ids : list of (int, str)
+        anchor_residue_ids : list of (int or str) or None
             List of anchor residue IDs.
+            Note: If "anchor_residue_ids" and "anchor_residue_ix" are both set,
+            "anchor_residue_ix" will be used.
+        anchor_residue_ixs : list of (int or str) or None
+            List of anchor residue indices.
+            Note: If "anchor_residue_ids" and "anchor_residue_ix" are both set,
+            "anchor_residue_ix" will be used.
         color : str
             Subpocket color (matplotlib name), blue by default.
-        anchor_residue_ixs : list of (int, str) or None
-            List of anchor residue indices. Must be of same length as anchor_residue_ids.
         """
 
+        if anchor_residue_ids and anchor_residue_ixs:
+            raise ValueError(f"Please set only anchor residue PDB IDs or indices - not both.")
         if anchor_residue_ixs:
             subpocket = self._subpocket_by_residue_ixs(anchor_residue_ixs, name, color)
         else:
             subpocket = self._subpocket_by_residue_ids(anchor_residue_ids, name, color)
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, residue_ids, color="blue", residue_ixs=None):
+    def add_region(self, name, residue_ids=None, residue_ixs=None, color="blue"):
         """
         Add region based on given input residue IDs.
 
@@ -318,16 +307,25 @@ class Pocket:
         ----------
         name : str
             Region name.
-        residue_ids : list of (int, str)
+        residue_ids : list of (int or str) or None
             List of residue IDs defining the region.
+            Note: If "residue_ids" and "residue_ix" are both set, "residue_ix" will be used.
+        residue_ixs : list of (int or str) or None
+            List of residue indices.
+            Note: If "residue_ids" and "residue_ix" are both set, "residue_ix" will be used.
         color : str
             Region color (matplotlib name), blue by default.
-        residue_ixs : list of (int, str) or None
-            List of residue indices. Must be of same length as residue_ids.
         """
 
-        region = Region()
-        region.from_dataframe(self.data, name, residue_ids, color, residue_ixs)
+        if residue_ids and residue_ixs:
+            raise ValueError(f"Please set only residue PDB IDs or indices - not both.")
+        if residue_ixs:
+            residue_ids = [self._residue_ix2id(residue_ix) for residue_ix in residue_ixs]
+        else:
+            residue_ixs = [self._residue_id2ix(residue_id) for residue_id in residue_ids]
+
+        residue_ids, residue_ixs = _format_residue_ids_and_ixs(residue_ids, residue_ixs)
+        region = Region(name, residue_ids, residue_ixs, color)
         self._regions.append(region)
 
     def _residue_ix2id(self, residue_ix):

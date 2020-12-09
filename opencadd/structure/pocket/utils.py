@@ -45,7 +45,6 @@ def _format_residue_ids_and_ixs(residue_ids, residue_ixs):
     residues_dropped = []
     for residue_id, residue_ix in zip(residue_ids, residue_ixs):
         if residue_id:
-            print(residue_id)
             try:
                 int(residue_id)
                 if residue_ix:
