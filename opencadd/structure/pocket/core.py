@@ -179,7 +179,7 @@ class Pocket:
         if not self._subpockets:
             return None
 
-        subpockets = pd.DataFrame([subpocket.data for subpocket in self._subpockets])
+        subpockets = pd.DataFrame([subpocket.subpocket for subpocket in self._subpockets])
         return subpockets.reset_index(drop=True)
 
     @property
