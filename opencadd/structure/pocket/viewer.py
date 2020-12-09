@@ -9,14 +9,23 @@ import nglview
 
 
 class Viewer:
-    def show(self, pocket, show_pocket_centroid=True, show_anchor_residues=True):
+    """
+    TODO
+    """
+
+    def __init__(self):
+
+        self.viewer = nglview.NGLWidget()
+        self.viewer._remote_call("setSize", target="Widget", args=["1000px", "600px"])
+
+    def show_pocket(self, pocket, show_pocket_center=True, show_anchor_residues=True):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
 
         Parameters
         ----------
-        show_pocket_centroid : bool
-            Show the pocket centroid as sphere (default) or not.
+        show_pocket_center : bool
+            Show the pocket center as sphere (default) or not.
         show_anchor_residues : bool
             Show the anchor residues as spheres (default) or not.
 
@@ -27,10 +36,8 @@ class Viewer:
         """
 
         # Load structure from text in nglview
-        structure = nglview.adaptor.TextStructure(pocket._text, ext=pocket._extension)
-        view = nglview.widget.NGLWidget(structure)
-        view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
-        view.clear()
+        self.viewer.add_component(pocket._text, ext=pocket._extension)
+        self.viewer.clear()
 
         # Get residue ID > nglview index mapping
         # based on file format (this is important to know how nglview will index residues)
@@ -43,32 +50,33 @@ class Viewer:
             residue_id = region["residue.id"]
             residue_ngl_ix = residue_id2ix.loc[residue_id]
             scheme_regions_list.append([color, residue_ngl_ix])
-
         scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
-        view.add_representation("cartoon", selection="protein", color=scheme_regions)
+        self.viewer.add_representation("cartoon", selection="protein", color=scheme_regions)
 
-        # Show pocket centroids
-        if show_pocket_centroid:
-            view.shape.add_sphere(list(pocket.centroid), [0, 0, 1], 2, "centroid")
+        # Show pocket center
+        if show_pocket_center:
+            self.viewer.shape.add_sphere(list(pocket.center), [0, 0, 1], 2, "center")
 
         # Show subpockets
         for index, subpocket in pocket.subpockets.iterrows():
             center = list(subpocket["subpocket.center"])
             name = subpocket["subpocket.name"]
             color_rgb = colors.to_rgb(subpocket["subpocket.color"])
-            view.shape.add_sphere(center, color_rgb, 2, name)
+            self.viewer.shape.add_sphere(center, color_rgb, 2, name)
+            # self.viewer.update_representation(component=3, repre_index=0, opacity=0.2)
 
         # Show anchor points
         if show_anchor_residues:
             for index, anchor_residue in pocket.anchor_residues.iterrows():
                 center = list(anchor_residue["anchor_residue.center"])
-                color_rgb = colors.to_rgb(anchor_residue["subpocket.color"])
-                view.shape.add_sphere(center, color_rgb, 0.5)
+                color_rgb = colors.to_rgb(anchor_residue["anchor_residue.color"])
+                self.viewer.shape.add_sphere(center, color_rgb, 0.5)
 
         # Show
-        return view
+        return self.viewer
 
-    def _map_residue_id2ix(self, pocket):
+    @staticmethod
+    def _map_residue_id2ix(pocket):
         """
         Map residue IDs to nglview indices depending on file format.
         In case of mol2 files, nglview will use indices starting from 1.
