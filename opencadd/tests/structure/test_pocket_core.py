@@ -28,12 +28,12 @@ class TestsPocket:
             )
         ],
     )
-    def test_from_file(self, filepath, residue_ids, name, residue_ixs):
+    def test_from_file(self, filepath, residue_ids, residue_ixs, name):
         """
         Initialize class from file and test class attributes and properties.
         """
 
-        pocket = Pocket.from_file(filepath, residue_ids, name, residue_ixs)
+        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs, name)
 
         # Test attributes
         assert pocket.name == name
@@ -211,7 +211,7 @@ class TestsPocket:
         Test subpocket definitions generated based on residue indices.
         """
 
-        pocket = Pocket.from_file(filepath, pocket_residue_ids, "", pocket_residue_ixs)
+        pocket = Pocket.from_file(filepath, pocket_residue_ids, pocket_residue_ixs)
         subpocket = pocket._subpocket_by_residue_ixs(
             subpocket_residue_ixs, subpocket_name, subpocket_color
         )
@@ -343,7 +343,7 @@ class TestsPocket:
         Test anchor residue definitions generated based on residue indices.
         """
 
-        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs)
         anchor_residue = pocket._anchor_residue_by_residue_ix(
             anchor_residue_ix, anchor_residue_color
         )
@@ -382,7 +382,7 @@ class TestsPocket:
         Test residue PDB ID to index mapping.
         """
 
-        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs)
         assert pocket._residue_id2ix(residue_id) == residue_ix
 
     @pytest.mark.parametrize(
@@ -409,7 +409,7 @@ class TestsPocket:
         Test residue index to PDB ID  mapping.
         """
 
-        pocket = Pocket.from_file(filepath, residue_ids, "", residue_ixs)
+        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs)
         assert pocket._residue_ix2id(residue_ix) == residue_id
 
     @pytest.mark.parametrize(
