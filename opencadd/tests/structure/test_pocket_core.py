@@ -443,9 +443,9 @@ class TestsPocket:
             ),
         ],
     )
-    def test_centroid(self, filepath, pocket_residue_ids, pocket_center):
+    def test_center(self, filepath, pocket_residue_ids, pocket_center):
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
 
-        for i, j in zip(pocket.centroid, pocket_center):
+        for i, j in zip(pocket.center, pocket_center):
             assert pytest.approx(i, abs=1.0e-3) == j

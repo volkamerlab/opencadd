@@ -32,7 +32,7 @@ class Pocket:
     subpockets
     regions
     anchor_residues
-    centroid
+    center
     name : str
         Name of protein.
     _text : str
@@ -241,14 +241,14 @@ class Pocket:
         return anchor_residues.reset_index(drop=True)
 
     @property
-    def centroid(self):
+    def center(self):
         """
-        Centroid of all input residues' CA atoms.
+        Pocket center, i.e. the centroid of all input residues' CA atoms.
 
         Returns
         ----------
         numpy.array
-            Pocket centroid (coordinates).
+            Pocket center (coordinates).
         """
 
         dataframe = self.data
@@ -260,13 +260,13 @@ class Pocket:
         if len(atoms) != len(self._residue_ids):
             _logger.info(
                 f"Missing pocket CA atoms. "
-                f"The pocket centroid is calculated based on {len(atoms)} CA atoms "
+                f"The pocket center is calculated based on {len(atoms)} CA atoms "
                 f"(total number of pocket residues is {len(self._residue_ids)})."
             )
 
-        centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+        center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
 
-        return centroid
+        return center
 
     def clear_subpockets(self):
         """
