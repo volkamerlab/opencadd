@@ -297,7 +297,7 @@ class TestsPocket:
         assert anchor_residue.residue_ix == None
         assert anchor_residue.color == anchor_residue_color
         if anchor_residue_center:
-            assert pytest.approx(anchor_residue.center[0], anchor_residue_center[0])
+            assert pytest.approx(anchor_residue.center[0], abs=1.0e-3) == anchor_residue_center[0]
 
     @pytest.mark.parametrize(
         "filepath, residue_ids, residue_ixs, anchor_residue_ix, anchor_residue_id, anchor_residue_id_alternative, anchor_residue_color, anchor_residue_center",
@@ -370,9 +370,7 @@ class TestsPocket:
         assert anchor_residue.residue_id_alternative == anchor_residue_id_alternative
         assert anchor_residue.color == anchor_residue_color
         if anchor_residue_center:
-            assert pytest.approx(
-                anchor_residue.center[0], anchor_residue_center[0]
-            )  # TODO check this!
+            assert pytest.approx(anchor_residue.center[0], abs=1.0e-3) == anchor_residue_center[0]
 
     @pytest.mark.parametrize(
         "filepath, residue_ids, residue_ixs, residue_id, residue_ix",
