@@ -4,8 +4,14 @@ opencadd.structure.pocket.viewer
 Visualize pocket(s).
 """
 
+import logging
+
 from matplotlib import colors
 import nglview
+
+from opencadd.io import DataFrame
+
+_logger = logging.getLogger(__name__)
 
 
 class Viewer:
@@ -17,8 +23,25 @@ class Viewer:
 
         self.viewer = nglview.NGLWidget()
         self.viewer._remote_call("setSize", target="Widget", args=["1000px", "600px"])
+        self.structure_names = []
+        self._residue_ids_to_ngl_ixs = {}
+        self._component_counter = 0
+        self._components_structures = {}
+        self._components_ligands = {}
+        self._components_pocket_center = {}
+        self._components_subpockets = {}
+        self._components_anchor_residues = {}
 
-    def show_pocket(self, pocket, show_pocket_center=True, show_anchor_residues=True):
+    def add_pocket(
+        self,
+        pocket,
+        ligand_expo_id=None,
+        show_pocket_center=True,
+        show_subpockets=True,
+        show_anchor_residues=True,
+        show_regions=True,
+        sphere_opacity=0.7,
+    ):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
 
@@ -28,6 +51,7 @@ class Viewer:
             Show the pocket center as sphere (default) or not.
         show_anchor_residues : bool
             Show the anchor residues as spheres (default) or not.
+        TODO
 
         Returns
         -------
@@ -35,48 +59,67 @@ class Viewer:
             Pocket visualization.
         """
 
-        # Load structure from text in nglview
-        self.viewer.add_component(pocket._text, ext=pocket._extension)
-        self.viewer.clear()
+        # Get residue ID > nglview index mapping based on file format
+        # (this is important to know how nglview will index residues)
+        self._map_residue_ids_names_nglixs(pocket)
 
-        # Get residue ID > nglview index mapping
-        # based on file format (this is important to know how nglview will index residues)
-        residue_id2ix = self._map_residue_id2ix(pocket)
+        # Load structure from text in nglview
+        self._add_structure(pocket, ligand_expo_id)
 
         # Show regions
-        scheme_regions_list = []
-        for index, region in pocket.regions.iterrows():
-            color = region["region.color"]
-            residue_id = region["residue.id"]
-            residue_ngl_ix = residue_id2ix.loc[residue_id]
-            scheme_regions_list.append([color, residue_ngl_ix])
-        scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
-        self.viewer.add_representation("cartoon", selection="protein", color=scheme_regions)
+        if show_regions:
+            self._add_regions(pocket)
 
         # Show pocket center
         if show_pocket_center:
-            self.viewer.shape.add_sphere(list(pocket.center), [0, 0, 1], 2, "center")
+            self._add_pocket_center(pocket, sphere_opacity)
 
         # Show subpockets
-        for index, subpocket in pocket.subpockets.iterrows():
-            center = list(subpocket["subpocket.center"])
-            name = subpocket["subpocket.name"]
-            color_rgb = colors.to_rgb(subpocket["subpocket.color"])
-            self.viewer.shape.add_sphere(center, color_rgb, 2, name)
-            # self.viewer.update_representation(component=3, repre_index=0, opacity=0.2)
+        if show_subpockets:
+            self._add_subpockets(pocket, sphere_opacity)
 
         # Show anchor points
         if show_anchor_residues:
-            for index, anchor_residue in pocket.anchor_residues.iterrows():
-                center = list(anchor_residue["anchor_residue.center"])
-                color_rgb = colors.to_rgb(anchor_residue["anchor_residue.color"])
-                self.viewer.shape.add_sphere(center, color_rgb, 0.5)
+            self._add_anchor_residues(pocket, sphere_opacity)
 
         # Show
         return self.viewer
 
-    @staticmethod
-    def _map_residue_id2ix(pocket):
+    def hide(self, structure_name):
+        """
+        Hide a structure and all related components (such as spheres).
+        The components are only hidden, not removed. They can be shown again using ".show()".
+
+        Parameters
+        ----------
+        structure_name : str
+            Structure/pocket name (as defined in the Pocket object ("Pocket.name")).
+        """
+
+        components_to_be_hidden = self._components_by_structure_name(structure_name)
+        self.viewer.hide(components_to_be_hidden)
+
+    def show_only(self, structure_name):
+        """
+        Show a structure and all related components (such as spheres).
+
+        Parameters
+        ----------
+        structure_name : str
+            Structure/pocket name (as defined in the Pocket object ("Pocket.name")).
+        """
+
+        components_to_be_shown = self._components_by_structure_name(structure_name)
+        self.viewer.show_only(components_to_be_shown)
+
+    def show_all(self):
+        """
+        Show all components.
+        """
+
+        self.viewer.show()
+
+    def _map_residue_ids_names_nglixs(self, pocket):
         """
         Map residue IDs to nglview indices depending on file format.
         In case of mol2 files, nglview will use indices starting from 1.
@@ -93,22 +136,171 @@ class Viewer:
             Residue IDs (index) and residue nglview indices (values).
         """
 
-        # Get all residue names
-        residue_id2ix = pocket.data[["residue.name", "residue.id"]].drop_duplicates()
+        # Get all residue names and IDs (full structure!!)
+        dataframe = DataFrame.from_text(pocket._text, pocket._extension)
+        residue_id2ix = dataframe[["residue.name", "residue.id"]].drop_duplicates()
 
         if pocket._extension == "mol2":
 
             # Map residue names to nglview index (starting from 1)
             residue_id2ix["residue.ngl_ix"] = [str(i) for i in range(1, len(residue_id2ix) + 1)]
-            # Cast to Series (residue IDs as index, NGL index as values)
-            residue_id2ix.set_index("residue.id", inplace=True)
-            residue_id2ix = residue_id2ix["residue.ngl_ix"]
 
         else:
 
             # In this case, residue ID and nglview index are the same
             residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.id"]
-            residue_id2ix.index = residue_id2ix["residue.id"]
-            residue_id2ix = residue_id2ix["residue.ngl_ix"]
 
-        return residue_id2ix
+        self._residue_ids_to_ngl_ixs[pocket.name] = residue_id2ix
+
+    def _add_structure(self, pocket, ligand_expo_id=None):
+        """TODO"""
+
+        # Set structure name
+        if pocket.name in self.structure_names:
+            raise ValueError(
+                f"Structure/pocket name ({pocket.name}) already taken. "
+                f"FYI: The following structures are already in your view: {self.structure_names}"
+            )
+        self.structure_names.append(pocket.name)
+        # Add structure
+        self.viewer.add_component(pocket._text, ext=pocket._extension)
+        # Save the structure's NGLview component
+        self._components_structures[pocket.name] = self._component_counter
+        self._component_counter += 1
+        # Clear the structure's representation
+        self.viewer.clear_representations(component=self._components_structures[pocket.name])
+        # Add protein cartoon representation
+        self.viewer.add_representation(
+            "cartoon",
+            selection="protein",
+            component=self._components_structures[pocket.name],
+            color="grey",
+        )
+        # If specified, add ligand ball+stick representation
+        if ligand_expo_id:
+            self._add_ligand(pocket, ligand_expo_id)
+
+    def _add_ligand(self, pocket, ligand_expo_id):
+        """TODO"""
+
+        # Cast residue mapping to Series (residue name as index, NGL index as values)
+        residue_name2ix = self._residue_ids_to_ngl_ixs[pocket.name]
+        residue_name2ix = residue_name2ix.set_index("residue.name")["residue.ngl_ix"]
+
+        try:
+            residue_ngl_ix = residue_name2ix.loc[ligand_expo_id]
+            self.viewer.add_representation(
+                "ball+stick",
+                selection=residue_ngl_ix,
+                component=self._components_structures[pocket.name],
+            )
+        except KeyError:
+            _logger.warning(
+                f"Ligand {ligand_expo_id} could not be found and thus, will not be shown. "
+                f"If you are using the mol2 format, the ligand name might not be read correctly."
+            )
+
+    def _add_regions(self, pocket):
+        """TODO"""
+
+        # Cast residue mapping to Series (residue IDs as index, NGL index as values)
+        residue_id2ix = self._residue_ids_to_ngl_ixs[pocket.name]
+        residue_id2ix = residue_id2ix.set_index("residue.id")["residue.ngl_ix"]
+
+        scheme_regions_list = []
+        for _, region in pocket.regions.iterrows():
+            color = region["region.color"]
+            residue_id = region["residue.id"]
+            residue_ngl_ix = residue_id2ix.loc[residue_id]
+            scheme_regions_list.append([color, residue_ngl_ix])
+        scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
+        self.viewer.add_representation(
+            "cartoon",
+            selection="protein",
+            component=self._components_structures[pocket.name],
+            color=scheme_regions,
+        )
+
+    def _add_pocket_center(self, pocket, sphere_opacity=0.7):
+        """TODO"""
+
+        if pocket.center is not None:
+            self.viewer.shape.add_sphere(
+                list(pocket.center), [0, 0, 1], 2, f"center: {pocket.name}"
+            )
+            # Save NGLview component
+            self._components_pocket_center[pocket.name] = self._component_counter
+            self._component_counter += 1
+            # Set sphere opacity
+            self.viewer.update_representation(
+                component=self._components_pocket_center[pocket.name],
+                repre_index=0,
+                opacity=sphere_opacity,
+            )
+
+    def _add_subpockets(self, pocket, sphere_opacity=0.7):
+        """TODO"""
+
+        self._components_subpockets[pocket.name] = {}
+        for subpocket in pocket._subpockets:
+            if subpocket.center is not None:
+                center = list(subpocket.center)
+                name = subpocket.name
+                color_rgb = colors.to_rgb(subpocket.color)
+                self.viewer.shape.add_sphere(center, color_rgb, 2, f"{name}: {pocket.name}")
+                # Save NGLview component
+                self._components_subpockets[pocket.name][subpocket.name] = self._component_counter
+                self._component_counter += 1
+                # Set sphere opacity
+                self.viewer.update_representation(
+                    component=self._components_subpockets[pocket.name][subpocket.name],
+                    repre_index=0,
+                    opacity=sphere_opacity,
+                )
+
+    def _add_anchor_residues(self, pocket, sphere_opacity=0.7):
+        """TODO"""
+
+        self._components_anchor_residues[pocket.name] = {}
+        for _, anchor_residue in pocket.anchor_residues.iterrows():
+            if anchor_residue["anchor_residue.center"] is not None:
+                center = list(anchor_residue["anchor_residue.center"])
+                color_rgb = colors.to_rgb(anchor_residue["anchor_residue.color"])
+                self.viewer.shape.add_sphere(center, color_rgb, 0.5)
+                # Save NGLview component
+                self._components_anchor_residues[pocket.name][
+                    f"{anchor_residue['subpocket.name']}_{anchor_residue['anchor_residue.id']}"
+                ] = self._component_counter
+                self._component_counter += 1
+                # Set sphere opacity
+                self.viewer.update_representation(
+                    component=self._components_anchor_residues[pocket.name][
+                        f"{anchor_residue['subpocket.name']}_{anchor_residue['anchor_residue.id']}"
+                    ],
+                    repre_index=0,
+                    opacity=sphere_opacity,
+                )
+
+    def _components_by_structure_name(self, structure_name):
+        """
+        Get all components that are connected to a given structure.
+
+        Parameters
+        ----------
+        structure_name : str
+            Structure/pocket name.
+        """
+
+        if structure_name not in self.structure_names:
+            raise ValueError(
+                f"Structure/pocket name ({structure_name}) does not exist. "
+                f"FYI: The following structures are in your view: {self.structure_names}"
+            )
+
+        components = []
+        components.append(self._components_structures[structure_name])
+        components.append(self._components_pocket_center[structure_name])
+        components.extend(list(self._components_subpockets[structure_name].values()))
+        components.extend(list(self._components_anchor_residues[structure_name].values()))
+
+        return components
