@@ -347,7 +347,7 @@ class Pocket:
         residues = self.residues
         residues = residues[~residues["residue.ix"].isin(["_", "-", "", " ", None])]
         try:
-            residue_id = self.residues.set_index("residue.ix").squeeze().loc[residue_ix]
+            residue_id = residues.set_index("residue.ix").squeeze().loc[residue_ix]
         except KeyError:
             residue_id = None
         return residue_id
@@ -491,6 +491,10 @@ class Pocket:
             residue_id_after = self._residue_ix2id(residue_ix_after)
             residue_ids = [residue_id_before, residue_id_after]
             residue_ids = [residue_id for residue_id in residue_ids if residue_id is not None]
+            # Add one more check: Residue IDs can only be separated by one residue!
+            if len(residue_ids) == 2:
+                if int(residue_ids[0]) - int(residue_ids[1]) != 1:
+                    residue_ids = []
             # Get center
             residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
 
