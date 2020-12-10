@@ -493,7 +493,7 @@ class Pocket:
             residue_ids = [residue_id for residue_id in residue_ids if residue_id is not None]
             # Add one more check: Residue IDs can only be separated by one residue!
             if len(residue_ids) == 2:
-                if int(residue_ids[0]) - int(residue_ids[1]) != 1:
+                if int(residue_ids[1]) - int(residue_ids[0]) != 2:
                     residue_ids = []
             # Get center
             residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
