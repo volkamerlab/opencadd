@@ -57,19 +57,16 @@ class KlifsPocket(Pocket):
             text,
             extension,
             pocket["residue.id"].to_list(),
-            "example kinase",
             pocket["residue.klifs_id"].to_list(),
+            structure_klifs_id,
         )
 
         # Add regions
-        for (region, color), group in pocket.groupby(
-            ["residue.klifs_region_id", "residue.klifs_color"]
-        ):
+        for (region, color), group in pocket.groupby(["residue.klifs_id", "residue.klifs_color"]):
             pocket_3d.add_region(
-                region,
-                group["residue.id"].to_list(),
-                color,
-                group["residue.klifs_region_id"].to_list(),
+                name=region,
+                residue_ixs=group["residue.klifs_id"].to_list(),
+                color=color,
             )
 
         # Map residue KLIFS IDs > residue ID
@@ -81,10 +78,9 @@ class KlifsPocket(Pocket):
             # Add subpockets
             for _, subpocket in subpockets.iterrows():
                 pocket_3d.add_subpocket(
-                    subpocket["subpocket.name"],
-                    subpocket["anchor_residue.ids"],
-                    subpocket["subpocket.color"],
-                    subpocket["anchor_residue.klifs_ids"],
+                    name=subpocket["subpocket.name"],
+                    anchor_residue_ixs=subpocket["anchor_residue.klifs_ids"],
+                    color=subpocket["subpocket.color"],
                 )
 
         return pocket_3d
