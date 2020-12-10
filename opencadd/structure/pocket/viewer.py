@@ -14,20 +14,49 @@ from opencadd.io import DataFrame
 _logger = logging.getLogger(__name__)
 
 
-class Viewer:
+class PocketViewer:
     """
-    TODO
+    Defines the NGLview widget to be used to visualize one or more Pocket objects.
+
+    Attributes
+    ----------
+    viewer : nglview.widget.NGLWidget
+        NGLview widget. Call this if you want to view pockets in e.g. Jupyter Notebooks.
+    structure_names : list of (int or str)
+        Names for all structures/pockets in the viewer.
+    _residue_ids_to_ngl_ixs = dict of pandas.DataFrames
+        For each structure (keys), mapping of all residue PDB IDs and names to the NGLview residue
+        indices (values).
+    _component_counter : int
+        Next component index to be filled with a component.
+    _components_structures : dict of int
+        For each structure (keys), the NGLview component index.
+        - Structure key names: <pocket name> (taken from Pocket attribute "name")
+    _components_pocket_center : dict of int
+        For each structure (keys), the NGLview component index.
+        - Structure key names: <pocket name> (taken from Pocket attribute "name")
+    _components_subpockets : dict of dict of int
+        For each structure (keys - level 1) and for each subpocket sphere (keys - level 2),
+        the NGLview component index.
+        - Structure key names: <pocket name> (taken from Pocket attribute "name")
+        - Subpocket key names: <subpocket name> (taken from Subpocket attribute "name")
+    _components_anchor_residues :
+        For each structure (keys - level 1) and for each anchor residue sphere (keys - level 2),
+        the NGLview component index.
+        - Structure key names: <pocket name> (taken from Pocket attribute "name")
+        - Anchor residue key names: <subpocket name>_<anchor residue PDB ID>
+          (taken from Subpocket attribute "name" and AnchorResidue attribute "residue_id")
     """
 
     def __init__(self):
 
         self.viewer = nglview.NGLWidget()
         self.viewer._remote_call("setSize", target="Widget", args=["1000px", "600px"])
+
         self.structure_names = []
         self._residue_ids_to_ngl_ixs = {}
         self._component_counter = 0
         self._components_structures = {}
-        self._components_ligands = {}
         self._components_pocket_center = {}
         self._components_subpockets = {}
         self._components_anchor_residues = {}
@@ -47,11 +76,21 @@ class Viewer:
 
         Parameters
         ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object to be visualized.
+        ligand_expo_id : str or None
+            Expo ID for co-crystallized ligand as defined in PDB.
+            If None (default), ligand is not shown.
         show_pocket_center : bool
             Show the pocket center as sphere (default) or not.
+        show_subpockets : bool
+            Show the subpockets as spheres (default) or not.
         show_anchor_residues : bool
             Show the anchor residues as spheres (default) or not.
-        TODO
+        show_regions : bool
+            Color residues by regions (default) or not.
+        sphere_opacity : float
+            Sphere opacity (default 0.7).
 
         Returns
         -------
@@ -121,14 +160,14 @@ class Viewer:
 
     def _map_residue_ids_names_nglixs(self, pocket):
         """
-        Map residue IDs to nglview indices depending on file format.
+        Map residue IDs and names to nglview indices depending on file format.
         In case of mol2 files, nglview will use indices starting from 1.
         In case of pdb files, nglview will use the residue IDs as indices.
 
         Parameters
         ----------
-        file_format : string TODO
-            Structural protein data format.
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
 
         Returns
         -------
@@ -153,7 +192,18 @@ class Viewer:
         self._residue_ids_to_ngl_ixs[pocket.name] = residue_id2ix
 
     def _add_structure(self, pocket, ligand_expo_id=None):
-        """TODO"""
+        """
+        Add protein structure as defined in pocket object ("_text" attribute) in cartoon
+        representation. Optionally, show ligand in ball+stick representation.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        ligand_expo_id : str or None
+            Expo ID for co-crystallized ligand as defined in PDB.
+            If None (default), ligand is not shown.
+        """
 
         # Set structure name
         if pocket.name in self.structure_names:
@@ -181,7 +231,16 @@ class Viewer:
             self._add_ligand(pocket, ligand_expo_id)
 
     def _add_ligand(self, pocket, ligand_expo_id):
-        """TODO"""
+        """
+        Show ligand in ball+stick representation.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        ligand_expo_id : str
+            Expo ID for co-crystallized ligand as defined in PDB.
+        """
 
         # Cast residue mapping to Series (residue name as index, NGL index as values)
         residue_name2ix = self._residue_ids_to_ngl_ixs[pocket.name]
@@ -201,7 +260,14 @@ class Viewer:
             )
 
     def _add_regions(self, pocket):
-        """TODO"""
+        """
+        Color residues by regions.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        """
 
         # Cast residue mapping to Series (residue IDs as index, NGL index as values)
         residue_id2ix = self._residue_ids_to_ngl_ixs[pocket.name]
@@ -222,7 +288,16 @@ class Viewer:
         )
 
     def _add_pocket_center(self, pocket, sphere_opacity=0.7):
-        """TODO"""
+        """
+        Add the pocket center as sphere.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        sphere_opacity : float
+            Sphere opacity (default 0.7).
+        """
 
         if pocket.center is not None:
             self.viewer.shape.add_sphere(
@@ -239,7 +314,16 @@ class Viewer:
             )
 
     def _add_subpockets(self, pocket, sphere_opacity=0.7):
-        """TODO"""
+        """
+        Add the pocket's subpockets as spheres.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        sphere_opacity : float
+            Sphere opacity (default 0.7).
+        """
 
         self._components_subpockets[pocket.name] = {}
         for subpocket in pocket._subpockets:
@@ -259,7 +343,16 @@ class Viewer:
                 )
 
     def _add_anchor_residues(self, pocket, sphere_opacity=0.7):
-        """TODO"""
+        """
+        Add the subpocket's anchor residues as spheres.
+
+        Parameters
+        ----------
+        pocket : opencadd.structure.pocket.Pocket
+            Pocket object.
+        sphere_opacity : float
+            Sphere opacity (default 0.7).
+        """
 
         self._components_anchor_residues[pocket.name] = {}
         for _, anchor_residue in pocket.anchor_residues.iterrows():
