@@ -1043,8 +1043,6 @@ class BioactivitiesProvider(BaseProvider):
         """
         raise NotImplementedError("Implement in your subclass!")
 
-    
-
 
 class InteractionsProvider(BaseProvider):
     """

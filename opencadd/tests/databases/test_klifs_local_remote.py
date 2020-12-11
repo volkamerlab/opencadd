@@ -303,7 +303,10 @@ class TestsFromLigandIds:
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["bioactivities"] + [("ligand.klifs_id (query)", "int32")])
+        check_dataframe(
+            result_remote,
+            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.klifs_id (query)", "int32")],
+        )
 
         # Interactions
         result_remote = REMOTE.interactions.by_ligand_klifs_id(ligand_klifs_ids)
@@ -483,8 +486,10 @@ class TestsFromLigandPdbs:
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_ligand_expo_id(ligand_expo_ids)
         print(result_remote)
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")])
-
+        check_dataframe(
+            result_remote,
+            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")],
+        )
 
     @pytest.mark.parametrize("ligand_expo_ids", [1, "XXX"])
     def test_by_ligand_expo_id_raise(self, ligand_expo_ids):
