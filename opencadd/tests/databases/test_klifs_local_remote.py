@@ -303,7 +303,10 @@ class TestsFromLigandIds:
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["bioactivities"])
+        check_dataframe(
+            result_remote,
+            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.klifs_id (query)", "int32")],
+        )
 
         # Interactions
         result_remote = REMOTE.interactions.by_ligand_klifs_id(ligand_klifs_ids)
@@ -458,7 +461,7 @@ class TestsFromLigandPdbs:
     Test class methods with Ligand Expo IDs as input.
     """
 
-    @pytest.mark.parametrize("ligand_expo_ids", ["PRC", ["PRC", "1N1"], ["PRC", "1N1", "XXX"]])
+    @pytest.mark.parametrize("ligand_expo_ids", ["1N1", ["1N1", "PRC"], ["1N1", "PRC", "XXX"]])
     def test_by_ligand_expo_id(self, ligand_expo_ids):
         """
         Test class methods with Ligand Expo IDs as input.
@@ -477,6 +480,16 @@ class TestsFromLigandPdbs:
 
         check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
         check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+
+        # Bioactivities
+        result_remote = REMOTE.bioactivities.by_ligand_expo_id(ligand_expo_ids)
+        with pytest.raises(NotImplementedError):
+            LOCAL.bioactivities.by_ligand_expo_id(ligand_expo_ids)
+        print(result_remote)
+        check_dataframe(
+            result_remote,
+            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")],
+        )
 
     @pytest.mark.parametrize("ligand_expo_ids", [1, "XXX"])
     def test_by_ligand_expo_id_raise(self, ligand_expo_ids):
