@@ -6,8 +6,6 @@ Defines pocket regions.
 
 import pandas as pd
 
-from .utils import _format_residue_ids_and_ixs
-
 
 class Region:
     """
