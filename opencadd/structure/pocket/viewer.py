@@ -269,6 +269,11 @@ class PocketViewer:
             Pocket object.
         """
 
+        # Do nothing if pocket has no regions
+        if pocket.regions is None:
+            _logger.info(f"Pocket {pocket.name} has no regions.")
+            return None
+
         # Cast residue mapping to Series (residue IDs as index, NGL index as values)
         residue_id2ix = self._residue_ids_to_ngl_ixs[pocket.name]
         residue_id2ix = residue_id2ix.set_index("residue.id")["residue.ngl_ix"]
@@ -299,19 +304,21 @@ class PocketViewer:
             Sphere opacity (default 0.7).
         """
 
-        if pocket.center is not None:
-            self.viewer.shape.add_sphere(
-                list(pocket.center), [0, 0, 1], 2, f"center: {pocket.name}"
-            )
-            # Save NGLview component
-            self._components_pocket_center[pocket.name] = self._component_counter
-            self._component_counter += 1
-            # Set sphere opacity
-            self.viewer.update_representation(
-                component=self._components_pocket_center[pocket.name],
-                repre_index=0,
-                opacity=sphere_opacity,
-            )
+        # Do nothing if pocket has no center
+        if pocket.center is None:
+            _logger.info(f"Pocket {pocket.name} has no pocket center.")
+            return None
+
+        self.viewer.shape.add_sphere(list(pocket.center), [0, 0, 1], 2, f"center: {pocket.name}")
+        # Save NGLview component
+        self._components_pocket_center[pocket.name] = self._component_counter
+        self._component_counter += 1
+        # Set sphere opacity
+        self.viewer.update_representation(
+            component=self._components_pocket_center[pocket.name],
+            repre_index=0,
+            opacity=sphere_opacity,
+        )
 
     def _add_subpockets(self, pocket, sphere_opacity=0.7):
         """
@@ -324,6 +331,11 @@ class PocketViewer:
         sphere_opacity : float
             Sphere opacity (default 0.7).
         """
+
+        # Do nothing if pocket has no subpockets
+        if pocket.subpockets is None:
+            _logger.info(f"Pocket {pocket.name} has no subpockets.")
+            return None
 
         self._components_subpockets[pocket.name] = {}
         for subpocket in pocket._subpockets:
@@ -353,6 +365,11 @@ class PocketViewer:
         sphere_opacity : float
             Sphere opacity (default 0.7).
         """
+
+        # Do nothing if pocket has no anchor residues
+        if pocket.anchor_residues is None:
+            _logger.info(f"Pocket {pocket.name} has no subpockets.")
+            return None
 
         self._components_anchor_residues[pocket.name] = {}
         for _, anchor_residue in pocket.anchor_residues.iterrows():
