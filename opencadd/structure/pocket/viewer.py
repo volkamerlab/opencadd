@@ -70,6 +70,7 @@ class PocketViewer:
         show_anchor_residues=True,
         show_regions=True,
         sphere_opacity=0.7,
+        sphere_color_pocket_center="blue",
     ):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
@@ -90,7 +91,9 @@ class PocketViewer:
         show_regions : bool
             Color residues by regions (default) or not.
         sphere_opacity : float
-            Sphere opacity (default 0.7).
+            Sphere opacity (default 0.7). Applied to all spheres.
+        sphere_color_pocket_center : str
+            Pocket center sphere color (matplotlib name). Default is blue.
 
         Returns
         -------
@@ -111,7 +114,7 @@ class PocketViewer:
 
         # Show pocket center
         if show_pocket_center:
-            self._add_pocket_center(pocket, sphere_opacity)
+            self._add_pocket_center(pocket, sphere_opacity, sphere_color_pocket_center)
 
         # Show subpockets
         if show_subpockets:
@@ -292,7 +295,7 @@ class PocketViewer:
             color=scheme_regions,
         )
 
-    def _add_pocket_center(self, pocket, sphere_opacity=0.7):
+    def _add_pocket_center(self, pocket, sphere_opacity=0.7, sphere_color="blue"):
         """
         Add the pocket center as sphere.
 
@@ -302,6 +305,8 @@ class PocketViewer:
             Pocket object.
         sphere_opacity : float
             Sphere opacity (default 0.7).
+        sphere_color : str
+            Sphere color (matplotlib name). Default ist blue.
         """
 
         # Do nothing if pocket has no center
@@ -309,7 +314,8 @@ class PocketViewer:
             _logger.info(f"Pocket {pocket.name} has no pocket center.")
             return None
 
-        self.viewer.shape.add_sphere(list(pocket.center), [0, 0, 1], 2, f"center: {pocket.name}")
+        color_rgb = colors.to_rgb(sphere_color)
+        self.viewer.shape.add_sphere(list(pocket.center), color_rgb, 2, f"center: {pocket.name}")
         # Save NGLview component
         self._components_pocket_center[pocket.name] = self._component_counter
         self._component_counter += 1
