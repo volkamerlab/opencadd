@@ -4,6 +4,8 @@ opencadd.structure.pocket.klifs.KlifsPocket
 Defines a KLIFS (kinase) pocket.
 """
 
+import pandas as pd
+
 from opencadd.databases.klifs import setup_remote
 from .core import Pocket
 
@@ -28,8 +30,8 @@ class KlifsPocket(Pocket):
         ----------
         structure_klifs_id : int
             Structure KLIFS ID.
-        subpockets : pandas.DataFrame
-            Subpockets (row) with the following details (columns):
+        subpockets : dict
+            Dictionary with the following keys and values:
             "anchor_residue.klifs_id" : list of int
                 List of anchor residues (KLIFS residue IDs) whose centroid defines the subpocket
                 center.
@@ -78,6 +80,7 @@ class KlifsPocket(Pocket):
 
         # Map residue KLIFS IDs > residue ID
         if subpockets is not None:
+            subpockets = pd.DataFrame(subpockets)
             subpockets["anchor_residue.ids"] = subpockets["anchor_residue.klifs_ids"].apply(
                 lambda x: pocket[pocket["residue.klifs_id"].isin(x)]["residue.id"].to_list()
             )
