@@ -29,7 +29,7 @@ class Subpocket:
         List of anchor residues.
     """
 
-    def __init__(self, anchor_residues, name, color="blue"):
+    def __init__(self, anchor_residues, name, color="blue", pocket_name=None):
         """
         Initialize a Subpocket object.
 
@@ -41,11 +41,14 @@ class Subpocket:
             Subpocket name.
         color : str
             Subpocket color (matplotlib name), blue by default.
+        _pocket_name : str or None
+            Pocket name.
         """
 
         self._anchor_residues = anchor_residues
         self.name = name
         self.color = color
+        self._pocket_name = pocket_name
         self.center = self._centroid()
 
     @property

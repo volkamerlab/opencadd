@@ -143,8 +143,8 @@ class Pocket:
 
         pocket = cls()
         pocket.name = name
-        pocket._residue_ids, pocket._residue_ixs = _format_residue_ids_and_ixs(
-            residue_ids, residue_ixs
+        pocket._residue_ids, pocket._residue_ixs = pocket._format_residue_ids_and_ixs(
+            residue_ids, residue_ixs, "set pocket residues"
         )
         pocket.data = dataframe[dataframe["residue.id"].isin(pocket._residue_ids)]
         return pocket
@@ -241,7 +241,7 @@ class Pocket:
 
         if len(atoms) != len(self._residue_ids):
             _logger.info(
-                f"Missing pocket CA atoms. "
+                f"Pocket {self.name}: Missing pocket CA atoms. "
                 f"The pocket center is calculated based on {len(atoms)} CA atoms "
                 f"(total number of pocket residues is {len(self._residue_ids)})."
             )
@@ -323,7 +323,9 @@ class Pocket:
         else:
             residue_ixs = [self._residue_id2ix(residue_id) for residue_id in residue_ids]
 
-        residue_ids, residue_ixs = _format_residue_ids_and_ixs(residue_ids, residue_ixs)
+        residue_ids, residue_ixs = self._format_residue_ids_and_ixs(
+            residue_ids, residue_ixs, "set region residues"
+        )
         region = Region(name, residue_ids, residue_ixs, color)
         self._regions.append(region)
 
@@ -426,7 +428,7 @@ class Pocket:
 
         return ca_atoms_residue_ids, center
 
-    def _anchor_residue_by_residue_id(self, residue_id, color="blue"):
+    def _anchor_residue_by_residue_id(self, residue_id, color="blue", subpocket_name=None):
         """
         Get anchor residue (AnchorResidue object) based on a selected residue PDB ID.
 
@@ -436,6 +438,8 @@ class Pocket:
             Residue PDB ID.
         color : str
             Color name (matplotlib).
+        subpocket_name : str or None
+            Subpocket name.
 
         Returns
         -------
@@ -453,11 +457,13 @@ class Pocket:
             residue_ids = [residue_id_before, residue_id_after]
             residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
 
-        subpocket_anchor = AnchorResidue(center, residue_id, residue_id_alternative, None, color)
+        subpocket_anchor = AnchorResidue(
+            center, residue_id, residue_id_alternative, None, color, subpocket_name, self.name
+        )
 
         return subpocket_anchor
 
-    def _anchor_residue_by_residue_ix(self, residue_ix, color="blue"):
+    def _anchor_residue_by_residue_ix(self, residue_ix, color="blue", subpocket_name=None):
         """
         Get anchor residue (AnchorResidue object) based on a selected residue index.
 
@@ -467,6 +473,8 @@ class Pocket:
             Residue index.
         color : str
             Color name (matplotlib).
+        subpocket_name : str or None
+            Subpocket name.
 
         Returns
         -------
@@ -479,7 +487,9 @@ class Pocket:
         residue_id_alternative = None
 
         if residue_id:
-            subpocket_anchor = self._anchor_residue_by_residue_id(residue_id, color)
+            subpocket_anchor = self._anchor_residue_by_residue_id(
+                residue_id, color, subpocket_name
+            )
             subpocket_anchor.residue_ix = residue_ix
         else:
             # Get residue indices before and after
@@ -498,7 +508,13 @@ class Pocket:
             residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
 
             subpocket_anchor = AnchorResidue(
-                center, residue_id, residue_id_alternative, residue_ix, color
+                center,
+                residue_id,
+                residue_id_alternative,
+                residue_ix,
+                color,
+                subpocket_name,
+                self.name,
             )
 
         return subpocket_anchor
@@ -508,7 +524,7 @@ class Pocket:
 
         anchor_residues = []
         for residue_id in residue_ids:
-            anchor_residue = self._anchor_residue_by_residue_id(residue_id, color)
+            anchor_residue = self._anchor_residue_by_residue_id(residue_id, color, name)
             anchor_residues.append(anchor_residue)
 
         subpocket = Subpocket(anchor_residues, name, color)
@@ -519,7 +535,7 @@ class Pocket:
 
         anchor_residues = []
         for residue_ix in residue_ixs:
-            anchor_residue = self._anchor_residue_by_residue_ix(residue_ix, color)
+            anchor_residue = self._anchor_residue_by_residue_ix(residue_ix, color, name)
             anchor_residues.append(anchor_residue)
 
         subpocket = Subpocket(anchor_residues, name, color)

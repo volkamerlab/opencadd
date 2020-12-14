@@ -28,9 +28,22 @@ class AnchorResidue:
         Residue index.
     color : str
         Residue color (matplotlib name).
+    _pocket_name : str
+        Pocket name.
+    _subpocket_name : str
+        Subpocket name.
     """
 
-    def __init__(self, center, residue_id, residue_id_alternative, residue_ix, color):
+    def __init__(
+        self,
+        center,
+        residue_id,
+        residue_id_alternative,
+        residue_ix,
+        color,
+        subpocket_name,
+        pocket_name,
+    ):
         """
         Initialize an AnchorResidue object.
 
@@ -46,6 +59,10 @@ class AnchorResidue:
             Residue index.
         color : str
             Residue color (matplotlib name).
+        subpocket_name : str or None
+            Subpocket name.
+        pocket_name : str or None
+            Pocket name.
         """
 
         if center is not None:
@@ -57,15 +74,20 @@ class AnchorResidue:
         self.residue_id_alternative = residue_id_alternative
         self.residue_ix = residue_ix
         self.color = color
+        self._pocket_name = pocket_name
+        self._subpocket_name = subpocket_name
 
         if self.residue_id_alternative:
             _logger.info(
-                f"Anchor residue {self.residue_id} is missing, use {self.residue_id_alternative} instead."
+                f"Pocket {self._pocket_name} / subpocket {self._subpocket_name}: "
+                f"Anchor residue {self.residue_id} (PDB ID) / {self.residue_ix} (index) "
+                f"is missing, use {self.residue_id_alternative} instead."
             )
         if self.center is None:
             _logger.info(
-                f"Anchor residue {self.residue_id} and its neighbors are missing "
-                f"- no anchor residue could be set."
+                f"Pocket {self._pocket_name} / subpocket {self._subpocket_name}: "
+                f"Anchor residue {self.residue_id} (PDB ID) / {self.residue_ix} (index) "
+                f"and its neighbors are missing - no anchor residue could be set."
             )
 
     @property
