@@ -60,7 +60,7 @@ class Pocket:
         self._regions = []
 
     @classmethod
-    def from_file(cls, filepath, residue_ids, residue_ixs=None, name=""):
+    def from_file(cls, filepath, residue_ids, residue_ixs=None, name=None):
         """
         Initialize Pocket object from structure protein file.
 
@@ -72,8 +72,8 @@ class Pocket:
             Pocket residue IDs.
         residue_ixs : None or list of str
             Pocket residue indices. Set to None by default.
-        name : str
-            Name of protein (default: empty string).
+        name : str or None
+            Name of protein (default: None).
 
         Returns
         -------
@@ -89,7 +89,7 @@ class Pocket:
         return pocket
 
     @classmethod
-    def from_text(cls, text, extension, residue_ids, residue_ixs=None, name=""):
+    def from_text(cls, text, extension, residue_ids, residue_ixs=None, name=None):
         """
         Initialize Pocket object from structure protein text.
 
@@ -103,8 +103,8 @@ class Pocket:
             Pocket residue IDs.
         residue_ixs : None or list of str
             Pocket residue indices. Set to None by default.
-        name : str
-            Name of protein (default: empty string).
+        name : str or None
+            Name of protein (default: None).
 
         Returns
         -------
@@ -119,7 +119,7 @@ class Pocket:
         return pocket
 
     @classmethod
-    def _from_dataframe(cls, dataframe, residue_ids, residue_ixs=None, name=""):
+    def _from_dataframe(cls, dataframe, residue_ids, residue_ixs=None, name=None):
         """
         Initialize Pocket object from structure DataFrame.
 
@@ -132,8 +132,8 @@ class Pocket:
             Pocket residue IDs.
         residue_ixs : None or list of str
             Pocket residue indices. Set to None by default.
-        name : str
-            Name of protein (default: empty string).
+        name : str or None
+            Name of protein (default: None).
 
         Returns
         -------
