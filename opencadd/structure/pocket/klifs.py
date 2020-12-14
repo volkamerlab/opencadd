@@ -17,7 +17,9 @@ class KlifsPocket(Pocket):
     """
 
     @classmethod
-    def from_structure_klifs_id(cls, structure_klifs_id, subpockets=None, extension="pdb"):
+    def from_structure_klifs_id(
+        cls, structure_klifs_id, subpockets=None, extension="pdb", klifs_session=None
+    ):
         """
         Get a KLIFS pocket (remotely by a structure KLIFS ID) that defines the KLIFS regions and
         subpockets.
@@ -37,6 +39,8 @@ class KlifsPocket(Pocket):
                 Subpocket color.
         extension : str
             Structure protein data file format. Defaults to PDB format.
+        klifs_session : opencadd.databases.klifs.session.Session or None
+            Remote or local KLIFS session. If None, a remote session is initialized.
 
         Returns
         -------
@@ -44,12 +48,13 @@ class KlifsPocket(Pocket):
             KLIFS pocket object.
         """
 
-        # Set up remote KLIFS session
-        remote = setup_remote()
+        # Use existing KLIFS session or set up remote session
+        if not klifs_session:
+            klifs_session = setup_remote()
 
         # Get pocket and coordinates for a structure (by a structure KLIFS ID)
-        pocket = remote.pockets.by_structure_klifs_id(structure_klifs_id)
-        text = remote.coordinates.to_text(
+        pocket = klifs_session.pockets.by_structure_klifs_id(structure_klifs_id)
+        text = klifs_session.coordinates.to_text(
             structure_klifs_id, entity="complex", extension=extension
         )
 
@@ -62,7 +67,9 @@ class KlifsPocket(Pocket):
         )
 
         # Add regions
-        for (region, color), group in pocket.groupby(["residue.klifs_id", "residue.klifs_color"]):
+        for (region, color), group in pocket.groupby(
+            ["residue.klifs_region", "residue.klifs_color"]
+        ):
             pocket_3d.add_region(
                 name=region,
                 residue_ixs=group["residue.klifs_id"].to_list(),
