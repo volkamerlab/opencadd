@@ -377,6 +377,18 @@ class Pocket:
             residue_ix = None
         return residue_ix
 
+    @property
+    def ca_atoms(self):
+        """
+        CA atoms of the pocket residues.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structural data for CA atoms of the pocket residues.
+        """
+        return self._ca_atoms(*self.residues["residue.id"].to_list())
+
     def _ca_atoms(self, *residue_ids):
         r"""
         Select a CA atoms based on residue PBD ID(s).
@@ -388,13 +400,14 @@ class Pocket:
 
         Returns
         -------
-        pandas.DataFrame
-            Atom data if DataFrame length is 1, None if length is 0. TODO
+        pandas.DataFrame or None
+            Structural data for CA atoms of input residues. 
+            If no CA atoms available, returns None.
 
         Raises
         ------
         ValueError
-            If returned number of atoms is larger than 1. TODO
+            If returned number of CA atoms is larger than 1.
         """
 
         residue_ids = [str(residue_id) for residue_id in residue_ids]
@@ -410,7 +423,20 @@ class Pocket:
             )
 
     def _ca_atoms_center(self, *residue_ids):
-        """TODO"""
+        r"""
+        Calculate centroid of all CA atoms based on residue PBD ID(s).
+
+        Parameters
+        ----------
+        \*residue_ids : str
+            Residue PDB ID(s).
+
+        Returns
+        -------
+        numpy.array or None
+            Centroid of all CA atoms of input residues. 
+            If no CA atoms available, returns None.
+        """
 
         ca_atoms = self._ca_atoms(*residue_ids)
 
@@ -520,7 +546,23 @@ class Pocket:
         return subpocket_anchor
 
     def _subpocket_by_residue_ids(self, residue_ids, name=None, color="blue"):
-        """TODO"""
+        """
+        Generate subpocket based on residue PDB ID(s).
+
+        Parameters
+        ----------
+        residue_ids : list of (int or str)
+            Residue PDB ID(s).
+        name : str or None
+            Subpocket name.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.Subpocket
+            Subpocket.
+        """
 
         anchor_residues = []
         for residue_id in residue_ids:
@@ -531,7 +573,23 @@ class Pocket:
         return subpocket
 
     def _subpocket_by_residue_ixs(self, residue_ixs, name=None, color="blue"):
-        """TODO"""
+        """
+        Generate subpocket based on residue indices.
+
+        Parameters
+        ----------
+        residue_ixs : list of (int or str)
+            Residue indices.
+        name : str or None
+            Subpocket name.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.Subpocket
+            Subpocket.
+        """
 
         anchor_residues = []
         for residue_ix in residue_ixs:
@@ -569,7 +627,7 @@ class Pocket:
         if len(residue_ids) != len(residue_ixs):
             raise ValueError(f"Number of residue IDs and indices must be of same length.")
 
-        # Cast residue IDs and indices to strings (except None) TODO
+        # Cast residue IDs and indices to strings (except None)
         residue_ids = [str(residue_id) if residue_id else residue_id for residue_id in residue_ids]
         residue_ixs = [str(residue_ix) if residue_ix else residue_ix for residue_ix in residue_ixs]
 
