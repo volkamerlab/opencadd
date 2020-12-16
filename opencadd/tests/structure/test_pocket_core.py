@@ -487,3 +487,21 @@ class TestsPocket:
 
         for i, j in zip(pocket.center, pocket_center):
             assert pytest.approx(i, abs=1.0e-3) == j
+
+    @pytest.mark.parametrize(
+        "residue_ids, residue_ixs, residue_ids_formatted, residue_ixs_formatted",
+        [
+            ([1, 2, 3], [1, 2, 3], ["1", "2", "3"], ["1", "2", "3"]),
+            ([1, 2], None, ["1", "2"], [None, None]),
+        ],
+    )
+    def test_format_residue_ids_and_ixs(
+        self, residue_ids, residue_ixs, residue_ids_formatted, residue_ixs_formatted
+    ):
+
+        pocket = Pocket()
+        residue_ids, residue_ixs = pocket._format_residue_ids_and_ixs(
+            residue_ids, residue_ixs, "log text"
+        )
+        assert residue_ids == residue_ids_formatted
+        assert residue_ixs == residue_ixs_formatted

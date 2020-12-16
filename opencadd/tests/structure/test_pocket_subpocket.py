@@ -7,9 +7,9 @@ import pytest
 
 from opencadd.structure.pocket import Subpocket, AnchorResidue
 
-ANCHOR_RESIDUE1 = AnchorResidue([1, 1, 1], "1", ["2"], "1", "blue")
-ANCHOR_RESIDUE2 = AnchorResidue([2, 2, 2], "2", ["3"], "2", "blue")
-ANCHOR_RESIDUE3 = AnchorResidue(None, "2", ["3"], "2", "blue")
+ANCHOR_RESIDUE1 = AnchorResidue([1, 1, 1], "1", ["2"], "1", "blue", "subpocket", "pocket")
+ANCHOR_RESIDUE2 = AnchorResidue([2, 2, 2], "2", ["3"], "2", "blue", "subpocket", "pocket")
+ANCHOR_RESIDUE3 = AnchorResidue(None, "2", ["3"], "2", "blue", "subpocket", "pocket")
 
 
 class TestSubpocket:

@@ -401,7 +401,7 @@ class Pocket:
         Returns
         -------
         pandas.DataFrame or None
-            Structural data for CA atoms of input residues. 
+            Structural data for CA atoms of input residues.
             If no CA atoms available, returns None.
 
         Raises
@@ -434,7 +434,7 @@ class Pocket:
         Returns
         -------
         numpy.array or None
-            Centroid of all CA atoms of input residues. 
+            Centroid of all CA atoms of input residues.
             If no CA atoms available, returns None.
         """
 

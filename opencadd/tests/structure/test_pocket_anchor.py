@@ -21,7 +21,7 @@ class TestAnchorResidue:
         self, center, residue_id, residue_id_alternative, residue_ix, color
     ):
         anchor_residue = AnchorResidue(
-            center, residue_id, residue_id_alternative, residue_ix, color
+            center, residue_id, residue_id_alternative, residue_ix, color, "subpocket", "pocket"
         )
         if center:
             for i, j in zip(anchor_residue.center, center):
