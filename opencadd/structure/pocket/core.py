@@ -387,7 +387,8 @@ class Pocket:
         pandas.DataFrame
             Structural data for CA atoms of the pocket residues.
         """
-        return self._ca_atoms(*self.residues["residue.id"].to_list())
+        residue_ids = self.residues["residue.id"].to_list()
+        return self._ca_atoms(*residue_ids)
 
     def _ca_atoms(self, *residue_ids):
         r"""

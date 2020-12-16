@@ -501,7 +501,7 @@ class TestsPocket:
 
         pocket = Pocket()
         residue_ids, residue_ixs = pocket._format_residue_ids_and_ixs(
-            residue_ids, residue_ixs, "log text"
+            residue_ids, residue_ixs, "text"
         )
         assert residue_ids == residue_ids_formatted
         assert residue_ixs == residue_ixs_formatted
