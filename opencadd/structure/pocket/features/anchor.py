@@ -51,11 +51,11 @@ class AnchorResidue:
         ----------
         center : list or numpy.array
             Coordinates (x, y, z) of the residue center.
-        residue_id : str
+        residue_id : int
             Residue ID.
-        residue_id_alternative : list of str or None
+        residue_id_alternative : list of int or None
             Alternative residue ID(s) in case input ID is not available.
-        residue_ix : str
+        residue_ix : int
             Residue index.
         color : str
             Residue color (matplotlib name).

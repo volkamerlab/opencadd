@@ -35,13 +35,16 @@ class Pocket(BasePocket):
     center
     name : str
         Name of protein.
+    data : pd.DataFrame
+        Structural protein data with the following mandatory columns:
+        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
     _text : str
         Structural protein data as string (file content).
     _extension : str
         Structural protein data format (file extension).
-    _residue_ids : list of str
+    _residue_ids : list of int
         Pocket residue IDs.
-    _residue_ixs : list of str
+    _residue_ixs : list of (int or None)
         Pocket residue indices.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
@@ -69,9 +72,9 @@ class Pocket(BasePocket):
         ----------
         filepath : str or pathlib.Path
             File path to structural protein data.
-        residue_ids : list of str
+        residue_ids : list of int
             Pocket residue IDs.
-        residue_ixs : None or list of str
+        residue_ixs : None or list of int
             Pocket residue indices. Set to None by default.
         name : str or None
             Name of protein (default: None).
@@ -100,9 +103,9 @@ class Pocket(BasePocket):
             Structural protein data as string (file content).
         extension : str
             Structural protein data format (file extension).
-        residue_ids : list of str
+        residue_ids : list of int
             Pocket residue IDs.
-        residue_ixs : None or list of str
+        residue_ixs : None or list of int
             Pocket residue indices. Set to None by default.
         name : str or None
             Name of protein (default: None).
@@ -114,6 +117,17 @@ class Pocket(BasePocket):
         """
 
         dataframe = DataFrame.from_text(text, extension)
+        # Cast residue IDs to integer - drop atoms where this is not possible!
+        drop_ixs = []
+        for index, residue_id in dataframe["residue.id"].items():
+            try:
+                residue_id = int(residue_id)
+            except (TypeError, ValueError):
+                drop_ixs.append(index)
+        dataframe.drop(drop_ixs, inplace=True)
+        dataframe = dataframe.astype({"residue.id": "int32"})
+        
+        # Use cleaned DataFrame to initiate class
         pocket = cls._from_dataframe(dataframe, residue_ids, residue_ixs, name)
         pocket._text = text
         pocket._extension = extension
@@ -129,9 +143,9 @@ class Pocket(BasePocket):
         dataframe : pd.DataFrame
             Structural protein data with the following mandatory columns:
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
-        residue_ids : list of str
+        residue_ids : list of int
             Pocket residue IDs.
-        residue_ixs : None or list of str
+        residue_ixs : None or list of int
             Pocket residue indices. Set to None by default.
         name : str or None
             Name of protein (default: None).
@@ -349,7 +363,6 @@ class Pocket(BasePocket):
             If returned number of CA atoms is larger than 1.
         """
 
-        residue_ids = [str(residue_id) for residue_id in residue_ids]
         ca_atoms = self.data[
             (self.data["residue.id"].isin(residue_ids)) & (self.data["atom.name"] == "CA")
         ]
@@ -399,7 +412,7 @@ class Pocket(BasePocket):
 
         Parameters
         ----------
-        residue_id : int or str
+        residue_id : int
             Residue PDB ID.
         color : str
             Color name (matplotlib).
@@ -412,13 +425,12 @@ class Pocket(BasePocket):
             Anchor residue.
         """
 
-        residue_id = str(residue_id)
         residue_id_alternative = None
         _, center = self._ca_atoms_center(residue_id)
 
         if center is None:
-            residue_id_before = str(int(residue_id) - 1)
-            residue_id_after = str(int(residue_id) + 1)
+            residue_id_before = residue_id - 1
+            residue_id_after = residue_id + 1
             residue_ids = [residue_id_before, residue_id_after]
             residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
 
@@ -447,7 +459,6 @@ class Pocket(BasePocket):
             Anchor residue.
         """
 
-        residue_ix = str(residue_ix)
         residue_id = self._residue_ix2id(residue_ix)
         residue_id_alternative = None
 
@@ -458,8 +469,8 @@ class Pocket(BasePocket):
             subpocket_anchor.residue_ix = residue_ix
         else:
             # Get residue indices before and after
-            residue_ix_before = str(int(residue_ix) - 1)
-            residue_ix_after = str(int(residue_ix) + 1)
+            residue_ix_before = residue_ix - 1
+            residue_ix_after = residue_ix + 1
             # Get corresponding residue IDs
             residue_id_before = self._residue_ix2id(residue_ix_before)
             residue_id_after = self._residue_ix2id(residue_ix_after)

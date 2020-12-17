@@ -56,9 +56,10 @@ class BasePocket:
 
         Parameters
         ----------
-        residue_ids : list of str
-            Pocket residue IDs.
-        residue_ixs : list of str
+        residue_ids : list of int
+            Pocket residue IDs. 
+            Strings will be case to integers - if not possible residue will be removed!
+        residue_ixs : list of (int or None)
             Pocket residue indices.
         log_text : str
             Add information to be logged.
@@ -78,25 +79,16 @@ class BasePocket:
         if len(residue_ids) != len(residue_ixs):
             raise ValueError(f"Number of residue IDs and indices must be of same length.")
 
-        # Cast residue IDs and indices to strings (except None)
-        residue_ids = [str(residue_id) if residue_id else residue_id for residue_id in residue_ids]
-        residue_ixs = [str(residue_ix) if residue_ix else residue_ix for residue_ix in residue_ixs]
-
         # Keep only residues that have IDs/indices that can be cast to an integer
         residue_ids_kept = []
         residue_ixs_kept = []
         residues_dropped = []
         for residue_id, residue_ix in zip(residue_ids, residue_ixs):
-            if residue_id:
-                try:
-                    int(residue_id)
-                    if residue_ix:
-                        int(residue_ix)
-                    residue_ids_kept.append(residue_id)
-                    residue_ixs_kept.append(residue_ix)
-                except ValueError:
-                    residues_dropped.append((residue_id, residue_ix))
-            else:
+            try:
+                residue_id = int(residue_id)
+                residue_ids_kept.append(residue_id)
+                residue_ixs_kept.append(residue_ix)
+            except (ValueError, TypeError):
                 residues_dropped.append((residue_id, residue_ix))
 
         if len(residue_ids) > len(residue_ids_kept):
@@ -114,7 +106,7 @@ class BasePocket:
 
         Parameters
         ----------
-        residue_ix : int or str
+        residue_ix : int
             Residue index.
 
         Returns
@@ -123,9 +115,8 @@ class BasePocket:
             Residue PDB ID.
         """
 
-        residue_ix = str(residue_ix)
         residues = self.residues
-        residues = residues[~residues["residue.ix"].isin(["_", "-", "", " ", None])]
+        residues = residues[~residues["residue.ix"].isna()]
         try:
             residue_id = residues.set_index("residue.ix").squeeze().loc[residue_ix]
         except KeyError:
@@ -138,7 +129,7 @@ class BasePocket:
 
         Parameters
         ----------
-        residue_id : int or str
+        residue_id : int
             Residue PDB ID.
 
         Returns
@@ -147,9 +138,7 @@ class BasePocket:
             Residue index.
         """
 
-        residue_id = str(residue_id)
         residues = self.residues
-        residues = residues[~residues["residue.id"].isin(["_", "-", "", " ", None])]
         try:
             residue_ix = residues.set_index("residue.id").squeeze().loc[residue_id]
         except KeyError:

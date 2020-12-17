@@ -15,7 +15,7 @@ class TestAnchorResidue:
 
     @pytest.mark.parametrize(
         "center, residue_id, residue_id_alternative, residue_ix, color",
-        [([1, 1, 1], "1", ["1"], "1", "blue")],
+        [([1, 1, 1], 1, 1, 1, "blue")],
     )
     def test_attributes_and_properties(
         self, center, residue_id, residue_id_alternative, residue_ix, color

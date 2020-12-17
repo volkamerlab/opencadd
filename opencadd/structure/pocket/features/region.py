@@ -15,9 +15,9 @@ class Region:
     ----------
     name : str
         Region name.
-    residue_ids : list of (int or str)
+    residue_ids : list of int
         List of residue IDs defining the region.
-    residue_ixs : list of (int or str) or None
+    residue_ixs : list of int or None
         List of residue indices.
     color : str
         Region color (matplotlib name).

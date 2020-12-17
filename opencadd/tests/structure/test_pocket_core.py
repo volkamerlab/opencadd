@@ -38,12 +38,12 @@ class TestsPocket:
         # Test attributes
         assert pocket.name == name
         assert isinstance(pocket.data, pd.DataFrame)
-        assert list(pocket.data["residue.id"].unique()) == [str(i) for i in residue_ids]
+        assert list(pocket.data["residue.id"].unique()) == residue_ids
         assert isinstance(pocket._text, str)
         assert pocket._extension == filepath.suffix[1:]
-        assert pocket._residue_ids == [str(i) for i in residue_ids]
+        assert pocket._residue_ids == residue_ids
         if residue_ixs:
-            assert pocket._residue_ixs == [str(i) for i in residue_ixs]
+            assert pocket._residue_ixs == residue_ixs
         else:
             assert pocket._residue_ixs == [None] * len(residue_ids)
 
@@ -252,7 +252,7 @@ class TestsPocket:
                 PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 [12, 16, 85, 87],
                 86,
-                ["85", "87"],
+                [85, 87],
                 "yellow",
                 [3.8648999, 26.4354, 42.65935],
             ),
@@ -260,7 +260,7 @@ class TestsPocket:
                 PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 [12, 16, 85, 87],
                 17,
-                ["16"],
+                [16],
                 "yellow",
                 [9.3363, 11.0014, 42.1329],
             ),
@@ -292,7 +292,7 @@ class TestsPocket:
             anchor_residue_id, anchor_residue_color
         )
         assert isinstance(anchor_residue, AnchorResidue)
-        assert anchor_residue.residue_id == str(anchor_residue_id)
+        assert anchor_residue.residue_id == anchor_residue_id
         assert anchor_residue.residue_id_alternative == anchor_residue_id_alternative
         assert anchor_residue.residue_ix == None
         assert anchor_residue.color == anchor_residue_color
@@ -307,7 +307,7 @@ class TestsPocket:
                 [12, 16, 85, 87],
                 [1, 5, 44, 46],
                 1,
-                "12",
+                12,
                 None,
                 "yellow",
                 [8.1173, 16.3077, 51.996],
@@ -318,7 +318,7 @@ class TestsPocket:
                 [1, 5, 44, 46],
                 45,
                 None,
-                ["85", "87"],
+                [85, 87],
                 "yellow",
                 [3.8648999, 26.4354, 42.65935],
             ),
@@ -328,7 +328,7 @@ class TestsPocket:
                 [1, 5, 44, 46],
                 6,
                 None,
-                ["16"],
+                [16],
                 "yellow",
                 [9.3363, 11.0014, 42.1329],
             ),
@@ -364,9 +364,9 @@ class TestsPocket:
             anchor_residue_ix, anchor_residue_color
         )
         assert isinstance(anchor_residue, AnchorResidue)
-        assert anchor_residue.residue_ix == str(anchor_residue_ix)
+        assert anchor_residue.residue_ix == anchor_residue_ix
         if anchor_residue_id:
-            assert anchor_residue.residue_id == str(anchor_residue_id)
+            assert anchor_residue.residue_id == anchor_residue_id
         assert anchor_residue.residue_id_alternative == anchor_residue_id_alternative
         assert anchor_residue.color == anchor_residue_color
         if anchor_residue_center:
@@ -380,7 +380,7 @@ class TestsPocket:
                 [127, 128, 129],
                 [1, 2, 3],
                 127,
-                "1",
+                1,
             ),
             (
                 PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
@@ -407,7 +407,7 @@ class TestsPocket:
                 [127, 128, 129],
                 [1, 2, 3],
                 1,
-                "127",
+                127,
             ),
             (
                 PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
@@ -491,8 +491,8 @@ class TestsPocket:
     @pytest.mark.parametrize(
         "residue_ids, residue_ixs, residue_ids_formatted, residue_ixs_formatted",
         [
-            ([1, 2, 3], [1, 2, 3], ["1", "2", "3"], ["1", "2", "3"]),
-            ([1, 2], None, ["1", "2"], [None, None]),
+            ([1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]),
+            ([1, 2], None, [1, 2], [None, None]),
         ],
     )
     def test_format_residue_ids_and_ixs(
