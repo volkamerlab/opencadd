@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from opencadd.structure.pocket.core import Pocket, AnchorResidue
+from opencadd.structure.pocket import Pocket, AnchorResidue
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/pocket"
 

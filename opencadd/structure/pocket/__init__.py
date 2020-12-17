@@ -4,7 +4,8 @@ opencadd.structure.pocket module
 
 from .core import Pocket
 from .klifs import KlifsPocket
-from .subpocket import Subpocket
-from .anchor import AnchorResidue
-from .region import Region
 from .viewer import PocketViewer
+from .features.subpocket import Subpocket
+from .features.anchor import AnchorResidue
+from .features.region import Region
+from .base import BasePocket
