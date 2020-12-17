@@ -126,7 +126,7 @@ class Pocket(BasePocket):
                 drop_ixs.append(index)
         dataframe.drop(drop_ixs, inplace=True)
         dataframe = dataframe.astype({"residue.id": "int32"})
-        
+
         # Use cleaned DataFrame to initiate class
         pocket = cls._from_dataframe(dataframe, residue_ids, residue_ixs, name)
         pocket._text = text

@@ -10,6 +10,7 @@ import pandas as pd
 
 _logger = logging.getLogger(__name__)
 
+
 class BasePocket:
     """
     Class defining a base pocket.
@@ -48,7 +49,6 @@ class BasePocket:
             Pocket center (coordinates).
         """
         raise NotImplementedError("Implement in your subclass!")
-        
 
     def _format_residue_ids_and_ixs(self, residue_ids, residue_ixs, log_text):
         """
@@ -57,7 +57,7 @@ class BasePocket:
         Parameters
         ----------
         residue_ids : list of int
-            Pocket residue IDs. 
+            Pocket residue IDs.
             Strings will be case to integers - if not possible residue will be removed!
         residue_ixs : list of (int or None)
             Pocket residue indices.
