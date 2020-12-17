@@ -178,8 +178,19 @@ class PocketViewer:
             Residue IDs (index) and residue nglview indices (values).
         """
 
-        # Get all residue names and IDs (full structure!!)
+        # Get atom data
+        # Cast residue IDs to integer - drop atoms where this is not possible!
         dataframe = DataFrame.from_text(pocket._text, pocket._extension)
+        drop_ixs = []
+        for index, residue_id in dataframe["residue.id"].items():
+            try:
+                residue_id = int(residue_id)
+            except (TypeError, ValueError):
+                drop_ixs.append(index)
+        dataframe.drop(drop_ixs, inplace=True)
+        dataframe = dataframe.astype({"residue.id": "int32"})
+
+        # Get all residue names and IDs (full structure!!)
         residue_id2ix = dataframe[["residue.name", "residue.id"]].drop_duplicates()
 
         if pocket._extension == "mol2":
@@ -190,7 +201,7 @@ class PocketViewer:
         else:
 
             # In this case, residue ID and nglview index are the same
-            residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.id"]
+            residue_id2ix["residue.ngl_ix"] = [str(i) for i in residue_id2ix["residue.id"]]
 
         self._residue_ids_to_ngl_ixs[pocket.name] = residue_id2ix
 
