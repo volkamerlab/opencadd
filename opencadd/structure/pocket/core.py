@@ -140,10 +140,9 @@ class Pocket(BasePocket):
         # Note: Column "residue.id" is of string type
         dataframe = DataFrame.from_text(self._text, self._extension)
 
-        # Residue PDB IDs without residues whose PDB IDs cannot be cast to an integer
-        residue_ids = self.residues["residue.id"].to_list()
         # Cast the IDs to str, so that they can match the DataFrame's ID
-        residue_ids = [str(residue_id) for residue_id in residue_ids]
+        residue_ids = [str(residue_id) for residue_id in self._residue_ids if residue_id]
+        # Fetch all atoms matching residues IDs and cast them back to integers
         dataframe = dataframe[dataframe["residue.id"].isin(residue_ids)]
         dataframe = dataframe.astype({"residue.id": "int32"})
 
@@ -326,8 +325,7 @@ class Pocket(BasePocket):
         pandas.DataFrame
             Structural data for CA atoms of the pocket residues.
         """
-        residue_ids = self.residues["residue.id"].to_list()
-        return self._ca_atoms(*residue_ids)
+        return self._ca_atoms(self._residue_ids)
 
     def _ca_atoms(self, *residue_ids):
         r"""
@@ -335,7 +333,7 @@ class Pocket(BasePocket):
 
         Parameters
         ----------
-        \*residue_ids : str
+        \*residue_ids : int
             Residue PDB ID(s).
 
         Returns
