@@ -27,11 +27,6 @@ class Pocket(BasePocket):
 
     Attributes
     ----------
-    residues
-    center
-    subpockets
-    regions
-    anchor_residues
     name : str
         Name of protein.
     data : pd.DataFrame
@@ -49,6 +44,14 @@ class Pocket(BasePocket):
         List of user-defined subpockets.
     _region : list of Region
         List of user-defined regions.
+
+    Properties
+    ----------
+    residues
+    center
+    subpockets
+    regions
+    anchor_residues
     """
 
     def __init__(self):
