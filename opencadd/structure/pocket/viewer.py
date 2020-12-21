@@ -268,9 +268,17 @@ class PocketViewer:
                 component=self._components_structures[pocket.name],
             )
         except KeyError:
+            if pocket._extension != "mol2":
+                self.viewer.add_representation(
+                    "ball+stick",
+                    selection="hetero and not water and not ions",
+                    component=self._components_structures[pocket.name],
+                )
             _logger.warning(
-                f"Ligand {ligand_expo_id} could not be found and thus, will not be shown. "
-                f"If you are using the mol2 format, the ligand name might not be read correctly."
+                f"Ligand {ligand_expo_id} could not be found. "
+                f"If you are using the mol2 format, the ligand name might not be read correctly. "
+                f"We will try to infer and show the ligand based on the following selection: "
+                f"hetero and not water and not ions"
             )
 
     def _add_regions(self, pocket):
