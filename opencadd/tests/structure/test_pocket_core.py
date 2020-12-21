@@ -21,13 +21,13 @@ class TestsPocket:
         "filepath, residue_ids, residue_ixs, name",
         [
             (
-                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.mol2",
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 [12, 13],
                 None,
                 "example kinase",
             ),
             (
-                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.mol2",
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 ["15", "16", "_"],
                 [4, 5, 6],
                 "example kinase",
