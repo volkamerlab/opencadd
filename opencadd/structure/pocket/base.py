@@ -75,18 +75,6 @@ class BasePocket:
             Residue IDs, residue indices.
         """
 
-        # Raise error if input residue IDs or indices contain duplicates
-        if len(set(residue_ids)) < len(residue_ids):
-            raise ValueError(
-                f"Residue PDB IDs cannot contain duplicates. "
-                f"Your input: {residue_ids}"
-            )
-        if residue_ixs and (len(set(residue_ixs)) < len(residue_ixs)):
-            raise ValueError(
-                f"Residue indices cannot contain duplicates. "
-                f"Your input: {residue_ixs}"
-            )
-
         # Cast all residue indices to str (raise error if not int-castable)
         if residue_ixs:
             try:
@@ -128,6 +116,20 @@ class BasePocket:
                 f"The following input residues PDB IDs were assigned to the value None "
                 f"because they cannot be cast to an integer "
                 f"(residue PDB ID, residue index): {residues_cast_to_none}"
+            )
+
+        # Raise error if residue IDs or indices contain integer duplicates
+        if len(set(residue_ids_clean)) < len(
+            [residue_id for residue_id in residue_ids_clean if residue_id]
+        ):
+            raise ValueError(
+                f"Residue PDB IDs cannot contain integer duplicates. Your input: {residue_ids}"
+            )
+        if residue_ixs and (
+            len(set(residue_ixs)) < len([residue_ix for residue_ix in residue_ixs if residue_ix])
+        ):
+            raise ValueError(
+                f"Residue indices cannot contain integer duplicates. Your input: {residue_ixs}"
             )
 
         return residue_ids_clean, residue_ixs
