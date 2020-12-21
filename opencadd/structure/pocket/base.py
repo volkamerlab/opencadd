@@ -40,18 +40,6 @@ class BasePocket:
         )
         return residues.reset_index(drop=True)
 
-    @property
-    def center(self):
-        """
-        Pocket center, i.e. the centroid of all input residues' CA atoms.
-
-        Returns
-        ----------
-        numpy.array
-            Pocket center (coordinates).
-        """
-        raise NotImplementedError("Implement in your subclass!")
-
     def _format_residue_ids_and_ixs(self, residue_ids, residue_ixs, log_text):
         """
         Handle input residue IDs and indices: Must be of same length, cast values to string.

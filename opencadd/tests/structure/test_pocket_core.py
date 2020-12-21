@@ -468,7 +468,7 @@ class TestsPocket:
             "string",
         ]
 
-        # Test property center
+        # Test attribute center
         for i, j in zip(pocket.center, pocket_center):
             assert pytest.approx(i, abs=1.0e-3) == j
 

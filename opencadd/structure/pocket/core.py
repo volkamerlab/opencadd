@@ -32,6 +32,8 @@ class Pocket(BasePocket):
     data : pd.DataFrame
         Structural protein data with the following mandatory columns:
         "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    center : numpy.array
+        Pocket center (coordinates).
     _text : str
         Structural protein data as string (file content).
     _extension : str
@@ -48,7 +50,6 @@ class Pocket(BasePocket):
     Properties
     ----------
     residues
-    center
     subpockets
     regions
     anchor_residues
@@ -57,6 +58,8 @@ class Pocket(BasePocket):
     def __init__(self):
 
         self.name = None
+        self.data = None
+        self.center = None
         self._text = None
         self._extension = None
         self._residue_ids = None
@@ -125,6 +128,7 @@ class Pocket(BasePocket):
             residue_ids, residue_ixs, "set pocket residues"
         )
         pocket.data = pocket._set_data()
+        pocket.center = pocket._set_center()
         return pocket
 
     def _set_data(self):
@@ -150,6 +154,33 @@ class Pocket(BasePocket):
         dataframe = dataframe.astype({"residue.id": "int32"})
 
         return dataframe
+
+    def _set_center(self):
+        """
+        Pocket center, i.e. the centroid of all input residues' CA atoms.
+
+        Returns
+        ----------
+        numpy.array
+            Pocket center (coordinates).
+        """
+
+        dataframe = self.data
+
+        atoms = dataframe[
+            (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
+        ]
+
+        if len(atoms) != len(self._residue_ids):
+            _logger.info(
+                f"Pocket {self.name}: Missing pocket CA atoms. "
+                f"The pocket center is calculated based on {len(atoms)} CA atoms "
+                f"(total number of pocket residues is {len(self._residue_ids)})."
+            )
+
+        center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+
+        return center
 
     @property
     def subpockets(self):
@@ -210,34 +241,6 @@ class Pocket(BasePocket):
         anchor_residues = anchor_residues.astype({"anchor_residue.id": "Int32"})
 
         return anchor_residues.reset_index(drop=True)
-
-    @property
-    def center(self):
-        """
-        Pocket center, i.e. the centroid of all input residues' CA atoms.
-
-        Returns
-        ----------
-        numpy.array
-            Pocket center (coordinates).
-        """
-
-        dataframe = self.data
-
-        atoms = dataframe[
-            (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
-        ]
-
-        if len(atoms) != len(self._residue_ids):
-            _logger.info(
-                f"Pocket {self.name}: Missing pocket CA atoms. "
-                f"The pocket center is calculated based on {len(atoms)} CA atoms "
-                f"(total number of pocket residues is {len(self._residue_ids)})."
-            )
-
-        center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
-
-        return center
 
     def clear_subpockets(self):
         """
