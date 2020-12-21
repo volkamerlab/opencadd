@@ -299,9 +299,10 @@ class PocketViewer:
         # Cast residue mapping to Series (residue IDs as index, NGL index as values)
         residue_id2ix = self._residue_ids_to_ngl_ixs[pocket.name]
         residue_id2ix = residue_id2ix.set_index("residue.id")["residue.ngl_ix"]
-
+        
+        regions = pocket.regions.dropna(axis=0, subset=["residue.id"])
         scheme_regions_list = []
-        for _, region in pocket.regions.iterrows():
+        for _, region in regions.iterrows():
             color = region["region.color"]
             residue_id = region["residue.id"]
             residue_ngl_ix = residue_id2ix.loc[residue_id]
