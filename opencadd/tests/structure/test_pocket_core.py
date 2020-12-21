@@ -410,31 +410,46 @@ class TestsPocket:
         """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
+
+        # Test method _ca_atoms()
         ca_atoms = pocket._ca_atoms(*residue_ids)
         assert len(ca_atoms) == n_ca_atoms
-        _, ca_atoms_center = pocket._ca_atoms_center(*residue_ids)
 
+        # Test method _ca_atoms_center()
+        _, ca_atoms_center = pocket._ca_atoms_center(*residue_ids)
         if center:
             for i, j in zip(ca_atoms_center, center):
                 assert pytest.approx(i, abs=1.0e-3) == j
 
     @pytest.mark.parametrize(
-        "filepath, pocket_residue_ids, pocket_center",
+        "filepath, pocket_residue_ids, ca_atoms_residue_ids, pocket_center",
         [
             (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",  # KLIFS ID 3834
+                [127, 128, 129],
+                [127, 128, 129],
+                [-1.178, 23.860, 45.092],
+            ),
+            (
+                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",  # KLIFS ID 3834
+                [1, 127, 128, 129],
                 [127, 128, 129],
                 [-1.178, 23.860, 45.092],
             ),
         ],
     )
-    def test_center(self, filepath, pocket_residue_ids, pocket_center):
+    def test_center_and_ca_atoms(self, filepath, pocket_residue_ids, ca_atoms_residue_ids, pocket_center):
         """
-        Test the pocket center calculation based on the pocket's residue PDB IDs.
+        Test the pocket CA atoms and center calculation based on the pocket's residue PDB IDs.
         """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
 
+
+        # Test property ca_atom
+        assert len(pocket.ca_atoms) == len(ca_atoms_residue_ids)
+
+        # Test property center
         for i, j in zip(pocket.center, pocket_center):
             assert pytest.approx(i, abs=1.0e-3) == j
 
