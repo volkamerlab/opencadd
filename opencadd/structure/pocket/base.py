@@ -35,9 +35,9 @@ class BasePocket:
             Residue ID and residue index (columns) for all pocket residues (rows).
         """
 
-        residues = {"residue.id": self._residue_ids, "residue.ix": self._residue_ixs}
-        residues = pd.DataFrame(residues).dropna(axis=0, subset=["residue.id"])
-        residues = residues.astype({"residue.id": "int32", "residue.ix": "Int32"})
+        residues = pd.DataFrame(
+            {"residue.id": self._residue_ids, "residue.ix": self._residue_ixs}, dtype="Int32"
+        )
         return residues.reset_index(drop=True)
 
     @property

@@ -56,9 +56,9 @@ class TestBasePocket:
     @pytest.mark.parametrize(
         "residue_ids, residue_ixs, n_residues",
         [
-            ([101, None], [1, 2], 1),
-            ([101, None], [1, 2], 1),
-            ([101, None], [None, None], 1),
+            ([101, None], [1, 2], 2),
+            ([101, None], [1, 2], 2),
+            ([101, None], [None, None], 2),
         ],
     )
     def test_residues(self, residue_ids, residue_ixs, n_residues):
@@ -73,7 +73,7 @@ class TestBasePocket:
             base_pocket.residues.index.to_list()
             == base_pocket.residues.reset_index().index.to_list()
         )
-        assert base_pocket.residues.dtypes.to_list() == ["int32", "Int32"]
+        assert base_pocket.residues.dtypes.to_list() == ["Int32", "Int32"]
         assert len(base_pocket.residues) == n_residues
 
     @pytest.mark.parametrize(
