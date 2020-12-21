@@ -18,23 +18,25 @@ class TestsPocket:
     """
 
     @pytest.mark.parametrize(
-        "filepath, residue_ids, residue_ixs, name",
+        "filepath, residue_ids, residue_ixs, name, data_residue_ids",
         [
             (
                 PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 [12, 13],
                 None,
                 "example kinase",
+                [12, 13]
             ),
             (
                 PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 ["15", "16", "_"],
                 [4, 5, 6],
                 "example kinase",
+                [15, 16]
             ),
         ],
     )
-    def test_from_file(self, filepath, residue_ids, residue_ixs, name):
+    def test_from_file(self, filepath, residue_ids, residue_ixs, name, data_residue_ids):
         """
         Initialize class from file and test class attributes and properties.
         """
@@ -46,7 +48,7 @@ class TestsPocket:
         assert isinstance(pocket._text, str)
         assert pocket._extension == filepath.suffix[1:]
         assert isinstance(pocket.data, pd.DataFrame)
-        assert list(pocket.data["residue.id"].unique()) == pocket.residues["residue.id"].to_list()
+        assert list(pocket.data["residue.id"].unique()) == data_residue_ids
         # Note: The following attributes/properties are tested for parent class BasePocket:
         # - _residue_ids
         # - _residue_ixs
