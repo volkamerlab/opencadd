@@ -196,6 +196,7 @@ class Pocket(BasePocket):
 
         regions = [region.region for region in self._regions]
         regions = pd.concat(regions)
+        regions = regions.astype({"residue.id": "Int32"})
         return regions.reset_index(drop=True)
 
     @property
@@ -219,6 +220,7 @@ class Pocket(BasePocket):
 
         anchor_residues = [subpocket.anchor_residues for subpocket in self._subpockets]
         anchor_residues = pd.concat(anchor_residues)
+        anchor_residues = anchor_residues.astype({"anchor_residue.id": "Int32"})
 
         return anchor_residues.reset_index(drop=True)
 
