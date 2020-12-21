@@ -25,14 +25,14 @@ class TestsPocket:
                 [12, 13],
                 None,
                 "example kinase",
-                [12, 13]
+                [12, 13],
             ),
             (
                 PATH_TEST_DATA / "NEK2_5m55_altB_chainA.pdb",
                 ["15", "16", "_"],
                 [4, 5, 6],
                 "example kinase",
-                [15, 16]
+                [15, 16],
             ),
         ],
     )
@@ -438,16 +438,35 @@ class TestsPocket:
             ),
         ],
     )
-    def test_center_and_ca_atoms(self, filepath, pocket_residue_ids, ca_atoms_residue_ids, pocket_center):
+    def test_center_and_ca_atoms(
+        self, filepath, pocket_residue_ids, ca_atoms_residue_ids, pocket_center
+    ):
         """
         Test the pocket CA atoms and center calculation based on the pocket's residue PDB IDs.
         """
 
         pocket = Pocket.from_file(filepath, pocket_residue_ids)
 
-
         # Test property ca_atom
         assert len(pocket.ca_atoms) == len(ca_atoms_residue_ids)
+        assert pocket.ca_atoms.columns.to_list() == [
+            "atom.id",
+            "atom.name",
+            "atom.x",
+            "atom.y",
+            "atom.z",
+            "residue.id",
+            "residue.name",
+        ]
+        assert pocket.ca_atoms.dtypes.to_list() == [
+            "int32",
+            "string",
+            "float32",
+            "float32",
+            "float32",
+            "int32",
+            "string",
+        ]
 
         # Test property center
         for i, j in zip(pocket.center, pocket_center):
