@@ -27,12 +27,11 @@ class Pocket(BasePocket):
 
     Attributes
     ----------
-    data
     residues
+    center
     subpockets
     regions
     anchor_residues
-    center
     name : str
         Name of protein.
     data : pd.DataFrame
@@ -55,7 +54,6 @@ class Pocket(BasePocket):
     def __init__(self):
 
         self.name = None
-        self.data = None
         self._text = None
         self._extension = None
         self._residue_ids = None
@@ -116,53 +114,40 @@ class Pocket(BasePocket):
             Pocket object.
         """
 
-        dataframe = DataFrame.from_text(text, extension)
-        # Cast residue IDs to integer - drop atoms where this is not possible!
-        drop_ixs = []
-        for index, residue_id in dataframe["residue.id"].items():
-            try:
-                residue_id = int(residue_id)
-            except (TypeError, ValueError):
-                drop_ixs.append(index)
-        dataframe.drop(drop_ixs, inplace=True)
-        dataframe = dataframe.astype({"residue.id": "int32"})
-
-        # Use cleaned DataFrame to initiate class
-        pocket = cls._from_dataframe(dataframe, residue_ids, residue_ixs, name)
-        pocket._text = text
-        pocket._extension = extension
-        return pocket
-
-    @classmethod
-    def _from_dataframe(cls, dataframe, residue_ids, residue_ixs=None, name=None):
-        """
-        Initialize Pocket object from structure DataFrame.
-
-        Attributes
-        ----------
-        dataframe : pd.DataFrame
-            Structural protein data with the following mandatory columns:
-            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
-        residue_ids : list of int
-            Pocket residue IDs.
-        residue_ixs : None or list of int
-            Pocket residue indices. Set to None by default.
-        name : str or None
-            Name of protein (default: None).
-
-        Returns
-        -------
-        opencadd.structure.pocket.Pocket
-            Pocket object.
-        """
-
         pocket = cls()
         pocket.name = name
+        pocket._text = text
+        pocket._extension = extension
         pocket._residue_ids, pocket._residue_ixs = pocket._format_residue_ids_and_ixs(
             residue_ids, residue_ixs, "set pocket residues"
         )
-        pocket.data = dataframe[dataframe["residue.id"].isin(pocket._residue_ids)]
+        pocket.data = pocket._set_data()
         return pocket
+
+    def _set_data(self):
+        """
+        Load atoms as DataFrames from text.
+        Keep only atoms with int-castable residue PDB IDs.
+
+        Returns
+        -------
+        pd.DataFrame
+            Structural protein data with the following mandatory columns:
+            "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+        """
+
+        # Load atoms as DataFrame from text
+        # Note: Column "residue.id" is of string type
+        dataframe = DataFrame.from_text(self._text, self._extension)
+
+        # Residue PDB IDs without residues whose PDB IDs cannot be cast to an integer
+        residue_ids = self.residues["residue.id"].to_list()
+        # Cast the IDs to str, so that they can match the DataFrame's ID
+        residue_ids = [str(residue_id) for residue_id in residue_ids]
+        dataframe = dataframe[dataframe["residue.id"].isin(residue_ids)]
+        dataframe = dataframe.astype({"residue.id": "int32"})
+
+        return dataframe
 
     @property
     def subpockets(self):

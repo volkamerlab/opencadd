@@ -18,14 +18,20 @@ class TestsPocket:
     """
 
     @pytest.mark.parametrize(
-        "filepath, residue_ids, name, residue_ixs",
+        "filepath, residue_ids, residue_ixs, name",
         [
             (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
-                [44, 45],
-                "example kinase",
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.mol2",
+                [12, 13],
                 None,
-            )
+                "example kinase",
+            ),
+            (
+                PATH_TEST_DATA / "NEK2_5m55_altB_chainA.mol2",
+                ["15", "16", "_"],
+                [4, 5, 6],
+                "example kinase",
+            ),
         ],
     )
     def test_from_file(self, filepath, residue_ids, residue_ixs, name):
@@ -37,18 +43,14 @@ class TestsPocket:
 
         # Test attributes
         assert pocket.name == name
-        assert isinstance(pocket.data, pd.DataFrame)
-        assert list(pocket.data["residue.id"].unique()) == residue_ids
         assert isinstance(pocket._text, str)
         assert pocket._extension == filepath.suffix[1:]
-        assert pocket._residue_ids == residue_ids
-        if residue_ixs:
-            assert pocket._residue_ixs == residue_ixs
-        else:
-            assert pocket._residue_ixs == [None] * len(residue_ids)
-
-        # Test properties
-        assert pocket.residues.columns.to_list() == ["residue.id", "residue.ix"]
+        assert isinstance(pocket.data, pd.DataFrame)
+        assert list(pocket.data["residue.id"].unique()) == pocket.residues["residue.id"].to_list()
+        # Note: The following attributes/properties are tested for parent class BasePocket:
+        # - _residue_ids
+        # - _residue_ixs
+        # - residues
 
     @pytest.mark.parametrize(
         "filepath, pocket_residue_ids, pocket_residue_ixs, region_name, region_color",
@@ -371,60 +373,6 @@ class TestsPocket:
         assert anchor_residue.color == anchor_residue_color
         if anchor_residue_center:
             assert pytest.approx(anchor_residue.center[0], abs=1.0e-3) == anchor_residue_center[0]
-
-    @pytest.mark.parametrize(
-        "filepath, residue_ids, residue_ixs, residue_id, residue_ix",
-        [
-            (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
-                [127, 128, 129],
-                [1, 2, 3],
-                127,
-                1,
-            ),
-            (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
-                [127, 128, 129],
-                [1, 2, 3],
-                1,
-                None,
-            ),
-        ],
-    )
-    def test_residue_id2ix(self, filepath, residue_ids, residue_ixs, residue_id, residue_ix):
-        """
-        Test residue PDB ID to index mapping.
-        """
-
-        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs)
-        assert pocket._residue_id2ix(residue_id) == residue_ix
-
-    @pytest.mark.parametrize(
-        "filepath, residue_ids, residue_ixs, residue_ix, residue_id",
-        [
-            (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
-                [127, 128, 129],
-                [1, 2, 3],
-                1,
-                127,
-            ),
-            (
-                PATH_TEST_DATA / "AAK1_4wsq_altA_chainA_protein.mol2",
-                [127, 128, 129],
-                [1, 2, 3],
-                4,
-                None,
-            ),
-        ],
-    )
-    def test_residue_ix2id(self, filepath, residue_ids, residue_ixs, residue_ix, residue_id):
-        """
-        Test residue index to PDB ID  mapping.
-        """
-
-        pocket = Pocket.from_file(filepath, residue_ids, residue_ixs)
-        assert pocket._residue_ix2id(residue_ix) == residue_id
 
     @pytest.mark.parametrize(
         "filepath, pocket_residue_ids, residue_ids, n_ca_atoms, center",
