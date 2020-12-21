@@ -84,26 +84,26 @@ class BasePocket:
         if len(residue_ids) != len(residue_ixs):
             raise ValueError(f"Number of residue IDs and indices must be of same length.")
 
-        # Keep only residues that have IDs/indices that can be cast to an integer
-        residue_ids_kept = []
-        residue_ixs_kept = []
-        residues_dropped = []
+        # Assign None to residue PDB IDs that cannot be cast to an integer
+        residue_ids_clean = []
+        residues_cast_to_none = []
         for residue_id, residue_ix in zip(residue_ids, residue_ixs):
             try:
-                residue_id = int(residue_id)
-                residue_ids_kept.append(residue_id)
-                residue_ixs_kept.append(residue_ix)
+                residue_id_clean = int(residue_id)
             except (ValueError, TypeError):
-                residues_dropped.append((residue_id, residue_ix))
+                residue_id_clean = None
+                residues_cast_to_none.append((residue_id, residue_ix))
+            residue_ids_clean.append(residue_id_clean)
 
-        if len(residue_ids) > len(residue_ids_kept):
+        if len(residues_cast_to_none) > 0:
             _logger.info(
                 f"Pocket {self.name} ({log_text}): "
-                f"The following input residues were dropped because they cannot be cast to an "
-                f"integer (residue PDB ID, residue index): {residues_dropped}"
+                f"The following input residues PDB IDs were assigned to the value None "
+                f"because they cannot be cast to an integer "
+                f"(residue PDB ID, residue index): {residues_cast_to_none}"
             )
 
-        return residue_ids_kept, residue_ixs_kept
+        return residue_ids_clean, residue_ixs
 
     def _residue_ix2id(self, residue_ix):
         """
@@ -121,6 +121,7 @@ class BasePocket:
         """
 
         residues = self.residues
+        # Keep only residues that have a residue index assigned
         residues = residues[~residues["residue.ix"].isna()]
         try:
             residue_id = residues.set_index("residue.ix").squeeze().loc[residue_ix]
