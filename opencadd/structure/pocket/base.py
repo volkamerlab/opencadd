@@ -36,11 +36,8 @@ class BasePocket:
         """
 
         residues = {"residue.id": self._residue_ids, "residue.ix": self._residue_ixs}
-        residues = (
-            pd.DataFrame(residues)
-            .dropna(axis=0, subset=["residue.id"])
-            .astype({"residue.id": "int"})
-        )
+        residues = pd.DataFrame(residues).dropna(axis=0, subset=["residue.id"])
+        residues = residues.astype({"residue.id": "int32", "residue.ix": "Int32"})
         return residues.reset_index(drop=True)
 
     @property
@@ -149,12 +146,9 @@ class BasePocket:
             Residue PDB ID.
         """
 
-        residues = self.residues
-        # Keep only residues that have a residue index assigned
-        residues = residues[~residues["residue.ix"].isna()]
         try:
-            residue_id = residues.set_index("residue.ix").squeeze().loc[residue_ix]
-        except KeyError:
+            residue_id = self._residue_ids[self._residue_ixs.index(residue_ix)]
+        except ValueError:
             residue_id = None
         return residue_id
 
@@ -173,9 +167,8 @@ class BasePocket:
             Residue index.
         """
 
-        residues = self.residues
         try:
-            residue_ix = residues.set_index("residue.id").squeeze().loc[residue_id]
-        except KeyError:
+            residue_ix = self._residue_ixs[self._residue_ids.index(residue_id)]
+        except ValueError:
             residue_ix = None
         return residue_ix
