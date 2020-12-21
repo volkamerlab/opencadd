@@ -27,6 +27,7 @@ class BasePocket:
     def residues(self):
         """
         All pocket's residues.
+        Note: Only residues with int-castable PDB IDs (here: i.e. are not None).
 
         Returns
         -------
@@ -35,7 +36,11 @@ class BasePocket:
         """
 
         residues = {"residue.id": self._residue_ids, "residue.ix": self._residue_ixs}
-        residues = pd.DataFrame(residues)
+        residues = (
+            pd.DataFrame(residues)
+            .dropna(axis=0, subset=["residue.id"])
+            .astype({"residue.id": "int"})
+        )
         return residues.reset_index(drop=True)
 
     @property
