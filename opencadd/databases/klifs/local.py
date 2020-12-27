@@ -688,7 +688,7 @@ class Pockets(LocalInitializer, PocketsProvider):
     opencadd.databases.klifs.core.PocketsProvider
     """
 
-    def by_structure_klifs_id(self, structure_klifs_id):
+    def by_structure_klifs_id(self, structure_klifs_id, extension="mol2"):  # pylint: disable=W0221
 
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
@@ -702,7 +702,7 @@ class Pockets(LocalInitializer, PocketsProvider):
 
         # Load pocket coordinates from file
         pocket_path = (
-            self._path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
+            self._path_to_klifs_download / structure["structure.filepath"] / f"pocket.{extension}"
         )
         mol2_df = DataFrame.from_file(pocket_path)
         # Get number of atoms per residue
