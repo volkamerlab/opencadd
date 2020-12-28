@@ -55,7 +55,12 @@ class KlifsPocket(Pocket):
             klifs_session = setup_remote()
 
         # Get pocket and coordinates for a structure (by a structure KLIFS ID)
-        pocket = klifs_session.pockets.by_structure_klifs_id(structure_klifs_id)
+        if klifs_session._client:
+            pocket = klifs_session.pockets.by_structure_klifs_id(structure_klifs_id)
+        else:
+            pocket = klifs_session.pockets.by_structure_klifs_id(
+                structure_klifs_id, extension=extension
+            )
         text = klifs_session.coordinates.to_text(
             structure_klifs_id, entity="complex", extension=extension
         )
