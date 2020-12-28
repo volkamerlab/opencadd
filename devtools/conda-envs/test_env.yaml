@@ -31,6 +31,8 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
+  # Temporary fix for issue #65
+  - parso 0.8.1
 ## For Jupyter lab extensions, run:
 # conda install nodejs
 # jupyter labextension install @jupyter-widgets/jupyterlab-manager nglview-js-widgets @jupyterlab/toc

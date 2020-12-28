@@ -308,7 +308,7 @@ class _LocalDatabaseGenerator:
         for index, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
-            mol2_path = metadata_to_filepath(
+            filepath = metadata_to_filepath(
                 ".",
                 row["species.klifs"],
                 row["kinase.klifs_name"],
@@ -319,7 +319,7 @@ class _LocalDatabaseGenerator:
                 extension="",
                 in_dir=True,
             )
-            filepaths.append(mol2_path)
+            filepaths.append(filepath)
 
         klifs_metadata["structure.filepath"] = filepaths
 
@@ -688,7 +688,7 @@ class Pockets(LocalInitializer, PocketsProvider):
     opencadd.databases.klifs.core.PocketsProvider
     """
 
-    def by_structure_klifs_id(self, structure_klifs_id):
+    def by_structure_klifs_id(self, structure_klifs_id, extension="mol2"):  # pylint: disable=W0221
 
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
@@ -702,12 +702,12 @@ class Pockets(LocalInitializer, PocketsProvider):
 
         # Load pocket coordinates from file
         pocket_path = (
-            self._path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
+            self._path_to_klifs_download / structure["structure.filepath"] / f"pocket.{extension}"
         )
-        mol2_df = DataFrame.from_file(pocket_path)
+        dataframe = DataFrame.from_file(pocket_path)
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
-        number_of_atoms_per_residue = mol2_df.groupby(
+        number_of_atoms_per_residue = dataframe.groupby(
             ["residue.name", "residue.id"], sort=False
         ).size()
 
@@ -716,27 +716,27 @@ class Pockets(LocalInitializer, PocketsProvider):
         for klifs_id, n in zip(klifs_ids, number_of_atoms_per_residue):
             klifs_ids_per_atom.extend([klifs_id] * n)
         # Add column for KLIFS position IDs to molecule
-        mol2_df["residue.klifs_id"] = klifs_ids_per_atom
-        mol2_df = mol2_df[["residue.id", "residue.klifs_id"]].drop_duplicates()
+        dataframe["residue.klifs_id"] = klifs_ids_per_atom
+        dataframe = dataframe[["residue.id", "residue.klifs_id"]].drop_duplicates()
 
         # Add KLIFS IDs that are missing in pocket and fill with "_"
         full_klifs_ids_df = pd.Series(range(1, 86), name="residue.klifs_id").to_frame()
-        mol2_df = full_klifs_ids_df.merge(mol2_df, on="residue.klifs_id", how="left")
-        mol2_df.fillna("_", inplace=True)
+        dataframe = full_klifs_ids_df.merge(dataframe, on="residue.klifs_id", how="left")
+        dataframe.fillna("_", inplace=True)
 
         # Add column for KLIFS regions
-        mol2_df = mol2_df.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
-        mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
+        dataframe = dataframe.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
+        dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         # Standardize DataFrame
-        mol2_df = self._standardize_dataframe(
-            mol2_df,
+        dataframe = self._standardize_dataframe(
+            dataframe,
             DATAFRAME_COLUMNS["pockets"],
         )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
-        mol2_df = self._add_klifs_region_details(mol2_df)
+        dataframe = self._add_klifs_region_details(dataframe)
 
-        return mol2_df
+        return dataframe
 
 
 class Coordinates(LocalInitializer, CoordinatesProvider):
@@ -752,9 +752,9 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     ):  # pylint: disable=W0221
 
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
-        mol2_df = DataFrame.from_file(filepath)
-        mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
-        return mol2_df
+        dataframe = DataFrame.from_file(filepath)
+        dataframe = self._add_residue_klifs_ids(dataframe, filepath)
+        return dataframe
 
     def to_rdkit(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2", compute2d=True
@@ -805,13 +805,13 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             filepath = structure_klifs_id_or_filepath
         return Path(filepath)
 
-    def _add_residue_klifs_ids(self, mol2_df, filepath):
+    def _add_residue_klifs_ids(self, dataframe, filepath):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
         ----------
-        mol2_df : pandas.DataFrame
+        dataframe : pandas.DataFrame
             Structural data.
 
         Returns
@@ -832,9 +832,9 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
         # Get pocket
         pockets_local = Pockets(self._database, self._path_to_klifs_download)
-        mol2_df_pocket = pockets_local.by_structure_klifs_id(structure_klifs_id)
+        pocket_dataframe = pockets_local.by_structure_klifs_id(structure_klifs_id)
 
         # Merge pocket DataFrame with input DataFrame
-        mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.id", how="left")
+        dataframe = dataframe.merge(pocket_dataframe, on="residue.id", how="left")
 
-        return mol2_df
+        return dataframe

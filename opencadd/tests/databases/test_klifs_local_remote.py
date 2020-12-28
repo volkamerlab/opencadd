@@ -360,12 +360,15 @@ class TestsFromStructureIds:
             structure_klifs_id = structure_klifs_ids
 
             result_remote = REMOTE.pockets.by_structure_klifs_id(structure_klifs_ids)
-            result_local = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids)
+            result_local_mol2 = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "mol2")
+            result_local_pdb = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "pdb")
 
             check_dataframe(result_remote, DATAFRAME_COLUMNS["pockets"])
-            check_dataframe(result_local, DATAFRAME_COLUMNS["pockets"])
+            check_dataframe(result_local_mol2, DATAFRAME_COLUMNS["pockets"])
+            check_dataframe(result_local_pdb, DATAFRAME_COLUMNS["pockets"])
 
-            assert all(result_local == result_remote)
+            assert all(result_local_mol2 == result_local_pdb)
+            assert all(result_local_mol2 == result_remote)
 
     @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
     def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
