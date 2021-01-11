@@ -560,6 +560,10 @@ class TestsCoordinates:
         Test remote retrieval of coordinates data from structure ID.
         """
 
+        # Load coordinates as text
+        text = REMOTE.coordinates.to_text(structure_klifs_id, entity, extension)
+        assert isinstance(text, str)
+
         # Load coordinates as DataFrame
         dataframe = REMOTE.coordinates.to_dataframe(structure_klifs_id, entity, extension)
         self._test_to_dataframe(dataframe, n_atoms, centroid)
@@ -612,6 +616,10 @@ class TestsCoordinates:
         loading from structure ID means (1) convert structure ID > filepath and (2) load
         coordinates from file.
         """
+
+        # Load coordinates as text
+        text = LOCAL.coordinates.to_text(structure_klifs_id, entity, extension)
+        assert isinstance(text, str)
 
         # Load coordinates as DataFrame
         dataframe = LOCAL.coordinates.to_dataframe(structure_klifs_id, entity, extension)

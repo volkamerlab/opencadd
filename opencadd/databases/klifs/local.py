@@ -747,6 +747,15 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     opencadd.databases.klifs.core.CoordinatesProvider
     """
 
+    def to_text(
+        self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
+    ):  # pylint: disable=W0221
+
+        filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
+        with open(filepath, "r") as f:
+            text = f.read()
+        return text
+
     def to_dataframe(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
     ):  # pylint: disable=W0221
