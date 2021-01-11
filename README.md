@@ -29,11 +29,10 @@ The Documentation will be available soon.
 
 ## Authors
 
-`opencadd` is the cumulative work of several members of the Volkamer Lab, as well as contributions from students that have participated in our lab. In no particular order:
+`opencadd` is the cumulative work of several members of the [Volkamer Lab](https://volkamerlab.org), as well as contributions from students that have participated in our lab. In no particular order:
 
 - Jaime Rodríguez-Guerra, PhD
 - Dominique Sydow
-- Franziska Fritz (interaction fingerprints, 2020)
 - Dennis Köser, Annie Pham, Enes Kurnaz, Julian Pipart (structural superposition, 2020)
 
 # Acknowledgements
