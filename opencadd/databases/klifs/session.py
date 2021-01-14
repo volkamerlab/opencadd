@@ -10,7 +10,7 @@ import pandas as pd
 
 from . import remote
 from . import local
-from .utils import KLIFS_CLIENT
+from .remote import KLIFS_CLIENT
 
 
 class Session:
