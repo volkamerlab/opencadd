@@ -56,46 +56,59 @@ class KlifsPocket(Pocket):
 
         # Get pocket and coordinates for a structure (by a structure KLIFS ID)
         if klifs_session._client:
-            pocket = klifs_session.pockets.by_structure_klifs_id(structure_klifs_id)
+            pocket_residues = klifs_session.pockets.by_structure_klifs_id(structure_klifs_id)
         else:
-            pocket = klifs_session.pockets.by_structure_klifs_id(
+            pocket_residues = klifs_session.pockets.by_structure_klifs_id(
                 structure_klifs_id, extension=extension
             )
         text = klifs_session.coordinates.to_text(
             structure_klifs_id, entity="complex", extension=extension
         )
 
-        pocket_3d = cls.from_text(
+        pocket = cls.from_text(
             text,
             extension,
-            pocket["residue.id"].to_list(),
-            pocket["residue.klifs_id"].to_list(),
+            pocket_residues["residue.id"].to_list(),
+            pocket_residues["residue.klifs_id"].to_list(),
             structure_klifs_id,
         )
+        pocket = pocket.add_klifs_regions(pocket, pocket_residues)
+        pocket = pocket.add_klifs_subpockets(pocket, pocket_residues, subpockets)
 
-        # Add regions
-        for (region, color), group in pocket.groupby(
+        return pocket
+
+    @staticmethod
+    def add_klifs_regions(pocket, pocket_residues):
+
+        for (region, color), group in pocket_residues.groupby(
             ["residue.klifs_region", "residue.klifs_color"]
         ):
-            pocket_3d.add_region(
+            pocket.add_region(
                 name=region,
                 residue_ixs=group["residue.klifs_id"].to_list(),
                 color=color,
             )
 
+        return pocket
+
+    @staticmethod
+    def add_klifs_subpockets(pocket, pocket_residues, subpockets):
+
         # Map residue KLIFS IDs > residue ID
         if subpockets is not None:
             subpockets = pd.DataFrame(subpockets)
             subpockets["anchor_residue.ids"] = subpockets["anchor_residue.klifs_ids"].apply(
-                lambda x: pocket[pocket["residue.klifs_id"].isin(x)]["residue.id"].to_list()
+                lambda x: pocket_residues[pocket_residues["residue.klifs_id"].isin(x)][
+                    "residue.id"
+                ].to_list()
             )
 
             # Add subpockets
             for _, subpocket in subpockets.iterrows():
-                pocket_3d.add_subpocket(
+                pocket.add_subpocket(
                     name=subpocket["subpocket.name"],
                     anchor_residue_ixs=subpocket["anchor_residue.klifs_ids"],
                     color=subpocket["subpocket.color"],
                 )
 
-        return pocket_3d
+        return pocket
