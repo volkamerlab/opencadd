@@ -376,15 +376,15 @@ class Structures(RemoteInitializer, StructuresProvider):
         )
         # Convert list of ABC objects to DataFrame
         structures = self._abc_to_dataframe(result)
-        # If only one structure PDB ID is given, check alternate model and chain filters
-        if len(structure_pdb_ids) == 1:
-            structures = self._filter_pdb_by_alt_chain(
-                structures, structure_alternate_model, structure_chain
-            )
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        # If only one structure PDB ID is given, check alternate model and chain filters
+        if len(structure_pdb_ids) == 1:
+            structures = self._filter_pdb_by_alt_chain(
+                structures, structure_alternate_model, structure_chain
+            ).reset_index()
         return structures
 
     def by_ligand_expo_id(self, ligand_expo_ids):
