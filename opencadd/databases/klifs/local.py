@@ -24,7 +24,8 @@ from .schema import (
     DATAFRAME_COLUMNS,
     POCKET_KLIFS_REGIONS,
 )
-from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .remote import KLIFS_CLIENT
+from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, Rdkit
 
 # Get the newest file version (* = YYYYMMDD)

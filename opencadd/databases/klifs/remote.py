@@ -5,9 +5,11 @@ Defines a remote KLIFS session.
 """
 
 import logging
+from copy import deepcopy
 from pathlib import Path
 
 import pandas as pd
+from bravado.client import SwaggerClient
 
 from .core import (
     KinasesProvider,
@@ -23,6 +25,23 @@ from .utils import metadata_to_filepath, silence_logging
 from opencadd.io import DataFrame, Rdkit
 
 _logger = logging.getLogger(__name__)
+
+
+class SerializableSwaggerClient(SwaggerClient):
+    # Since they are using __attributes to mangle the namespace
+    # we need to hardcode the parent class name in saved attributes
+    # (only also_return_response in this case)
+    # Sorry about the hackiness :)
+
+    def __setstate__(self, state):
+        self._SwaggerClient__also_return_response = state["also_return_response"]
+        self.swagger_spec = state["swagger_spec"]
+
+    def __getstate__(self, *args):
+        return {
+            "also_return_response": deepcopy(self._SwaggerClient__also_return_response),
+            "swagger_spec": deepcopy(self.swagger_spec),
+        }
 
 
 class RemoteInitializer:
@@ -850,3 +869,9 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         return dataframe
+
+
+KLIFS_API_DEFINITIONS = "https://klifs.net/swagger/swagger.json"
+KLIFS_CLIENT = SerializableSwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)

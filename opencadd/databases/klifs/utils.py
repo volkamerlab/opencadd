@@ -9,13 +9,7 @@ import logging
 from pathlib import Path
 import re
 
-from bravado.client import SwaggerClient
-
 _logger = logging.getLogger(__name__)
-
-KLIFS_API_DEFINITIONS = "https://klifs.net/swagger/swagger.json"
-KLIFS_CLIENT = SwaggerClient.from_url(KLIFS_API_DEFINITIONS, config={"validate_responses": False})
-
 PATH_DATA = Path(__file__).parent / ".." / ".." / "data"
 
 
