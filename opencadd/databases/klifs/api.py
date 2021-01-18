@@ -12,7 +12,6 @@ from .session import Session
 
 # Set logger
 _logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 # Add warning on truncated DataFrames in Jupyter notebooks
 if pd.get_option("display.max_columns") < 50:
