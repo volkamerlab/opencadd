@@ -384,7 +384,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         if len(structure_pdb_ids) == 1:
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
-            ).reset_index()
+            ).reset_index(drop=True)
         return structures
 
     def by_ligand_expo_id(self, ligand_expo_ids):
