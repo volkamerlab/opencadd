@@ -1,5 +1,5 @@
 """
-opencadd.structure.pocket.klifs.KlifsPocket
+opencadd.structure.pocket.klifs.PocketKlifs
 
 Defines a KLIFS (kinase) pocket.
 """
@@ -10,7 +10,7 @@ from opencadd.databases.klifs import setup_remote
 from .core import Pocket
 
 
-class KlifsPocket(Pocket):
+class PocketKlifs(Pocket):
     """
     Extends Pocket to initialize a kinase pocket from a structure KLIFS ID and define standard
     KLIFS regions.
@@ -46,7 +46,7 @@ class KlifsPocket(Pocket):
 
         Returns
         -------
-        opencadd.structure.pocket.KlifsPocket
+        opencadd.structure.pocket.PocketKlifs
             KLIFS pocket object.
         """
 
