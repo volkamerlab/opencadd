@@ -49,7 +49,7 @@ class TestsPocket:
         assert pocket._extension == filepath.suffix[1:]
         assert isinstance(pocket.data, pd.DataFrame)
         assert list(pocket.data["residue.id"].unique()) == data_residue_ids
-        # Note: The following attributes/properties are tested for parent class BasePocket:
+        # Note: The following attributes/properties are tested for parent class PocketBase:
         # - _residue_ids
         # - _residue_ixs
         # - residues

@@ -11,7 +11,7 @@ import pandas as pd
 _logger = logging.getLogger(__name__)
 
 
-class BasePocket:
+class PocketBase:
     """
     Class defining a base pocket.
     Mainly focusing on pocket residue related functionalities.

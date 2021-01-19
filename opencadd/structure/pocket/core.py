@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from opencadd.io import DataFrame
 
-from .base import BasePocket
+from .base import PocketBase
 from .features.region import Region
 from .features.subpocket import Subpocket
 from .features.anchor import AnchorResidue
@@ -18,7 +18,7 @@ from .features.anchor import AnchorResidue
 _logger = logging.getLogger(__name__)
 
 
-class Pocket(BasePocket):
+class Pocket(PocketBase):
     """
     Class defining a pocket with
     - structural protein data,

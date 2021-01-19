@@ -29,7 +29,7 @@ from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from opencadd.io import DataFrame, Rdkit
 
 # Get the newest file version (* = YYYYMMDD)
-PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.zip"), key=lambda x: x.suffixes[0])[-1]
+PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.gz"), key=lambda x: x.suffixes[0])[-1]
 
 _logger = logging.getLogger(__name__)
 
@@ -413,7 +413,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         kinases = self._database.copy()
-        print(kinases.columns)
         kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])

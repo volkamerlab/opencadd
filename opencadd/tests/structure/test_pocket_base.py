@@ -4,12 +4,12 @@ Tests for opencadd.structure.pocket.core
 
 import pytest
 
-from opencadd.structure.pocket import BasePocket
+from opencadd.structure.pocket import PocketBase
 
 
-class TestBasePocket:
+class TestPocketBase:
     """
-    Test BasePocket class methods.
+    Test PocketBase class methods.
     """
 
     @pytest.mark.parametrize(
@@ -27,7 +27,7 @@ class TestBasePocket:
         Test formatting of user-input residue PDB IDs and residue indices.
         """
 
-        base_pocket = BasePocket()
+        base_pocket = PocketBase()
         residue_ids2, residue_ixs2 = base_pocket._format_residue_ids_and_ixs(
             residue_ids, residue_ixs, ""
         )
@@ -50,7 +50,7 @@ class TestBasePocket:
         """
 
         with pytest.raises((ValueError, TypeError)):
-            base_pocket = BasePocket()
+            base_pocket = PocketBase()
             base_pocket._format_residue_ids_and_ixs(residue_ids, residue_ixs, "")
 
     @pytest.mark.parametrize(
@@ -65,7 +65,7 @@ class TestBasePocket:
         """
         Test property residues.
         """
-        base_pocket = BasePocket()
+        base_pocket = PocketBase()
         base_pocket._residue_ids = residue_ids
         base_pocket._residue_ixs = residue_ixs
         assert base_pocket.residues.columns.to_list() == ["residue.id", "residue.ix"]
@@ -88,7 +88,7 @@ class TestBasePocket:
         """
         Test residue PDB ID to index mapping.
         """
-        base_pocket = BasePocket()
+        base_pocket = PocketBase()
         base_pocket._residue_ids = residue_ids
         base_pocket._residue_ixs = residue_ixs
         assert base_pocket._residue_id2ix(residue_id) == residue_ix
@@ -105,7 +105,7 @@ class TestBasePocket:
         """
         Test residue index to PDB ID mapping.
         """
-        base_pocket = BasePocket()
+        base_pocket = PocketBase()
         base_pocket._residue_ids = residue_ids
         base_pocket._residue_ixs = residue_ixs
         assert base_pocket._residue_ix2id(residue_ix) == residue_id
