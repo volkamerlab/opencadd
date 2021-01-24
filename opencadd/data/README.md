@@ -20,3 +20,4 @@ correct files.
 
 * `look_and_say.dat`: first entries of the "Look and Say" integer series, sequence [A005150](https://oeis.org/A005150)
 * `klifs_ids.YYYYMMDD.csv.zip`: KLIFS structure and kinase IDs that are available at wwww.klifs.net by the time of YYYYMMDD.
+* `salts.tsv`: The Salts Dictionary from flatkinson standardiser: This is used to identify counterions and solvent molecules, and is derived from the ChEMBL salt dictionary. It is stored as a list of (neutral) SMILES.
