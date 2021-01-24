@@ -13,8 +13,7 @@ from opencadd.compounds.standardization import validate_molecules
 
 
 def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
-    """Creates mol files directly with rdkits functions for evaluation.
-    """
+    """Creates mol files directly with rdkits functions for evaluation."""
     if test_smiles is not None:
         return Chem.MolFromSmiles(test_smiles, sanitize=False)
     if test_inchi is not None:
@@ -22,8 +21,7 @@ def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
 
 
 def test_no_atom():
-    """NoAtomValidation should log due to the lack of any atoms.
-    """
+    """NoAtomValidation should log due to the lack of any atoms."""
     assert validate_molecules.validate_default(
         _evaluation_mol_generator(test_smiles="")
     ) == ["ERROR: [NoAtomValidation] Molecule has no atoms"]
@@ -67,7 +65,7 @@ def test_isotope():
 
 
 def test_valency():
-    """ check_valency should validate the valency of every atom in the
+    """check_valency should validate the valency of every atom in the
     input molecule.
     """
     assert validate_molecules.check_valency(

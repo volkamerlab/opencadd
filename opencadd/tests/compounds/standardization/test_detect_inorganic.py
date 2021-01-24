@@ -11,8 +11,7 @@ from opencadd.compounds.standardization import detect_inorganic
 
 
 def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
-    """Creates mol files directly with rdkits functions for evaluation.
-    """
+    """Creates mol files directly with rdkits functions for evaluation."""
     if test_smiles is not None:
         return Chem.MolFromSmiles(test_smiles)
     if test_inchi is not None:

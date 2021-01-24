@@ -11,8 +11,7 @@ from opencadd.compounds.standardization import normalize_molecules
 
 
 def normalization_for_smiles(smiles):
-    """Does normalization after converting a SMILES string into a mol.
-    """
+    """Does normalization after converting a SMILES string into a mol."""
     mol = Chem.MolFromSmiles(smiles, sanitize=False)
     mol = normalize_molecules.normalize(mol)
     if mol:
@@ -45,8 +44,7 @@ def test_1_3_charge_recombination_aromatic():
 
 
 def test_1_3_charge_recombination_exception():
-    """Test a case where 1,3-separated charges should not be recombined.
-    """
+    """Test a case where 1,3-separated charges should not be recombined."""
     assert (
         normalization_for_smiles("CC12CCCCC1(Cl)[N+]([O-])=[N+]2[O-]")
         == "CC12CCCCC1(Cl)[N+]([O-])=[N+]2[O-]"
@@ -59,8 +57,7 @@ def test_1_5_charge_recombination():
 
 
 def test_1_5_charge_recombination_exception():
-    """Test a case where 1,5-separated charges should not be recombined.
-    """
+    """Test a case where 1,5-separated charges should not be recombined."""
     assert (
         normalization_for_smiles("C[N+]1=C2C=[N+]([O-])C=CN2CCC1")
         == "C[N+]1=C2C=[N+]([O-])C=CN2CCC1"

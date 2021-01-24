@@ -9,8 +9,7 @@ from opencadd.compounds.standardization import handle_hydrogens
 
 
 def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
-    """Creates mol files directly with rdkits functions for evaluation.
-    """
+    """Creates mol files directly with rdkits functions for evaluation."""
     if test_smiles is not None:
         return Chem.MolFromSmiles(test_smiles, sanitize=False)
     if test_inchi is not None:

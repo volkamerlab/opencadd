@@ -11,8 +11,7 @@ from opencadd.compounds.standardization.remove_salts import remove_salts
 
 
 def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
-    """Creates mol files directly with rdkits functions for evaluation.
-    """
+    """Creates mol files directly with rdkits functions for evaluation."""
     if test_smiles is not None:
         return Chem.MolFromSmiles(test_smiles)
     if test_inchi is not None:
@@ -40,8 +39,7 @@ def test_structure():
 
 
 def test_single_salts():
-    """All salt fragments should be detected and stripped.
-    """
+    """All salt fragments should be detected and stripped."""
     assert (
         _molecule_test(
             test_smiles="[Al].N.[Ba].[Bi].Br.[Ca].Cl.F.I.[K].[Li].[Mg].[Na].[Ag].[Sr].S.O.[Zn]"
@@ -51,8 +49,7 @@ def test_single_salts():
 
 
 def test_complex_salts():
-    """Complex salts, contained in salts.tsv should be detected.
-    """
+    """Complex salts, contained in salts.tsv should be detected."""
     assert (
         _molecule_test(test_smiles="OC(C(O)C(=O)O)C(=O)O.O=C1NS(=O)(=O)c2ccccc12") == ""
     )
