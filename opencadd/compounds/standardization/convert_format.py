@@ -7,7 +7,7 @@ This function converts:
 from rdkit import Chem
 from rdkit.Chem import inchi
 from rdkit.Chem import SDMolSupplier
-from standardizer.utils import data_path
+from opencadd.compounds.standardization.utils import data_path
 
 __all__ = [
     "convert_smiles_to_mol",
