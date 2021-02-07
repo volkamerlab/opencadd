@@ -6,7 +6,7 @@ from rdkit.Chem.SaltRemover import SaltRemover
 import csv
 import logging
 from rdkit import RDLogger
-from standardizer.utils import data_path
+from opencadd.compounds.standardization.utils import data_path
 
 __all__ = ["remove_salts"]
 

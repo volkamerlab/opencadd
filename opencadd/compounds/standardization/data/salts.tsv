@@ -50,7 +50,7 @@ OCC(O)COP(=O)(O)O	glycerophosphate
 OC(=O)CNC(=O)c1ccccc1	hippurate charged
 OP=O	hypophosphite uncharged
 OC(C=O)C(O)C(O)C(O)C(=O)O	incorrect glucuronate
-OC(=O)c5c(O)cc6ccccc6c5Cc7c(C(=O)O)c(O)cc8ccccc78	incorrect pamoate 
+OC(=O)c5c(O)cc6ccccc6c5Cc7c(C(=O)O)c(O)cc8ccccc78	incorrect pamoate
 OC1OC(C(O)C(O)C1O)C(O)=O	incorrect ring gluconate
 OC(C(O)C(=O)O)C(=O)O	incorrect tartrate uncharged no stereo
 I	Iodide
