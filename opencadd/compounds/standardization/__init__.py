@@ -4,19 +4,19 @@ A tool to standardize compounds.
 """
 
 # Add imports here
-from opencadd.compounds.standardization.standardization import *
-from opencadd.compounds.standardization.assign_stereochemistry import *
-from opencadd.compounds.standardization.convert_format import *
-from opencadd.compounds.standardization.detect_inorganic import *
-from opencadd.compounds.standardization.disconnect_metals import *
-from opencadd.compounds.standardization.handle_charges import *
-from opencadd.compounds.standardization.handle_fragments import *
-from opencadd.compounds.standardization.handle_hydrogens import *
-from opencadd.compounds.standardization.normalize_molecules import *
-from opencadd.compounds.standardization.remove_salts import *
-from opencadd.compounds.standardization.utils import *
-from opencadd.compounds.standardization.sanitize_molecules import *
-from opencadd.compounds.standardization.validate_molecules import *
+from .standardization import *
+from .assign_stereochemistry import *
+from .convert_format import *
+from .detect_inorganic import *
+from .disconnect_metals import *
+from .handle_charges import *
+from .handle_fragments import *
+from .handle_hydrogens import *
+from .normalize_molecules import *
+from .remove_salts import *
+from .utils import *
+from .sanitize_molecules import *
+from .validate_molecules import *
 
 
 # Handle versioneer
