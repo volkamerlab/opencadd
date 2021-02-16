@@ -22,6 +22,8 @@ class PocketViewer:
     ----------
     viewer : nglview.widget.NGLWidget
         NGLview widget. Call this if you want to view pockets in e.g. Jupyter Notebooks.
+    pockets_residue_ngl_ixs : dict of (int or str: list of int)
+        For each structure (key), list of pocket NGLview indices.
     structure_names : list of (int or str)
         Names for all structures/pockets in the viewer.
     _residue_ids_to_ngl_ixs = dict of pandas.DataFrames
@@ -52,7 +54,7 @@ class PocketViewer:
 
         self.viewer = nglview.NGLWidget()
         self.viewer._remote_call("setSize", target="Widget", args=["1000px", "600px"])
-
+        self.pockets_residue_ngl_ixs = {}
         self.structure_names = []
         self._residue_ids_to_ngl_ixs = {}
         self._component_counter = 0
@@ -71,6 +73,7 @@ class PocketViewer:
         show_regions=True,
         sphere_opacity=0.7,
         sphere_color_pocket_center="blue",
+        show_only_pocket_residues=False,
     ):
         """
         Visualize the pocket (subpockets, regions, and anchor residues).
@@ -104,13 +107,20 @@ class PocketViewer:
         # Get residue ID > nglview index mapping based on file format
         # (this is important to know how nglview will index residues)
         self._map_residue_ids_names_nglixs(pocket)
+        self.pockets_residue_ngl_ixs[pocket.name] = (
+            pocket.residues.dropna()
+            .merge(self._residue_ids_to_ngl_ixs[pocket.name], how="left", on="residue.id")[
+                "residue.ngl_ix"
+            ]
+            .to_list()
+        )
 
         # Load structure from text in nglview
         self._add_structure(pocket, ligand_expo_id)
 
         # Show regions
         if show_regions:
-            self._add_regions(pocket)
+            self._add_regions(pocket, show_only_pocket_residues)
 
         # Show pocket center
         if show_pocket_center:
@@ -281,7 +291,7 @@ class PocketViewer:
                 f"hetero and not water and not ions"
             )
 
-    def _add_regions(self, pocket):
+    def _add_regions(self, pocket, show_only_pocket_residues=False):
         """
         Color residues by regions.
 
@@ -308,9 +318,14 @@ class PocketViewer:
             residue_ngl_ix = residue_id2ix.loc[residue_id]
             scheme_regions_list.append([color, residue_ngl_ix])
         scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
+        if show_only_pocket_residues:
+            selection = " or ".join(self.pockets_residue_ngl_ixs[pocket.name])
+        else:
+            selection = "protein"
+        self.viewer.clear_representations(self._components_structures[pocket.name])
         self.viewer.add_representation(
             "cartoon",
-            selection="protein",
+            selection=selection,
             component=self._components_structures[pocket.name],
             color=scheme_regions,
         )
@@ -436,7 +451,9 @@ class PocketViewer:
         components = []
         components.append(self._components_structures[structure_name])
         components.append(self._components_pocket_center[structure_name])
-        components.extend(list(self._components_subpockets[structure_name].values()))
-        components.extend(list(self._components_anchor_residues[structure_name].values()))
+        if len(self._components_subpockets) > 0:
+            components.extend(list(self._components_subpockets[structure_name].values()))
+        if len(self._components_anchor_residues) > 0:
+            components.extend(list(self._components_anchor_residues[structure_name].values()))
 
         return components
