@@ -297,17 +297,17 @@ class Structures(RemoteInitializer, StructuresProvider):
             # remove entries with chain A, C and D, and alternate location B
             structures = structures.drop(
                 structures[
-                    (structures["structure.pdb_id"] == "3cs9") &
-                    (structures["structure.chain"].isin(["A", "C", "D"])) &
-                    (structures["structure.alternate_model"] == "B")
+                    (structures["structure.pdb_id"] == "3cs9")
+                    & (structures["structure.chain"].isin(["A", "C", "D"]))
+                    & (structures["structure.alternate_model"] == "B")
                 ].index
             )
             # set alternate model to "-" for chains A, C and D
             structures.loc[
-                (structures["structure.pdb_id"] == "3cs9") &
-                (structures["structure.chain"].isin(["A", "C", "D"])) &
-                (structures["structure.alternate_model"] == "A"),
-                "structure.alternate_model"
+                (structures["structure.pdb_id"] == "3cs9")
+                & (structures["structure.chain"].isin(["A", "C", "D"]))
+                & (structures["structure.alternate_model"] == "A"),
+                "structure.alternate_model",
             ] = "-"
         return structures
 
