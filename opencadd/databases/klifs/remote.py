@@ -290,6 +290,27 @@ class Structures(RemoteInitializer, StructuresProvider):
     opencadd.databases.klifs.core.StructuresProvider
     """
 
+    @staticmethod
+    def _correct_errors(structures):
+        """Correct errors present in the KLIFS database concerning structures."""
+        if "3cs9" in structures["structure.pdb_id"].unique():
+            # remove entries with chain A, C and D, and alternate location B
+            structures = structures.drop(
+                structures[
+                    (structures["structure.pdb_id"] == "3cs9") &
+                    (structures["structure.chain"].isin(["A", "C", "D"])) &
+                    (structures["structure.alternate_model"] == "B")
+                ].index
+            )
+            # set alternate model to "-" for chains A, C and D
+            structures.loc[
+                (structures["structure.pdb_id"] == "3cs9") &
+                (structures["structure.chain"].isin(["A", "C", "D"])) &
+                (structures["structure.alternate_model"] == "A"),
+                "structure.alternate_model"
+            ] = "-"
+        return structures
+
     def all_structures(self):
 
         # Use KLIFS API: Get all kinase KLIFS IDs
@@ -302,6 +323,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
     def by_structure_klifs_id(self, structure_klifs_ids):
@@ -319,6 +341,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
@@ -344,6 +367,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -361,6 +385,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
     def by_structure_pdb_id(
@@ -385,6 +410,7 @@ class Structures(RemoteInitializer, StructuresProvider):
             structures = self._filter_pdb_by_alt_chain(
                 structures, structure_alternate_model, structure_chain
             ).reset_index(drop=True)
+        structures = self._correct_errors(structures)
         return structures
 
     def by_ligand_expo_id(self, ligand_expo_ids):
@@ -398,6 +424,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
     def by_kinase_name(self, kinase_names):
@@ -411,6 +438,7 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._standardize_dataframe(
             structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
         )
+        structures = self._correct_errors(structures)
         return structures
 
 
