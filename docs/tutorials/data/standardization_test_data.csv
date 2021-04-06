@@ -1,0 +1,201 @@
+IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
+1,(R)-Roscovitine,CCC(CO)Nc1nc(NCc2ccccc2)c2ncn(C(C)C)c2n1,0,1,0
+2,17-Methyltestosterone,CC1(O)CCC2C3CCC4=CC(=O)CCC4(C)C3CCC12C,0,1,0
+3,1-alpha-Hydroxycholecalciferol,CC(C)CCCC(C)C1CCC2C(CCCC12C)=CC=C1CC(O)CC(O)C1=C,1,0,0
+4,"2,3-Dimercaptosuccinic acid",OC(=O)C(S)C(S)C(O)=O,1,1,0
+5,"2,4,6-Trinitrotoluene",Cc1c(cc(cc1N(=O)=O)N(=O)=O)N(=O)=O,1,0,0
+6,2-Deoxy-D-glucose,OCC1OC(O)CC(O)C1O,1,1,0
+7,2'-fluoro-5-methylarabinosyluracil,CC1=CN(C2OC(CO)C(O)C2F)C(=O)NC1=O,1,0,0
+8,2-Methoxyestradiol,COc1cc2C3CCC4(C)C(O)CCC4C3CCc2cc1O,1,1,0
+9,4-aminobenzoic acid,Nc1ccc(cc1)C(O)=O,0,1,0
+10,4-Hydroxytamoxifen,CCC(c1ccccc1)=C(c1ccc(O)cc1)c1ccc(OCCN(C)C)cc1,1,1,0
+11,5 fluorouracil,FC1=CNC(=O)NC1=O,1,1,1
+12,5-Azacitidine,NC1=NC(=O)N(C=N1)C1OC(CO)C(O)C1O,1,1,0
+13,5-Bromouracil,OCC1OC(CC1O)N1C=C(Br)C(=O)NC1=O,0,1,0
+14,5-fluoro-2'-deoxyuridine,OCC1OC(CC1O)N1C=C(F)C(=O)NC1=O,1,1,0
+15,6-Mercaptopurine,Sc1ncnc2[nH]c[nH]c12,1,1,0
+16,Acadesine,NC(=O)c1ncn(C2OC(CO)C(O)C2O)c1N,0,1,0
+17,Acarbose,CC1OC(OC2C(CO)OC(OC3C(CO)OC(O)C(O)C3O)C(O)C2O)C(O)C(O)C1NC1C=C(CO)C(O)C(O)C1O,1,1,0
+18,Acebutolol,CCCC(=O)Nc1ccc(OCC(O)CNC(C)C)c(c1)C(C)=O,1,1,0
+19,Acenocoumarol,CC(=O)CC(c1ccc(cc1)N(=O)=O)C1=C(O)Oc2ccccc2C1=O,1,0,0
+20,Acetamide,CC(N)=O,0,1,0
+21,Acetaminophen,CC(=O)Nc1ccc(O)cc1,1,1,1
+22,Acetazolamide,CC(=O)Nc1nnc(s1)S(N)(=O)=O,1,1,1
+23,Acetic acid,CC(O)=O,1,1,1
+24,Acetohexamide,CC(=O)c1ccc(cc1)S(=O)(=O)NC(=O)NC1CCCCC1,1,0,0
+25,Acetohydroxamic acid,CC(=O)NO,0,1,0
+26,Acetrizoate Sodium,CC(=O)Nc1c(I)cc(I)c(C(O)=O)c1I,0,1,0
+27,Acetylcholine,CC(=O)OCC[N+](C)(C)C,0,1,1
+28,Acetylcysteine,CC(=O)NC(CS)C(O)=O,1,1,0
+29,Acetyl-L-carnitine,CC(=O)OC(CC(O)=O)C[N+](C)(C)C,0,1,0
+30,Acetylsalicylic acid,CC(=O)Oc1ccccc1C(O)=O,1,1,1
+31,Acitretin,COc1cc(C)c(C=CC(C)=CC=CC(C)=CC(O)=O)c(C)c1C,1,1,0
+32,Acyclovir,NC1=NC(=O)c2ncn(COCCO)c2N1,1,1,0
+33,Adefovir dipivoxil,CC(C)(C)C(=O)OCOP(=O)(COCCn1cnc2c(N)ncnc12)OCOC(=O)C(C)(C)C,1,1,0
+34,Adenine,Nc1ncnc2[nH]cnc12,0,1,0
+35,Adenosine,n2c1c(ncnc1n(c2)[C@@H]3O[C@@H]([C@@H](O)[C@H]3O)CO)N,1,1,1
+36,Adenosine triphosphate,Nc1ncnc2n(cnc12)C1OC(COP(O)(=O)OP(O)(=O)OP(O)(O)=O)C(O)C1O,0,1,0
+37,AET,NCCSC(N)=N,0,1,0
+38,Ajmaline,CCC1C2CC3C4N(C)c5ccccc5C44CC(C2C4O)N3C1O,1,0,0
+39,Alanosine,NC(CN(O)N=O)C(O)=O,0,1,0
+40,Alatrofloxacin mesylate,CC(N)C(=O)NC(C)C(=O)NC1C2CN(CC12)c1nc2N(C=C(C(O)=O)C(=O)c2cc1F)c1ccc(F)cc1F,1,0,0
+41,Albendazole,CCCSc1ccc2nc(NC(=O)OC)[nH]c2c1,1,0,0
+42,Alfuzosin,COc1cc2[nH]c(nc(N)c2cc1OC)N(C)CCCNC(=O)C1CCCO1,1,0,0
+43,Alitretinoin,CC(C=CC1=C(C)CCCC1(C)C)=CC=CC(C)=CC(O)=O,1,1,0
+44,Allantoin,NC(=O)NC1NC(=O)NC1=O,0,1,0
+45,Allobarbital,C=CCC1(CC=C)C(=O)NC(=O)NC1=O,0,1,0
+46,Allopurinol,O=C1N=CNc2cn[nH]c12,1,1,0
+47,Alpha-tocopherol acetate,CC(C)CCCC(C)CCCC(C)CCCC1(C)CCc2c(C)c(OC(C)=O)c(C)c(C)c2O1,0,1,0
+48,Alverine,CCN(CCCc1ccccc1)CCCc1ccccc1,1,0,0
+49,Amantadine,NC12CC3CC(CC(C3)C1)C2,0,1,0
+50,ambrisentan,COC(C(Oc1nc(C)cc(C)n1)C(O)=O)(c1ccccc1)c1ccccc1,0,0,1
+51,Ambroxol,Nc1c(Br)cc(Br)cc1CNC1CCC(O)CC1,0,1,0
+52,Amikacin,NCCC(O)C(=O)NC1CC(N)C(OC2OC(CN)C(O)C(O)C2O)C(O)C1OC1OC(CO)C(O)C(N)C1O,1,0,1
+53,Amiloride,NC(=N)NC(=O)c1nc(Cl)c(N)nc1N,1,1,0
+54,Amineptine,OC(=O)CCCCCCNC1c2ccccc2CCc2ccccc12,1,1,0
+55,Amino acid,NCC(O)=O,1,1,1
+56,Aminoglutethimide,CCC1(CCC(=O)NC1=O)c1ccc(N)cc1,0,1,0
+57,Aminoguanidine,N\N=C(\N)N,0,1,0
+58,Aminophylline,CN1C(=O)N(C)c2[nH]c[nH]c2C1=O,1,1,0
+59,Aminopyrine,CN(C)C1=C(C)N(C)N(c2ccccc2)C1=O,1,1,0
+60,Amiodarone,CCCCc1oc2ccccc2c1C(=O)c1cc(I)c(OCCN(CC)CC)c(I)c1,1,1,1
+61,Amitriptyline,CN(C)CC\C=C1\c2ccccc2CCc2ccccc12,1,1,0
+62,Amlodipine,CCOC(=O)C1=C(COCCN)NC(C)=C(C1c1ccccc1Cl)C(=O)OC,0,1,0
+63,Amobarbital,CCC1(CCC(C)C)C(=O)NC(=O)NC1=O,0,1,0
+64,Amodiaquin,CCN(CC)Cc1cc(Nc2ccnc3cc(Cl)ccc23)ccc1O,1,1,0
+65,Amoxicillin,CC1(C)SC2C(NC(=O)C(N)c3ccc(O)cc3)C(=O)N2C1C(O)=O,1,0,0
+66,Amphetamine,CC(N)Cc1ccccc1,1,1,0
+67,Amphotericin B,CC1OC(=O)CC(O)CC(O)CCC(O)C(O)CC(O)CC2(O)CC(O)C(C(CC(OC3OC(C)C(O)C(N)C3O)C=CC=CC=CC=CC=CC=CC=CC(C)C(O)C1C)O2)C(O)=O,1,1,0
+68,Ampicillin,CC1(C)SC2C(NC(=O)C(N)c3ccccc3)C(=O)N2C1C(O)=O,1,1,0
+69,Amprenavir,CC(C)CN(CC(O)C(Cc1ccccc1)NC(=O)OC1CCOC1)S(=O)(=O)c1ccc(N)cc1,1,0,0
+70,Amrinone,NC1=CC(=CNC1=O)c1ccncc1,0,1,0
+71,Amsacrine,COc1cc(NS(C)(=O)=O)ccc1Nc1c2ccccc2nc2ccccc12,1,0,0
+72,Anastrozole,CC(C)(C#N)c1cc(Cn2cncn2)cc(c1)C(C)(C)C#N,1,0,0
+73,Anethole Trithione,COc1ccc(cc1)C1=CC(=S)SS1,0,1,0
+74,Anthralin,Oc1cccc2cc3cccc(O)c3c(O)c12,1,1,0
+75,Apomorphine,CN1CCc2cccc-3c2C1Cc1ccc(O)c(O)c-31,0,1,0
+76,Aprobarbital,CC(C)C1(CC=C)C(=O)NC(=O)NC1=O,0,1,0
+77,Ascorbic acid,OCC(O)C1OC(O)=C(O)C1=O,1,1,1
+78,Astaxanthin,CC(C=CC=C(C)C=CC1=C(C)C(=O)C(O)CC1(C)C)=CC=CC=C(C)C=CC=C(C)C=CC1=C(C)C(=O)C(O)CC1(C)C,0,1,0
+79,Atazanavir,COC(=O)NC(C(=O)NC(Cc1ccccc1)C(O)CN(Cc1ccc(cc1)-c1ccccn1)NC(=O)C(NC(=O)OC)C(C)(C)C)C(C)(C)C,1,0,0
+80,Atenolol,CC(C)NCC(O)COc1ccc(CC(N)=O)cc1,1,0,0
+81,Atiprimod,CCCC1(CCC)CCC2(CCN(CCCN(CC)CC)C2)CC1,1,0,0
+82,Atomoxetine hydrochloride,CNCCC(Oc1ccccc1C)c1ccccc1,1,0,0
+83,Atorvastatin,CC(C)C1=C(C(=O)Nc2ccccc2)C(c2ccccc2)=C(N1CCC(O)CC(O)CC(O)=O)c1ccc(F)cc1,1,1,1
+84,Atropine,CN1C2CCC1CC(C2)OC(=O)C(CO)c1ccccc1,0,1,0
+85,avasimibe,CC(C)c1cc(C(C)C)c(CC(=O)NS(=O)(=O)Oc2c(cccc2C(C)C)C(C)C)c(c1)C(C)C,1,1,0
+86,Azathioprine,Cn1cnc(c1Sc1ncnc2ncnc12)N(=O)=O,1,1,0
+87,AZD6244,Cn1cnc2c(F)c(Nc3ccc(Br)cc3Cl)c(cc12)C(=O)NOCCO,0,1,0
+88,Azithromycin,CCC1OC(=O)C(C)C(OC2CC(C)(OC)C(O)C(C)O2)C(C)C(OC2OC(C)CC(C2O)N(C)C)C(C)(O)CC(C)CN(C)C(C)C(O)C1(C)O,1,0,0
+89,Azlocillin,CC1(C)SC2C(NC(=O)C(NC(=O)N3CCNC3=O)c3ccccc3)C(=O)N2C1C(O)=O,1,0,0
+90,Aztreonam,CC1C(NC(=O)C(=NOC(C)(C)C(O)=O)c2csc(N)n2)C(=O)N1S(O)(=O)=O,1,0,0
+91,Bacitracin,CCC(C)C(C)C1=NC(CS1)C(=O)NC(CC(C)C)C(=O)NC(CCC(O)=O)C(=O)NC(C(C)CC)C(=O)NC1CCCCNC(=O)C(CC(O)=O)NC(=O)C(Cc2c[nH]c[nH]2)NC(=O)C(Cc2ccccc2)NC(=O)C(NC(=O)C(CCCN)NC1=O)C(C)CC,0,1,0
+92,Baclofen,NCC(CC(O)=O)c1ccc(Cl)cc1,1,0,0
+93,Barbital,CCC1(CC)C(=O)NC(=O)NC1=O,0,1,0
+94,Bendamustine,Cn1c(CCCC(O)=O)nc2cc(ccc12)N(CCCl)CCCl,1,0,0
+95,Bendazac,OC(=O)COc1nn(Cc2ccccc2)c2ccccc12,1,0,0
+96,Benorylate,CC(=O)Nc1ccc(OC(=O)c2ccccc2OC(C)=O)cc1,0,1,0
+97,Benoxaprofen,CC(C(O)=O)c1ccc2oc(nc2c1)-c1ccc(Cl)cc1,1,1,0
+98,Benzarone,CCc1oc2ccccc2c1C(=O)c1ccc(O)cc1,1,1,0
+99,Benzbromarone,CCc1oc2ccccc2c1C(=O)c1cc(Br)c(O)c(Br)c1,1,1,0
+100,Benziodarone,CCc1oc2ccccc2c1C(=O)c1cc(I)c(O)c(I)c1,0,1,0
+101,Benzoyl peroxide,O=C(OOC(=O)c1ccccc1)c1ccccc1,0,1,0
+102,Beraprost,CC#CCC(C)C(O)C=CC1C(O)CC2Oc3c(CCCC(O)=O)cccc3C12,0,1,0
+103,Beta-Carotene,CC(C=CC=C(C)C=CC1=C(C)CCCC1(C)C)=CC=CC=C(C)C=CC=C(C)C=CC1=C(C)CCCC1(C)C,1,1,1
+104,Betaine,C[N+](C)(C)CC(O)=O,0,1,0
+105,beta-Lapachone,CC1(C)CCC2=C(O1)c1ccccc1C(=O)C2=O,1,0,0
+106,Betamethasone,CC1CC2C3CCC4=CC(=O)C=CC4(C)C3(F)C(O)CC2(C)C1(O)C(=O)COP(O)(O)=O,0,1,0
+107,beta-Sitosterol,CCC(CCC(C)C1CCC2C3CC=C4CC(O)CCC4(C)C3CCC12C)C(C)C,1,1,0
+108,Betulinic acid,CC(=C)C1CCC2(CCC3(C)C(CCC4C5(C)CCC(O)C(C)(C)C5CCC34C)C12)C(O)=O,1,0,0
+109,Bezafibrate,CC(C)(Oc1ccc(CCNC(=O)c2ccc(Cl)cc2)cc1)C(O)=O,1,1,0
+110,Bicalutamide,CC(O)(CS(=O)(=O)c1ccc(F)cc1)C(=O)Nc1ccc(C#N)c(c1)C(F)(F)F,1,0,0
+111,Bifonazole,c1ccc(cc1)C(c1ccc(cc1)-c1ccccc1)n1ccnc1,0,1,0
+112,Biotin,OC(=O)CCCCC1SCC2NC(=O)NC12,1,0,0
+113,Bisoprolol,CC(C)NCC(O)COc1ccc(COCCOC(C)C)cc1,1,0,0
+114,Bleomycin,CC(O)C(NC(=O)C(C)C(O)C(C)NC(=O)C(NC(=O)c1nc(nc(N)c1C)C(CC(N)=O)NCC(N)C(N)=O)C(OC1OC(CO)C(O)C(O)C1OC1OC(CO)C(O)C(OC(N)=O)C1O)c1cnc[nH]1)C(=O)NCCc1nc(cs1)-c1nc(cs1)C(O)=O,1,1,0
+115,Bortezomib,CC(C)CC(NC(=O)C(Cc1ccccc1)NC(=O)c1cnccn1)B(O)O,1,1,0
+116,Bosentan,COc1ccccc1Oc1c(NS(=O)(=O)c2ccc(cc2)C(C)(C)C)nc(nc1OCCO)-c1ncccn1,1,1,1
+117,Bromfenac,Nc1c(CC(O)=O)cccc1C(=O)c1ccc(Br)cc1,1,0,0
+118,Bromisovalum,CC(C)C(Br)C(=O)NC(N)=O,1,1,0
+119,Bromocriptine,CC(C)CC1N2C(=O)C(NC(=O)C3CN(C)C4Cc5c(Br)[nH]c6cccc(C4=C3)c56)(OC2(O)C2CCCN2C1=O)C(C)C,0,1,0
+120,Brotizolam,Cc1nnc2CN=C(c3ccccc3Cl)c3cc(Br)sc3-n12,0,1,0
+121,Bucladesine,CCCC(=O)Nc1ncnc2n(cnc12)C1OC2COP(O)(=O)OC2C1OC(=O)CCC,1,1,1
+122,Budesonide,CCCC1OC2CC3C4CCC5=CC(=O)C=CC5(C)C4C(O)CC3(C)C2(O1)C(=O)CO,1,1,0
+123,Bumetanide,CCCCNc1cc(cc(c1Oc1ccccc1)S(N)(=O)=O)C(O)=O,0,0,1
+124,Bupivacaine,CCCCN1CCCCC1C(=O)Nc1c(C)cccc1C,0,1,0
+125,Buprenorphine,COc1c(O)ccc2CC3N(CCC4(CC5(CCC34CC5C(C)(O)C(C)(C)C)OC)c12)CC1CC1,1,1,0
+126,Bupropion,CC(NC(C)(C)C)C(=O)c1cccc(Cl)c1,1,0,0
+127,Buspirone,O=C1CC2(CCCC2)CC(=O)N1CCCCN1CCN(CC1)c1ncccn1,1,0,0
+128,Busulfan,CS(=O)(=O)OCCCCOS(C)(=O)=O,1,1,0
+129,Butachlor,CCCCOCN(C(=O)CCl)c1c(CC)cccc1CC,0,1,0
+130,Butalbital,CC(C)CC1(CC=C)C(=O)NC(=O)NC1=O,1,0,0
+131,Butethal,CCCCC1(CC)C(=O)NC(=O)NC1=O,0,1,0
+132,Caffeine,CN1C(=O)N(C)c2ncn(C)c2C1=O,1,1,0
+133,Calcitriol,CC(CCCC(C)(C)O)C1CCC2C(CCCC12C)=CC=C1CC(O)CC(O)C1=C,1,1,0
+134,Camptothecin,CCC1(O)C(=O)OCC2=C1C=C1N(Cc3cc4ccccc4[nH]c13)C2=O,1,1,0
+135,Candesartan cilexetil,CCOc1nc2cccc(C(=O)OC(C)OC(=O)OC3CCCCC3)c2n1Cc1ccc(cc1)-c1ccccc1-c1nn[nH]n1,1,1,0
+136,Cannabidiol,CCCCCc1cc(O)c(C2C=C(C)CCC2C(C)=C)c(O)c1,1,1,0
+137,Capecitabine,CCCCCOC(=O)NC1=NC(=O)N(C=C1F)C1OC(C)C(O)C1O,1,1,0
+138,Capsaicin,COc1cc(CNC(=O)CCCCC=CC(C)C)ccc1O,1,1,0
+139,Captopril,CC(CS)C(=O)N1CCCC1C(O)=O,1,1,0
+140,Carbamazepine,NC(=O)N1c2ccccc2C=Cc2ccccc12,1,1,0
+141,Carbamylcholine,C[N+](C)(C)CCOC(N)=O,0,1,0
+142,Carbaryl,CNC(=O)Oc1cccc2ccccc12,0,1,0
+143,Carbenicillin disodium,CC1(C)SC2C(NC(=O)C(C(O)=O)c3ccccc3)C(=O)N2C1C(O)=O,1,0,0
+144,Carbenoxolone,CC1(C)C(CCC2(C)C1CCC1(C)C2C(=O)C=C2C3CC(C)(CCC3(C)CCC12C)C(O)=O)OC(=O)CCC(O)=O,0,1,0
+145,Carbimazole,CCOC(=O)N1C=CN(C)C1=S,1,0,0
+146,Carboplatin,OC(=O)C1(CCC1)C(O)=O,1,1,0
+147,Carbutamide,CCCCNC(=O)NS(=O)(=O)c1ccc(N)cc1,0,1,0
+148,Cariporide,CC(C)c1ccc(cc1S(C)(=O)=O)C(=O)NC(N)=N,0,1,0
+149,Carisoprodol,CCCC(C)(COC(N)=O)COC(=O)NC(C)C,0,1,0
+150,Carmustine,ClCCNC(=O)N(CCCl)N=O,1,1,0
+151,Carnitine,C[N+](C)(C)CC(O)CC(O)=O,1,1,1
+152,Carprofen,CC(C(O)=O)c1ccc-2c(Nc3ccc(Cl)cc-23)c1,0,0,1
+153,Carvedilol,COc1ccccc1OCCNCC(O)COc1cccc2Nc3ccccc3-c12,1,1,0
+154,Catechin,OC1Cc2c(O)cc(O)cc2OC1c1ccc(O)c(O)c1,1,1,1
+155,Cefaclor,NC(C(=O)NC1C2SCC(Cl)=C(N2C1=O)C(O)=O)c1ccccc1,1,0,0
+156,Cefadroxil,CC1=C(N2C(SC1)C(NC(=O)C(N)c1ccc(O)cc1)C2=O)C(O)=O,1,0,0
+157,Cefazolin,Cc1nnc(SCC2=C(N3C(SC2)C(NC(=O)Cn2cnnn2)C3=O)C(O)=O)s1,1,1,0
+158,Cefixime,Nc1nc(cs1)C(=NOCC(O)=O)C(=O)NC1C2SCC(C=C)=C(N2C1=O)C(O)=O,1,0,0
+159,Cefoperazone,CCN1CCN(C(=O)NC(C(=O)NC2C3SCC(CSc4nnnn4C)=C(N3C2=O)C(O)=O)c2ccc(O)cc2)C(=O)C1=O,1,1,0
+160,Cefotaxime,CON=C(C(=O)NC1C2SCC(COC(C)=O)=C(N2C1=O)C(O)=O)c1csc(N)n1,1,0,0
+161,Cefotetan,COC1(NC(=O)C2S\C(S2)=C(/C(N)=O)C(O)=O)C2SCC(CSc3nnnn3C)=C(N2C1=O)C(O)=O,1,0,0
+162,Cefprozil,CC=CC1=C(N2C(SC1)C(NC(=O)C(N)c1ccc(O)cc1)C2=O)C(O)=O,1,0,0
+163,Ceftriaxone,CON=C(C(=O)NC1C2SCC(CSC3=NC(=O)C(=O)NN3C)=C(N2C1=O)C(O)=O)c1csc(N)n1,1,1,1
+164,Celecoxib,Cc1ccc(cc1)-c1cc(nn1-c1ccc(cc1)S(N)(=O)=O)C(F)(F)F,1,1,0
+165,Cephaloridine,OC(=O)C1=C(CSC2C(NC(=O)Cc3cccs3)C(=O)N12)C[n+]1ccccc1,1,0,0
+166,Cephalosporin,CC(=O)OCC1=C(N2C(SC1)C(NC(=O)CCCC(N)C(O)=O)C2=O)C(O)=O,1,0,0
+167,Cephalothin,CC(=O)OCC1=C(N2C(SC1)C(NC(=O)Cc1cccs1)C2=O)C(O)=O,1,0,0
+168,Cerivastatin,COCc1c(nc(C(C)C)c(C=CC(O)CC(O)CC(O)=O)c1-c1ccc(F)cc1)C(C)C,1,1,1
+169,Cerivastatin sodium,COCc1c(nc(C(C)C)c(C=CC(O)CC(O)CC(O)=O)c1-c1ccc(F)cc1)C(C)C,0,1,1
+170,Cetirizine,OC(=O)COCCN1CCN(CC1)C(c1ccccc1)c1ccc(Cl)cc1,1,0,0
+171,Cetrimonium bromide,CCCCCCCCCCCCCCCC[N+](C)(C)C,0,1,0
+172,CF101,CNC(=O)C1OC(C(O)C1O)n1cnc2c(NCc3cccc(I)c3)ncnc12,0,1,0
+173,Chenodiol,O=C(O)CC[C@H]([C@H]1CC[C@@H]2[C@]1(C)CC[C@H]4[C@H]2[C@H](O)C[C@@H]3C[C@H](O)CC[C@@]34C)C,1,1,1
+174,Chloral hydrate,OC(O)C(Cl)(Cl)Cl,1,1,0
+175,Chlorambucil,OC(=O)CCCc1ccc(cc1)N(CCCl)CCCl,1,1,0
+176,Chloramine-T,Cc1ccc(cc1)S(=O)(=O)NCl,0,1,1
+177,Chloramphenicol,OCC(NC(=O)C(Cl)Cl)C(O)c1ccc(cc1)N(=O)=O,1,1,0
+178,Chlordiazepoxide,CN=C1CN(O)C(c2ccccc2)=C2C=C(Cl)C=CC2=N1,0,1,0
+179,Chlorguanide,CC(C)NC(=N)NC(=N)Nc1ccc(Cl)cc1,1,0,0
+180,Chlormadinone acetate,CC(=O)OC1(CCC2C3C=C(Cl)C4=CC(=O)CCC4(C)C3CCC12C)C(C)=O,1,1,1
+181,Chlormethiazole,Cc1ncsc1CCCl,1,1,0
+182,Chlormezanone,CN1C(c2ccc(Cl)cc2)S(=O)(=O)CCC1=O,1,0,0
+183,Chloroquine,CCN(CC)CCCC(C)Nc1cc[nH]c2cc(Cl)ccc12,1,1,1
+184,Chloroxylenol,Cc1cc(O)cc(C)c1Cl,0,1,0
+185,Chlorphenamine,CN(C)CCC(c1ccc(Cl)cc1)c1ccccn1,1,0,0
+186,Chlorpromazine,CN(C)CCCN1c2ccccc2Sc2ccc(Cl)cc12,1,1,1
+187,Chlorpropamide,CCCNC(=O)NS(=O)(=O)c1ccc(Cl)cc1,1,1,0
+188,Chlortetracycline,CN(C)C1C2CC3C(C(=O)c4c(O)ccc(Cl)c4C3(C)O)=C(O)C2(O)C(=O)C(C(N)=O)=C1O,0,1,1
+189,Chlorzoxazone,Oc1nc2cc(Cl)ccc2o1,1,0,0
+190,Cholestyramine,CC(C)(Oc1ccc(cc1)C(=O)c1ccc(Cl)cc1)C(=O)NCCS(O)(=O)=O,1,1,0
+191,Chondroitin sulfate,CC(=O)NC1C(O)OC(OS(O)(=O)=O)C(O)C1OC1OC(C(O)C(O)C1O)C(O)=O,0,1,0
+192,Cidofovir,NC1=NC(=O)N(CC(CO)OCP(O)(O)=O)C=C1,1,0,0
+193,Cimetidine,CN=C(NCCSCc1nc[nH]c1C)NC#N,1,1,1
+194,Cinchophen,OC(=O)c1cc(nc2ccccc12)-c1ccccc1,1,0,1
+195,Cinoxacin,CCN1N=C(C(O)=O)C(=O)c2cc3OCOc3cc12,1,0,0
+196,Ciprofibrate,CC(C)(Oc1ccc(cc1)C1CC1(Cl)Cl)C(O)=O,1,1,1
+197,Ciprofloxacin,OC(=O)C1=CN(C2CC2)c2cc(N3CCNCC3)c(F)cc2C1=O,1,1,0
+198,Cisapride,COC1CN(CCCOc2ccc(F)cc2)CCC1NC(=O)c1cc(Cl)c(N)cc1OC,1,0,0
+199,Citalopram,CN(C)CCCC1(OCc2cc(ccc12)C#N)c1ccc(F)cc1,0,1,0
+200,Citric acid,OC(=O)CC(O)(CC(O)=O)C(O)=O,0,1,0
