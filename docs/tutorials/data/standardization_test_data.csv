@@ -1,5 +1,5 @@
 IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
-1,(R)-Roscovitine,CCC(CO)Nc1nc(NCc2ccccc2)c2ncn(C(C)C)c2n1,0,1,0
+1,(R)-Roscovitine,CCC(CO)Nc1nc(NCc2ccccc2)c2ncn(C(C)C)c2n1.[Ca],0,1,0
 2,17-Methyltestosterone,CC1(O)CCC2C3CCC4=CC(=O)CCC4(C)C3CCC12C,0,1,0
 3,1-alpha-Hydroxycholecalciferol,CC(C)CCCC(C)C1CCC2C(CCCC12C)=CC=C1CC(O)CC(O)C1=C,1,0,0
 4,"2,3-Dimercaptosuccinic acid",OC(=O)C(S)C(S)C(O)=O,1,1,0
