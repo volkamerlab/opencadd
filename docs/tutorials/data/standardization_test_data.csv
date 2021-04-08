@@ -4,7 +4,7 @@ IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
 3,1-alpha-Hydroxycholecalciferol,CC(C)CCCC(C)C1CCC2C(CCCC12C)=CC=C1CC(O)CC(O)C1=C,1,0,0
 4,"2,3-Dimercaptosuccinic acid",OC(=O)C(S)C(S)C(O)=O,1,1,0
 5,"2,4,6-Trinitrotoluene",Cc1c(cc(cc1N(=O)=O)N(=O)=O)N(=O)=O,1,0,0
-6,2-Deoxy-D-glucose,OCC1OC(O)CC(O)C1O,1,1,0
+6,2-Deoxy-D-glucose,OCC1OC(O)CC(O)C1O.O1CCOCC1,1,1,0
 7,2'-fluoro-5-methylarabinosyluracil,CC1=CN(C2OC(CO)C(O)C2F)C(=O)NC1=O,1,0,0
 8,2-Methoxyestradiol,COc1cc2C3CCC4(C)C(O)CCC4C3CCc2cc1O,1,1,0
 9,4-aminobenzoic acid,Nc1ccc(cc1)C(O)=O,0,1,0
@@ -199,3 +199,6 @@ IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
 198,Cisapride,COC1CN(CCCOc2ccc(F)cc2)CCC1NC(=O)c1cc(Cl)c(N)cc1OC,1,0,0
 199,Citalopram,CN(C)CCCC1(OCc2cc(ccc12)C#N)c1ccc(F)cc1,0,1,0
 200,Citric acid,OC(=O)CC(O)(CC(O)=O)C(O)=O,0,1,0
+201,zirconium,CCO[Zr](OCC)(OCC)OCC,0,0,0
+202,hemoglobin,CC1=C(C2=CC3=NC(=CC4=C(C(=C([N-]4)C=C5C(=C(C(=N5)C=C1N2)C=C)C)C)CCC(=O)[O-])C(=C3C)CCC(=O)O)C=C.[Fe+2],0,0,0
+203,test_salt,[Al].N.[Ba].[Bi].Br.[Ca].Cl.F.I.[K].[Li].[Mg].[Na].[Ag].[Sr].S.O.[Zn],0,0,0
