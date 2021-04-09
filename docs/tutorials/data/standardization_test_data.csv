@@ -202,3 +202,4 @@ IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
 201,zirconium,CCO[Zr](OCC)(OCC)OCC,0,0,0
 202,hemoglobin,CC1=C(C2=CC3=NC(=CC4=C(C(=C([N-]4)C=C5C(=C(C(=N5)C=C1N2)C=C)C)C)CCC(=O)[O-])C(=C3C)CCC(=O)O)C=C.[Fe+2],0,0,0
 203,test_salt,[Al].N.[Ba].[Bi].Br.[Ca].Cl.F.I.[K].[Li].[Mg].[Na].[Ag].[Sr].S.O.[Zn],0,0,0
+204,test_duplicate,[Al].N.[Ba].[Bi].Br.[Ca].Cl.F.I.[K].[Li].[Mg].[Na].[Ag].[Sr].S.O.[Zn],0,0,0
