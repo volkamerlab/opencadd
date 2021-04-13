@@ -2,7 +2,6 @@
 This module performs Normalization transformations
 to correct functional groups and recombine charges.
 """
-from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 __all__ = ["normalize"]

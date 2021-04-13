@@ -1,7 +1,6 @@
 """
 This module performs tautomer enumeration and canonicalization.
 """
-from rdkit import Chem
 from rdkit.Chem.MolStandardize.standardize import (
     enumerate_tautomers_smiles,
     canonicalize_tautomer_smiles,

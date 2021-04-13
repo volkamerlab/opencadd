@@ -1,13 +1,11 @@
 """
 This function converts:
--SMILES
--InChI
--SDF
+- SMILES
+- InChI
+- SDF
 """
+
 from rdkit import Chem
-from rdkit.Chem import inchi
-from rdkit.Chem import SDMolSupplier
-from opencadd.compounds.standardization.utils import data_path
 
 __all__ = [
     "convert_smiles_to_mol",

@@ -1,7 +1,6 @@
 """
 This module performs changes on charges.
 """
-from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 __all__ = ["uncharge", "reionize"]

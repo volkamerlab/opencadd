@@ -1,7 +1,6 @@
 """
 This module disconnects metals from structures.
 """
-from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 __all__ = ["disconnect_metals"]

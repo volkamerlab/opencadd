@@ -7,6 +7,8 @@ import os
 import shutil
 import tempfile
 import contextlib
+from pathlib import Path
+
 
 _logger = logging.getLogger(__name__)
 
@@ -66,3 +68,18 @@ class EmojiPerLevelFormatter(PerLevelFormatter):
         101: "%(message)s",
         25: "☑️ %(message)s",
     }
+
+
+def data_path(fn):
+    """Leads to files saved in the data folder
+
+    Parameters
+    ----------
+    fn: str
+        The whole filename.
+
+    Returns
+    -------
+    The path of the file in the current working system.
+    """
+    return Path(__file__).parent / "data" / fn

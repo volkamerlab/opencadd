@@ -6,7 +6,7 @@ from rdkit.Chem.SaltRemover import SaltRemover
 import csv
 import logging
 from rdkit import RDLogger
-from opencadd.compounds.standardization.utils import data_path
+from ...utils import data_path
 
 __all__ = ["remove_salts"]
 
@@ -69,7 +69,7 @@ def remove_salts(mol, dictionary=True, *args, **kwargs):
             i += 1
             remover = SaltRemover(defnData=salt)
             stripped_mol = remover.StripMol(mol)
-            if stripped_mol.GetNumAtoms()==0:
+            if stripped_mol.GetNumAtoms() == 0:
                 print(test)
                 break
             test_smiles = Chem.MolToSmiles(stripped_mol)

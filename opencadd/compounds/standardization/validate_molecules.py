@@ -1,7 +1,6 @@
 """
 This module provides all validation methods included in rdMolStandardize
 """
-from rdkit import Chem
 from rdkit.Chem.rdchem import Atom
 from rdkit.Chem.MolStandardize import rdMolStandardize
 

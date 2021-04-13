@@ -1,7 +1,6 @@
 """
 This module handles different operations with fragments.
 """
-from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 __all__ = ["remove_fragments", "choose_largest_fragment"]

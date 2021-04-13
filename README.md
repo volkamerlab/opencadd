@@ -14,6 +14,7 @@ A Python library for structural cheminformatics.
 
 > This library is still in early stages of development.
 
+- `compounds.standardization`: standardize chemical records.
 - `databases.klifs`: utilities to query the KLIFS database, offline or online.
 - `io`: read and write molecules from/to files.
 - `structure.pocket`: identification and analysis of protein (sub)pockets.
@@ -34,6 +35,7 @@ The Documentation will be available soon.
 - Jaime Rodríguez-Guerra, PhD
 - Dominique Sydow
 - Dennis Köser, Annie Pham, Enes Kurnaz, Julian Pipart (structural superposition, 2020)
+- Allen Dumler (standardizer, 2021)
 
 # Acknowledgements
 
