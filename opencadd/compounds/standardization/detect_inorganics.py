@@ -7,7 +7,7 @@ from rdkit import Chem
 __all__ = ["detect_inorganic", "detect_carbon"]
 
 inorganic_elements = Chem.MolFromSmarts(
-    "[!#1&!#6&!#7&!#8&!#9&!#15&!#16&!#17&!#35&!#53]"
+    "[!#1&!#6&!#7&!#8&!#9&!#15&!#16&!#17&!#34&!#35&!#53]"
 )
 carbon_smarts = Chem.MolFromSmarts("[C]")
 
@@ -34,7 +34,7 @@ def detect_inorganic(mol, *args, **kwargs):
     Notes
     -----
     To organic structures we count the following: Hydrogen, Carbon,
-    Nitrogen, Oxygen, Fluorine, Phosphorus, Sulfur, Chlorine, Bromine,
+    Nitrogen, Oxygen, Fluorine, Phosphorus, Sulfur, Chlorine, Selenium, Bromine,
     Iodine.
 
     """
