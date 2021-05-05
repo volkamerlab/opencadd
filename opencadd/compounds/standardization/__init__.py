@@ -6,7 +6,7 @@ A tool to standardize compounds.
 # Add imports here
 from .assign_stereochemistry import *
 from .convert_format import *
-from .detect_inorganic import *
+from .detect_inorganics import *
 from .disconnect_metals import *
 from .handle_charges import *
 from .handle_fragments import *

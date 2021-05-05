@@ -1,5 +1,5 @@
 """
-test for the module `detect_inorganic`
+test for the module `detect_inorganics`
 """
 import pytest
 import sys
@@ -7,7 +7,7 @@ import rdkit
 
 from rdkit import Chem
 
-from opencadd.compounds.standardization import detect_inorganic
+from opencadd.compounds.standardization import detect_inorganics
 
 
 def _evaluation_mol_generator(test_smiles=None, test_inchi=None):
