@@ -59,11 +59,6 @@ def detect_carbon(mol, *args, **kwargs):
         Returns if the stucture contains Carbon (True),
         or not (False).
     """
-    # if mol.GetSubstructMatch(carbon_smarts, *args, **kwargs):
-    #     logging.debug("Structure contain Carbon")
-    #     return True
-    # logging.debug("Structure does not contain Carbon")
-    # return False
     for a in mol.GetAtoms():
         if a.GetAtomicNum() == 6:
             return True
