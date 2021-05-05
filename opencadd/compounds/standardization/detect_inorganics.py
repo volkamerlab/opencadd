@@ -9,10 +9,9 @@ __all__ = ["detect_inorganic", "detect_carbon"]
 inorganic_elements = Chem.MolFromSmarts(
     "[!#1&!#6&!#7&!#8&!#9&!#15&!#16&!#17&!#34&!#35&!#53]"
 )
-carbon_smarts = Chem.MolFromSmarts("[C]")
 
 
-def detect_inorganic(mol, *args, **kwargs):
+def detect_inorganic(mol, inorganic_elements=inorganic_elements, *args, **kwargs):
     """Detects all inorganic substructures.
 
     Has a list of SMARTS which explicitly exludes all elemtents that can occur
