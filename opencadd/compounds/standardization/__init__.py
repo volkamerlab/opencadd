@@ -16,3 +16,4 @@ from .remove_salts import *
 from .sanitize_molecules import *
 from .validate_molecules import *
 from .detect_mixtures import *
+from .detect_metals import *
