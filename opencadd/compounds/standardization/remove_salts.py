@@ -50,8 +50,8 @@ def remove_salts(mol, dictionary=True, *args, **kwargs):
     -----
     The Salts Dictionary
         The dictionary used is a derived version from the ChEMBL salt
-        dictionary, created for the flatkinson standardiser. The salts
-        are stored as list of (neutral) SMILES.
+        dictionary, created for the standardiser application by Francis 
+        Atkinson. The salts are stored as list of (neutral) SMILES.
     """
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.ERROR)
