@@ -1,5 +1,5 @@
 """
-This module detects all metals.
+This module detects metals.
 """
 import logging
 from rdkit import Chem

@@ -1,5 +1,5 @@
 """
-This module detects all inorganic substructures.
+This module detects inorganic substructures.
 """
 import logging
 from rdkit import Chem

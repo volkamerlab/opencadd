@@ -1,5 +1,5 @@
 """
-This module detects all mixtures.
+This module detects mixtures.
 """
 import logging
 from rdkit import Chem
