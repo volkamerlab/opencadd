@@ -69,13 +69,11 @@ def remove_salts(mol, dictionary=True, *args, **kwargs):
             i += 1
             remover = SaltRemover(defnData=salt)
             stripped_mol = remover.StripMol(mol)
-            if stripped_mol.GetNumAtoms() == 0:
-                print(test)
-                break
             test_smiles = Chem.MolToSmiles(stripped_mol)
             if test_smiles != test:
                 logging.debug("Following salt was stripped: %s", salt_name)
                 mol = stripped_mol
+                continue
     else:
         mol = SaltRemover(*args, **kwargs).StripMol(mol)
 
