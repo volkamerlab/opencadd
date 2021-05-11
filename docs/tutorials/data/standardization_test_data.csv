@@ -205,3 +205,4 @@ IDs,Names,SMILEs,HUMANS,RODENTS,NON-RODENTS
 204,test_duplicate,[Al].N.[Ba].[Bi].Br.[Ca].Cl.F.I.[K].[Li].[Mg].[Na].[Ag].[Sr].S.O.[Zn],0,0,0
 205,no_smiles_test,,0,0,0
 206,covalent_metal,CCC(=O)O[Na],0,0,0
+207,test_charge_recombination, CC([O-])=[N+](C)C, 0,0,0
