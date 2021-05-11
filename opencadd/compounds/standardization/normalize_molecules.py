@@ -26,6 +26,7 @@ def normalize(mol):
     Notes
     -----
     The Normalization transformations are saved in the list
-    NORMALIZATIONS contained in rdkit/Chem/MolStandardize/normalize.py
+    NORMALIZATIONS contained in rdkit/Chem/MolStandardize/normalize.py. They are
+    derived from the InChI technical manual.
     """
     return rdMolStandardize.Normalizer().normalize(mol)
