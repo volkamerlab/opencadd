@@ -6,14 +6,13 @@ from rdkit import Chem
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit import RDLogger
 
-RDLogger.DisableLog('rdApp.info')
+RDLogger.DisableLog("rdApp.info")
 
 __all__ = ["detect_metals"]
 
 
 def _validation_smiles(mol):
-    """Utility function that converts a mol to SMILES for later validation.
-    """
+    """Utility function that converts a mol to SMILES for later validation."""
     validation_smiles = Chem.MolToSmiles(mol)
     return validation_smiles
 
@@ -21,14 +20,14 @@ def _validation_smiles(mol):
 def detect_metals(mol, *args, **kwargs):
     """Detects metals.
 
-    Generates a SMILES out of the entered mol for validation, performs metal 
-    disconnection, turns the changed mol into another SMILES 
-    and validates it with the first SMILES created.  
+    Generates a SMILES out of the entered mol for validation, performs metal
+    disconnection, turns the changed mol into another SMILES
+    and validates it with the first SMILES created.
 
     Parameters
     ----------
     mol: rdkit.Chem.Mol
-        The molecule which has to be searched for non-organic
+        The molecule which has to be searched for metal
         substructures.
 
     Returns
