@@ -26,6 +26,7 @@ def enumerate_tautomer(smiles):
 
     Notes
     -----
+    Maximal number of tautomeric enumerations is 1000.
     The default list of Tautomer Transforms is saved in the list:
     TAUTOMER_TRANSFORMS in rdkit/Chem/MolStandardize/tautomer.py
 
@@ -51,6 +52,7 @@ def canonicalize_tautomer(smiles):
 
     Notes
     -----
+    Maximal number of tautomeric enumerations is 1000.
     The default list of Tautomer Scores is saved in the list:
     TAUTOMER_SCORES in rdkit/Chem/MolStandardize/tautomer.py
     """
