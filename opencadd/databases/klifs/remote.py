@@ -122,7 +122,9 @@ class Kinases(RemoteInitializer, KinasesProvider):
     def by_kinase_name(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
-        # FIXME: This might be a bug in KLIFS (expected behaviour: list of str; instead of str)
+        # FIXME: Unexpected KLIFS Swagger input: "ABL1, EGFR" instead ["ABL1", "EGFR"]
+        # Fixed at https://klifs.net/swagger_v2/
+        # Use workaround here and update when v2 becomes default
         kinase_names = ", ".join(kinase_names)
         # Use KLIFS API
         result = (
