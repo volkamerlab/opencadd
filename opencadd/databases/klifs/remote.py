@@ -236,7 +236,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         kinases_remote = Kinases(self._client)
         kinases = kinases_remote.by_kinase_name(kinase_names)
         # Select and rename columns to indicate columns involved in query
-        kinases = kinases[
+        kinases = kinases[  # pylint: disable=E1136
             ["kinase.klifs_id", "kinase.klifs_name", "kinase.hgnc_name", "species.klifs"]
         ]
         kinases.rename(

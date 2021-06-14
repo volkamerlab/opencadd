@@ -354,8 +354,9 @@ class Pocket(PocketBase):
             If returned number of CA atoms is larger than 1.
         """
 
-        ca_atoms = self.data[
-            (self.data["residue.id"].isin(residue_ids)) & (self.data["atom.name"] == "CA")
+        ca_atoms = self.data[  # pylint: disable=E1136
+            (self.data["residue.id"].isin(residue_ids))  # pylint: disable=E1136
+            & (self.data["atom.name"] == "CA")  # pylint: disable=E1136
         ]
 
         if len(ca_atoms) <= len(residue_ids):
