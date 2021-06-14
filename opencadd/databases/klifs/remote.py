@@ -122,32 +122,11 @@ class Kinases(RemoteInitializer, KinasesProvider):
     def by_kinase_name(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
-        # Use KLIFS API (send requests iteratively)
-        kinases = self._multiple_remote_requests(self._by_kinase_name, kinase_names, species)
-        # Standardize DataFrame
-        kinases = self._standardize_dataframe(
-            kinases, DATAFRAME_COLUMNS["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
-        )
-        return kinases
-
-    def _by_kinase_name(self, kinase_name, species=None):
-        """
-        Get kinases by kinase name.
-
-        Parameters
-        ----------
-        kinase_name : str
-            Kinase name.
-
-        Returns
-        -------
-        pandas.DataFrame or None
-            Kinases (rows) with columns as described in the class docstring.
-        """
-
+        # FIXME: This might be a bug in KLIFS (expected behaviour: list of str; instead of str)
+        kinase_names = ", ".join(kinase_names)
         # Use KLIFS API
         result = (
-            self._client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
+            self._client.Information.get_kinase_ID(kinase_name=kinase_names, species=species)
             .response()
             .result
         )
@@ -157,7 +136,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinases = self._standardize_dataframe(
             kinases, DATAFRAME_COLUMNS["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
         )
-
         return kinases
 
 
