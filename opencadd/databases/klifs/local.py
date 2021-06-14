@@ -145,7 +145,10 @@ class _LocalDatabaseGenerator:
         # Unify column 'kinase.hgnc': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.hgnc": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.all_names": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_names(i) for i in klifs_export["kinase.names"]]
+        kinase_names = [
+            self._format_kinase_names(i)
+            for i in klifs_export["kinase.names"]  # pylint: disable=E1136
+        ]
         klifs_export["kinase.names"] = kinase_names
         klifs_export.insert(1, "kinase.hgnc_name", [i[0] for i in kinase_names])
         klifs_export.insert(2, "kinase.klifs_name", [i[-1] for i in kinase_names])
@@ -178,7 +181,9 @@ class _LocalDatabaseGenerator:
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
-        klifs_overview["structure.alternate_model"].replace(" ", "-", inplace=True)
+        klifs_overview["structure.alternate_model"].replace(  # pylint: disable=E1136
+            " ", "-", inplace=True
+        )
         # Drop column for kinase name; will be taken from KLIFS_export.csv file upon table merge
         klifs_overview.drop(columns=["kinase.klifs_name"], inplace=True)
 
