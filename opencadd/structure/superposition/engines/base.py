@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 
 
 class BaseAligner:
-    """"""
+    """ """
 
     def calculate(self, structures, *args, **kwargs):
         """
