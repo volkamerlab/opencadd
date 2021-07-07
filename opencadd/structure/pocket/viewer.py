@@ -238,7 +238,7 @@ class PocketViewer:
         self.structure_names.append(pocket.name)
         # Add structure
         component = nglview.TextStructure(pocket._text, ext=pocket._extension)
-        self.viewer.add_component(component)
+        self.viewer.add_component(component, name=f"{pocket.name}")
         # Save the structure's NGLview component
         self._components_structures[pocket.name] = self._component_counter
         self._component_counter += 1
