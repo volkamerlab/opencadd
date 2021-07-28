@@ -61,7 +61,7 @@ REMOTE_COLUMNS_MAPPING = {
         "name": "kinase.klifs_name",  # NEW! Depending on availability: Manning name or UniProt gene name
         "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
-        "accesion": "kinase.uniprot",  # NEW! UniProt accession
+        "accession": "kinase.uniprot",  # NEW! UniProt accession
         "species": "species.klifs",
     },
     # Information.get_kinase_information()
