@@ -705,7 +705,7 @@ class Pockets(LocalInitializer, PocketsProvider):
             raise ValueError(
                 f"Number of KLIFS pocket sequence is {len(pocket_sequence)} but must be 85."
             )
-        
+
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
             index
@@ -718,7 +718,7 @@ class Pockets(LocalInitializer, PocketsProvider):
             self._path_to_klifs_download / structure["structure.filepath"] / f"pocket.{extension}"
         )
         dataframe = DataFrame.from_file(pocket_path)
-        
+
         # CHECK: Number of residues in KLIFS pocket sequence and structure file are the same?
         structure_residues = dataframe[["residue.name", "residue.id"]].drop_duplicates()
         if len(klifs_ids) != len(structure_residues):
