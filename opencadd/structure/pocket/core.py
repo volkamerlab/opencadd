@@ -150,7 +150,7 @@ class Pocket(PocketBase):
         # Cast the IDs to str, so that they can match the DataFrame's ID
         residue_ids = [str(residue_id) for residue_id in self._residue_ids if residue_id]
         # Fetch all atoms matching residues IDs and cast them back to integers
-        # This step will remove any residues with insertion codes, 
+        # This step will remove any residues with insertion codes,
         # e.g. "612A" in structure 7oam (PDB ID)
         dataframe = dataframe[dataframe["residue.id"].isin(residue_ids)]
         dataframe = dataframe.astype({"residue.id": "int32"})

@@ -134,7 +134,9 @@ class DataFrame(_Base):
         pdb_df = pdb_df.iloc[:, pdb_columns.index.to_list()]
         pdb_df.columns = pdb_columns["name"].to_list()
         # Merge residue ID and insertion code
-        pdb_df["residue.id"] = pdb_df.apply(lambda x: str(x["residue.id"]) + x["residue.insertion"], axis=1)
+        pdb_df["residue.id"] = pdb_df.apply(
+            lambda x: str(x["residue.id"]) + x["residue.insertion"], axis=1
+        )
 
         # Format DataFrame
         pdb_df = cls._format_dataframe(pdb_df, verbose)
@@ -290,7 +292,6 @@ class DataFrame(_Base):
         else:
             res_name = subst_name[:3]
             res_id = subst_name[3:]
-        
 
         return res_name, res_id
 
@@ -311,8 +312,6 @@ class DataFrame(_Base):
         pandas.DataFrame
             Formatted DataFrame with structural data.
         """
-
-        
 
         if verbose:
             dataframe_columns = DATAFRAME_COLUMNS["default"] + DATAFRAME_COLUMNS["verbose"]
