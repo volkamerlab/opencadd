@@ -133,6 +133,8 @@ class DataFrame(_Base):
         # Select only columns of interest and rename columns
         pdb_df = pdb_df.iloc[:, pdb_columns.index.to_list()]
         pdb_df.columns = pdb_columns["name"].to_list()
+        # Merge residue ID and insertion code
+        pdb_df["residue.id"] = pdb_df.apply(lambda x: str(x["residue.id"]) + x["residue.insertion"], axis=1)
 
         # Format DataFrame
         pdb_df = cls._format_dataframe(pdb_df, verbose)
@@ -236,8 +238,8 @@ class DataFrame(_Base):
             lambda x: cls._split_mol2_subst_name(x["residue.subst_name"], x["atom.type"]),
             axis=1,
         )
-        res_names = [res_name for res_name, res_id in result]
-        res_ids = [res_id for res_name, res_id in result]
+        res_names = [res_name for res_name, _ in result]
+        res_ids = [res_id for _, res_id in result]
 
         mol2_df["residue.name"] = res_names
         mol2_df["residue.id"] = res_ids
@@ -288,6 +290,7 @@ class DataFrame(_Base):
         else:
             res_name = subst_name[:3]
             res_id = subst_name[3:]
+        
 
         return res_name, res_id
 
@@ -308,6 +311,8 @@ class DataFrame(_Base):
         pandas.DataFrame
             Formatted DataFrame with structural data.
         """
+
+        
 
         if verbose:
             dataframe_columns = DATAFRAME_COLUMNS["default"] + DATAFRAME_COLUMNS["verbose"]
@@ -335,7 +340,7 @@ class DataFrame(_Base):
         dataframe = dataframe.astype(column_dtypes_dict)
 
         # Set default columns order
-        column_names_list = [column_name for (column_name, column_dtype) in dataframe_columns]
+        column_names_list = [column_name for (column_name, _) in dataframe_columns]
         dataframe = dataframe[column_names_list]
 
         return dataframe.dropna(axis=1)
