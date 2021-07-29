@@ -65,7 +65,7 @@ class TestsAllQueries:
 
     @pytest.mark.parametrize(
         "group, local_families",
-        [(None, ["Tec", "RAF", "Abl"]), ("TK", ["Tec", "Abl"])],
+        [(None, ["Tec", "RAF", "Abl", "LRRK", "PDGFR"]), ("TK", ["Tec", "Abl", "PDGFR"])],
     )
     def test_all_kinase_families(self, group, local_families):
         """
@@ -96,11 +96,29 @@ class TestsAllQueries:
     @pytest.mark.parametrize(
         "group, family, species, local_kinases",
         [
-            (None, None, None, [["BMX", "BRAF", "Abl1"], ["Human", "Human", "Mouse"]]),
-            ("TK", None, None, [["BMX", "Abl1"], ["Human", "Mouse"]]),
+            (
+                None,
+                None,
+                None,
+                [
+                    ["BMX", "BRAF", "Abl1", "LRRK2", "CSF1R"],
+                    ["Human", "Human", "Mouse", "Human", "Human"],
+                ],
+            ),
+            ("TK", None, None, [["BMX", "Abl1", "CSF1R"], ["Human", "Mouse", "Human"]]),
             (None, "Tec", None, [["BMX"], ["Human"]]),
-            (None, None, "Human", [["BMX", "BRAF"], ["Human", "Human"]]),
-            (None, None, "HUMAN", [["BMX", "BRAF"], ["Human", "Human"]]),
+            (
+                None,
+                None,
+                "Human",
+                [["BMX", "BRAF", "LRRK2", "CSF1R"], ["Human", "Human", "Human", "Human"]],
+            ),
+            (
+                None,
+                None,
+                "HUMAN",
+                [["BMX", "BRAF", "LRRK2", "CSF1R"], ["Human", "Human", "Human", "Human"]],
+            ),
             ("TK", "Tec", "Human", [["BMX"], ["Human"]]),
         ],
     )
@@ -145,7 +163,7 @@ class TestsAllQueries:
         check_dataframe(result_remote, DATAFRAME_COLUMNS["ligands"])
         check_dataframe(result_local, DATAFRAME_COLUMNS["ligands"])
 
-        assert result_local["ligand.expo_id"].to_list() == ["1N1", "QH1", "PRC"]
+        assert result_local["ligand.expo_id"].to_list() == ["1N1", "QH1", "PRC", "-"]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
 
@@ -160,7 +178,14 @@ class TestsAllQueries:
         check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
         check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
 
-        assert result_local["structure.klifs_id"].to_list() == [3482, 12347, 5728, 5705]
+        assert result_local["structure.klifs_id"].to_list() == [
+            3482,
+            12347,
+            5728,
+            5705,
+            13623,
+            1243,
+        ]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
 
