@@ -26,6 +26,7 @@ from .schema import (
 )
 from .remote import KLIFS_CLIENT
 from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
 from opencadd.io import DataFrame, Rdkit
 
 # Get the newest file version (* = YYYYMMDD)
@@ -702,9 +703,7 @@ class Pockets(LocalInitializer, PocketsProvider):
         # CHECK: Number of KLIFS pocket sequence equals 85?
         pocket_sequence = structure["structure.pocket"]
         if len(pocket_sequence) != 85:
-            raise ValueError(
-                f"Number of KLIFS pocket sequence is {len(pocket_sequence)} but must be 85."
-            )
+            raise KlifsPocketIncompleteError(len(pocket_sequence))
 
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
@@ -722,11 +721,7 @@ class Pockets(LocalInitializer, PocketsProvider):
         # CHECK: Number of residues in KLIFS pocket sequence and structure file are the same?
         structure_residues = dataframe[["residue.name", "residue.id"]].drop_duplicates()
         if len(klifs_ids) != len(structure_residues):
-            raise ValueError(
-                f"Number of KLIFS pocket residues are not equal in"
-                f"pocket sequence string ({len(klifs_ids)}) and "
-                f"pocket structure file ({len(structure_residues)})."
-            )
+            raise KlifsPocketUnequalSequenceStructure(len(klifs_ids), len(structure_residues))
 
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
