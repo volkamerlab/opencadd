@@ -130,5 +130,5 @@ def main():
                 args.method,
                 i,
                 reference_id,
-                mobile_id
+                mobile_id,
             )

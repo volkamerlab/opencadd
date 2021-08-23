@@ -94,9 +94,9 @@ class MMLignerAligner(BaseAligner):
             )
             # We need access to the temporary files at parse time!
             result = self._parse_metadata(output.decode())
-            
+
             # checks if there is metadata in the dict, if not, there was no significant alignment found.
-            if "metadata" in result:       
+            if "metadata" in result:
                 superposed_models = self._calculate_transformed(structures, result["metadata"])
                 result["superposed"] = superposed_models
         return result
@@ -142,10 +142,8 @@ class MMLignerAligner(BaseAligner):
                 quaternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
 
         # checks if there is a signifcant alignment
-        if(rmsd == 0 and coverage == 0):
-            return {
-                "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}
-            } 
+        if rmsd == 0 and coverage == 0:
+            return {"scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}}
         else:
             # fixed_com, moving_com, rotation and quaternion can only be obtained
             # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
