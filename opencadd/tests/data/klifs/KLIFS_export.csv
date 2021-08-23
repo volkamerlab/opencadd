@@ -3,3 +3,5 @@
 "BRAF","RAF","TKL","6uuo","A","-","Human","1-[4-{[1-(3-{[dihydroxy(propyl)-lambda~4~-sulfanyl]amino}-2,6-difluorophenyl)-3-(pyrimidin-5-yl)-1H-pyrrolo[3,2-b]pyridin-5-yl](methyl)amino}pyridin-1(4H)-yl]ethan-1-one","QH1","-","-","in","out-like"
 "Abl1 (ABL1)","Abl","TK","1fpu","A","-","Mouse","N-[4-METHYL-3-[[4-(3-PYRIDINYL)-2-PYRIMIDINYL]AMINO]PHENYL]-3-PYRIDINECARBOXAMIDE","PRC","-","-","out","out"
 "Abl1 (ABL1)","Abl","TK","1fpu","B","-","Mouse","N-[4-METHYL-3-[[4-(3-PYRIDINYL)-2-PYRIMIDINYL]AMINO]PHENYL]-3-PYRIDINECARBOXAMIDE","PRC","-","-","out","out"
+"LRRK2","LRRK","TKL","7lht","A","-","Human","-","-","ADENOSINE-5&apos;-TRIPHOSPHATE","ATP","out","out"
+"CSF1R (FMS)","PDGFR","TK","2ogv","A","-","Human","-","-","-","-","out","in"
