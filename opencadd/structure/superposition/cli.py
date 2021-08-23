@@ -107,16 +107,28 @@ def main():
         result, *_empty = align(
             [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
         )
-        _logger.log(
-            25,  # this the level id for results
-            "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
-            i,
-            reference_id,
-            mobile_id,
-            result["scores"]["rmsd"],
-        )
-        for j, structure in enumerate(result["superposed"], 1):
-            structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
-            _logger.debug(
-                "Wrote superposed model #%d to %s", j, f"superposed_{args.method}_{i}_{j}.pdb"
+
+        # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
+        if "superposed" in result:
+            _logger.log(
+                25,  # this the level id for results
+                "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
+                i,
+                reference_id,
+                mobile_id,
+                result["scores"]["rmsd"],
+            )
+            for j, structure in enumerate(result["superposed"], 1):
+                structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
+                _logger.debug(
+                    "Wrote superposed model #%d to %s", j, f"superposed_{args.method}_{i}_{j}.pdb"
+                )
+        else:
+            _logger.log(
+                25,
+                "`%s` found no alignment for #%d between `%s` and `%s`.",
+                args.method,
+                i,
+                reference_id,
+                mobile_id
             )
