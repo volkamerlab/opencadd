@@ -35,26 +35,20 @@ def parse_cli(argv=None, greet=False):
         help="Which alignment method to use",
         choices=[m.lower() for m in METHODS],
     )
-    # p.add_argument(
-    #     "--method-options",
-    #     default={},
-    #     type=parse_method_options,
-    #     help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
-    # )
+    p.add_argument(
+        "--method-options",
+        default={},
+        type=parse_method_options,
+        help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
+    )
 
     return p.parse_args()
 
 
 def parse_method_options(string):
-    options = {}
     if not string or not string.strip():
-        return options
-    fields = string.split(";")
-    # use YAML (through ruamel_yaml) to parse each field
-    for field in fields:
-        # TODO: REPLACE WITH some_ruamel_yaml_function(field)  # -> {key: value}
-        minidict = {"dummy": "value"}
-        options.update(minidict)
+        return {}
+    options = dict(option.split(": ") for option in string.split("; "))
     return options
 
 
