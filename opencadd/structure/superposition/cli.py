@@ -108,7 +108,7 @@ def main():
         if "superposed" in result:
             _logger.log(
                 25,  # this the level id for results
-                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3fÅ \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",                 
+                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3fÅ \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",
                 i,
                 reference_id,
                 mobile_id,

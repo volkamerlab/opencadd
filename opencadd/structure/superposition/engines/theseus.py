@@ -322,9 +322,7 @@ class TheseusAligner(BaseAligner):
             elif "Total rounds" in line:
                 total_rounds = float(blocks[3])
         return {
-            "scores": {
-                "rmsd": rmsd,
-                "coverage": n_atoms},
+            "scores": {"rmsd": rmsd, "coverage": n_atoms},
             "metadata": {
                 "transformation": self._get_transformation_matrix(),
                 "least_squares": least_squares,
