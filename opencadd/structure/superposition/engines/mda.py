@@ -119,6 +119,10 @@ class MDAnalysisAligner(BaseAligner):
         selection, alignment = self.matching_selection(*structures)
         ref_atoms = ref_universe.select_atoms(selection["reference"])
         mobile_atoms = mob_universe.select_atoms(selection["mobile"])
+        if len(ref_atoms) == len(mobile_atoms):
+            coverage = len(ref_atoms)
+        else:
+            raise ValueError("The number of atoms to match should be the same for both structures.")
 
         # Compute initial RMSD (no preprocessing)
         initial_rmsd = rms.rmsd(ref_atoms.positions, mobile_atoms.positions)
@@ -140,7 +144,7 @@ class MDAnalysisAligner(BaseAligner):
 
         return {
             "superposed": [ref_universe, mob_universe],
-            "scores": {"rmsd": rmsd},
+            "scores": {"rmsd": rmsd, "coverage": coverage},
             "metadata": {
                 "selection": selection,
                 "alignment": alignment,
