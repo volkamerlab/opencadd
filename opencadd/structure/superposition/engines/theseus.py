@@ -81,6 +81,7 @@ class TheseusAligner(BaseAligner):
 
             - ``scores`` (dict)
                     ``rmsd`` (float): RMSD value of the alignment
+                    ``coverage`` (integer): number of alpha carbon atoms used for superposition
             - ``metadata`` (dict)
                     ``least_squares``: least squares
                     ``maximum_likelihood``: maximum likelihood
@@ -101,7 +102,6 @@ class TheseusAligner(BaseAligner):
                     ``d_p``: d_p
                     ``median_structure``: median_structure
                     ``n_total``: number total
-                    ``n_atoms``: number of atoms
                     ``n_structures``: number of structures
                     ``total_rounds``: total rounds
         """
@@ -322,7 +322,9 @@ class TheseusAligner(BaseAligner):
             elif "Total rounds" in line:
                 total_rounds = float(blocks[3])
         return {
-            "scores": {"rmsd": rmsd},
+            "scores": {
+                "rmsd": rmsd,
+                "coverage": n_atoms},
             "metadata": {
                 "transformation": self._get_transformation_matrix(),
                 "least_squares": least_squares,
@@ -344,7 +346,6 @@ class TheseusAligner(BaseAligner):
                 "d_p": d_p,
                 "median_structure": median_structure,
                 "n_total": n_total,
-                "n_atoms": n_atoms,
                 "n_structures": n_structures,
                 "total_rounds": total_rounds,
             },
