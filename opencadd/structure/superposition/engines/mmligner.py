@@ -94,8 +94,11 @@ class MMLignerAligner(BaseAligner):
             )
             # We need access to the temporary files at parse time!
             result = self._parse_metadata(output.decode())
-            superposed_models = self._calculate_transformed(structures, result["metadata"])
-            result["superposed"] = superposed_models
+
+            # checks if there is metadata in the dict, if not, there was no significant alignment found.
+            if "metadata" in result:
+                superposed_models = self._calculate_transformed(structures, result["metadata"])
+                result["superposed"] = superposed_models
         return result
 
     def _parse_metadata(self, output):
@@ -138,23 +141,27 @@ class MMLignerAligner(BaseAligner):
             elif "Print Quaternion matrix" in line:
                 quaternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
 
-        # fixed_com, moving_com, rotation and quaternion can only be obtained
-        # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
-        # -- this will fail in CI for now --
-        translation = fixed_com - moving_com
+        # checks if there is a signifcant alignment
+        if rmsd == 0 and coverage == 0:
+            return {"scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}}
+        else:
+            # fixed_com, moving_com, rotation and quaternion can only be obtained
+            # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
+            # -- this will fail in CI for now --
+            translation = fixed_com - moving_com
 
-        alignment = fasta.FastaFile()
-        alignment.read("temp__1.afasta")
+            alignment = fasta.FastaFile()
+            alignment.read("temp__1.afasta")
 
-        return {
-            "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
-            "metadata": {
-                "alignment": alignment,
-                "rotation": rotation,
-                "translation": translation,
-                "quaternion": quaternion,
-            },
-        }
+            return {
+                "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
+                "metadata": {
+                    "alignment": alignment,
+                    "rotation": rotation,
+                    "translation": translation,
+                    "quaternion": quaternion,
+                },
+            }
 
     def _parse_scoring(self, output):
         """
