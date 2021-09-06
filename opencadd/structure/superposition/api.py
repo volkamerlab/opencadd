@@ -15,7 +15,7 @@ METHODS = {
 }
 
 
-def align(structures, method=TheseusAligner, **kwargs):
+def align(structures, method=TheseusAligner, only_backbone=False, **kwargs):
     """
     Main entry point for our project
 
@@ -38,11 +38,31 @@ def align(structures, method=TheseusAligner, **kwargs):
     assert all(isinstance(s, Structure) for s in structures)
     reference, *mobiles = structures
     results = []
-    for mobile in mobiles:
+
+    #only take the backbone residues resulting in excluding insertions and HETATM entries
+    if only_backbone:
         # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
         # comparing all models could provide better results, but would be very inefficient
         # (e.g. 25 models would mean 25 times the computing time)
-        result = aligner.calculate([reference.models[0], mobile.models[0]])
-        results.append(result)
+        reference = reference.models[0].select_atoms("backbone").residues.atoms
+        for mobile in mobiles:
+            mobile = mobile.models[0].select_atoms("backbone").residues.atoms
+            result = aligner.calculate([reference, mobile])
+            reference_size = len(reference.residues)
+            mobile_size = len(mobile.residues)
+            result["metadata"]["reference_size"] = reference_size
+            result["metadata"]["mobile_size"] = mobile_size
+            results.append(result)
 
+    else:
+        reference = reference.models[0]
+        for mobile in mobiles:
+            mobile = mobile.models[0]
+            result = aligner.calculate([reference, mobile])
+            reference_size = len(reference.residues)
+            mobile_size = len(mobile.residues)
+            result["metadata"]["reference_size"] = reference_size
+            result["metadata"]["mobile_size"] = mobile_size
+            results.append(result)
+        
     return results

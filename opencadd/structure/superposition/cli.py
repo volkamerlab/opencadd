@@ -28,6 +28,12 @@ def parse_cli(argv=None, greet=False):
         default=False,
         help="Whether to print debugging info to stdout",
     )
+    p.add_argument(
+    "--only_backbone",
+    action="store_true",
+    default=False,
+    help="Only use backbone residues (exclude insertions and HETATM entries",
+    )
     p.add_argument("--no-emoji", action="store_true", default=False, help="Disable emoji logging")
     p.add_argument(
         "--method",
@@ -85,7 +91,6 @@ def main():
 
     _logger.debug("Fetching reference model `%s`", reference_id)
     reference_model = Structure.from_string(reference_id)
-    reference_model_length = len(reference_model.models[0].residues)
 
     for i, mobile_id in enumerate(mobile_ids, 1):
         if mobile_id == reference_id and args.method == "theseus":
@@ -93,7 +98,6 @@ def main():
             continue
         _logger.debug("Fetching mobile model #%d `%s`", i, mobile_id)
         mobile_model = Structure.from_string(mobile_id)
-        mobile_model_lenght = len(mobile_model.models[0].residues)
         _logger.debug(
             "Aligning reference `%s` and mobile `%s` with method `%s`",
             reference_id,
@@ -101,23 +105,23 @@ def main():
             args.method,
         )
         result, *_empty = align(
-            [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
+            [reference_model, mobile_model], method=METHODS[args.method], only_backbone=args.only_backbone, **args.method_options
         )
 
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
         if "superposed" in result:
             _logger.log(
                 25,  # this the level id for results
-                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3fÅ \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",
+                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3f Å \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",
                 i,
                 reference_id,
                 mobile_id,
                 result["scores"]["rmsd"],
                 result["scores"]["coverage"],
                 reference_id,
-                reference_model_length,
+                result["metadata"]["reference_size"],
                 mobile_id,
-                mobile_model_lenght,
+                result["metadata"]["mobile_size"],
             )
             for j, structure in enumerate(result["superposed"], 1):
                 structure.write(f"superposed_{args.method}_{i}_{j}.pdb")

@@ -96,7 +96,7 @@ class MMLignerAligner(BaseAligner):
             result = self._parse_metadata(output.decode())
 
             # checks if there is metadata in the dict, if not, there was no significant alignment found.
-            if "metadata" in result:
+            if "alignment" in result["metadata"]:
                 superposed_models = self._calculate_transformed(structures, result["metadata"])
                 result["superposed"] = superposed_models
         return result
@@ -143,7 +143,7 @@ class MMLignerAligner(BaseAligner):
 
         # checks if there is a signifcant alignment
         if rmsd == 0 and coverage == 0:
-            return {"scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}}
+            return {"scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}, "metadata": {}}
         else:
             # fixed_com, moving_com, rotation and quaternion can only be obtained
             # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
