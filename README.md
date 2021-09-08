@@ -21,7 +21,7 @@ A Python library for structural cheminformatics.
 
 ## Documentation
 
-The Documentation will be available soon.
+The documentation is available [here](https://opencadd.readthedocs.io/en/latest/).
 
 ## License
 
