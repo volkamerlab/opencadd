@@ -3,6 +3,8 @@ opencadd
 A Python library for structural cheminformatics
 """
 
+import logging
+
 # Handle versioneer
 from ._version import get_versions
 
@@ -11,7 +13,9 @@ __version__ = versions["version"]
 __git_revision__ = versions["full-revisionid"]
 del get_versions, versions
 
-print(
+_logger = logging.getLogger(__name__)
+
+_logger.info(
     """
     Please note the following development stages of opencadd's submodules:
 
