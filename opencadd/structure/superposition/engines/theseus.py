@@ -70,6 +70,7 @@ class TheseusAligner(BaseAligner):
         theseus = find_executable("theseus")
         if theseus is None:
             raise OSError("theseus cannot be located. Is it installed?")
+        # proceed normally
 
     def _calculate(self, structures, *args, **kwargs) -> dict:
         """

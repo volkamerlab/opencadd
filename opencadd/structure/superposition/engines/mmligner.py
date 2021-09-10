@@ -71,6 +71,7 @@ class MMLignerAligner(BaseAligner):
         theseus = find_executable("mmligner")
         if theseus is None:
             raise OSError("theseus cannot be located. Is it installed?")
+        # proceed normally
 
     def _calculate(self, structures, *args, **kwargs):
         """
