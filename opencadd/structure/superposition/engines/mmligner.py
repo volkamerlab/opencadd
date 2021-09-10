@@ -25,6 +25,7 @@ Bell Syst.Tech. J., 27, 379–423.
 import sys
 import subprocess
 import logging
+from distutils.spawn import find_executable
 
 import numpy as np
 import biotite.sequence.io.fasta as fasta
@@ -56,6 +57,20 @@ class MMLignerAligner(BaseAligner):
         _logger.warning(
             "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures!"
         )
+    
+    def _safety_checks(self):
+        """
+        Check if `mmligner` is installed (executable found?).
+
+        Raises
+        ------
+        OSError
+            Raises error if executable `mmligner` cannot be found.
+        """
+        
+        theseus = find_executable("mmligner")
+        if theseus is None:
+            raise OSError("theseus cannot be located. Is it installed?")
 
     def _calculate(self, structures, *args, **kwargs):
         """
@@ -83,6 +98,8 @@ class MMLignerAligner(BaseAligner):
                 - ``translation`` (np.array): array containing the translation
                 - ``quarternion`` (array-like): 4x4 quarternion matrix
         """
+
+        self._safety_checks()
 
         with enter_temp_directory() as (cwd, tmpdir):
             # Needed because of the need of a copy of the structures.
