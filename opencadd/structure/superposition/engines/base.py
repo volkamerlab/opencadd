@@ -32,6 +32,6 @@ class BaseAligner:
 
     def _calculate(self, structures, *args, **kwargs):
         raise NotImplementedError("Reimplement in your subclass")
-    
+
     def _safety_checks(self):
         raise NotImplementedError("Reimplement in your subclass")

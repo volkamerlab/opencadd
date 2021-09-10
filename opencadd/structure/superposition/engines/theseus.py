@@ -56,7 +56,7 @@ class TheseusAligner(BaseAligner):
         self._alignment_file_biotite = "theseus_biotite.aln"
         self._alignment_executable = "muscle"
         self._theseus_transformation_file = "theseus_transf.txt"
-    
+
     def _safety_checks(self):
         """
         Check if `theseus` is installed (executable found?).
@@ -66,7 +66,7 @@ class TheseusAligner(BaseAligner):
         OSError
             Raises error if executable `theseus` cannot be found.
         """
-        
+
         theseus = find_executable("theseus")
         if theseus is None:
             raise OSError("theseus cannot be located. Is it installed?")

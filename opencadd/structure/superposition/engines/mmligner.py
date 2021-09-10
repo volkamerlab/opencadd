@@ -57,7 +57,7 @@ class MMLignerAligner(BaseAligner):
         _logger.warning(
             "Current MMLigner wrappers produces accurate RMSD values but slightly shifted structures!"
         )
-    
+
     def _safety_checks(self):
         """
         Check if `mmligner` is installed (executable found?).
@@ -67,7 +67,7 @@ class MMLignerAligner(BaseAligner):
         OSError
             Raises error if executable `mmligner` cannot be found.
         """
-        
+
         theseus = find_executable("mmligner")
         if theseus is None:
             raise OSError("theseus cannot be located. Is it installed?")
