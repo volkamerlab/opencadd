@@ -117,12 +117,6 @@ class MDAnalysisAligner(BaseAligner):
             metadata
         """
 
-        self._safety_checks()
-
-        if len(structures) > 2:
-            raise NotImplementedError(
-                "This method can only be used for two structures at the same time, for now"
-            )
         ref_universe, mob_universe = structures
 
         # Get matching atoms

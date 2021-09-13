@@ -122,8 +122,6 @@ class TheseusAligner(BaseAligner):
                     ``total_rounds``: total rounds
         """
 
-        self._safety_checks()
-
         with enter_temp_directory(remove=True) as (cwd, tmpdir):
             _logger.debug("All files are located in: %s", tmpdir)
 

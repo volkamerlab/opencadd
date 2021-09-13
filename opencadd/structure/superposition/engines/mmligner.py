@@ -100,8 +100,6 @@ class MMLignerAligner(BaseAligner):
                 - ``quarternion`` (array-like): 4x4 quarternion matrix
         """
 
-        self._safety_checks()
-
         with enter_temp_directory() as (cwd, tmpdir):
             # Needed because of the need of a copy of the structures.
             sys.setrecursionlimit(100000)
