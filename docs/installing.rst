@@ -1,29 +1,46 @@
 Installing
 ==========
 
-Eventually, we will have a ``conda`` package, but for now you need to create a new environment manually.
+.. note::
 
-1. Install Miniconda for your OS if you don't have it already.
-2. Download a `copy of this repository <https://github.com/volkamerlab/opencadd/archive/master.zip>`_.
-3. Create new conda environment::
+    We are assuming you have a working ``mamba`` installation in your computer. 
+    If this is not the case, please refer to their `official documentation <https://mamba.readthedocs.io/en/latest/installation.html#mamba>`_. 
 
-    conda env create -n opencadd -f devtools/conda-envs/test_env.yaml
 
-4. Activate the new environment::
+Install from the conda package
+------------------------------
+
+1. Create a new conda environment called ``opencadd`` with the ``opencadd`` package and all its dependencies installed::
+
+    mamba create -n opencadd opencadd
+
+2. Activate the new conda environment::
 
     conda activate opencadd
 
-5. Install the package with ``pip``::
+.. 3. Test that your installation works::
 
-    python -m pip install https://github.com/volkamerlab/opencadd/archive/master.tar.gz
+    superposer -h
 
-6. Run ``superposer -h`` to test it works.
 
-7. Workaround for MMLigner::
-    conda config --add channels conda-forge 
-    conda activate base
-    conda install conda-build
-    conda build devtools/conda-recipes/mmligner/
-    (conda activate opencadd)
-    conda install -c local mmligner pip
-    python -m pip install -e . --no-deps
+Install from the latest development snapshot
+--------------------------------------------
+
+Install the latest development snapshot from the `GitHub repository's master branch <https://github.com/volkamerlab/opencadd>`_.
+
+
+1. Create a new conda environment called ``opencadd``::
+
+    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd
+
+2. Activate the new conda environment::
+
+    conda activate opencadd
+
+3. Install ``opencadd`` package via pip::
+
+    pip install https://github.com/volkamerlab/opencadd/archive/master.tar.gz
+
+.. 4. Test that your installation works::
+
+    superposer -h
