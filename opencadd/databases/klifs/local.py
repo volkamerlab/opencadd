@@ -413,7 +413,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         kinases = self._database.copy()
-        print(kinases.columns)
         kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
