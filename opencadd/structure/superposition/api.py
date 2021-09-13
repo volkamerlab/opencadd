@@ -39,7 +39,10 @@ def align(structures, method=TheseusAligner, **kwargs):
     reference, *mobiles = structures
     results = []
     for mobile in mobiles:
-        result = aligner.calculate([reference, mobile])
+        # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
+        # comparing all models could provide better results, but would be very inefficient
+        # (e.g. 25 models would mean 25 times the computing time)
+        result = aligner.calculate([reference.models[0], mobile.models[0]])
         results.append(result)
 
     return results

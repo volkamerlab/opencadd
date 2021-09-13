@@ -6,6 +6,124 @@ Defines schema used across the klifs module.
 
 import pandas as pd
 
+DATAFRAME_COLUMNS = {
+    "kinase_groups": [
+        ("kinase.group", "string"),
+    ],
+    "kinase_families": [
+        ("kinase.family", "string"),
+    ],
+    "kinases_all": [
+        ("kinase.klifs_id", "int32"),
+        ("kinase.hgnc_name", "string"),  # TODO except for kinase KLIFS IDs: 529, 530
+        ("kinase.full_name", "string"),
+        ("species.klifs", "string"),
+    ],
+    "kinases": [
+        ("kinase.klifs_id", "int32"),
+        ("kinase.klifs_name", "string"),  # TODO where from?
+        ("kinase.hgnc_name", "string"),
+        ("kinase.family", "string"),
+        ("kinase.group", "string"),
+        ("kinase.class", "string"),  # TODO where from?
+        ("species.klifs", "string"),
+        ("kinase.full_name", "string"),
+        ("kinase.uniprot", "string"),
+        ("kinase.iuphar", "string"),
+        ("kinase.pocket", "string"),
+    ],
+    "ligands": [
+        ("ligand.klifs_id", "Int32"),  # TODO use int32 when ligand ID avail. locally
+        ("ligand.expo_id", "string"),
+        ("ligand.name", "string"),
+        ("ligand.smiles", "string"),
+        ("ligand.inchikey", "string"),
+    ],
+    "structures": [
+        ("structure.klifs_id", "int32"),
+        ("structure.pdb_id", "string"),
+        ("structure.alternate_model", "string"),
+        ("structure.chain", "string"),
+        ("species.klifs", "string"),
+        ("kinase.klifs_id", "int32"),
+        ("kinase.klifs_name", "string"),  # TODO where from?
+        # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
+        ("kinase.family", "string"),
+        ("kinase.group", "string"),
+        ("structure.pocket", "string"),
+        ("ligand.expo_id", "string"),
+        ("ligand_allosteric.expo_id", "string"),
+        ("ligand.name", "string"),
+        ("ligand_allosteric.name", "string"),
+        ("structure.dfg", "string"),
+        ("structure.ac_helix", "string"),
+        ("structure.resolution", "float32"),
+        ("structure.qualityscore", "float32"),
+        ("structure.missing_residues", "int32"),
+        ("structure.missing_atoms", "int32"),
+        ("structure.rmsd1", "float32"),
+        ("structure.rmsd2", "float32"),
+        ("structure.front", "boolean"),
+        ("structure.gate", "boolean"),
+        ("structure.back", "boolean"),
+        ("structure.fp_i", "boolean"),
+        ("structure.fp_ii", "boolean"),
+        ("structure.bp_i_a", "boolean"),
+        ("structure.bp_i_b", "boolean"),
+        ("structure.bp_ii_in", "boolean"),
+        ("structure.bp_ii_a_in", "boolean"),
+        ("structure.bp_ii_b_in", "boolean"),
+        ("structure.bp_ii_out", "boolean"),
+        ("structure.bp_ii_b", "boolean"),
+        ("structure.bp_iii", "boolean"),
+        ("structure.bp_iv", "boolean"),
+        ("structure.bp_v", "boolean"),
+        ("structure.grich_distance", "float32"),
+        ("structure.grich_angle", "float32"),
+        ("structure.grich_rotation", "float32"),
+        ("structure.filepath", "string"),
+    ],
+    "bioactivities": [
+        # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
+        ("kinase.pref_name", "string"),
+        ("kinase.uniprot", "string"),
+        # TODO in the future: "ligand.klifs_id"  # Add if added to KLIFS API?
+        ("ligand.bioactivity_standard_type", "string"),
+        ("ligand.bioactivity_standard_relation", "string"),
+        ("ligand.bioactivity_standard_value", "float32"),
+        ("ligand.bioactivity_standard_units", "string"),
+        ("ligand.bioactivity_pchembl_value", "float32"),
+        ("species.chembl", "string"),
+    ],
+    "interactions": [
+        ("structure.klifs_id", "int32"),
+        ("interaction.fingerprint", "string"),
+    ],
+    "interaction_types": [
+        ("interaction.id", "int32"),
+        ("interaction.name", "string"),
+    ],
+    "pockets": [
+        ("residue.klifs_id", "int32"),
+        ("residue.id", "string"),
+        ("residue.klifs_region_id", "string"),
+        ("residue.klifs_region", "string"),
+        ("residue.klifs_color", "string"),
+    ],
+    "coordinates": [
+        ("atom.id", "int32"),
+        ("atom.name", "string"),
+        ("atom.x", "float32"),
+        ("atom.y", "float32"),
+        ("atom.z", "float32"),
+        ("residue.id", "string"),  # TODO: int32?
+        ("residue.name", "string"),
+        ("residue.klifs_id", "int32"),
+        ("residue.klifs_region_id", "string"),
+        ("residue.klifs_region", "string"),
+        ("residue.klifs_color", "string"),
+    ],
+}
 
 LOCAL_COLUMNS_MAPPING = {
     "klifs_export": {

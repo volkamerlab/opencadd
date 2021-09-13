@@ -8,6 +8,28 @@ Welcome to OpenCADD's documentation!
 
 OpenCADD is a Python package for structural cheminformatics!
 
+.. image::
+   https://github.com/volkamerlab/opencadd/workflows/CI/badge.svg
+   :target: https://github.com/volkamerlab/opencadd/actions
+.. image::
+   https://codecov.io/gh/volkamerlab/opencadd/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/volkamerlab/opencadd/branch/master
+.. image::
+   https://readthedocs.org/projects/opencadd/badge/?version=latest
+   :target: https://opencadd.readthedocs.io/en/latest/
+.. image::
+   https://img.shields.io/conda/vn/conda-forge/opencadd.svg
+   :target: https://anaconda.org/conda-forge/opencadd
+.. image::
+   https://img.shields.io/badge/License-MIT-blue.svg
+   :target: https://opensource.org/licenses/MIT
+
+.. raw:: html
+
+   <p align="center">
+   <img src="_static/opencadd.png" alt="Subpocket-based structural fingerprint for kinase pockets" width="600"/>
+   </p>
+
 .. toctree::
    :maxdepth: 1
    :caption: User guide
@@ -23,7 +45,7 @@ OpenCADD is a Python package for structural cheminformatics!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Superposition
+   :caption: Structure: Superposition
 
    superposition
    tutorials/mda

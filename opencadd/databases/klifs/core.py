@@ -69,7 +69,7 @@ class BaseProvider:
         return pd.DataFrame(results_dict)
 
     @staticmethod
-    def _map_old_to_new_column_names(dataframe, columns_mapping=None):
+    def _map_old_to_new_column_names(dataframe, columns_mapping):
         """
         Rename column names that are returned from local or remote queries (old column names)
         into standardized column names to be used in this module (new column names).
@@ -78,7 +78,7 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             KLIFS data.
-        columns_mapping : dict or None
+        columns_mapping : dict
             Mapping of old to new column names. If None, no changes are made.
 
         Notes
@@ -87,9 +87,7 @@ class BaseProvider:
         local data is already performed upon session initialization.
         """
 
-        if columns_mapping:
-            dataframe.rename(columns=columns_mapping, inplace=True)
-
+        dataframe.rename(columns=columns_mapping, inplace=True)
         return dataframe
 
     @staticmethod
@@ -154,7 +152,7 @@ class BaseProvider:
 
         return dataframe
 
-    def _standardize_dataframe(self, dataframe, column_names, columns_mapping=None):
+    def _standardize_dataframe(self, dataframe, columns, columns_mapping=None):
         """
         Standardize a DataFrame across local and remote query results.
         - Map old to new column names (applied to remote data only, local data is standardized upon
@@ -171,8 +169,8 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
-        column_names : list of str
-            Column names (in the order of interest for output).
+        columns : list of (str, str)
+            Column names and dtypes(in the order of interest for output).
         columns_mapping : dict or None
             Mapping of old to new column names. If None, no changes are made.
 
@@ -183,13 +181,23 @@ class BaseProvider:
         """
 
         # Standardize column names
-        dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
+        if columns_mapping:
+            dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
 
         # Add missing columns (None values)
+        column_names = [column[0] for column in columns]
         dataframe = self._add_missing_columns(dataframe, column_names)
 
         # Standardize column values
         dataframe = self._standardize_column_values(dataframe)
+
+        # Standardize dtypes
+        column_dtypes_dict = {
+            column_name: column_dtype
+            for (column_name, column_dtype) in columns
+            if column_name in dataframe.columns
+        }
+        dataframe = dataframe.astype(column_dtypes_dict)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()
@@ -274,7 +282,7 @@ class KinasesProvider(BaseProvider):
     all_kinases(groups=None, families=None, species=None)
         Get all available kinase names (optional: select kinase group, family and/or species).
     by_kinase_klifs_id(kinase_klifs_ids)
-        Get kinases by one or more kinase IDs.
+        Get kinases by one or more kinase KLIFS IDs.
     by_kinase_name(kinase_names)
         Get kinases by one or more kinase names (KLIFS or HGNC name).
 
@@ -394,7 +402,7 @@ class KinasesProvider(BaseProvider):
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):  # TODO *kinases_ids
         """
-        Get kinases by one or more kinase IDs.
+        Get kinases by one or more kinase KLIFS IDs.
 
         Parameters
         ----------
@@ -409,7 +417,7 @@ class KinasesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the kinase IDs exist.
+            Remote module: If none of the kinase KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -451,11 +459,11 @@ class LigandsProvider(BaseProvider):
     all_ligands()
         Get all available ligands.
     by_kinase_klifs_id(kinase_klifs_ids)
-        Get ligands by one or more kinase IDs.
+        Get ligands by one or more kinase KLIFS IDs.
     by_kinase_name(kinase_names)
         Get ligands by one or more kinase names (KLIFS or HGNC name).
     by_ligand_klifs_id(ligand_klifs_ids)
-        Get ligands by one or more ligand IDs.
+        Get ligands by one or more ligand KLIFS IDs.
     by_ligand_expo_id(ligand_expo_ids)
         Get ligands by one or more Ligand Expo IDs (3-letter codes), i.e. the chemical component
         identifiers as defined by Ligand Expo (http://ligand-expo.rcsb.org/) and used in the PDB.
@@ -507,7 +515,7 @@ class LigandsProvider(BaseProvider):
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
-        Get ligands by one or more kinase IDs.
+        Get ligands by one or more kinase KLIFS IDs.
 
         Parameters
         ----------
@@ -522,7 +530,7 @@ class LigandsProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the kinase IDs exist.
+            Remote module: If none of the kinase KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -553,7 +561,7 @@ class LigandsProvider(BaseProvider):
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
         """
-        Get ligands by one or more ligand IDs.
+        Get ligands by one or more ligand KLIFS IDs.
 
         Parameters
         ----------
@@ -604,11 +612,11 @@ class StructuresProvider(BaseProvider):
     all_structures()
         Get all available structures.
     by_structure_klifs_id(structure_klifs_ids)
-        Get structures by one or more structure IDs.
+        Get structures by one or more structure KLIFS IDs.
     by_ligand_klifs_id(ligand_klifs_ids)
-        Get structures by one or more ligand IDs.
+        Get structures by one or more ligand KLIFS IDs.
     by_kinase_klifs_id(kinase_klifs_ids)
-        Get structures by one or more kinase IDs.
+        Get structures by one or more kinase KLIFS IDs.
     by_structure_pdb_id(structure_pdb_ids)
         Get structures by one or more structure PDB IDs.
     by_ligand_expo_id(ligand_expo_ids)
@@ -742,7 +750,7 @@ class StructuresProvider(BaseProvider):
 
     def by_structure_klifs_id(self, structure_klifs_ids):
         """
-        Get structures by one or more structure IDs.
+        Get structures by one or more structure KLIFS IDs.
 
         Parameters
         ----------
@@ -757,7 +765,7 @@ class StructuresProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the structure IDs exist.
+            Remote module: If none of the structure KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -765,7 +773,7 @@ class StructuresProvider(BaseProvider):
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
         """
-        Get structures by one or more ligand IDs.
+        Get structures by one or more ligand KLIFS IDs.
 
         Parameters
         ----------
@@ -780,7 +788,7 @@ class StructuresProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the ligand IDs exist.
+            Remote module: If none of the ligand KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -788,7 +796,7 @@ class StructuresProvider(BaseProvider):
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
-        Get structures by one or more kinase IDs.
+        Get structures by one or more kinase KLIFS IDs.
 
         Parameters
         ----------
@@ -803,7 +811,7 @@ class StructuresProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the kinase IDs exist.
+            Remote module: If none of the kinase KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -921,9 +929,9 @@ class BioactivitiesProvider(BaseProvider):
     all_bioactivities()
         Get all available bioactivities.
     by_kinase_klifs_id(kinase_klifs_ids)
-        Get bioactivities by one or more kinase IDs.
+        Get bioactivities by one or more kinase KLIFS IDs.
     by_ligand_klifs_id(ligand_klifs_ids)
-        Get bioactivities by one or more ligand IDs.
+        Get bioactivities by one or more ligand KLIFS IDs.
 
     Notes
     -----
@@ -970,7 +978,7 @@ class BioactivitiesProvider(BaseProvider):
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
-        Get bioactivities by one or more kinase IDs.
+        Get bioactivities by one or more kinase KLIFS IDs.
 
         Parameters
         ----------
@@ -985,7 +993,7 @@ class BioactivitiesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the kinase IDs exist.
+            Remote module: If none of the kinase KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -993,7 +1001,7 @@ class BioactivitiesProvider(BaseProvider):
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
         """
-        Get bioactivities by one or more ligand IDs.
+        Get bioactivities by one or more ligand KLIFS IDs.
 
         Parameters
         ----------
@@ -1008,7 +1016,30 @@ class BioactivitiesProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the ligand IDs exist.
+            Remote module: If none of the ligand KLIFS IDs exist.
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def by_ligand_expo_id(self, ligand_expo_id):
+        """
+        Get bioactivities by one or more ligand Expo IDs.
+
+        Parameters
+        ----------
+        ligand_expo_id : str or list of str
+            Ligand Expo ID(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Bioactivities (rows) with columns as described in the class docstring.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: If none of the ligand Expo IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -1026,11 +1057,11 @@ class InteractionsProvider(BaseProvider):
     all_interactions()
         Get all available interaction fingerprints.
     by_structure_klifs_id(structure_klifs_ids)
-        Get interactions by one or more structure IDs.
+        Get interactions by one or more structure KLIFS IDs.
     by_ligand_klifs_id(ligand_klifs_ids)
-        Get interactions by one or more ligand IDs.
+        Get interactions by one or more ligand KLIFS IDs.
     by_kinase_klifs_id(kinase_klifs_ids)
-        Get interactions by one or more kinase IDs.
+        Get interactions by one or more kinase KLIFS IDs.
 
     Notes
     -----
@@ -1082,7 +1113,7 @@ class InteractionsProvider(BaseProvider):
 
     def by_structure_klifs_id(self, structure_klifs_ids):
         """
-        Get interactions by one or more structure IDs.
+        Get interactions by one or more structure KLIFS IDs.
 
         Parameters
         ----------
@@ -1099,7 +1130,7 @@ class InteractionsProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the structure IDs exist.
+            Remote module: If none of the structure KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """
@@ -1107,7 +1138,7 @@ class InteractionsProvider(BaseProvider):
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
         """
-        Get interactions by one or more ligand IDs.
+        Get interactions by one or more ligand KLIFS IDs.
 
         Parameters
         ----------
@@ -1130,7 +1161,7 @@ class InteractionsProvider(BaseProvider):
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
         """
-        Get interactions by one or more kinase IDs.
+        Get interactions by one or more kinase KLIFS IDs.
 
         Parameters
         ----------
@@ -1147,7 +1178,7 @@ class InteractionsProvider(BaseProvider):
         Raises
         ------
         bravado_core.exception.SwaggerMappingError
-            Remote module: If none of the kinase IDs exist.
+            Remote module: If none of the kinase KLIFS IDs exist.
         ValueError
             If DataFrame is empty.
         """

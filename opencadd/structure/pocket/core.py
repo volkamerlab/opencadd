@@ -7,19 +7,18 @@ Defines pockets.
 import logging
 from pathlib import Path
 
-from matplotlib import colors
-import nglview
 import pandas as pd
-
 from opencadd.io import DataFrame
-from .region import Region
-from .subpocket import Subpocket
-from .utils import _format_residue_ids_and_labels
+
+from .base import PocketBase
+from .features.region import Region
+from .features.subpocket import Subpocket
+from .features.anchor import AnchorResidue
 
 _logger = logging.getLogger(__name__)
 
 
-class Pocket:
+class Pocket(PocketBase):
     """
     Class defining a pocket with
     - structural protein data,
@@ -28,40 +27,48 @@ class Pocket:
 
     Attributes
     ----------
-    data
-    residues
-    subpockets
-    regions
-    anchor_residues
-    centroid
     name : str
         Name of protein.
+    data : pd.DataFrame
+        Structural protein data with the following mandatory columns:
+        "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
+    center : numpy.array
+        Pocket center (coordinates).
     _text : str
         Structural protein data as string (file content).
     _extension : str
         Structural protein data format (file extension).
-    _residue_ids : list of str
+    _residue_ids : list of int
         Pocket residue IDs.
-    _residue_labels : list of str
-        Pocket residue labels.
+    _residue_ixs : list of (int or None)
+        Pocket residue indices.
     _subpockets : list of Subpocket
         List of user-defined subpockets.
     _region : list of Region
         List of user-defined regions.
+
+    Properties
+    ----------
+    residues
+    subpockets
+    regions
+    anchor_residues
     """
 
     def __init__(self):
 
         self.name = None
+        self.data = None
+        self.center = None
         self._text = None
         self._extension = None
         self._residue_ids = None
-        self._residue_labels = None
+        self._residue_ixs = None
         self._subpockets = []
         self._regions = []
 
     @classmethod
-    def from_file(cls, filepath, residue_ids, name="", residue_labels=None):
+    def from_file(cls, filepath, residue_ids, residue_ixs=None, name=None):
         """
         Initialize Pocket object from structure protein file.
 
@@ -69,12 +76,12 @@ class Pocket:
         ----------
         filepath : str or pathlib.Path
             File path to structural protein data.
-        residue_ids : list of str
+        residue_ids : list of int
             Pocket residue IDs.
-        name : str
-            Name of protein (default: empty string).
-        residue_labels : None or list of str
-            Pocket residue labels. Set to None by default.
+        residue_ixs : None or list of int
+            Pocket residue indices. Set to None by default.
+        name : str or None
+            Name of protein (default: None).
 
         Returns
         -------
@@ -86,13 +93,13 @@ class Pocket:
         extension = filepath.suffix[1:]
         with open(filepath, "r") as f:
             text = f.read()
-        pocket = cls.from_text(text, extension, residue_ids, name, residue_labels)
+        pocket = cls.from_text(text, extension, residue_ids, residue_ixs, name)
         return pocket
 
     @classmethod
-    def from_text(cls, text, extension, residue_ids, name="", residue_labels=None):
+    def from_text(cls, text, extension, residue_ids, residue_ixs=None, name=None):
         """
-        Initialize Pocket object from structure protein file.
+        Initialize Pocket object from structure protein text.
 
         Attributes
         ----------
@@ -100,12 +107,12 @@ class Pocket:
             Structural protein data as string (file content).
         extension : str
             Structural protein data format (file extension).
-        residue_ids : list of str
+        residue_ids : list of int
             Pocket residue IDs.
-        name : str
-            Name of protein (default: empty string).
-        residue_labels : None or list of str
-            Pocket residue labels. Set to None by default.
+        residue_ixs : None or list of int
+            Pocket residue indices. Set to None by default.
+        name : str or None
+            Name of protein (default: None).
 
         Returns
         -------
@@ -117,38 +124,65 @@ class Pocket:
         pocket.name = name
         pocket._text = text
         pocket._extension = extension
-        pocket._residue_ids, pocket._residue_labels = _format_residue_ids_and_labels(
-            residue_ids, residue_labels
+        pocket._residue_ids, pocket._residue_ixs = pocket._format_residue_ids_and_ixs(
+            residue_ids, residue_ixs, "set pocket residues"
         )
+        pocket.data = pocket._set_data()
+        pocket.center = pocket._set_center()
         return pocket
 
-    @property
-    def data(self):
+    def _set_data(self):
         """
-        Structural protein data.
+        Load atoms as DataFrames from text.
+        Keep only atoms with int-castable residue PDB IDs.
 
         Returns
         -------
-        pandas.DataFrame
+        pd.DataFrame
             Structural protein data with the following mandatory columns:
             "residue.id", "atom.name", "atom.x", "atom.y", "atom.z".
         """
-        return DataFrame.from_text(self._text, self._extension)
 
-    @property
-    def residues(self):
+        # Load atoms as DataFrame from text
+        # Note: Column "residue.id" is of string type
+        dataframe = DataFrame.from_text(self._text, self._extension)
+
+        # Cast the IDs to str, so that they can match the DataFrame's ID
+        residue_ids = [str(residue_id) for residue_id in self._residue_ids if residue_id]
+        # Fetch all atoms matching residues IDs and cast them back to integers
+        # This step will remove any residues with insertion codes,
+        # e.g. "612A" in structure 7oam (PDB ID)
+        dataframe = dataframe[dataframe["residue.id"].isin(residue_ids)]
+        dataframe = dataframe.astype({"residue.id": "int32"})
+
+        return dataframe
+
+    def _set_center(self):
         """
-        All pocket's residues.
+        Pocket center, i.e. the centroid of all input residues' CA atoms.
 
         Returns
-        -------
-        pandas.DataFrame
-            Residue ID and residue label (columns) for all pocket residues (rows).
+        ----------
+        numpy.array
+            Pocket center (coordinates).
         """
 
-        residues = {"residue.id": self._residue_ids, "residue.label": self._residue_labels}
-        residues = pd.DataFrame(residues)
-        return residues.reset_index(drop=True)
+        dataframe = self.data
+
+        atoms = dataframe[
+            (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
+        ]
+
+        if len(atoms) != len(self._residue_ids):
+            _logger.info(
+                f"Pocket {self.name}: Missing pocket CA atoms. "
+                f"The pocket center is calculated based on {len(atoms)} CA atoms "
+                f"(total number of pocket residues is {len(self._residue_ids)})."
+            )
+
+        center = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+
+        return center
 
     @property
     def subpockets(self):
@@ -164,14 +198,7 @@ class Pocket:
         if not self._subpockets:
             return None
 
-        subpockets = pd.DataFrame(
-            {
-                "subpocket.name": [subpocket.name for subpocket in self._subpockets],
-                "subpocket.color": [subpocket.color for subpocket in self._subpockets],
-                "subpocket.center": [subpocket.center for subpocket in self._subpockets],
-            }
-        )
-
+        subpockets = pd.DataFrame([subpocket.subpocket for subpocket in self._subpockets])
         return subpockets.reset_index(drop=True)
 
     @property
@@ -182,30 +209,14 @@ class Pocket:
         Returns
         -------
         pandas.DataFrame
-            Name, color, involved residue IDs and labels (columns) for all regions.
+            Name, color, involved residue IDs and indices (columns) for all regions.
         """
         if self._regions == []:
             return None
 
-        regions = []
-
-        for region in self._regions:
-
-            n_residues = len(region.residue_ids)
-
-            region = pd.DataFrame(
-                {
-                    "region.name": [region.name] * n_residues,
-                    "region.color": [region.color] * n_residues,
-                    "residue.id": region.residue_ids,
-                    "residue.label": region.residue_labels,
-                }
-            )
-
-            regions.append(region)
-
+        regions = [region.region for region in self._regions]
         regions = pd.concat(regions)
-
+        regions = regions.astype({"residue.id": "Int32"})
         return regions.reset_index(drop=True)
 
     @property
@@ -220,7 +231,7 @@ class Pocket:
             - Subpocket name and color
             - Anchor residue IDs (user-defined input IDs or alternative
             IDs if input was not available)
-            - Anchor residue labels
+            - Anchor residue indices
             - The anchor residue centers (coordinates)
         """
 
@@ -229,36 +240,9 @@ class Pocket:
 
         anchor_residues = [subpocket.anchor_residues for subpocket in self._subpockets]
         anchor_residues = pd.concat(anchor_residues)
+        anchor_residues = anchor_residues.astype({"anchor_residue.id": "Int32"})
 
         return anchor_residues.reset_index(drop=True)
-
-    @property
-    def centroid(self):
-        """
-        Centroid of all input residues' CA atoms.
-
-        Returns
-        ----------
-        numpy.array
-            Pocket centroid (coordinates).
-        """
-
-        dataframe = self.data
-
-        atoms = dataframe[
-            (dataframe["residue.id"].isin(self._residue_ids)) & (dataframe["atom.name"] == "CA")
-        ]
-
-        if len(atoms) != len(self._residue_ids):
-            _logger.info(
-                f"Missing pocket CA atoms. "
-                f"The pocket centroid is calculated based on {len(atoms)} CA atoms "
-                f"(total number of pocket residues is {len(self._residue_ids)})."
-            )
-
-        centroid = atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
-
-        return centroid
 
     def clear_subpockets(self):
         """
@@ -277,9 +261,9 @@ class Pocket:
     def add_subpocket(
         self,
         name,
-        anchor_residue_ids,
+        anchor_residue_ids=None,
+        anchor_residue_ixs=None,
         color="blue",
-        anchor_residue_labels=None,
     ):
         """
         Add subpocket based on given anchor residue IDs.
@@ -288,20 +272,27 @@ class Pocket:
         ----------
         name : str
             Subpocket name.
-        anchor_residue_ids : list of (int, str)
+        anchor_residue_ids : list of (int or str) or None
             List of anchor residue IDs.
+            Note: If "anchor_residue_ids" and "anchor_residue_ix" are both set,
+            "anchor_residue_ix" will be used.
+        anchor_residue_ixs : list of (int or str) or None
+            List of anchor residue indices.
+            Note: If "anchor_residue_ids" and "anchor_residue_ix" are both set,
+            "anchor_residue_ix" will be used.
         color : str
             Subpocket color (matplotlib name), blue by default.
-        anchor_residue_labels : list of (int, str) or None
-            List of anchor residue labels. Must be of same length as anchor_residue_ids.
         """
 
-        subpocket = Subpocket.from_dataframe(
-            self.data, name, anchor_residue_ids, color, anchor_residue_labels
-        )
+        if anchor_residue_ids and anchor_residue_ixs:
+            raise ValueError(f"Please set only anchor residue PDB IDs or indices - not both.")
+        if anchor_residue_ixs:
+            subpocket = self._subpocket_by_residue_ixs(anchor_residue_ixs, name, color)
+        else:
+            subpocket = self._subpocket_by_residue_ids(anchor_residue_ids, name, color)
         self._subpockets.append(subpocket)
 
-    def add_region(self, name, residue_ids, color="blue", residue_labels=None):
+    def add_region(self, name, residue_ids=None, residue_ixs=None, color="blue"):
         """
         Add region based on given input residue IDs.
 
@@ -309,110 +300,245 @@ class Pocket:
         ----------
         name : str
             Region name.
-        residue_ids : list of (int, str)
+        residue_ids : list of (int or str) or None
             List of residue IDs defining the region.
+            Note: If "residue_ids" and "residue_ix" are both set, "residue_ix" will be used.
+        residue_ixs : list of (int or str) or None
+            List of residue indices.
+            Note: If "residue_ids" and "residue_ix" are both set, "residue_ix" will be used.
         color : str
             Region color (matplotlib name), blue by default.
-        residue_labels : list of (int, str) or None
-            List of residue labels. Must be of same length as residue_ids.
         """
 
-        region = Region()
-        region.from_dataframe(self.data, name, residue_ids, color, residue_labels)
+        if residue_ids and residue_ixs:
+            raise ValueError(f"Please set only residue PDB IDs or indices - not both.")
+        if residue_ixs:
+            residue_ids = [self._residue_ix2id(residue_ix) for residue_ix in residue_ixs]
+        else:
+            residue_ixs = [self._residue_id2ix(residue_id) for residue_id in residue_ids]
+
+        residue_ids, residue_ixs = self._format_residue_ids_and_ixs(
+            residue_ids, residue_ixs, "set region residues"
+        )
+        region = Region(name, residue_ids, residue_ixs, color)
         self._regions.append(region)
 
-    def visualize(self, show_pocket_centroid=True, show_anchor_residues=True):
+    @property
+    def ca_atoms(self):
         """
-        Visualize the pocket (subpockets, regions, and anchor residues).
-
-        Parameters
-        ----------
-        show_pocket_centroid : bool
-            Show the pocket centroid as sphere (default) or not.
-        show_anchor_residues : bool
-            Show the anchor residues as spheres (default) or not.
+        CA atoms of the pocket residues.
 
         Returns
         -------
-        nglview.widget.NGLWidget
-            Pocket visualization.
+        pandas.DataFrame
+            Structural data for CA atoms of the pocket residues.
         """
+        return self._ca_atoms(*self._residue_ids)
 
-        # Load structure from text in nglview
-        structure = nglview.adaptor.TextStructure(self._text, ext=self._extension)
-        view = nglview.widget.NGLWidget(structure)
-        view._remote_call("setSize", target="Widget", args=["1000px", "600px"])
-        view.clear()
-
-        # Get residue ID > nglview index mapping
-        # based on file format (this is important to know how nglview will index residues)
-        residue_id2ix = self._map_residue_id2ix(self._extension)
-
-        # Show regions
-        scheme_regions_list = []
-        for index, region in self.regions.iterrows():
-            color = region["region.color"]
-            residue_id = region["residue.id"]
-            residue_ngl_ix = residue_id2ix.loc[residue_id]
-            scheme_regions_list.append([color, residue_ngl_ix])
-
-        scheme_regions = nglview.color._ColorScheme(scheme_regions_list, label="scheme_regions")
-        view.add_representation("cartoon", selection="protein", color=scheme_regions)
-
-        # Show pocket centroids
-        if show_pocket_centroid:
-            view.shape.add_sphere(list(self.centroid), [0, 0, 1], 2, "centroid")
-
-        # Show subpockets
-        for index, subpocket in self.subpockets.iterrows():
-            center = list(subpocket["subpocket.center"])
-            name = subpocket["subpocket.name"]
-            color_rgb = colors.to_rgb(subpocket["subpocket.color"])
-            view.shape.add_sphere(center, color_rgb, 2, name)
-
-        # Show anchor points
-        if show_anchor_residues:
-            for index, anchor_residue in self.anchor_residues.iterrows():
-                center = list(anchor_residue["anchor_residue.center"])
-                color_rgb = colors.to_rgb(anchor_residue["subpocket.color"])
-                view.shape.add_sphere(center, color_rgb, 0.5)
-
-        # Show
-        return view
-
-    def _map_residue_id2ix(self, file_format):
-        """
-        Map residue IDs to nglview indices depending on file format.
-        In case of mol2 files, nglview will use indices starting from 1.
-        In case of pdb files, nglview will use the residue IDs as indices.
+    def _ca_atoms(self, *residue_ids):
+        r"""
+        Select a CA atoms based on residue PBD ID(s).
 
         Parameters
         ----------
-        file_format : string
-            Structural protein data format.
+        \*residue_ids : int
+            Residue PDB ID(s).
 
         Returns
         -------
-        pandas.Series
-            Residue IDs (index) and residue nglview indices (values).
+        pandas.DataFrame or None
+            Structural data for CA atoms of input residues.
+            If no CA atoms available, returns None.
+
+        Raises
+        ------
+        ValueError
+            If returned number of CA atoms is larger than 1.
         """
 
-        # Get all residue names
-        residue_id2ix = self.data[["residue.name", "residue.id"]].drop_duplicates()
+        ca_atoms = self.data[  # pylint: disable=E1136
+            (self.data["residue.id"].isin(residue_ids))  # pylint: disable=E1136
+            & (self.data["atom.name"] == "CA")  # pylint: disable=E1136
+        ]
 
-        if file_format == "mol2":
-
-            # Map residue names to nglview index (starting from 1)
-            residue_id2ix["residue.ngl_ix"] = [str(i) for i in range(1, len(residue_id2ix) + 1)]
-            # Cast to Series (residue IDs as index, NGL index as values)
-            residue_id2ix.set_index("residue.id", inplace=True)
-            residue_id2ix = residue_id2ix["residue.ngl_ix"]
-
+        if len(ca_atoms) <= len(residue_ids):
+            return ca_atoms
         else:
+            raise ValueError(
+                f"More CA atoms ({len(ca_atoms)}) found than input residues ({len(residue_ids)})."
+            )
 
-            # In this case, residue ID and nglview index are the same
-            residue_id2ix["residue.ngl_ix"] = residue_id2ix["residue.id"]
-            residue_id2ix.index = residue_id2ix["residue.id"]
-            residue_id2ix = residue_id2ix["residue.ngl_ix"]
+    def _ca_atoms_center(self, *residue_ids):
+        r"""
+        Calculate centroid of all CA atoms based on residue PBD ID(s).
 
-        return residue_id2ix
+        Parameters
+        ----------
+        \*residue_ids : str
+            Residue PDB ID(s).
+
+        Returns
+        -------
+        numpy.array or None
+            Centroid of all CA atoms of input residues.
+            If no CA atoms available, returns None.
+        """
+
+        ca_atoms = self._ca_atoms(*residue_ids)
+
+        # If residue ID exists, get atom coordinates.
+        if len(ca_atoms) == 1:
+            center = ca_atoms[["atom.x", "atom.y", "atom.z"]].squeeze().to_numpy()
+        elif len(ca_atoms) > 1:
+            center = ca_atoms[["atom.x", "atom.y", "atom.z"]].mean().to_numpy()
+        else:
+            center = None
+
+        ca_atoms_residue_ids = ca_atoms["residue.id"].to_list()
+        if len(ca_atoms_residue_ids) == 0:
+            ca_atoms_residue_ids = None
+
+        return ca_atoms_residue_ids, center
+
+    def _anchor_residue_by_residue_id(self, residue_id, color="blue", subpocket_name=None):
+        """
+        Get anchor residue (AnchorResidue object) based on a selected residue PDB ID.
+
+        Parameters
+        ----------
+        residue_id : int
+            Residue PDB ID.
+        color : str
+            Color name (matplotlib).
+        subpocket_name : str or None
+            Subpocket name.
+
+        Returns
+        -------
+        opencadd.structure.pocket.AnchorResidue
+            Anchor residue.
+        """
+
+        residue_id_alternative = None
+        _, center = self._ca_atoms_center(residue_id)
+
+        if center is None:
+            residue_id_before = residue_id - 1
+            residue_id_after = residue_id + 1
+            residue_ids = [residue_id_before, residue_id_after]
+            residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
+
+        subpocket_anchor = AnchorResidue(
+            center, residue_id, residue_id_alternative, None, color, subpocket_name, self.name
+        )
+
+        return subpocket_anchor
+
+    def _anchor_residue_by_residue_ix(self, residue_ix, color="blue", subpocket_name=None):
+        """
+        Get anchor residue (AnchorResidue object) based on a selected residue index.
+
+        Parameters
+        ----------
+        residue_ix : int or str
+            Residue index.
+        color : str
+            Color name (matplotlib).
+        subpocket_name : str or None
+            Subpocket name.
+
+        Returns
+        -------
+        opencadd.structure.pocket.AnchorResidue
+            Anchor residue.
+        """
+
+        residue_id = self._residue_ix2id(residue_ix)
+        residue_id_alternative = None
+
+        if residue_id:
+            subpocket_anchor = self._anchor_residue_by_residue_id(
+                residue_id, color, subpocket_name
+            )
+            subpocket_anchor.residue_ix = residue_ix
+        else:
+            # Get residue indices before and after
+            residue_ix_before = residue_ix - 1
+            residue_ix_after = residue_ix + 1
+            # Get corresponding residue IDs
+            residue_id_before = self._residue_ix2id(residue_ix_before)
+            residue_id_after = self._residue_ix2id(residue_ix_after)
+            residue_ids = [residue_id_before, residue_id_after]
+            residue_ids = [residue_id for residue_id in residue_ids if residue_id is not None]
+            # Add one more check: Residue IDs can only be separated by one residue!
+            if len(residue_ids) == 2:
+                if int(residue_ids[1]) - int(residue_ids[0]) != 2:
+                    residue_ids = []
+            # Get center
+            residue_id_alternative, center = self._ca_atoms_center(*residue_ids)
+
+            subpocket_anchor = AnchorResidue(
+                center,
+                residue_id,
+                residue_id_alternative,
+                residue_ix,
+                color,
+                subpocket_name,
+                self.name,
+            )
+
+        return subpocket_anchor
+
+    def _subpocket_by_residue_ids(self, residue_ids, name=None, color="blue"):
+        """
+        Generate subpocket based on residue PDB ID(s).
+
+        Parameters
+        ----------
+        residue_ids : list of (int or str)
+            Residue PDB ID(s).
+        name : str or None
+            Subpocket name.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.Subpocket
+            Subpocket.
+        """
+
+        anchor_residues = []
+        for residue_id in residue_ids:
+            anchor_residue = self._anchor_residue_by_residue_id(residue_id, color, name)
+            anchor_residues.append(anchor_residue)
+
+        subpocket = Subpocket(anchor_residues, name, color)
+        return subpocket
+
+    def _subpocket_by_residue_ixs(self, residue_ixs, name=None, color="blue"):
+        """
+        Generate subpocket based on residue indices.
+
+        Parameters
+        ----------
+        residue_ixs : list of (int or str)
+            Residue indices.
+        name : str or None
+            Subpocket name.
+        color : str
+            Color name (matplotlib).
+
+        Returns
+        -------
+        opencadd.structure.pocket.Subpocket
+            Subpocket.
+        """
+
+        anchor_residues = []
+        for residue_ix in residue_ixs:
+            anchor_residue = self._anchor_residue_by_residue_ix(residue_ix, color, name)
+            anchor_residues.append(anchor_residue)
+
+        subpocket = Subpocket(anchor_residues, name, color)
+        return subpocket

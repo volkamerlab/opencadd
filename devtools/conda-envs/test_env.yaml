@@ -31,6 +31,3 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
-## For Jupyter lab extensions, run:
-# conda install nodejs
-# jupyter labextension install @jupyter-widgets/jupyterlab-manager nglview-js-widgets @jupyterlab/toc

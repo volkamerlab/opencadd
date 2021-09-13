@@ -21,14 +21,16 @@ from .core import (
 )
 from .schema import (
     LOCAL_COLUMNS_MAPPING,
-    COLUMN_NAMES,
+    DATAFRAME_COLUMNS,
     POCKET_KLIFS_REGIONS,
 )
-from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .remote import KLIFS_CLIENT
+from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
 from opencadd.io import DataFrame, Rdkit
 
 # Get the newest file version (* = YYYYMMDD)
-PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.zip"), key=lambda x: x.suffixes[0])[-1]
+PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.gz"), key=lambda x: x.suffixes[0])[-1]
 
 _logger = logging.getLogger(__name__)
 
@@ -144,7 +146,10 @@ class _LocalDatabaseGenerator:
         # Unify column 'kinase.hgnc': Sometimes several kinase names are available, e.g. "EPHA7 (EphA7)"
         # Column "kinase.hgnc": Retain only first kinase name, e.g. EPHA7
         # Column "kinase.all_names": Save all kinase names as list, e.g. [EPHA7, EphA7]
-        kinase_names = [self._format_kinase_names(i) for i in klifs_export["kinase.names"]]
+        kinase_names = [
+            self._format_kinase_names(i)
+            for i in klifs_export["kinase.names"]  # pylint: disable=E1136
+        ]
         klifs_export["kinase.names"] = kinase_names
         klifs_export.insert(1, "kinase.gene_name", [i[0] for i in kinase_names])
         klifs_export.insert(2, "kinase.klifs_name", [i[-1] for i in kinase_names])
@@ -177,7 +182,9 @@ class _LocalDatabaseGenerator:
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
-        klifs_overview["structure.alternate_model"].replace(" ", "-", inplace=True)
+        klifs_overview["structure.alternate_model"].replace(  # pylint: disable=E1136
+            " ", "-", inplace=True
+        )
         # Drop column for kinase name; will be taken from KLIFS_export.csv file upon table merge
         klifs_overview.drop(columns=["kinase.klifs_name"], inplace=True)
 
@@ -308,7 +315,7 @@ class _LocalDatabaseGenerator:
         for index, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
-            mol2_path = metadata_to_filepath(
+            filepath = metadata_to_filepath(
                 ".",
                 row["species.klifs"],
                 row["kinase.klifs_name"],
@@ -319,7 +326,7 @@ class _LocalDatabaseGenerator:
                 extension="",
                 in_dir=True,
             )
-            filepaths.append(mol2_path)
+            filepaths.append(filepath)
 
         klifs_metadata["structure.filepath"] = filepaths
 
@@ -376,7 +383,9 @@ class Kinases(LocalInitializer, KinasesProvider):
         # Get local database
         kinase_groups = self._database.copy()
         # Standardize DataFrame
-        kinase_groups = self._standardize_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
+        kinase_groups = self._standardize_dataframe(
+            kinase_groups, DATAFRAME_COLUMNS["kinase_groups"]
+        )
         return kinase_groups
 
     def all_kinase_families(self, groups=None):
@@ -388,7 +397,7 @@ class Kinases(LocalInitializer, KinasesProvider):
             kinase_families = kinase_families[kinase_families["kinase.group"].isin(groups)]
         # Standardize DataFrame
         kinase_families = self._standardize_dataframe(
-            kinase_families, COLUMN_NAMES["kinase_families"]
+            kinase_families, DATAFRAME_COLUMNS["kinase_families"]
         )
         return kinase_families
 
@@ -405,7 +414,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases_all"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases_all"])
         return kinases
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -415,7 +424,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._database.copy()
         kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
@@ -433,7 +442,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         if species:
             kinases = kinases[kinases["species.klifs"].str.upper() == species.upper()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, COLUMN_NAMES["kinases"])
+        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
         return kinases
 
 
@@ -449,7 +458,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Get local database
         ligands = self._database.copy()
         # Standardize DataFrame
-        ligands = self._standardize_dataframe(ligands, COLUMN_NAMES["ligands"])
+        ligands = self._standardize_dataframe(ligands, DATAFRAME_COLUMNS["ligands"])
         return ligands
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -461,7 +470,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_id"],
+            DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
@@ -510,7 +519,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"],
+            DATAFRAME_COLUMNS["ligands"],
         )
         return ligands
 
@@ -529,7 +538,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -542,7 +551,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_klifs_ids) == 1:
@@ -560,7 +569,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -580,7 +589,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -593,7 +602,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -611,7 +620,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            COLUMN_NAMES["structures"],
+            DATAFRAME_COLUMNS["structures"],
         )
         return structures
 
@@ -638,7 +647,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"],
+            DATAFRAME_COLUMNS["interactions"],
         )
         return interactions
 
@@ -651,7 +660,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"],
+            DATAFRAME_COLUMNS["interactions"],
         )
         return interactions
 
@@ -664,7 +673,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            COLUMN_NAMES["interactions"] + ["kinase.klifs_id"],
+            DATAFRAME_COLUMNS["interactions"] + [("kinase.klifs_id", "int32")],
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
@@ -683,11 +692,17 @@ class Pockets(LocalInitializer, PocketsProvider):
     opencadd.databases.klifs.core.PocketsProvider
     """
 
-    def by_structure_klifs_id(self, structure_klifs_id):
+    def by_structure_klifs_id(self, structure_klifs_id, extension="mol2"):  # pylint: disable=W0221
 
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
         structure = structures_local.by_structure_klifs_id(structure_klifs_id).squeeze()
+
+        # CHECK: Number of KLIFS pocket sequence equals 85?
+        pocket_sequence = structure["structure.pocket"]
+        if len(pocket_sequence) != 85:
+            raise KlifsPocketIncompleteError(len(pocket_sequence))
+
         # Get list of KLIFS positions (starting at 1) excluding gap positions
         klifs_ids = [
             index
@@ -697,12 +712,18 @@ class Pockets(LocalInitializer, PocketsProvider):
 
         # Load pocket coordinates from file
         pocket_path = (
-            self._path_to_klifs_download / structure["structure.filepath"] / "pocket.mol2"
+            self._path_to_klifs_download / structure["structure.filepath"] / f"pocket.{extension}"
         )
-        mol2_df = DataFrame.from_file(pocket_path)
+        dataframe = DataFrame.from_file(pocket_path)
+
+        # CHECK: Number of residues in KLIFS pocket sequence and structure file are the same?
+        structure_residues = dataframe[["residue.name", "residue.id"]].drop_duplicates()
+        if len(klifs_ids) != len(structure_residues):
+            raise KlifsPocketUnequalSequenceStructure(len(klifs_ids), len(structure_residues))
+
         # Get number of atoms per residue
         # Note: sort=False important otherwise negative residue IDs will be sorted to the top
-        number_of_atoms_per_residue = mol2_df.groupby(
+        number_of_atoms_per_residue = dataframe.groupby(
             ["residue.name", "residue.id"], sort=False
         ).size()
 
@@ -711,27 +732,27 @@ class Pockets(LocalInitializer, PocketsProvider):
         for klifs_id, n in zip(klifs_ids, number_of_atoms_per_residue):
             klifs_ids_per_atom.extend([klifs_id] * n)
         # Add column for KLIFS position IDs to molecule
-        mol2_df["residue.klifs_id"] = klifs_ids_per_atom
-        mol2_df = mol2_df[["residue.id", "residue.klifs_id"]].drop_duplicates()
+        dataframe["residue.klifs_id"] = klifs_ids_per_atom
+        dataframe = dataframe[["residue.id", "residue.klifs_id"]].drop_duplicates()
 
         # Add KLIFS IDs that are missing in pocket and fill with "_"
         full_klifs_ids_df = pd.Series(range(1, 86), name="residue.klifs_id").to_frame()
-        mol2_df = full_klifs_ids_df.merge(mol2_df, on="residue.klifs_id", how="left")
-        mol2_df.fillna("_", inplace=True)
+        dataframe = full_klifs_ids_df.merge(dataframe, on="residue.klifs_id", how="left")
+        dataframe.fillna("_", inplace=True)
 
         # Add column for KLIFS regions
-        mol2_df = mol2_df.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
-        mol2_df = mol2_df.astype({"residue.klifs_id": "Int64"})
+        dataframe = dataframe.merge(POCKET_KLIFS_REGIONS, on="residue.klifs_id", how="left")
+        dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         # Standardize DataFrame
-        mol2_df = self._standardize_dataframe(
-            mol2_df,
-            COLUMN_NAMES["pockets"],
+        dataframe = self._standardize_dataframe(
+            dataframe,
+            DATAFRAME_COLUMNS["pockets"],
         )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
-        mol2_df = self._add_klifs_region_details(mol2_df)
+        dataframe = self._add_klifs_region_details(dataframe)
 
-        return mol2_df
+        return dataframe
 
 
 class Coordinates(LocalInitializer, CoordinatesProvider):
@@ -742,14 +763,23 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     opencadd.databases.klifs.core.CoordinatesProvider
     """
 
+    def to_text(
+        self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
+    ):  # pylint: disable=W0221
+
+        filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
+        with open(filepath, "r") as f:
+            text = f.read()
+        return text
+
     def to_dataframe(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
     ):  # pylint: disable=W0221
 
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
-        mol2_df = DataFrame.from_file(filepath)
-        mol2_df = self._add_residue_klifs_ids(mol2_df, filepath)
-        return mol2_df
+        dataframe = DataFrame.from_file(filepath)
+        dataframe = self._add_residue_klifs_ids(dataframe, filepath)
+        return dataframe
 
     def to_rdkit(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2", compute2d=True
@@ -800,13 +830,13 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
             filepath = structure_klifs_id_or_filepath
         return Path(filepath)
 
-    def _add_residue_klifs_ids(self, mol2_df, filepath):
+    def _add_residue_klifs_ids(self, dataframe, filepath):
         """
         Add KLIFS position IDs from the KLIFS metadata as additional column.
 
         Parameters
         ----------
-        mol2_df : pandas.DataFrame
+        dataframe : pandas.DataFrame
             Structural data.
 
         Returns
@@ -827,9 +857,9 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
 
         # Get pocket
         pockets_local = Pockets(self._database, self._path_to_klifs_download)
-        mol2_df_pocket = pockets_local.by_structure_klifs_id(structure_klifs_id)
+        pocket_dataframe = pockets_local.by_structure_klifs_id(structure_klifs_id)
 
         # Merge pocket DataFrame with input DataFrame
-        mol2_df = mol2_df.merge(mol2_df_pocket, on="residue.id", how="left")
+        dataframe = dataframe.merge(pocket_dataframe, on="residue.id", how="left")
 
-        return mol2_df
+        return dataframe
