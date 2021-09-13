@@ -94,6 +94,13 @@ class MDAnalysisAligner(BaseAligner):
         self.superposition_weights = superposition_weights
         self.superposition_delta_mass_tolerance = superposition_delta_mass_tolerance
 
+    def _safety_checks(self):
+        """
+        Check for `mda` installation passes; added here only for consistency across the engines. 
+        """
+
+        pass
+
     def _calculate(self, structures, *args, **kwargs):
         """
 
@@ -109,6 +116,9 @@ class MDAnalysisAligner(BaseAligner):
             rmsd
             metadata
         """
+
+        self._safety_checks()
+
         if len(structures) > 2:
             raise NotImplementedError(
                 "This method can only be used for two structures at the same time, for now"
