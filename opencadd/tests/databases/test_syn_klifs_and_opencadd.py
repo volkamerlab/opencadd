@@ -9,9 +9,9 @@ from opencadd.databases.klifs.schema import REMOTE_COLUMNS_MAPPING
 
 class TestSyncKlifsSwaggerWithOpencadd:
     """
-    Test if opencadd is up-to-date with the KLIFS Swagger API (remote!). 
+    Test if opencadd is up-to-date with the KLIFS Swagger API (remote!).
     """
-    
+
     def _test_klifs_model(self, data_opencadd, data_klifs):
         """
         Check if opencadd is up-to-date with KLIFS models.
@@ -31,8 +31,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["kinases_all"],
-            KLIFS_CLIENT.Information.get_kinase_names()
+            REMOTE_COLUMNS_MAPPING["kinases_all"], KLIFS_CLIENT.Information.get_kinase_names()
         )
 
     def test_kinases(self):

@@ -59,7 +59,9 @@ class Kinases(RemoteInitializer, KinasesProvider):
 
         groups = self._ensure_list(groups)
         # Use KLIFS API
-        result = self._client.Information.get_kinase_families(kinase_group=groups).response().result
+        result = (
+            self._client.Information.get_kinase_families(kinase_group=groups).response().result
+        )
         # Convert list to DataFrame (1 column)
         kinase_families = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_families"])
         return kinase_families
