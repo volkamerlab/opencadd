@@ -392,14 +392,16 @@ class Kinases(LocalInitializer, KinasesProvider):
         )
         return kinase_families
 
-    def all_kinases(self, group=None, family=None, species=None):
+    def all_kinases(self, groups=None, families=None, species=None):
 
         # Get local database and select rows
         kinases = self._database.copy()
-        if group:
-            kinases = kinases[kinases["kinase.group"] == group]
-        if family:
-            kinases = kinases[kinases["kinase.family"] == family]
+        groups = self._ensure_list(groups)
+        families = self._ensure_list(families)
+        if groups:
+            kinases = kinases[kinases["kinase.group"].isin(groups)]
+        if families:
+            kinases = kinases[kinases["kinase.family"].isin(families)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Standardize DataFrame

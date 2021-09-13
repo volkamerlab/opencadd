@@ -64,12 +64,14 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinase_families = pd.DataFrame(result, columns=COLUMN_NAMES["kinase_families"])
         return kinase_families
 
-    def all_kinases(self, group=None, family=None, species=None):
+    def all_kinases(self, groups=None, families=None, species=None):
 
+        groups = self._ensure_list(groups)
+        families = self._ensure_list(families)
         # Use KLIFS API
         result = (
             self._client.Information.get_kinase_names(
-                kinase_group=group, kinase_family=family, species=species
+                kinase_group=groups, kinase_family=families, species=species
             )
             .response()
             .result
@@ -93,17 +95,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         )
         # Convert list of ABC objects to DataFrame
         kinases = self._abc_to_dataframe(result)
-        # Standardize DataFrame
-        kinases = self._standardize_dataframe(
-            kinases, COLUMN_NAMES["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
-        )
-        return kinases
-
-    def by_kinase_name(self, kinase_names, species=None):
-
-        kinase_names = self._ensure_list(kinase_names)
-        # Use KLIFS API (send requests iteratively)
-        kinases = self._multiple_remote_requests(self._by_kinase_name, kinase_names, species)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
             kinases, COLUMN_NAMES["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
