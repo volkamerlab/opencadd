@@ -29,8 +29,8 @@ class BaseAligner:
         """
         self._safety_checks()
         assert (
-            len(structures) == 2, 
-            "This method can only be used for two structures at the same time, for now"
+            len(structures) == 2,
+            "This method can only be used for two structures at the same time, for now",
         )
         return self._calculate(structures, *args, **kwargs)
 
