@@ -101,24 +101,12 @@ class Kinases(RemoteInitializer, KinasesProvider):
         )
         return kinases
 
-    def _by_kinase_name(self, kinase_name, species=None):
-        """
-        Get kinases by kinase name.
+    def by_kinase_name(self, kinase_names, species=None):
 
-        Parameters
-        ----------
-        kinase_name : str
-            Kinase name.
-
-        Returns
-        -------
-        pandas.DataFrame or None
-            Kinases (rows) with columns as described in the class docstring.
-        """
-
+        kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API
         result = (
-            self._client.Information.get_kinase_ID(kinase_name=kinase_name, species=species)
+            self._client.Information.get_kinase_ID(kinase_name=kinase_names, species=species)
             .response()
             .result
         )
