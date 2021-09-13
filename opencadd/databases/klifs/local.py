@@ -24,8 +24,7 @@ from .schema import (
     DATAFRAME_COLUMNS,
     POCKET_KLIFS_REGIONS,
 )
-from .remote import KLIFS_CLIENT
-from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
 from opencadd.io import DataFrame, Rdkit
 
@@ -497,7 +496,12 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            COLUMN_NAMES["ligands"] + ["kinase.klifs_name", "kinase.gene_name", "species.klifs"],
+            DATAFRAME_COLUMNS["ligands"]
+            + [
+                ("kinase.klifs_name", "string"),
+                ("kinase.gene_name", "string"),
+                ("species.klifs", "string"),
+            ],
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(

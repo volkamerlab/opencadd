@@ -444,19 +444,19 @@ class TestsFromKinaseNames:
             result_remote,
             DATAFRAME_COLUMNS["ligands"]
             + [
-                "kinase.klifs_id (query)",
-                "kinase.klifs_name (query)",
-                "kinase.gene_name (query)",
-                "species.klifs (query)",
+                ("kinase.klifs_id (query)", "int32"),
+                ("kinase.klifs_name (query)", "string"),
+                ("kinase.gene_name (query)", "string"),
+                ("species.klifs (query)", "string"),
             ],
         )
         check_dataframe(
             result_local,
             DATAFRAME_COLUMNS["ligands"]
             + [
-                "kinase.klifs_name (query)",
-                "kinase.gene_name (query)",
-                "species.klifs (query)",
+                ("kinase.klifs_name (query)", "string"),
+                ("kinase.gene_name (query)", "string"),
+                ("species.klifs (query)", "string"),
             ],
         )
 
@@ -513,7 +513,6 @@ class TestsFromLigandPdbs:
         result_remote = REMOTE.bioactivities.by_ligand_expo_id(ligand_expo_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_ligand_expo_id(ligand_expo_ids)
-        print(result_remote)
         check_dataframe(
             result_remote,
             DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")],

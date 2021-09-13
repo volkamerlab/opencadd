@@ -838,9 +838,3 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         return dataframe
-
-
-KLIFS_API_DEFINITIONS = "https://klifs.net/swagger/swagger.json"
-KLIFS_CLIENT = SerializableSwaggerClient.from_url(
-    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-)

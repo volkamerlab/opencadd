@@ -296,7 +296,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_name : str
             Kinase name according to KLIFS.
-        kinase.class : str
+        kinase.subfamily : str
             Kinase class.
             Available remotely only.
         kinase.full_name : str
@@ -317,7 +317,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_id : int
             Kinase KLIFS ID.
-        kinase.hgnc_name : str
+        kinase.gene_name : str
             Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
         kinase.family : str
