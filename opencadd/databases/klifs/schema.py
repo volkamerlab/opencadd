@@ -103,6 +103,7 @@ REMOTE_COLUMNS_MAPPING = {
         "quality_score": "structure.qualityscore",
         "missing_residues": "structure.missing_residues",
         "missing_atoms": "structure.missing_atoms",
+        "curation_flag": "curation_flag",
         "ligand": "ligand.expo_id",
         "ligand_ID": "ligand.klifs_id",
         "allosteric_ligand": "ligand_allosteric.expo_id",
