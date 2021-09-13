@@ -4,394 +4,46 @@ opencadd.databases.klifs.schema
 Defines schema used across the klifs module.
 """
 
+from opencadd.io.schema import DATAFRAME_COLUMNS
+from pathlib import Path
+
 import pandas as pd
 
-DATAFRAME_COLUMNS = {
-    "kinase_groups": [
-        ("kinase.group", "string"),
-    ],
-    "kinase_families": [
-        ("kinase.family", "string"),
-    ],
-    "kinases_all": [
-        ("kinase.klifs_id", "int32"),
-        ("kinase.hgnc_name", "string"),  # TODO except for kinase KLIFS IDs: 529, 530
-        ("kinase.full_name", "string"),
-        ("species.klifs", "string"),
-    ],
-    "kinases": [
-        ("kinase.klifs_id", "int32"),
-        ("kinase.klifs_name", "string"),  # TODO where from?
-        ("kinase.hgnc_name", "string"),
-        ("kinase.family", "string"),
-        ("kinase.group", "string"),
-        ("kinase.class", "string"),  # TODO where from?
-        ("species.klifs", "string"),
-        ("kinase.full_name", "string"),
-        ("kinase.uniprot", "string"),
-        ("kinase.iuphar", "string"),
-        ("kinase.pocket", "string"),
-    ],
-    "ligands": [
-        ("ligand.klifs_id", "Int32"),  # TODO use int32 when ligand ID avail. locally
-        ("ligand.expo_id", "string"),
-        ("ligand.name", "string"),
-        ("ligand.smiles", "string"),
-        ("ligand.inchikey", "string"),
-    ],
-    "structures": [
-        ("structure.klifs_id", "int32"),
-        ("structure.pdb_id", "string"),
-        ("structure.alternate_model", "string"),
-        ("structure.chain", "string"),
-        ("species.klifs", "string"),
-        ("kinase.klifs_id", "int32"),
-        ("kinase.klifs_name", "string"),  # TODO where from?
-        # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
-        ("kinase.family", "string"),
-        ("kinase.group", "string"),
-        ("structure.pocket", "string"),
-        ("ligand.expo_id", "string"),
-        ("ligand_allosteric.expo_id", "string"),
-        ("ligand.name", "string"),
-        ("ligand_allosteric.name", "string"),
-        ("structure.dfg", "string"),
-        ("structure.ac_helix", "string"),
-        ("structure.resolution", "float32"),
-        ("structure.qualityscore", "float32"),
-        ("structure.missing_residues", "int32"),
-        ("structure.missing_atoms", "int32"),
-        ("structure.rmsd1", "float32"),
-        ("structure.rmsd2", "float32"),
-        ("structure.front", "boolean"),
-        ("structure.gate", "boolean"),
-        ("structure.back", "boolean"),
-        ("structure.fp_i", "boolean"),
-        ("structure.fp_ii", "boolean"),
-        ("structure.bp_i_a", "boolean"),
-        ("structure.bp_i_b", "boolean"),
-        ("structure.bp_ii_in", "boolean"),
-        ("structure.bp_ii_a_in", "boolean"),
-        ("structure.bp_ii_b_in", "boolean"),
-        ("structure.bp_ii_out", "boolean"),
-        ("structure.bp_ii_b", "boolean"),
-        ("structure.bp_iii", "boolean"),
-        ("structure.bp_iv", "boolean"),
-        ("structure.bp_v", "boolean"),
-        ("structure.grich_distance", "float32"),
-        ("structure.grich_angle", "float32"),
-        ("structure.grich_rotation", "float32"),
-        ("structure.filepath", "string"),
-    ],
-    "bioactivities": [
-        # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
-        ("kinase.pref_name", "string"),
-        ("kinase.uniprot", "string"),
-        # TODO in the future: "ligand.klifs_id"  # Add if added to KLIFS API?
-        ("ligand.bioactivity_standard_type", "string"),
-        ("ligand.bioactivity_standard_relation", "string"),
-        ("ligand.bioactivity_standard_value", "float32"),
-        ("ligand.bioactivity_standard_units", "string"),
-        ("ligand.bioactivity_pchembl_value", "float32"),
-        ("species.chembl", "string"),
-    ],
-    "interactions": [
-        ("structure.klifs_id", "int32"),
-        ("interaction.fingerprint", "string"),
-    ],
-    "interaction_types": [
-        ("interaction.id", "int32"),
-        ("interaction.name", "string"),
-    ],
-    "pockets": [
-        ("residue.klifs_id", "int32"),
-        ("residue.id", "string"),
-        ("residue.klifs_region_id", "string"),
-        ("residue.klifs_region", "string"),
-        ("residue.klifs_color", "string"),
-    ],
-    "coordinates": [
-        ("atom.id", "int32"),
-        ("atom.name", "string"),
-        ("atom.x", "float32"),
-        ("atom.y", "float32"),
-        ("atom.z", "float32"),
-        ("residue.id", "string"),  # TODO: int32?
-        ("residue.name", "string"),
-        ("residue.klifs_id", "int32"),
-        ("residue.klifs_region_id", "string"),
-        ("residue.klifs_region", "string"),
-        ("residue.klifs_color", "string"),
-    ],
-}
+# PATH_DATA = Path(__name__).parent / "opencadd/data"
+PATH_DATA = Path(__file__).parent / "../../data"
 
+FIELDS = pd.read_csv(PATH_DATA / "klifs_fields.csv")
+
+# "kinase_names": Kinase names: "kinase.gene_name (kinase.klifs_name)"
+# "kinase.klifs_name": Depending on availability: Manning name or UniProt gene name
+# "kinase.full_name": Depending on availability: HGNC gene name or Manning name or UniProt gene name
+# "kinase.gene_name": HGNC or MGI name
+# "kinase.uniprot": UniProt accession
 LOCAL_COLUMNS_MAPPING = {
-    "klifs_export": {
-        "NAME": "kinase.names",  # Kinase names: "kinase.gene_name (kinase.klifs_name)"
-        "FAMILY": "kinase.family",
-        "GROUPS": "kinase.group",
-        "PDB": "structure.pdb_id",
-        "CHAIN": "structure.chain",
-        "ALTERNATE_MODEL": "structure.alternate_model",
-        "SPECIES": "species.klifs",
-        "LIGAND": "ligand.name",
-        "PDB_IDENTIFIER": "ligand.expo_id",
-        "ALLOSTERIC_NAME": "ligand_allosteric.name",
-        "ALLOSTERIC_PDB": "ligand_allosteric.expo_id",
-        "DFG": "structure.dfg",
-        "AC_HELIX": "structure.ac_helix",
-    },
-    "klifs_overview": {
-        "species": "species.klifs",
-        "kinase": "kinase.klifs_name",
-        "pdb": "structure.pdb_id",
-        "alt": "structure.alternate_model",
-        "chain": "structure.chain",
-        "orthosteric_PDB": "ligand.expo_id",
-        "allosteric_PDB": "ligand_allosteric.expo_id",
-        "rmsd1": "structure.rmsd1",
-        "rmsd2": "structure.rmsd2",
-        "qualityscore": "structure.qualityscore",
-        "pocket": "structure.pocket",
-        "resolution": "structure.resolution",
-        "missing_residues": "structure.missing_residues",
-        "missing_atoms": "structure.missing_atoms",
-        "full_ifp": "interaction.fingerprint",
-        "fp_i": "structure.fp_i",
-        "fp_ii": "structure.fp_ii",
-        "bp_i_a": "structure.bp_i_a",
-        "bp_i_b": "structure.bp_i_b",
-        "bp_ii_in": "structure.bp_ii_in",
-        "bp_ii_a_in": "structure.bp_ii_a_in",
-        "bp_ii_b_in": "structure.bp_ii_b_in",
-        "bp_ii_out": "structure.bp_ii_out",
-        "bp_ii_b": "structure.bp_ii_b",
-        "bp_iii": "structure.bp_iii",
-        "bp_iv": "structure.bp_iv",
-        "bp_v": "structure.bp_v",
-    },
+    "klifs_export": FIELDS[["local.klifs_export", "df.name"]]
+    .dropna(how="any")
+    .set_index("local.klifs_export")
+    .squeeze()
+    .to_dict(),
+    "klifs_overview": FIELDS[["local.klifs_overview", "df.name"]]
+    .dropna(how="any")
+    .set_index("local.klifs_overview")
+    .squeeze()
+    .to_dict(),
 }
-
 REMOTE_COLUMNS_MAPPING = {
-    # Information.get_kinase_names()
-    "kinases_all": {
-        "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.klifs_name",  # NEW! Depending on availability: Manning name or UniProt gene name
-        "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
-        "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
-        "accession": "kinase.uniprot",  # NEW! UniProt accession
-        "species": "species.klifs",
-    },
-    # Information.get_kinase_information()
-    "kinases": {
-        "kinase_ID": "kinase.klifs_id",
-        "name": "kinase.klifs_name",  # NEW! Depending on availability: Manning name or UniProt gene name
-        "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
-        "family": "kinase.family",
-        "group": "kinase.group",
-        "subfamily": "kinase.class",
-        "species": "species.klifs",
-        "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
-        "uniprot": "kinase.uniprot",  # UniProt accession
-        "iuphar": "kinase.iuphar",
-        "pocket": "kinase.pocket",
-    },
-    # Ligands.get_ligands_list
-    "ligands": {
-        "ligand_ID": "ligand.klifs_id",
-        "PDB-code": "ligand.expo_id",
-        "Name": "ligand.name",
-        "SMILES": "ligand.smiles",
-        "InChIKey": "ligand.inchikey",
-    },
-    # Structures.get_structure_list()
-    # Structures.get_structure_lists()
-    "structures": {
-        "structure_ID": "structure.klifs_id",
-        "kinase": "kinase.klifs_name",
-        "species": "species.klifs",
-        "kinase_ID": "kinase.klifs_id",
-        "pdb": "structure.pdb_id",
-        "alt": "structure.alternate_model",
-        "chain": "structure.chain",
-        "rmsd1": "structure.rmsd1",
-        "rmsd2": "structure.rmsd2",
-        "pocket": "structure.pocket",
-        "resolution": "structure.resolution",
-        "quality_score": "structure.qualityscore",
-        "missing_residues": "structure.missing_residues",
-        "missing_atoms": "structure.missing_atoms",
-        "curation_flag": "curation_flag",
-        "ligand": "ligand.expo_id",
-        "ligand_ID": "ligand.klifs_id",
-        "allosteric_ligand": "ligand_allosteric.expo_id",
-        "allosteric_ligand_ID": "ligand_allosteric.klifs_id",
-        "DFG": "structure.dfg",
-        "aC_helix": "structure.ac_helix",
-        "Grich_distance": "structure.grich_distance",
-        "Grich_angle": "structure.grich_angle",
-        "Grich_rotation": "structure.grich_rotation",
-        "front": "structure.front",
-        "gate": "structure.gate",
-        "back": "structure.back",
-        "fp_I": "structure.fp_i",
-        "fp_II": "structure.fp_ii",
-        "bp_I_A": "structure.bp_i_a",
-        "bp_I_B": "structure.bp_i_b",
-        "bp_II_in": "structure.bp_ii_in",
-        "bp_II_A_in": "structure.bp_ii_a_in",
-        "bp_II_B_in": "structure.bp_ii_b_in",
-        "bp_II_out": "structure.bp_ii_out",
-        "bp_II_B": "structure.bp_ii_b",
-        "bp_III": "structure.bp_iii",
-        "bp_IV": "structure.bp_iv",
-        "bp_V": "structure.bp_v",
-    },
-    # Ligands.get_bioactivity_list_id()
-    "bioactivities": {
-        "pref_name": "kinase.pref_name",
-        "accession": "kinase.uniprot",
-        "target_chembl_id": "kinase.chembl_id",
-        "organism": "species.chembl",
-        "chembl_id": "ligand.chembl_id",
-        "standard_type": "ligand.bioactivity_standard_type",
-        "standard_relation": "ligand.bioactivity_standard_relation",
-        "standard_value": "ligand.bioactivity_standard_value",
-        "standard_units": "ligand.bioactivity_standard_units",
-        "pchembl_value": "ligand.bioactivity_pchembl_value",
-    },
-    # Interactions.get_interactions_get_IFP()
-    "interactions": {
-        "structure_ID": "structure.klifs_id",
-        "IFP": "interaction.fingerprint",
-    },
-    # Interactions.get_interactions_get_types()
-    "interaction_types": {
-        "position": "interaction.id",
-        "name": "interaction.name",
-    },
-    # Interactions.get_interactions_match_residues()
-    "pockets": {
-        "index": "residue.klifs_id",
-        "Xray_position": "residue.id",
-        "KLIFS_position": "residue.klifs_region_id",
-    },
+    field_type: fields[["remote.fields", "df.name"]]
+    .dropna(how="any")
+    .set_index("remote.fields")
+    .squeeze()
+    .to_dict()
+    for field_type, fields in FIELDS.groupby("field_type")
 }
-
-COLUMN_NAMES = {
-    "kinase_groups": ["kinase.group"],
-    "kinase_families": ["kinase.family"],
-    "kinases_all": [
-        "kinase.klifs_id",
-        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
-        "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
-        "kinase.gene_name",  # HGNC or MGI name (TODO check kinase KLIFS IDs: 529, 530)
-        "kinase.uniprot",  # UniProt accession
-        "species.klifs",
-    ],
-    "kinases": [
-        "kinase.klifs_id",
-        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
-        "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
-        "kinase.gene_name",  # HGNC or MGI name
-        "kinase.family",
-        "kinase.group",
-        "kinase.class",  # TODO where from?
-        "species.klifs",
-        "kinase.uniprot",  # UniProt accession
-        "kinase.iuphar",
-        "kinase.pocket",
-    ],
-    "ligands": [
-        "ligand.klifs_id",
-        "ligand.expo_id",
-        "ligand.name",
-        "ligand.smiles",
-        "ligand.inchikey",
-    ],
-    "structures": [
-        "structure.klifs_id",
-        "structure.pdb_id",
-        "structure.alternate_model",
-        "structure.chain",
-        "species.klifs",
-        "kinase.klifs_id",
-        "kinase.klifs_name",  # Depending on availability: Manning name or UniProt gene name
-        # "kinase.names",  # Excluded, otherwise operations like drop_duplicates() do not work
-        "kinase.family",
-        "kinase.group",
-        "structure.pocket",
-        "ligand.expo_id",
-        "ligand_allosteric.expo_id",
-        "ligand.klifs_id",
-        "ligand_allosteric.klifs_id",
-        "ligand.name",
-        "ligand_allosteric.name",
-        "structure.dfg",
-        "structure.ac_helix",
-        "structure.resolution",
-        "structure.qualityscore",
-        "structure.missing_residues",
-        "structure.missing_atoms",
-        "structure.rmsd1",
-        "structure.rmsd2",
-        "structure.front",
-        "structure.gate",
-        "structure.back",
-        "structure.fp_i",
-        "structure.fp_ii",
-        "structure.bp_i_a",
-        "structure.bp_i_b",
-        "structure.bp_ii_in",
-        "structure.bp_ii_a_in",
-        "structure.bp_ii_b_in",
-        "structure.bp_ii_out",
-        "structure.bp_ii_b",
-        "structure.bp_iii",
-        "structure.bp_iv",
-        "structure.bp_v",
-        "structure.grich_distance",
-        "structure.grich_angle",
-        "structure.grich_rotation",
-        "structure.filepath",
-    ],
-    "bioactivities": [
-        # TODO in the future: "kinase.klifs_id"  # Add if added to KLIFS API?
-        "kinase.pref_name",
-        "kinase.uniprot",
-        "kinase.chembl_id",
-        # TODO in the future: "ligand.klifs_id"  # Add if added to KLIFS API?
-        "ligand.chembl_id",
-        "ligand.bioactivity_standard_type",
-        "ligand.bioactivity_standard_relation",
-        "ligand.bioactivity_standard_value",
-        "ligand.bioactivity_standard_units",
-        "ligand.bioactivity_pchembl_value",
-        "species.chembl",
-    ],
-    "interactions": ["structure.klifs_id", "interaction.fingerprint"],
-    "interaction_types": ["interaction.id", "interaction.name"],
-    "pockets": [
-        "residue.klifs_id",
-        "residue.id",
-        "residue.klifs_region_id",
-        "residue.klifs_region",
-        "residue.klifs_color",
-    ],
-    "coordinates": [
-        "atom.id",
-        "atom.name",
-        "atom.x",
-        "atom.y",
-        "atom.z",
-        "residue.id",
-        "residue.name",
-        "residue.klifs_id",
-        "residue.klifs_region_id",
-        "residue.klifs_region",
-        "residue.klifs_color",
-    ],
-}
+DATAFRAME_COLUMNS = {}
+for field_type, fields in FIELDS.groupby("field_type"):
+    fields = fields[["df.name", "df.type"]].dropna(how="any").values.tolist()
+    fields = [tuple(i) for i in fields]
+    DATAFRAME_COLUMNS[field_type] = fields
 
 POCKET_KLIFS_REGIONS = [
     (1, "I"),
