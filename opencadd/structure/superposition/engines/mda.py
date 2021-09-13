@@ -96,7 +96,7 @@ class MDAnalysisAligner(BaseAligner):
 
     def _safety_checks(self):
         """
-        Check for `mda` installation passes; added here only for consistency across the engines. 
+        Check for `mda` installation passes; added here only for consistency across the engines.
         """
 
         pass
