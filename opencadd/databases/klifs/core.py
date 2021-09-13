@@ -5,6 +5,7 @@ Defines core classes and functions.
 """
 
 import logging
+import html
 
 from bravado_core.exception import SwaggerMappingError
 import numpy as np
@@ -66,7 +67,7 @@ class BaseProvider:
             for key in keys:
                 results_dict[key].append(result[key])
 
-        return pd.DataFrame(results_dict)
+        return pd.DataFrame(results_dict).apply(html.unescape)
 
     @staticmethod
     def _map_old_to_new_column_names(dataframe, columns_mapping):
