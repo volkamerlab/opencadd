@@ -68,9 +68,9 @@ class MMLignerAligner(BaseAligner):
             Raises error if executable `mmligner` cannot be found.
         """
 
-        theseus = find_executable("mmligner")
-        if theseus is None:
-            raise OSError("theseus cannot be located. Is it installed?")
+        mmligner = find_executable("mmligner")
+        if mmligner is None:
+            raise OSError("mmligner cannot be located. Is it installed?")
         # proceed normally
 
     def _calculate(self, structures, *args, **kwargs):
