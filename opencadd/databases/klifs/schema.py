@@ -71,7 +71,7 @@ REMOTE_COLUMNS_MAPPING = {
         "gene_name": "kinase.gene_name",  # RENAMED! HGNC or MGI name
         "family": "kinase.family",
         "group": "kinase.group",
-        "kinase_class": "kinase.class",
+        "subfamily": "kinase.class",
         "species": "species.klifs",
         "full_name": "kinase.full_name",  # Depending on availability: HGNC gene name or Manning name or UniProt gene name
         "uniprot": "kinase.uniprot",  # UniProt accession
