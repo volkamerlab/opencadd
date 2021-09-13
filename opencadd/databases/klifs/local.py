@@ -379,12 +379,13 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_groups = self._standardize_dataframe(kinase_groups, COLUMN_NAMES["kinase_groups"])
         return kinase_groups
 
-    def all_kinase_families(self, group=None):
+    def all_kinase_families(self, groups=None):
 
         # Get local database and select rows
         kinase_families = self._database.copy()
-        if group:
-            kinase_families = kinase_families[kinase_families["kinase.group"] == group]
+        groups = self._ensure_list(groups)
+        if groups:
+            kinase_families = kinase_families[kinase_families["kinase.group"].isin(groups)]
         # Standardize DataFrame
         kinase_families = self._standardize_dataframe(
             kinase_families, COLUMN_NAMES["kinase_families"]
