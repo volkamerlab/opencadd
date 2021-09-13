@@ -32,7 +32,9 @@ class BaseProvider:
         # https://stackoverflow.com/questions/16301253/what-exactly-is-pythons-iterator-protocol
         # test for behaviour (value.__iter__()) instead of type
         # can be removed once input lists are unpacked *kinases_ids
-        if not isinstance(value, list):
+        if value is None:
+            return value
+        elif not isinstance(value, list):
             return [value]
         else:
             return value
