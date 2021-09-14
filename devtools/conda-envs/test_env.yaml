@@ -10,7 +10,7 @@ dependencies:
   - MDAnalysis
   - nglview
   - pandas
-  # databases.klifs
+  - matplotlib-base
   - bravado
   - biopandas
   - rdkit
