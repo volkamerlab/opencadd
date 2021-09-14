@@ -170,8 +170,8 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
-        columns : list of (str, str)
-            Column names and dtypes(in the order of interest for output).
+        columns : dict
+            Column names and dtypes (in the order of interest for output).
         columns_mapping : dict or None
             Mapping of old to new column names. If None, no changes are made.
 
@@ -186,19 +186,14 @@ class BaseProvider:
             dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
 
         # Add missing columns (None values)
-        column_names = [column[0] for column in columns]
+        column_names = list(columns.keys())
         dataframe = self._add_missing_columns(dataframe, column_names)
 
         # Standardize column values
         dataframe = self._standardize_column_values(dataframe)
 
         # Standardize dtypes
-        column_dtypes_dict = {
-            column_name: column_dtype
-            for (column_name, column_dtype) in columns
-            if column_name in dataframe.columns
-        }
-        dataframe = dataframe.astype(column_dtypes_dict)
+        dataframe = dataframe.astype(columns)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()

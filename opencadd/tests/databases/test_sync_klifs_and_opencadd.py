@@ -4,7 +4,7 @@ If errors are raised, it is time to update opencadd.
 """
 
 from opencadd.databases.klifs.utils import KLIFS_CLIENT
-from opencadd.databases.klifs.schema import REMOTE_COLUMNS_MAPPING
+from opencadd.databases.klifs.schema import FIELDS
 
 
 class TestSyncKlifsSwaggerWithOpencadd:
@@ -31,7 +31,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["kinases_all"], KLIFS_CLIENT.Information.get_kinase_names()
+            FIELDS.remote_to_oc_names("kinases_all"), KLIFS_CLIENT.Information.get_kinase_names()
         )
 
     def test_kinases(self):
@@ -40,7 +40,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["kinases"],
+            FIELDS.remote_to_oc_names("kinases"),
             KLIFS_CLIENT.Information.get_kinase_information(),
         )
 
@@ -50,7 +50,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["ligands"],
+            FIELDS.remote_to_oc_names("ligands"),
             KLIFS_CLIENT.Ligands.get_ligands_list(kinase_ID=[1]),
         )
 
@@ -60,7 +60,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["structures"],
+            FIELDS.remote_to_oc_names("structures"),
             KLIFS_CLIENT.Structures.get_structure_list(structure_ID=[1]),
         )
 
@@ -70,7 +70,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.remote_to_oc_names("bioactivities"),
             KLIFS_CLIENT.Ligands.get_bioactivity_list_id(ligand_ID=2),
         )
 
@@ -80,7 +80,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["interaction_types"],
+            FIELDS.remote_to_oc_names("interaction_types"),
             KLIFS_CLIENT.Interactions.get_interactions_get_types(),
         )
 
@@ -90,7 +90,7 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["pockets"],
+            FIELDS.remote_to_oc_names("pockets"),
             KLIFS_CLIENT.Interactions.get_interactions_match_residues(structure_ID=100),
         )
 
@@ -100,6 +100,6 @@ class TestSyncKlifsSwaggerWithOpencadd:
         """
 
         self._test_klifs_model(
-            REMOTE_COLUMNS_MAPPING["interactions"],
+            FIELDS.remote_to_oc_names("interactions"),
             KLIFS_CLIENT.Interactions.get_interactions_get_IFP(structure_ID=[1]),
         )

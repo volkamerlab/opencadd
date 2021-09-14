@@ -4,46 +4,16 @@ opencadd.databases.klifs.schema
 Defines schema used across the klifs module.
 """
 
-from opencadd.io.schema import DATAFRAME_COLUMNS
 from pathlib import Path
 
 import pandas as pd
+from opencadd.databases.klifs.fields import Fields
 
 # PATH_DATA = Path(__name__).parent / "opencadd/data"
 PATH_DATA = Path(__file__).parent / "../../data"
 
-FIELDS = pd.read_csv(PATH_DATA / "klifs_fields.csv")
-
-# "kinase_names": Kinase names: "kinase.gene_name (kinase.klifs_name)"
-# "kinase.klifs_name": Depending on availability: Manning name or UniProt gene name
-# "kinase.full_name": Depending on availability: HGNC gene name or Manning name or UniProt gene name
-# "kinase.gene_name": HGNC or MGI name
-# "kinase.uniprot": UniProt accession
-LOCAL_COLUMNS_MAPPING = {
-    "klifs_export": FIELDS[["local.klifs_export", "df.name"]]
-    .dropna(how="any")
-    .set_index("local.klifs_export")
-    .squeeze()
-    .to_dict(),
-    "klifs_overview": FIELDS[["local.klifs_overview", "df.name"]]
-    .dropna(how="any")
-    .set_index("local.klifs_overview")
-    .squeeze()
-    .to_dict(),
-}
-REMOTE_COLUMNS_MAPPING = {
-    field_type: fields[["remote.fields", "df.name"]]
-    .dropna(how="any")
-    .set_index("remote.fields")
-    .squeeze()
-    .to_dict()
-    for field_type, fields in FIELDS.groupby("field_type")
-}
-DATAFRAME_COLUMNS = {}
-for field_type, fields in FIELDS.groupby("field_type"):
-    fields = fields[["df.name", "df.type"]].dropna(how="any").values.tolist()
-    fields = [tuple(i) for i in fields]
-    DATAFRAME_COLUMNS[field_type] = fields
+PATH_FIELDS = PATH_DATA / "klifs_fields.csv"
+FIELDS = Fields(PATH_FIELDS)
 
 POCKET_KLIFS_REGIONS = [
     (1, "I"),
