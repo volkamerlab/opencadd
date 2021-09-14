@@ -5,6 +5,7 @@ Defines core classes and functions.
 """
 
 import logging
+import html
 
 from bravado_core.exception import SwaggerMappingError
 import numpy as np
@@ -32,7 +33,9 @@ class BaseProvider:
         # https://stackoverflow.com/questions/16301253/what-exactly-is-pythons-iterator-protocol
         # test for behaviour (value.__iter__()) instead of type
         # can be removed once input lists are unpacked *kinases_ids
-        if not isinstance(value, list):
+        if value is None:
+            return value
+        elif not isinstance(value, list):
             return [value]
         else:
             return value
@@ -64,7 +67,7 @@ class BaseProvider:
             for key in keys:
                 results_dict[key].append(result[key])
 
-        return pd.DataFrame(results_dict)
+        return pd.DataFrame(results_dict).apply(html.unescape)
 
     @staticmethod
     def _map_old_to_new_column_names(dataframe, columns_mapping):
@@ -167,8 +170,8 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
-        columns : list of (str, str)
-            Column names and dtypes(in the order of interest for output).
+        columns : dict
+            Column names and dtypes (in the order of interest for output).
         columns_mapping : dict or None
             Mapping of old to new column names. If None, no changes are made.
 
@@ -183,19 +186,14 @@ class BaseProvider:
             dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
 
         # Add missing columns (None values)
-        column_names = [column[0] for column in columns]
+        column_names = list(columns.keys())
         dataframe = self._add_missing_columns(dataframe, column_names)
 
         # Standardize column values
         dataframe = self._standardize_column_values(dataframe)
 
         # Standardize dtypes
-        column_dtypes_dict = {
-            column_name: column_dtype
-            for (column_name, column_dtype) in columns
-            if column_name in dataframe.columns
-        }
-        dataframe = dataframe.astype(column_dtypes_dict)
+        dataframe = dataframe.astype(columns)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()
@@ -293,7 +291,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_name : str
             Kinase name according to KLIFS.
-        kinase.class : str
+        kinase.subfamily : str
             Kinase class.
             Available remotely only.
         kinase.full_name : str
@@ -314,7 +312,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_id : int
             Kinase KLIFS ID.
-        kinase.hgnc_name : str
+        kinase.gene_name : str
             Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
         kinase.family : str

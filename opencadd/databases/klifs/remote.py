@@ -20,7 +20,7 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
 )
-from .schema import REMOTE_COLUMNS_MAPPING, DATAFRAME_COLUMNS
+from .schema import FIELDS
 from .utils import metadata_to_filepath, silence_logging
 from opencadd.io import DataFrame, Rdkit
 
@@ -71,25 +71,32 @@ class Kinases(RemoteInitializer, KinasesProvider):
         # Use KLIFS API
         result = self._client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
-        column = DATAFRAME_COLUMNS["kinase_groups"][0]
-        kinase_groups = pd.DataFrame({column[0]: pd.Series(result, dtype=column[1])})
+        column_name = list(FIELDS.oc_name_to_type("kinase_groups").keys())[0]
+        column_dtype = list(FIELDS.oc_name_to_type("kinase_groups").values())[0]
+        kinase_groups = pd.DataFrame({column_name: pd.Series(result, dtype=column_dtype)})
         return kinase_groups
 
-    def all_kinase_families(self, group=None):
+    def all_kinase_families(self, groups=None):
 
+        groups = self._ensure_list(groups)
         # Use KLIFS API
-        result = self._client.Information.get_kinase_families(kinase_group=group).response().result
+        result = (
+            self._client.Information.get_kinase_families(kinase_group=groups).response().result
+        )
         # Convert list to DataFrame (1 column)
-        column = DATAFRAME_COLUMNS["kinase_families"][0]
-        kinase_families = pd.DataFrame({column[0]: pd.Series(result, dtype=column[1])})
+        column_name = list(FIELDS.oc_name_to_type("kinase_families").keys())[0]
+        column_dtype = list(FIELDS.oc_name_to_type("kinase_families").values())[0]
+        kinase_families = pd.DataFrame({column_name: pd.Series(result, dtype=column_dtype)})
         return kinase_families
 
-    def all_kinases(self, group=None, family=None, species=None):
+    def all_kinases(self, groups=None, families=None, species=None):
 
+        groups = self._ensure_list(groups)
+        families = self._ensure_list(families)
         # Use KLIFS API
         result = (
             self._client.Information.get_kinase_names(
-                kinase_group=group, kinase_family=family, species=species
+                kinase_group=groups, kinase_family=families, species=species
             )
             .response()
             .result
@@ -98,7 +105,9 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
-            kinases, DATAFRAME_COLUMNS["kinases_all"], REMOTE_COLUMNS_MAPPING["kinases_all"]
+            kinases,
+            FIELDS.oc_name_to_type("kinases_all"),
+            FIELDS.remote_to_oc_names("kinases_all"),
         )
         return kinases
 
@@ -115,17 +124,13 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
-            kinases, DATAFRAME_COLUMNS["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
+            kinases, FIELDS.oc_name_to_type("kinases"), FIELDS.remote_to_oc_names("kinases")
         )
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
 
         kinase_names = self._ensure_list(kinase_names)
-        # FIXME: Unexpected KLIFS Swagger input: "ABL1, EGFR" instead ["ABL1", "EGFR"]
-        # Fixed at https://klifs.net/swagger_v2/
-        # Use workaround here and update when v2 becomes default
-        kinase_names = ", ".join(kinase_names)
         # Use KLIFS API
         result = (
             self._client.Information.get_kinase_ID(kinase_name=kinase_names, species=species)
@@ -136,7 +141,7 @@ class Kinases(RemoteInitializer, KinasesProvider):
         kinases = self._abc_to_dataframe(result)
         # Standardize DataFrame
         kinases = self._standardize_dataframe(
-            kinases, DATAFRAME_COLUMNS["kinases"], REMOTE_COLUMNS_MAPPING["kinases"]
+            kinases, FIELDS.oc_name_to_type("kinases"), FIELDS.remote_to_oc_names("kinases")
         )
         return kinases
 
@@ -162,7 +167,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands = self._abc_to_dataframe(result)
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands, DATAFRAME_COLUMNS["ligands"], REMOTE_COLUMNS_MAPPING["ligands"]
+            ligands, FIELDS.oc_name_to_type("ligands"), FIELDS.remote_to_oc_names("ligands")
         )
         return ligands
 
@@ -173,8 +178,8 @@ class Ligands(RemoteInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id (query)", "int32")],
-            REMOTE_COLUMNS_MAPPING["ligands"],
+            FIELDS.oc_name_to_type("ligands", {"kinase.klifs_id (query)": "int32"}),
+            FIELDS.remote_to_oc_names("ligands"),
         )
         return ligands
 
@@ -201,7 +206,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands = self._abc_to_dataframe(result)
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands, DATAFRAME_COLUMNS["ligands"], REMOTE_COLUMNS_MAPPING["ligands"]
+            ligands, FIELDS.oc_name_to_type("ligands"), FIELDS.remote_to_oc_names("ligands")
         )
         # Rename column to indicate query key
         ligands["kinase.klifs_id (query)"] = kinase_klifs_id
@@ -216,14 +221,14 @@ class Ligands(RemoteInitializer, LigandsProvider):
         kinases_remote = Kinases(self._client)
         kinases = kinases_remote.by_kinase_name(kinase_names)
         # Select and rename columns to indicate columns involved in query
-        kinases = kinases[  # pylint: disable=E1136
-            ["kinase.klifs_id", "kinase.klifs_name", "kinase.hgnc_name", "species.klifs"]
+        kinases = kinases[
+            ["kinase.klifs_id", "kinase.klifs_name", "kinase.gene_name", "species.klifs"]
         ]
         kinases.rename(
             columns={
                 "kinase.klifs_id": "kinase.klifs_id (query)",
                 "kinase.klifs_name": "kinase.klifs_name (query)",
-                "kinase.hgnc_name": "kinase.hgnc_name (query)",
+                "kinase.gene_name": "kinase.gene_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,
@@ -245,7 +250,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands = ligands[ligands["ligand.klifs_id"].isin(ligand_klifs_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands, DATAFRAME_COLUMNS["ligands"], REMOTE_COLUMNS_MAPPING["ligands"]
+            ligands, FIELDS.oc_name_to_type("ligands"), FIELDS.remote_to_oc_names("ligands")
         )
         return ligands
 
@@ -258,7 +263,7 @@ class Ligands(RemoteInitializer, LigandsProvider):
         ligands = ligands[ligands["ligand.expo_id"].isin(ligand_expo_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands, DATAFRAME_COLUMNS["ligands"], REMOTE_COLUMNS_MAPPING["ligands"]
+            ligands, FIELDS.oc_name_to_type("ligands"), FIELDS.remote_to_oc_names("ligands")
         )
         return ligands
 
@@ -280,7 +285,9 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self.by_kinase_klifs_id(kinase_klifs_ids)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
@@ -297,32 +304,24 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._abc_to_dataframe(result)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
 
-        # TODO in the future: Approach incorrect: One PDB can have multiple KLIFS IDs
-
-        _logger.warning(
-            f"This method uses this lookup: ligand KLIFS ID > Ligand Expo ID > structures."
-            f"The KLIFS Swagger API offers no direct structure search by ligand KLIFS ID."
-            f"However, one Ligand Expo ID can be represented by multiple ligand KLIFS IDs. "
-            f"Thus, in rare cases, this method will return also structure that are not connected "
-            f"to the input ligand KLIFS ID but to a mutual Ligand Expo ID."
-        )
-
         ligand_klifs_ids = self._ensure_list(ligand_klifs_ids)
-        # Use KLIFS API: Get Ligand Expo IDs for ligand KLIFS IDs
-        remote_ligands = Ligands(self._client)
-        ligands = remote_ligands.by_ligand_klifs_id(ligand_klifs_ids)
-        # Use KLIFS API: Get structures from Ligand Expo IDs
-        ligand_expo_ids = ligands["ligand.expo_id"].to_list()
-        structures = self.by_ligand_expo_id(ligand_expo_ids)
+        # Use KLIFS API: Get all structures
+        structures = self.all_structures()
+        # Select structures by ligand KLIFS IDs
+        structures = structures[structures["ligand.klifs_id"].isin(ligand_klifs_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
@@ -339,7 +338,9 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._abc_to_dataframe(result)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
@@ -358,7 +359,9 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = self._abc_to_dataframe(result)
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         # If only one structure PDB ID is given, check alternate model and chain filters
         if len(structure_pdb_ids) == 1:
@@ -376,7 +379,9 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = structures[structures["ligand.expo_id"].isin(ligand_expo_ids)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
@@ -389,7 +394,9 @@ class Structures(RemoteInitializer, StructuresProvider):
         structures = structures[structures["kinase.klifs_name"].isin(kinase_names)]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
-            structures, DATAFRAME_COLUMNS["structures"], REMOTE_COLUMNS_MAPPING["structures"]
+            structures,
+            FIELDS.oc_name_to_type("structures"),
+            FIELDS.remote_to_oc_names("structures"),
         )
         return structures
 
@@ -418,8 +425,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities"),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         return bioactivities
 
@@ -435,8 +442,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities"),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         return bioactivities
 
@@ -447,8 +454,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.klifs_id (query)", "int32")],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities", {"ligand.klifs_id (query)": "int32"}),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         return bioactivities
 
@@ -459,8 +466,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities", {"ligand.expo_id (query)": "string"}),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         return bioactivities
 
@@ -490,8 +497,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities"),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         # Rename column to indicate query key
         bioactivities["ligand.klifs_id (query)"] = ligand_klifs_id
@@ -523,8 +530,8 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         # Standardize DataFrame
         bioactivities = self._standardize_dataframe(
             bioactivities,
-            DATAFRAME_COLUMNS["bioactivities"],
-            REMOTE_COLUMNS_MAPPING["bioactivities"],
+            FIELDS.oc_name_to_type("bioactivities"),
+            FIELDS.remote_to_oc_names("bioactivities"),
         )
         # Rename column to indicate query key
         bioactivities["ligand.expo_id (query)"] = ligand_expo_id
@@ -548,8 +555,8 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         # Standardize DataFrame
         interaction_types = self._standardize_dataframe(
             interaction_types,
-            DATAFRAME_COLUMNS["interaction_types"],
-            REMOTE_COLUMNS_MAPPING["interaction_types"],
+            FIELDS.oc_name_to_type("interaction_types"),
+            FIELDS.remote_to_oc_names("interaction_types"),
         )
         return interaction_types
 
@@ -561,11 +568,12 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         # Use KLIFS API: Get all interactions from these structures KLIFS IDs
         structure_klifs_ids = structures["structure.klifs_id"].to_list()
         interactions = self.by_structure_klifs_id(structure_klifs_ids)
+        print(interactions)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            DATAFRAME_COLUMNS["interactions"],
-            REMOTE_COLUMNS_MAPPING["interaction_types"],
+            FIELDS.oc_name_to_type("interactions"),
+            FIELDS.remote_to_oc_names("interactions"),
         )
         return interactions
 
@@ -582,7 +590,9 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         interactions = self._abc_to_dataframe(result)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
-            interactions, DATAFRAME_COLUMNS["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
+            interactions,
+            FIELDS.oc_name_to_type("interactions"),
+            FIELDS.remote_to_oc_names("interactions"),
         )
         return interactions
 
@@ -597,7 +607,9 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         interactions = self.by_structure_klifs_id(structure_klifs_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
-            interactions, DATAFRAME_COLUMNS["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
+            interactions,
+            FIELDS.oc_name_to_type("interactions"),
+            FIELDS.remote_to_oc_names("interactions"),
         )
         return interactions
 
@@ -612,7 +624,9 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         interactions = self.by_structure_klifs_id(structure_klifs_ids)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
-            interactions, DATAFRAME_COLUMNS["interactions"], REMOTE_COLUMNS_MAPPING["interactions"]
+            interactions,
+            FIELDS.oc_name_to_type("interactions"),
+            FIELDS.remote_to_oc_names("interactions"),
         )
         return interactions
 
@@ -638,7 +652,7 @@ class Pockets(RemoteInitializer, PocketsProvider):
         pocket = pd.DataFrame(result)
         # Standardize DataFrame
         pocket = self._standardize_dataframe(
-            pocket, DATAFRAME_COLUMNS["pockets"], REMOTE_COLUMNS_MAPPING["pockets"]
+            pocket, FIELDS.oc_name_to_type("pockets"), FIELDS.remote_to_oc_names("pockets")
         )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
         pocket = self._add_klifs_region_details(pocket)
@@ -849,9 +863,3 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         return dataframe
-
-
-KLIFS_API_DEFINITIONS = "https://klifs.net/swagger/swagger.json"
-KLIFS_CLIENT = SerializableSwaggerClient.from_url(
-    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
-)
