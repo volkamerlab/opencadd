@@ -9,8 +9,6 @@ import logging
 from pathlib import Path
 import re
 
-from bravado.client import SwaggerClient
-
 _logger = logging.getLogger(__name__)
 
 PATH_DATA = Path(__file__).parent / ".." / ".." / "data"
