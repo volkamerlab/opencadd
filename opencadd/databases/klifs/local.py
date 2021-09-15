@@ -23,7 +23,8 @@ from .schema import (
     FIELDS,
     POCKET_KLIFS_REGIONS,
 )
-from .utils import KLIFS_CLIENT, PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .remote import KLIFS_CLIENT
 from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
 from opencadd.io import DataFrame, Rdkit
 
