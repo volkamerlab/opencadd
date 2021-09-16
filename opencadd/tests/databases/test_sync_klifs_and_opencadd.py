@@ -3,7 +3,7 @@ Test if opencadd is up-to-date with KLIFS database (website and download).
 If errors are raised, it is time to update opencadd.
 """
 
-from opencadd.databases.klifs.utils import KLIFS_CLIENT
+from opencadd.databases.klifs.remote import KLIFS_CLIENT
 from opencadd.databases.klifs.schema import FIELDS
 
 

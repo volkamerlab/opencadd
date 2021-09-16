@@ -44,6 +44,12 @@ class SerializableSwaggerClient(SwaggerClient):
         }
 
 
+KLIFS_API_DEFINITIONS = "https://dev.klifs.net/swagger_v2/swagger.json"
+KLIFS_CLIENT = SerializableSwaggerClient.from_url(
+    KLIFS_API_DEFINITIONS, config={"validate_responses": False}
+)
+
+
 class RemoteInitializer:
     """
     Base class used to define __init__ for all remote classes.
