@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+from bravado_core.exception import SwaggerMappingError
 
 from . import remote
 from .core import (
@@ -311,7 +312,7 @@ class _LocalDatabaseGenerator:
 
         filepaths = []
 
-        for index, row in klifs_metadata.iterrows():
+        for _, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
             filepath = metadata_to_filepath(
@@ -354,16 +355,27 @@ class _LocalDatabaseGenerator:
             klifs_metadata_with_ids["structure.klifs_id"].isna()
         ].iterrows():
             # Get IDs from remote
-            structure = remote_structures.by_structure_pdb_id(
-                row["structure.pdb_id"],
-                row["structure.alternate_model"],
-                row["structure.chain"],
-            )
-            structure_klifs_id = structure["structure.klifs_id"][0]
-            kinase_klifs_id = structure["kinase.klifs_id"][0]
-            # Set IDs locally
-            klifs_metadata_with_ids.loc[index, "structure.klifs_id"] = structure_klifs_id
-            klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
+            try:
+                structure = remote_structures.by_structure_pdb_id(
+                    row["structure.pdb_id"],
+                    row["structure.alternate_model"],
+                    row["structure.chain"],
+                )
+                structure_klifs_id = structure["structure.klifs_id"][0]
+                kinase_klifs_id = structure["kinase.klifs_id"][0]
+                # Set IDs locally
+                klifs_metadata_with_ids.loc[index, "structure.klifs_id"] = structure_klifs_id
+                klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
+            except SwaggerMappingError as e:
+                # If for some reason some structures are available locally but not remotely
+                # we will drop them!
+                _logger.error(
+                    f"Local structure is not part of {KLIFS_CLIENT} (yet? any more?): "
+                    f"{row['structure.pdb_id']}-"
+                    f"{row['structure.alternate_model']}-"
+                    f"{row['structure.chain']}"
+                )
+                _logger.error(e)
         # Remove structures that have no KLIFS ID
         klifs_metadata_with_ids.dropna(subset=["structure.klifs_id"], inplace=True)
 
