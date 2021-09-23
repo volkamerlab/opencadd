@@ -138,17 +138,14 @@ class BaseProvider:
         local data is already performed upon session initialization.
         """
 
+        # TODO Use None instead of "-"; but may affect downstream pipelines that use "-" already
         if "structure.alternate_model" in dataframe.columns:
-            # Remote
             dataframe["structure.alternate_model"].replace("", "-", inplace=True)
         if "ligand.expo_id" in dataframe.columns:
-            # Remote
             dataframe["ligand.expo_id"].replace(0, "-", inplace=True)
         if "ligand_allosteric.expo_id" in dataframe.columns:
-            # Remote
             dataframe["ligand_allosteric.expo_id"].replace(0, "-", inplace=True)
         if "structure.resolution" in dataframe.columns:
-            # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
 
         if "drug.brand_name" in dataframe.columns:
@@ -1055,10 +1052,13 @@ class InteractionsProvider(BaseProvider):
     """
     Class for interactions requests.
 
-    Methods
-    -------
+    Properties
+    ----------
     interaction_types()
         Get all available interaction types.
+
+    Methods
+    -------
     all_interactions()
         Get all available interaction fingerprints.
     by_structure_klifs_id(structure_klifs_ids)
