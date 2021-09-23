@@ -674,7 +674,7 @@ class StructuresProvider(BaseProvider):
     structure.dfg : str
         DFG conformation (in, out, out-like, na).
     structure.ac_helix : str
-        aC helix conformation (in, out, out-like, na).
+        aC helix conformation (in, out, na).
     structure.resolution : float
         Structure resolution in Angström.
     structure.qualityscore : float
@@ -1494,5 +1494,107 @@ class DrugsProvider(BaseProvider):
         ------
         ValueError
             If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureConformationsProvider(BaseProvider):
+    """
+    Class for structure conformation requests.
+
+    For detailed information on the conformation definitions, please the toolstips at
+    https://dev.klifs.net/search.php > Conformations > hover over "?" tooltips
+
+
+    Methods
+    -------
+    all_conformations()
+        Get all available drugs.
+    by_structure_klifs_id(structure_klifs_ids)
+        Get structure conformation data by one or more structure KLIFS IDs.
+
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
+    (columns):
+
+    structure.dfg : str
+        DFG conformation (in, out, out-like, na).
+    structure.ac_helix : str
+        aC helix conformation (in, out, na).
+    structure.ac_helix_distance : float
+        Distance between Ca atom of residue 76 and the middle of the Ca atoms of residues 23-24-25.
+    structure.aloop_rotation : float
+        TODO
+    structure.dfg_angle_d_f : float
+        TODO
+    structure.dfg_d_outer_rotation : float
+        Clockwise roation of the most outer atom to the Ca atom of residue 81 (D) around
+        the activation loop relative to the KLIFS horizon (plane spanned by 31, 51 or 52, and 81).
+        Value of 0 indicates D is pointing to catalytic cleft (active DFG-in).
+    structure.dfg_d_rotation : float
+        TODO
+    structure.dfg_f_outer_rotation : float
+        Clockwise roation of the most outer atom to the Ca atom of residue 82 (F) around
+        the activation loop relative to the KLIFS horizon (plane spanned by 31, 51 or 52, and 81).
+        Value of 0 indicates F is pointing to the aC helix (active DFG-in).
+    structure.dfg_f_rotation : float
+        TODO
+    structure.distance_67_82 : float
+        TODO
+    structure.distance_67_82_out : float
+        TODO
+    structure.mobitz_dihedral : float
+        TODO
+    structure.ploop_angle : float
+        TODO
+    structure.ploop_distance : float
+        TODO
+    structure.ploop_rotation : float
+        TODO
+    structure.reference_distance : float
+        TODO
+    structure.salt_bridge_17_24 : float
+        TODO
+    structure.klifs_id : float
+        Structure KLIFS ID.
+
+    """
+
+    def all_conformations(self):
+        """
+        Get all available drugs.
+
+        Returns
+        -------
+        pandas.DataFrame
+            drugs (rows) with the columns as defined in the class docstring.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get structure conformation data by one or more structure PDB IDs.
+
+        Parameters
+        ----------
+        structure_pdb_ids : str or list of str
+            Structure PDB ID(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structure conformation data.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
