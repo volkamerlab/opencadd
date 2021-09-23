@@ -66,7 +66,7 @@ def metadata_to_filepath(
     structure = f"{structure_pdb}{f'_alt{structure_alternate_model}' if bool(structure_alternate_model) else ''}{f'_chain{structure_chain}' if bool(structure_chain) else ''}"
 
     # FIXME: The PDB download for ligands in KLIFS is named "klifs_ligand.pdb"
-    # instead of "ligand.expo_id". For the time being (until KLIFS maybe streamlines the file name
+    # instead of "ligand.pdb". For the time being (until KLIFS maybe streamlines the file name
     # with all the other file names), rename the file here.
     if entity == "ligand" and extension == "pdb":
         entity = "klifs_ligand"
