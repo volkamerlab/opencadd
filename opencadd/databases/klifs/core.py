@@ -151,6 +151,15 @@ class BaseProvider:
             # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
 
+        if "drug.brand_name" in dataframe.columns:
+            dataframe["drug.brand_name"] = dataframe["drug.brand_name"].apply(
+                lambda x: x.split(";") if x != "" else []
+            )
+        if "drug.synonyms" in dataframe.columns:
+            dataframe["drug.synonyms"] = dataframe["drug.synonyms"].apply(
+                lambda x: x.split("\t") if x != "" else []
+            )
+
         return dataframe
 
     def _standardize_dataframe(self, dataframe, columns, columns_mapping=None):
