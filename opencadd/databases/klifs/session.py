@@ -37,6 +37,8 @@ class Session:
         Interactions object for interaction requests.
     coordinates : None or opencadd.databases.klifs.remote.Coordinates/local.Coordinates
         Coordinates object for coordinates requests.
+    drugs : None or opencadd.databases.klifs.remote.Drugs
+        Coordinates object for drugs requests.
     """
 
     def __init__(self):
@@ -56,6 +58,7 @@ class Session:
         self.interactions = None
         self.pockets = None
         self.coordinates = None
+        self.drugs = None
 
     @classmethod
     def from_local(cls, path_to_klifs_download, path_to_klifs_metadata=None):
@@ -161,6 +164,11 @@ class Session:
             path_to_klifs_download=path_to_klifs_download,
         )
         self.coordinates = backend.Coordinates(
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
+        )
+        self.drugs = backend.Drugs(
             client=client,
             database=database,
             path_to_klifs_download=path_to_klifs_download,

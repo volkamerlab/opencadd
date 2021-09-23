@@ -225,6 +225,17 @@ class TestsAllQueries:
 
         check_dataframe(result_remote, FIELDS.oc_name_to_type("bioactivities"))
 
+    def test_all_drugs(self):
+        """
+        Test request result for all drugs.
+        """
+
+        result_remote = REMOTE.drugs.all_drugs()
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("drugs"))
+
+        with pytest.raises(NotImplementedError):
+            LOCAL.drugs.all_drugs()
+
 
 class TestsFromKinaseIds:
     """

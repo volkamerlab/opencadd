@@ -19,6 +19,7 @@ from .core import (
     InteractionsProvider,
     PocketsProvider,
     CoordinatesProvider,
+    DrugsProvider,
 )
 from .schema import (
     FIELDS,
@@ -879,3 +880,17 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
         dataframe = dataframe.merge(pocket_dataframe, on="residue.id", how="left")
 
         return dataframe
+
+
+class Drugs(LocalInitializer, DrugsProvider):
+    """
+    Extends DrugsProvider to provide remote drug requests.
+    Refer to DrugsProvider documentation for more information:
+    opencadd.databases.klifs.core.DrugsProvider
+    """
+
+    def all_drugs(self):
+
+        raise NotImplementedError(
+            "Information on drugs is not available locally! Please use a remote session."
+        )

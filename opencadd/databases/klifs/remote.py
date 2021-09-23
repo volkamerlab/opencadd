@@ -19,6 +19,7 @@ from .core import (
     InteractionsProvider,
     PocketsProvider,
     CoordinatesProvider,
+    DrugsProvider,
 )
 from .schema import FIELDS
 from .utils import metadata_to_filepath, silence_logging
@@ -869,3 +870,23 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
         dataframe = dataframe.astype({"residue.klifs_id": "Int64"})
 
         return dataframe
+
+
+class Drugs(RemoteInitializer, DrugsProvider):
+    """
+    Extends DrugsProvider to provide remote drug requests.
+    Refer to DrugsProvider documentation for more information:
+    opencadd.databases.klifs.core.DrugsProvider
+    """
+
+    def all_drugs(self):
+
+        # Use KLIFS API
+        result = self._client.Ligands.get_drug_list().response().result
+        # Convert list of ABC objects to DataFrame
+        drugs = self._abc_to_dataframe(result)
+        # Standardize DataFrame
+        drugs = self._standardize_dataframe(
+            drugs, FIELDS.oc_name_to_type("drugs"), FIELDS.remote_to_oc_names("drugs")
+        )
+        return drugs
