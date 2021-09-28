@@ -10,7 +10,7 @@ dependencies:
   - MDAnalysis
   - nglview
   - pandas
-  # databases.klifs
+  - matplotlib-base
   - bravado
   - biopandas
   - rdkit
@@ -31,10 +31,3 @@ dependencies:
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
-  # Temporary fix for issue #65
-  #- parso 0.8.1
-## For Jupyter, run:
-# conda install jupyter jupyterlab=2 ipywidgets>=7.5
-## For Jupyter lab extensions, run:
-# conda install nodejs
-# jupyter labextension install @jupyter-widgets/jupyterlab-manager nglview-js-widgets @jupyterlab/toc

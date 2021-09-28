@@ -27,8 +27,15 @@ class BaseAligner:
             - ``metadata``: Contextual information provided by the method
 
         """
-        assert len(structures) == 2
+        self._safety_checks()
+        assert (
+            len(structures) == 2,
+            "This method can only be used for two structures at the same time, for now",
+        )
         return self._calculate(structures, *args, **kwargs)
 
     def _calculate(self, structures, *args, **kwargs):
+        raise NotImplementedError("Reimplement in your subclass")
+
+    def _safety_checks(self):
         raise NotImplementedError("Reimplement in your subclass")

@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+from bravado_core.exception import SwaggerMappingError
 
 from . import remote
 from .core import (
@@ -18,14 +19,14 @@ from .core import (
     InteractionsProvider,
     PocketsProvider,
     CoordinatesProvider,
+    DrugsProvider,
 )
 from .schema import (
-    LOCAL_COLUMNS_MAPPING,
-    DATAFRAME_COLUMNS,
+    FIELDS,
     POCKET_KLIFS_REGIONS,
 )
-from .remote import KLIFS_CLIENT
 from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
+from .remote import KLIFS_CLIENT
 from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
 from opencadd.io import DataFrame, Rdkit
 
@@ -139,7 +140,7 @@ class _LocalDatabaseGenerator:
 
         # Unify column names with column names in overview.csv
         klifs_export.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_export"],
+            columns=FIELDS.local_export_to_oc_name(),
             inplace=True,
         )
 
@@ -151,7 +152,7 @@ class _LocalDatabaseGenerator:
             for i in klifs_export["kinase.names"]  # pylint: disable=E1136
         ]
         klifs_export["kinase.names"] = kinase_names
-        klifs_export.insert(1, "kinase.hgnc_name", [i[0] for i in kinase_names])
+        klifs_export.insert(1, "kinase.gene_name", [i[0] for i in kinase_names])
         klifs_export.insert(2, "kinase.klifs_name", [i[-1] for i in kinase_names])
 
         return klifs_export
@@ -177,7 +178,7 @@ class _LocalDatabaseGenerator:
 
         # Unify column names with column names in KLIFS_export.csv
         klifs_overview.rename(
-            columns=LOCAL_COLUMNS_MAPPING["klifs_overview"],
+            columns=FIELDS.local_overview_to_oc_name(),
             inplace=True,
         )
 
@@ -312,7 +313,7 @@ class _LocalDatabaseGenerator:
 
         filepaths = []
 
-        for index, row in klifs_metadata.iterrows():
+        for _, row in klifs_metadata.iterrows():
 
             # Depending on whether alternate model and chain ID is given build file path:
             filepath = metadata_to_filepath(
@@ -355,16 +356,27 @@ class _LocalDatabaseGenerator:
             klifs_metadata_with_ids["structure.klifs_id"].isna()
         ].iterrows():
             # Get IDs from remote
-            structure = remote_structures.by_structure_pdb_id(
-                row["structure.pdb_id"],
-                row["structure.alternate_model"],
-                row["structure.chain"],
-            )
-            structure_klifs_id = structure["structure.klifs_id"][0]
-            kinase_klifs_id = structure["kinase.klifs_id"][0]
-            # Set IDs locally
-            klifs_metadata_with_ids.loc[index, "structure.klifs_id"] = structure_klifs_id
-            klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
+            try:
+                structure = remote_structures.by_structure_pdb_id(
+                    row["structure.pdb_id"],
+                    row["structure.alternate_model"],
+                    row["structure.chain"],
+                )
+                structure_klifs_id = structure["structure.klifs_id"][0]
+                kinase_klifs_id = structure["kinase.klifs_id"][0]
+                # Set IDs locally
+                klifs_metadata_with_ids.loc[index, "structure.klifs_id"] = structure_klifs_id
+                klifs_metadata_with_ids.loc[index, "kinase.klifs_id"] = kinase_klifs_id
+            except SwaggerMappingError as e:
+                # If for some reason some structures are available locally but not remotely
+                # we will drop them!
+                _logger.error(
+                    f"Local structure is not part of {KLIFS_CLIENT} (yet? any more?): "
+                    f"{row['structure.pdb_id']}-"
+                    f"{row['structure.alternate_model']}-"
+                    f"{row['structure.chain']}"
+                )
+                _logger.error(e)
         # Remove structures that have no KLIFS ID
         klifs_metadata_with_ids.dropna(subset=["structure.klifs_id"], inplace=True)
 
@@ -384,34 +396,37 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_groups = self._database.copy()
         # Standardize DataFrame
         kinase_groups = self._standardize_dataframe(
-            kinase_groups, DATAFRAME_COLUMNS["kinase_groups"]
+            kinase_groups, FIELDS.oc_name_to_type("kinase_groups")
         )
         return kinase_groups
 
-    def all_kinase_families(self, group=None):
+    def all_kinase_families(self, groups=None):
 
         # Get local database and select rows
         kinase_families = self._database.copy()
-        if group:
-            kinase_families = kinase_families[kinase_families["kinase.group"] == group]
+        groups = self._ensure_list(groups)
+        if groups:
+            kinase_families = kinase_families[kinase_families["kinase.group"].isin(groups)]
         # Standardize DataFrame
         kinase_families = self._standardize_dataframe(
-            kinase_families, DATAFRAME_COLUMNS["kinase_families"]
+            kinase_families, FIELDS.oc_name_to_type("kinase_families")
         )
         return kinase_families
 
-    def all_kinases(self, group=None, family=None, species=None):
+    def all_kinases(self, groups=None, families=None, species=None):
 
         # Get local database and select rows
         kinases = self._database.copy()
-        if group:
-            kinases = kinases[kinases["kinase.group"] == group]
-        if family:
-            kinases = kinases[kinases["kinase.family"] == family]
+        groups = self._ensure_list(groups)
+        families = self._ensure_list(families)
+        if groups:
+            kinases = kinases[kinases["kinase.group"].isin(groups)]
+        if families:
+            kinases = kinases[kinases["kinase.family"].isin(families)]
         if species:
             kinases = kinases[kinases["species.klifs"] == species.capitalize()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases_all"])
+        kinases = self._standardize_dataframe(kinases, FIELDS.oc_name_to_type("kinases_all"))
         return kinases
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -421,7 +436,7 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinases = self._database.copy()
         kinases = kinases[kinases["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
+        kinases = self._standardize_dataframe(kinases, FIELDS.oc_name_to_type("kinases"))
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
@@ -433,13 +448,13 @@ class Kinases(LocalInitializer, KinasesProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         kinases = kinases[
             kinases["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | kinases["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | kinases["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Search for species (case insensitive)
         if species:
             kinases = kinases[kinases["species.klifs"].str.upper() == species.upper()]
         # Standardize DataFrame
-        kinases = self._standardize_dataframe(kinases, DATAFRAME_COLUMNS["kinases"])
+        kinases = self._standardize_dataframe(kinases, FIELDS.oc_name_to_type("kinases"))
         return kinases
 
 
@@ -455,7 +470,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Get local database
         ligands = self._database.copy()
         # Standardize DataFrame
-        ligands = self._standardize_dataframe(ligands, DATAFRAME_COLUMNS["ligands"])
+        ligands = self._standardize_dataframe(ligands, FIELDS.oc_name_to_type("ligands"))
         return ligands
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
@@ -466,8 +481,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         ligands = ligands[ligands["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
-            ligands,
-            DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id", "int32")],
+            ligands, FIELDS.oc_name_to_type("ligands", {"kinase.klifs_id": "int32"})
         )
         # Rename columns to indicate columns involved in query TODO remove (query) stuff
         # can columns have metadata?
@@ -489,23 +503,25 @@ class Ligands(LocalInitializer, LigandsProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         ligands = ligands[
             ligands["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | ligands["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | ligands["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            DATAFRAME_COLUMNS["ligands"]
-            + [
-                ("kinase.klifs_name", "string"),
-                ("kinase.hgnc_name", "string"),
-                ("species.klifs", "string"),
-            ],
+            FIELDS.oc_name_to_type(
+                "ligands",
+                {
+                    "kinase.klifs_name": "string",
+                    "kinase.gene_name": "string",
+                    "species.klifs": "string",
+                },
+            ),
         )
         # Rename columns to indicate columns involved in query
         ligands.rename(
             columns={
                 "kinase.klifs_name": "kinase.klifs_name (query)",
-                "kinase.hgnc_name": "kinase.hgnc_name (query)",
+                "kinase.gene_name": "kinase.gene_name (query)",
                 "species.klifs": "species.klifs (query)",
             },
             inplace=True,
@@ -521,7 +537,7 @@ class Ligands(LocalInitializer, LigandsProvider):
         # Standardize DataFrame
         ligands = self._standardize_dataframe(
             ligands,
-            DATAFRAME_COLUMNS["ligands"],
+            FIELDS.oc_name_to_type("ligands"),
         )
         return ligands
 
@@ -540,7 +556,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         return structures
 
@@ -553,7 +569,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         # Check: If only one structure ID was given, only one result is allowed
         if len(structure_klifs_ids) == 1:
@@ -571,7 +587,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         return structures
 
@@ -591,7 +607,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         return structures
 
@@ -604,7 +620,7 @@ class Structures(LocalInitializer, StructuresProvider):
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         return structures
 
@@ -617,12 +633,12 @@ class Structures(LocalInitializer, StructuresProvider):
         kinase_names = [kinase_name.upper() for kinase_name in kinase_names]
         structures = structures[
             structures["kinase.klifs_name"].str.upper().isin(kinase_names)
-            | structures["kinase.hgnc_name"].str.upper().isin(kinase_names)
+            | structures["kinase.gene_name"].str.upper().isin(kinase_names)
         ]
         # Standardize DataFrame
         structures = self._standardize_dataframe(
             structures,
-            DATAFRAME_COLUMNS["structures"],
+            FIELDS.oc_name_to_type("structures"),
         )
         return structures
 
@@ -649,7 +665,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            DATAFRAME_COLUMNS["interactions"],
+            FIELDS.oc_name_to_type("interactions"),
         )
         return interactions
 
@@ -662,7 +678,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
-            DATAFRAME_COLUMNS["interactions"],
+            FIELDS.oc_name_to_type("interactions"),
         )
         return interactions
 
@@ -674,8 +690,7 @@ class Interactions(LocalInitializer, InteractionsProvider):
         interactions = interactions[interactions["kinase.klifs_id"].isin(kinase_klifs_ids)]
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
-            interactions,
-            DATAFRAME_COLUMNS["interactions"] + [("kinase.klifs_id", "int32")],
+            interactions, FIELDS.oc_name_to_type("interactions", {"kinase.klifs_id": "int32"})
         )
         # Rename columns to indicate columns involved in query
         interactions.rename(
@@ -749,7 +764,7 @@ class Pockets(LocalInitializer, PocketsProvider):
         # Standardize DataFrame
         dataframe = self._standardize_dataframe(
             dataframe,
-            DATAFRAME_COLUMNS["pockets"],
+            FIELDS.oc_name_to_type("pockets"),
         )
         # Add KLIFS region and color  TODO not so nice to have this after standardization
         dataframe = self._add_klifs_region_details(dataframe)
@@ -865,3 +880,17 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
         dataframe = dataframe.merge(pocket_dataframe, on="residue.id", how="left")
 
         return dataframe
+
+
+class Drugs(LocalInitializer, DrugsProvider):
+    """
+    Extends DrugsProvider to provide remote drug requests.
+    Refer to DrugsProvider documentation for more information:
+    opencadd.databases.klifs.core.DrugsProvider
+    """
+
+    def all_drugs(self):
+
+        raise NotImplementedError(
+            "Information on drugs is not available locally! Please use a remote session."
+        )
