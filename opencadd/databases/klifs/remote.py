@@ -20,6 +20,7 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
     DrugsProvider,
+    StructureConformationsProvider,
 )
 from .schema import FIELDS
 from .utils import metadata_to_filepath, silence_logging
@@ -575,7 +576,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         # Use KLIFS API: Get all interactions from these structures KLIFS IDs
         structure_klifs_ids = structures["structure.klifs_id"].to_list()
         interactions = self.by_structure_klifs_id(structure_klifs_ids)
-        print(interactions)
         # Standardize DataFrame
         interactions = self._standardize_dataframe(
             interactions,
@@ -890,3 +890,46 @@ class Drugs(RemoteInitializer, DrugsProvider):
             drugs, FIELDS.oc_name_to_type("drugs"), FIELDS.remote_to_oc_names("drugs")
         )
         return drugs
+
+
+class StructureConformations(RemoteInitializer, StructureConformationsProvider):
+    """
+    Extends StructureConformationsProvider to provide remote drug requests.
+    Refer to StructureConformationsProvider documentation for more information:
+    opencadd.databases.klifs.core.StructureConformationsProvider
+    """
+
+    def all_conformations(self):
+
+        # Use KLIFS API: Get all structure KLIFS IDs
+        structures_remote = Structures(self._client)
+        structures = structures_remote.all_structures()
+        # Use KLIFS API: Get all interactions from these structures KLIFS IDs
+        structure_klifs_ids = structures["structure.klifs_id"].to_list()
+        conformations = self.by_structure_klifs_id(structure_klifs_ids)
+        # Standardize DataFrame
+        conformations = self._standardize_dataframe(
+            conformations,
+            FIELDS.oc_name_to_type("structure_conformations"),
+            FIELDS.remote_to_oc_names("structure_conformations"),
+        )
+        return conformations
+
+    def by_structure_klifs_id(self, structure_klifs_ids):
+
+        structure_klifs_ids = self._ensure_list(structure_klifs_ids)
+        # Use KLIFS API
+        result = (
+            self._client.Structures.get_structure_conformation(structure_ID=structure_klifs_ids)
+            .response()
+            .result
+        )
+        # Convert list of ABC objects to DataFrame
+        conformations = self._abc_to_dataframe(result)
+        # Standardize DataFrame
+        conformations = self._standardize_dataframe(
+            conformations,
+            FIELDS.oc_name_to_type("structure_conformations"),
+            FIELDS.remote_to_oc_names("structure_conformations"),
+        )
+        return conformations
