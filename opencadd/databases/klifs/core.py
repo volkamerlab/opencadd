@@ -148,6 +148,7 @@ class BaseProvider:
         if "structure.resolution" in dataframe.columns:
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
 
+        # In case of drugs
         if "drug.brand_name" in dataframe.columns:
             dataframe["drug.brand_name"] = dataframe["drug.brand_name"].apply(
                 lambda x: x.split(";") if x != "" else []
@@ -435,7 +436,6 @@ class KinasesProvider(BaseProvider):
             Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
         species : None or str
             Species name (default is None, i.e. all species are selected).
-
 
         Returns
         -------
@@ -1203,7 +1203,7 @@ class PocketsProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
+    Class methods all return a pandas.DataFrame of pocket residues (rows) with the (or a subset of
     the) following attributes (columns):
 
     residue.klifs_id : int
@@ -1488,7 +1488,7 @@ class DrugsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            drugs (rows) with the columns as defined in the class docstring.
+            Drugs (rows) with the columns as defined in the class docstring.
 
         Raises
         ------
@@ -1558,12 +1558,12 @@ class StructureConformationsProvider(BaseProvider):
 
     def all_conformations(self):
         """
-        Get all available drugs.
+        Get all available conformations.
 
         Returns
         -------
         pandas.DataFrame
-            drugs (rows) with the columns as defined in the class docstring.
+            Structures (rows) with the columns as defined in the class docstring.
 
         Raises
         ------
@@ -1592,3 +1592,73 @@ class StructureConformationsProvider(BaseProvider):
             Remote module: Structure KLIFS ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureModifiedResiduesProvider(BaseProvider):
+    """
+    Class for a structure's modified residues requests.
+    Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Methods
+    -------
+    by_structure_klifs_id()
+        Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of modified residues (rows) with the (or a subset
+    of the) following attributes (columns):
+
+    residue.klifs_id : int
+        Residue KLIFS ID.
+    residue.id : str
+        Residue ID.
+    residue.modification : str
+        The type of modification for this residue.
+    """
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get a structure's modified residues by structure ID.
+
+        Parameters
+        ----------
+        structure_klifs_id : str
+            Structure KLIFS ID.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modified residues details.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    @staticmethod
+    def _add_klifs_region_details(modifications):
+        """
+        Based on KLIFS region ID, add KLIFS ID and region name.
+
+        Parameters
+        ----------
+        pandas.DataFrame
+            Modification data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modification data with KLIFS ID and region name.
+        """
+
+        modifications["residue.klifs_region"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: ".".join(x.split(".")[:-1]) if x != "-" else x
+        )
+        modifications["residue.klifs_id"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: x.split(".")[-1] if x != "-" else np.nan
+        )
+
+        return modifications
