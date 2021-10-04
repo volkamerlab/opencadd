@@ -236,6 +236,17 @@ class TestsAllQueries:
         with pytest.raises(NotImplementedError):
             LOCAL.drugs.all_drugs()
 
+    def test_all_conformations(self):
+        """
+        Test request result for all conformations.
+        """
+
+        result_remote = REMOTE.conformations.all_conformations()
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
+        with pytest.raises(NotImplementedError):
+            LOCAL.conformations.all_conformations()
+
 
 class TestsFromKinaseIds:
     """
@@ -393,6 +404,12 @@ class TestsFromStructureIds:
         check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
         check_dataframe(result_local, FIELDS.oc_name_to_type("interactions"))
 
+        # Conformations
+        result_remote = REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
+        # No local access available
+
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
         # Pockets (takes only one structure ID as input!)
         if isinstance(structure_klifs_ids, int):
             structure_klifs_id = structure_klifs_ids
@@ -417,6 +434,7 @@ class TestsFromStructureIds:
         with pytest.raises(SwaggerMappingError):
             REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
             REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
+            REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
                 REMOTE.pockets.by_structure_klifs_id(structure_klifs_id)
