@@ -21,6 +21,7 @@ from .core import (
     CoordinatesProvider,
     DrugsProvider,
     StructureConformationsProvider,
+    StructureModifiedResiduesProvider,
 )
 from .schema import FIELDS
 from .utils import metadata_to_filepath, silence_logging
@@ -894,7 +895,7 @@ class Drugs(RemoteInitializer, DrugsProvider):
 
 class StructureConformations(RemoteInitializer, StructureConformationsProvider):
     """
-    Extends StructureConformationsProvider to provide remote drug requests.
+    Extends StructureConformationsProvider to provide remote conformations requests.
     Refer to StructureConformationsProvider documentation for more information:
     opencadd.databases.klifs.core.StructureConformationsProvider
     """
@@ -933,3 +934,46 @@ class StructureConformations(RemoteInitializer, StructureConformationsProvider):
             FIELDS.remote_to_oc_names("structure_conformations"),
         )
         return conformations
+
+
+class StructureModifiedResidues(RemoteInitializer, StructureModifiedResiduesProvider):
+    """
+    Extends StructureModifiedResiduesProvider to provide remote modified residues requests.
+    Refer to StructureModifiedResiduesProvider documentation for more information:
+    opencadd.databases.klifs.core.StructureModifiedResiduesProvider
+    """
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+
+        # Use KLIFS API
+        result = (
+            self._client.Structures.get_structure_modified_residues(
+                structure_ID=structure_klifs_id
+            )
+            .response()
+            .result
+        )
+        if len(result) == 0:
+            # Usually we return errors if the DataFrame is empty because it means that the input
+            # data was incorrect or KLIFS is missing data that should be there
+            # In this case here, however, most structures won't have modifications and therefore
+            # will have nothing to return
+            # To make the transition between 0 and >0 modifications smoother, let's always return
+            # DataFrames will all columns and 0 or more rows.
+            fields = FIELDS.df
+            column_names = fields[fields["field_type"] == "structure_modified_residues"][
+                "opencadd.df_name"
+            ].to_list()
+            return pd.DataFrame([], columns=column_names)
+        else:
+            # Convert to DataFrame and formatting
+            modifications = pd.DataFrame(result)
+            # Standardize DataFrame
+            modifications = self._standardize_dataframe(
+                modifications,
+                FIELDS.oc_name_to_type("structure_modified_residues"),
+                FIELDS.remote_to_oc_names("structure_modified_residues"),
+            )
+            # Add KLIFS region and color  TODO not so nice to have this after standardization
+            modifications = self._add_klifs_region_details(modifications)
+            return modifications
