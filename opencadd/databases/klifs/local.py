@@ -20,6 +20,7 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
     DrugsProvider,
+    StructureConformationsProvider,
 )
 from .schema import (
     FIELDS,
@@ -887,6 +888,20 @@ class Drugs(LocalInitializer, DrugsProvider):
     Extends DrugsProvider to provide remote drug requests.
     Refer to DrugsProvider documentation for more information:
     opencadd.databases.klifs.core.DrugsProvider
+    """
+
+    def all_drugs(self):
+
+        raise NotImplementedError(
+            "Information on drugs is not available locally! Please use a remote session."
+        )
+
+
+class StructureConformations(LocalInitializer, StructureConformationsProvider):
+    """
+    Extends StructureConformationsProvider to provide remote drug requests.
+    Refer to StructureConformationsProvider documentation for more information:
+    opencadd.databases.klifs.core.StructureConformationsProvider
     """
 
     def all_drugs(self):

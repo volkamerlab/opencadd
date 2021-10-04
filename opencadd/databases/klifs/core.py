@@ -674,7 +674,7 @@ class StructuresProvider(BaseProvider):
     structure.dfg : str
         DFG conformation (in, out, out-like, na).
     structure.ac_helix : str
-        aC helix conformation (in, out, out-like, na).
+        aC helix conformation (in, out, na).
     structure.resolution : float
         Structure resolution in Angström.
     structure.qualityscore : float
@@ -1494,5 +1494,101 @@ class DrugsProvider(BaseProvider):
         ------
         ValueError
             If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureConformationsProvider(BaseProvider):
+    """
+    Class for structure conformation requests.
+
+    For detailed information on the conformation definitions, please the toolstips at
+    https://dev.klifs.net/search.php > Conformations > hover over "?" tooltips
+
+
+    Methods
+    -------
+    all_conformations()
+        Get all available drugs.
+    by_structure_klifs_id(structure_klifs_ids)
+        Get structure conformation data by one or more structure KLIFS IDs.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
+    (columns):
+
+    structure.dfg : str
+        DFG conformation (in, out, out-like, na).
+    structure.ac_helix : str
+        aC helix conformation (in, out, na).
+    structure.ac_helix_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.aloop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_angle_d_f : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82_out : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.mobitz_dihedral : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_angle : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.reference_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.salt_bridge_17_24 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.klifs_id : float
+        Structure KLIFS ID.
+    """
+
+    def all_conformations(self):
+        """
+        Get all available drugs.
+
+        Returns
+        -------
+        pandas.DataFrame
+            drugs (rows) with the columns as defined in the class docstring.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get structure conformation data by one or more structure PDB IDs.
+
+        Parameters
+        ----------
+        structure_pdb_ids : str or list of str
+            Structure PDB ID(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structure conformation data.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
         """
         raise NotImplementedError("Implement in your subclass!")
