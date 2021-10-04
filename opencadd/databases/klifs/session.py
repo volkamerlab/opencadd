@@ -41,6 +41,8 @@ class Session:
         Drugs object for drugs requests.
     conformations : None or opencadd.databases.klifs.remote.StructureConformations
         StructureConformations object for structure conformation requests.
+    modified_residues : None or opencadd.databases.klifs.remote.StructureModifiedResidues
+        StructureModifiedResidues object for structure residue modification requests.
     """
 
     def __init__(self):
@@ -62,6 +64,7 @@ class Session:
         self.coordinates = None
         self.drugs = None
         self.conformations = None
+        self.modified_residues = None
 
     @classmethod
     def from_local(cls, path_to_klifs_download, path_to_klifs_metadata=None):
@@ -177,6 +180,11 @@ class Session:
             path_to_klifs_download=path_to_klifs_download,
         )
         self.conformations = backend.StructureConformations(
+            client=client,
+            database=database,
+            path_to_klifs_download=path_to_klifs_download,
+        )
+        self.modified_residues = backend.StructureModifiedResidues(
             client=client,
             database=database,
             path_to_klifs_download=path_to_klifs_download,
