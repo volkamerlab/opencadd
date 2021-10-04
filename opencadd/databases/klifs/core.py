@@ -1513,7 +1513,6 @@ class StructureConformationsProvider(BaseProvider):
     by_structure_klifs_id(structure_klifs_ids)
         Get structure conformation data by one or more structure KLIFS IDs.
 
-
     Notes
     -----
     Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
@@ -1524,42 +1523,37 @@ class StructureConformationsProvider(BaseProvider):
     structure.ac_helix : str
         aC helix conformation (in, out, na).
     structure.ac_helix_distance : float
-        Distance between Ca atom of residue 76 and the middle of the Ca atoms of residues 23-24-25.
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.aloop_rotation : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.dfg_angle_d_f : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.dfg_d_outer_rotation : float
-        Clockwise roation of the most outer atom to the Ca atom of residue 81 (D) around
-        the activation loop relative to the KLIFS horizon (plane spanned by 31, 51 or 52, and 81).
-        Value of 0 indicates D is pointing to catalytic cleft (active DFG-in).
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.dfg_d_rotation : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.dfg_f_outer_rotation : float
-        Clockwise roation of the most outer atom to the Ca atom of residue 82 (F) around
-        the activation loop relative to the KLIFS horizon (plane spanned by 31, 51 or 52, and 81).
-        Value of 0 indicates F is pointing to the aC helix (active DFG-in).
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.dfg_f_rotation : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.distance_67_82 : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.distance_67_82_out : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.mobitz_dihedral : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.ploop_angle : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.ploop_distance : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.ploop_rotation : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.reference_distance : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.salt_bridge_17_24 : float
-        TODO
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
     structure.klifs_id : float
         Structure KLIFS ID.
-
     """
 
     def all_conformations(self):
