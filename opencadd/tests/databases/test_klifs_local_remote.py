@@ -384,12 +384,10 @@ class TestsFromStructureIds:
     Test class methods with structure IDs as input.
     """
 
-    @pytest.mark.parametrize("structure_klifs_ids", [12347, [12347, 100000], 4126])
+    @pytest.mark.parametrize("structure_klifs_ids", [12347, [12347, 100000]])
     def test_by_structure_klifs_id(self, structure_klifs_ids):
         """
         Test class methods with structure IDs as input.
-
-        Note: ID 4126 added to test modified residues
         """
 
         # Structures
@@ -431,6 +429,18 @@ class TestsFromStructureIds:
             result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
             # No local access available
             check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
+
+    @pytest.mark.parametrize("structure_klifs_id", [4126])
+    def test_modifications_by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Extra test for modifications: Use structure that has modified residues in and outside the
+        pocket (e.g. structure KLIFS ID 4126).
+        """
+
+        # Modified residues
+        result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+        # No local access available
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
 
     @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
     def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
