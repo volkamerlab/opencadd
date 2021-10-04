@@ -384,10 +384,12 @@ class TestsFromStructureIds:
     Test class methods with structure IDs as input.
     """
 
-    @pytest.mark.parametrize("structure_klifs_ids", [12347, [12347, 100000]])
+    @pytest.mark.parametrize("structure_klifs_ids", [12347, [12347, 100000], 4126])
     def test_by_structure_klifs_id(self, structure_klifs_ids):
         """
         Test class methods with structure IDs as input.
+
+        Note: ID 4126 added to test modified residues
         """
 
         # Structures
@@ -407,13 +409,13 @@ class TestsFromStructureIds:
         # Conformations
         result_remote = REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
         # No local access available
-
         check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
 
-        # Pockets (takes only one structure ID as input!)
+        # Pockets and modified residues (takes only one structure ID as input!)
         if isinstance(structure_klifs_ids, int):
             structure_klifs_id = structure_klifs_ids
 
+            # Pockets
             result_remote = REMOTE.pockets.by_structure_klifs_id(structure_klifs_ids)
             result_local_mol2 = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "mol2")
             result_local_pdb = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "pdb")
@@ -424,6 +426,11 @@ class TestsFromStructureIds:
 
             assert all(result_local_mol2 == result_local_pdb)
             assert all(result_local_mol2 == result_remote)
+
+            # Modified residues
+            result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+            # No local access available
+            check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
 
     @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
     def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
@@ -438,12 +445,16 @@ class TestsFromStructureIds:
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
                 REMOTE.pockets.by_structure_klifs_id(structure_klifs_id)
+                REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
 
         with pytest.raises(ValueError):
             LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
             LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
+            # No local structure conformations
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
+                LOCAL.pockets.by_structure_klifs_id(structure_klifs_id)
+                # No local structure's residue modifications
 
 
 class TestsFromKinaseNames:
