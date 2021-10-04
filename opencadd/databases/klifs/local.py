@@ -911,7 +911,7 @@ class StructureConformations(LocalInitializer, StructureConformationsProvider):
             "Information on conformations is not available locally! Please use a remote session."
         )
 
-    def by_structure_klifs_id(self):
+    def by_structure_klifs_id(self, structure_klifs_id):
 
         raise NotImplementedError(
             "Information on conformations is not available locally! Please use a remote session."
@@ -925,7 +925,7 @@ class StructureModifiedResidues(LocalInitializer, StructureModifiedResiduesProvi
     opencadd.databases.klifs.core.StructureModifiedResiduesProvider
     """
 
-    def by_structure_klifs_id(self):
+    def by_structure_klifs_id(self, structure_klifs_id):
 
         raise NotImplementedError(
             "Information on modified residues is not available locally! Please use a remote session."
