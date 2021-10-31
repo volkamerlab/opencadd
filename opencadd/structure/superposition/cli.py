@@ -28,12 +28,6 @@ def parse_cli(argv=None, greet=False):
         default=False,
         help="Whether to print debugging info to stdout",
     )
-    p.add_argument(
-        "--only_backbone",
-        action="store_true",
-        default=False,
-        help="Only use backbone residues (exclude insertions and HETATM entries)",
-    )
     p.add_argument("--no-emoji", action="store_true", default=False, help="Disable emoji logging")
     p.add_argument(
         "--method",
