@@ -83,6 +83,8 @@ class MMLignerAligner(BaseAligner):
         ----------
         structures: [array like, array like]
             Sequences of two protein structures of same length
+        selections : list of MDAnalysis.core.groups.AtomGroup
+            Selection of atoms on which the calculation is done. If no selection is given, the whole structure is used for calculation
 
         Returns
         -------
@@ -104,7 +106,6 @@ class MMLignerAligner(BaseAligner):
         # e.g. id(selections[0]) equals id(structures[0])
         # after calculation is done, we perform the transformation on the structure
         # this way, we do not throw away any atoms and transform the whole structure
-
         if not selections:
             selections.append(structures[0])
             selections.append(structures[1])
@@ -230,6 +231,8 @@ class MMLignerAligner(BaseAligner):
         ----------
         structures: list of opencadd.core.Structure
             Original input structures
+        selections : list of MDAnalysis.core.groups.AtomGroup
+            Selections used for calculation
 
         Returns
         -------
@@ -302,7 +305,7 @@ class MMLignerAligner(BaseAligner):
 
         Parameters
         ----------
-        structures: [array like, array like]
+        selections: [array like, array like]
             two protein structures
 
         path: [str, str], Optional=["structure1.pdb, "structure2.pdb"]
