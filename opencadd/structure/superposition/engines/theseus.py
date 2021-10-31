@@ -39,23 +39,35 @@ class TheseusAligner(BaseAligner):
 
     Parameters
     ----------
+    sequence_alignment : str, optional, default=MUSCLE
+        What algorithm will be used to calculate the
+        sequence alignment. Choose between:
+        - "MUSCLE"
+        - "CLUSTALO" (CLUSTAL OMEGA)
     alignment_max_iterations : int
-        number of iterations for alignment program (muscle)
+        number of iterations for alignment program (only for muscle)
     statistics_only : bool
         if True, add `-I` flag to just compute the statistics (no superposition)
     """
 
-    def __init__(self, alignment_max_iterations: int = 32, statistics_only: bool = False) -> None:
+    def __init__(self, sequence_alignment: str = "MUSCLE", alignment_max_iterations: int = 32, statistics_only: bool = False) -> None:
         self.alignment_max_iterations = alignment_max_iterations
         self.statistics_only = statistics_only
 
         self._fastafile = "theseus.fasta"
         self._filemap_file = "theseus.filemap"
         self._alignment_file = "theseus.aln"
-        self._alignment_log = "muscle.log"
         self._alignment_file_biotite = "theseus_biotite.aln"
-        self._alignment_executable = "muscle"
         self._theseus_transformation_file = "theseus_transf.txt"
+
+        if sequence_alignment == "MUSCLE":
+            self._alignment_log = "muscle.log"
+            self._alignment_executable = "muscle"
+        elif sequence_alignment == "CLUSTALO":
+            self._alignment_log = "clustalo.log"
+            self._alignment_executable = "clustalo"
+        else: 
+            raise ValueError("`sequence_alignment` must be one of `MUSCLE, CLUSTALO`.")
 
     def _safety_checks(self):
         """
@@ -213,19 +225,21 @@ class TheseusAligner(BaseAligner):
 
     def _run_alignment(self, filenames):
         """
-        Run MUSCLE
+        Run MUSCLE or CLUSTALO
 
         Returns
         -------
         filenames : list of str
             Paths to PDB files containing the structures
         str
-            Output of MUSCLE
+            Output of MUSCLE or CLUSTALO
         """
         self._get_fasta(filenames)
         self._concatenate_fasta(filenames)
         self._filemap(filenames)
-        output = subprocess.check_output(
+
+        if self._alignment_executable == "muscle":
+            output = subprocess.check_output(
             [
                 self._alignment_executable,
                 "-maxiters",
@@ -239,11 +253,25 @@ class TheseusAligner(BaseAligner):
                 "-log",
                 self._alignment_log,
             ],
-            stderr=subprocess.PIPE,
-            universal_newlines=True,
-        )
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+        elif self._alignment_executable == "clustalo":
+            output = subprocess.check_output(
+                [
+                    self._alignment_executable,
+                    "-i",
+                    self._fastafile,
+                    "-o",
+                    self._alignment_file,
+                    "-outfmt"
+                ],
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+        else:
+            raise ValueError("alignment_executable not valid.")
         _logger.info(output)
-        return output
 
     def _get_transformation_matrix(self) -> dict:
         """
