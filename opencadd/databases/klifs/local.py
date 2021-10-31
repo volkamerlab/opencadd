@@ -20,6 +20,8 @@ from .core import (
     PocketsProvider,
     CoordinatesProvider,
     DrugsProvider,
+    StructureConformationsProvider,
+    StructureModifiedResiduesProvider,
 )
 from .schema import (
     FIELDS,
@@ -893,4 +895,38 @@ class Drugs(LocalInitializer, DrugsProvider):
 
         raise NotImplementedError(
             "Information on drugs is not available locally! Please use a remote session."
+        )
+
+
+class StructureConformations(LocalInitializer, StructureConformationsProvider):
+    """
+    Extends StructureConformationsProvider to provide remote conformation requests.
+    Refer to StructureConformationsProvider documentation for more information:
+    opencadd.databases.klifs.core.StructureConformationsProvider
+    """
+
+    def all_conformations(self):
+
+        raise NotImplementedError(
+            "Information on conformations is not available locally! Please use a remote session."
+        )
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+
+        raise NotImplementedError(
+            "Information on conformations is not available locally! Please use a remote session."
+        )
+
+
+class StructureModifiedResidues(LocalInitializer, StructureModifiedResiduesProvider):
+    """
+    Extends StructureModifiedResiduesProvider to provide remote modified residues requests.
+    Refer to StructureModifiedResiduesProvider documentation for more information:
+    opencadd.databases.klifs.core.StructureModifiedResiduesProvider
+    """
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+
+        raise NotImplementedError(
+            "Information on modified residues is not available locally! Please use a remote session."
         )

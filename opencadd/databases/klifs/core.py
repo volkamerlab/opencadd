@@ -148,6 +148,7 @@ class BaseProvider:
         if "structure.resolution" in dataframe.columns:
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
 
+        # In case of drugs
         if "drug.brand_name" in dataframe.columns:
             dataframe["drug.brand_name"] = dataframe["drug.brand_name"].apply(
                 lambda x: x.split(";") if x != "" else []
@@ -436,7 +437,6 @@ class KinasesProvider(BaseProvider):
         species : None or str
             Species name (default is None, i.e. all species are selected).
 
-
         Returns
         -------
         pandas.DataFrame
@@ -674,7 +674,7 @@ class StructuresProvider(BaseProvider):
     structure.dfg : str
         DFG conformation (in, out, out-like, na).
     structure.ac_helix : str
-        aC helix conformation (in, out, out-like, na).
+        aC helix conformation (in, out, na).
     structure.resolution : float
         Structure resolution in Angström.
     structure.qualityscore : float
@@ -1203,7 +1203,7 @@ class PocketsProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
+    Class methods all return a pandas.DataFrame of pocket residues (rows) with the (or a subset of
     the) following attributes (columns):
 
     residue.klifs_id : int
@@ -1488,7 +1488,7 @@ class DrugsProvider(BaseProvider):
         Returns
         -------
         pandas.DataFrame
-            drugs (rows) with the columns as defined in the class docstring.
+            Drugs (rows) with the columns as defined in the class docstring.
 
         Raises
         ------
@@ -1496,3 +1496,169 @@ class DrugsProvider(BaseProvider):
             If DataFrame is empty.
         """
         raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureConformationsProvider(BaseProvider):
+    """
+    Class for structure conformation requests.
+
+    For detailed information on the conformation definitions, please the toolstips at
+    https://dev.klifs.net/search.php > Conformations > hover over "?" tooltips
+
+
+    Methods
+    -------
+    all_conformations()
+        Get all available drugs.
+    by_structure_klifs_id(structure_klifs_ids)
+        Get structure conformation data by one or more structure KLIFS IDs.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
+    (columns):
+
+    structure.dfg : str
+        DFG conformation (in, out, out-like, na).
+    structure.ac_helix : str
+        aC helix conformation (in, out, na).
+    structure.ac_helix_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.aloop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_angle_d_f : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82_out : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.mobitz_dihedral : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_angle : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.reference_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.salt_bridge_17_24 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.klifs_id : float
+        Structure KLIFS ID.
+    """
+
+    def all_conformations(self):
+        """
+        Get all available conformations.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structures (rows) with the columns as defined in the class docstring.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get structure conformation data by one or more structure PDB IDs.
+
+        Parameters
+        ----------
+        structure_pdb_ids : str or list of str
+            Structure PDB ID(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structure conformation data.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureModifiedResiduesProvider(BaseProvider):
+    """
+    Class for a structure's modified residues requests.
+    Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Methods
+    -------
+    by_structure_klifs_id()
+        Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of modified residues (rows) with the (or a subset
+    of the) following attributes (columns):
+
+    residue.klifs_id : int
+        Residue KLIFS ID.
+    residue.id : str
+        Residue ID.
+    residue.modification : str
+        The type of modification for this residue.
+    """
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get a structure's modified residues by structure ID.
+
+        Parameters
+        ----------
+        structure_klifs_id : str
+            Structure KLIFS ID.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modified residues details.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    @staticmethod
+    def _add_klifs_region_details(modifications):
+        """
+        Based on KLIFS region ID, add KLIFS ID and region name.
+
+        Parameters
+        ----------
+        pandas.DataFrame
+            Modification data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modification data with KLIFS ID and region name.
+        """
+
+        modifications["residue.klifs_region"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: ".".join(x.split(".")[:-1]) if x != "-" else x
+        )
+        modifications["residue.klifs_id"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: x.split(".")[-1] if x != "-" else np.nan
+        )
+
+        return modifications

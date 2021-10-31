@@ -236,6 +236,17 @@ class TestsAllQueries:
         with pytest.raises(NotImplementedError):
             LOCAL.drugs.all_drugs()
 
+    def test_all_conformations(self):
+        """
+        Test request result for all conformations.
+        """
+
+        result_remote = REMOTE.conformations.all_conformations()
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
+        with pytest.raises(NotImplementedError):
+            LOCAL.conformations.all_conformations()
+
 
 class TestsFromKinaseIds:
     """
@@ -393,10 +404,16 @@ class TestsFromStructureIds:
         check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
         check_dataframe(result_local, FIELDS.oc_name_to_type("interactions"))
 
-        # Pockets (takes only one structure ID as input!)
+        # Conformations
+        result_remote = REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
+        # No local access available
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
+        # Pockets and modified residues (takes only one structure ID as input!)
         if isinstance(structure_klifs_ids, int):
             structure_klifs_id = structure_klifs_ids
 
+            # Pockets
             result_remote = REMOTE.pockets.by_structure_klifs_id(structure_klifs_ids)
             result_local_mol2 = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "mol2")
             result_local_pdb = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "pdb")
@@ -408,6 +425,23 @@ class TestsFromStructureIds:
             assert all(result_local_mol2 == result_local_pdb)
             assert all(result_local_mol2 == result_remote)
 
+            # Modified residues
+            result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+            # No local access available
+            check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
+
+    @pytest.mark.parametrize("structure_klifs_id", [4126])
+    def test_modifications_by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Extra test for modifications: Use structure that has modified residues in and outside the
+        pocket (e.g. structure KLIFS ID 4126).
+        """
+
+        # Modified residues
+        result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+        # No local access available
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
+
     @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
     def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
         """
@@ -417,15 +451,20 @@ class TestsFromStructureIds:
         with pytest.raises(SwaggerMappingError):
             REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
             REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
+            REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
                 REMOTE.pockets.by_structure_klifs_id(structure_klifs_id)
+                REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
 
         with pytest.raises(ValueError):
             LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
             LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
+            # No local structure conformations
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
+                LOCAL.pockets.by_structure_klifs_id(structure_klifs_id)
+                # No local structure's residue modifications
 
 
 class TestsFromKinaseNames:
