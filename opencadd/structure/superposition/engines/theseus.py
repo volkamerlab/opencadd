@@ -187,7 +187,6 @@ class TheseusAligner(BaseAligner):
             results = self._parse_superposition(theseus_output)
 
         # 4th reapply transformation to the mobile model
-        # transformation on original structure
         mobile = structures[1]
         transformation = results["metadata"]["transformation"]
         rotation = transformation[:, :3]
@@ -250,7 +249,7 @@ class TheseusAligner(BaseAligner):
         Returns
         -------
         filenames : list of str
-            Paths to PDB files containing the structures
+            Paths to PDB files containing the selection structures
         str
             Output of MUSCLE or CLUSTALO
         """
