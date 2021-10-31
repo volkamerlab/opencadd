@@ -16,7 +16,8 @@ class BaseAligner:
         Parameters
         ----------
         structures : list of opencadd.core.Structure
-        selections : list of MDAnalsis selection strings
+        selections : list of MDAnalysis.core.groups.AtomGroup
+            The selection is done by user input and the api provides the selection in form of AtomGroups
 
         Returns
         -------
