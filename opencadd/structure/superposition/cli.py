@@ -40,6 +40,12 @@ def parse_cli(argv=None, greet=False):
         default="theseus",
         help="Which alignment method to use",
         choices=[m.lower() for m in METHODS],
+    ),
+    p.add_argument(
+        "--select",
+        default={},
+        type=parse_selection,
+        help="MDAnalysis like selection for the structures. Syntax is `Selection; Seletion`, Example:`backbone; backbone`",
     )
     p.add_argument(
         "--method-options",
@@ -57,6 +63,11 @@ def parse_method_options(string):
     options = dict(option.split(": ") for option in string.split("; "))
     return options
 
+def parse_selection(string):
+    if not string:
+        return []
+    selection = string.split("; ")
+    return selection
 
 def greeting():
     return (
@@ -105,25 +116,24 @@ def main():
             args.method,
         )
         result, *_empty = align(
-            [reference_model, mobile_model],
-            method=METHODS[args.method],
-            only_backbone=args.only_backbone,
-            **args.method_options,
+            [reference_model, mobile_model], method=METHODS[args.method], user_select=args.select, **args.method_options
         )
 
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
         if "superposed" in result:
             _logger.log(
                 25,  # this the level id for results
-                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3f Å \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",
+                "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3f Å \ncoverage: %d \nlenght of selections: %s has %d residues; %s has %d residues \n",
                 i,
                 reference_id,
                 mobile_id,
                 result["scores"]["rmsd"],
                 result["scores"]["coverage"],
                 reference_id,
+                # size of the selection, if no selection, size of whole structure
                 result["metadata"]["reference_size"],
                 mobile_id,
+                # size of the selection, if no selection, size of whole structure
                 result["metadata"]["mobile_size"],
             )
             for j, structure in enumerate(result["superposed"], 1):
