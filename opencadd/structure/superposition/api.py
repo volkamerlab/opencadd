@@ -24,7 +24,9 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
     Parameters
     ----------
     structures : list of opencadd.core.Structure objects
-        First one will be the targer to which the rest are aligned
+        First one will be the targer to which the rest are aligned.
+    user_seletct: list of MDAnalysis selection strings
+        Provided by user in the CLI-
     method : BaseAligner-like
         Usually a subclass of BaseAligner. This will be passed ``**kwargs``. This class
         MUST define `.calculate()`.
@@ -41,14 +43,13 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
     reference, *mobiles = structures
     results = []
 
-
+    # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
+    # comparing all models could provide better results, but would be very inefficient
+    # (e.g. 25 models would mean 25 times the computing time)
     if user_select:
-        # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
-        # comparing all models could provide better results, but would be very inefficient
-        # (e.g. 25 models would mean 25 times the computing time)
-            # selection always returns an AtomGroup. Alternative, which is not recommended, 
-            # because the aligners can handle AtomGroups aswell: 
-            # Structure.from_atomgroup(reference.models[0].select_atoms(f"{user_select}").residues.atoms)
+        # selection always returns an AtomGroup. Alternative, which is not recommended, 
+        # because the aligners can handle AtomGroups aswell: 
+        # Structure.from_atomgroup(reference.models[0].select_atoms(f"{user_select}").residues.atoms)
         reference = reference.models[0]
         reference_selection = reference.select_atoms(f"{user_select[0]}")
         for mobile in mobiles:
@@ -67,6 +68,7 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
         for mobile in mobiles:
             mobile = mobile.models[0]
             result = aligner.calculate(structures = [reference, mobile], selections = [])
+            # size of whole structures
             reference_size = len(reference.residues)
             mobile_size = len(mobile.residues)
             result["metadata"]["reference_size"] = reference_size
