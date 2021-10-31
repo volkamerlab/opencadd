@@ -73,7 +73,7 @@ class MMLignerAligner(BaseAligner):
             raise OSError("mmligner cannot be located. Is it installed?")
         # proceed normally
 
-    def _calculate(self, structures, *args, **kwargs):
+    def _calculate(self, structures, selections, *args, **kwargs):
         """
         Calculates the superposition of two protein structures.
 
@@ -99,12 +99,21 @@ class MMLignerAligner(BaseAligner):
                 - ``translation`` (np.array): array containing the translation
                 - ``quarternion`` (array-like): 4x4 quarternion matrix
         """
+        # we want to perform the calculation on the selections
+        # if there is no selection, we reference to the structures
+        # e.g. id(selections[0]) equals id(structures[0])
+        # after calculation is done, we perform the transformation on the structure
+        # this way, we do not throw away any atoms and transform the whole structure
+
+        if not selections:
+            selections.append(structures[0])
+            selections.append(structures[1])
 
         with enter_temp_directory() as (cwd, tmpdir):
-            # Needed because of the need of a copy of the structures.
+            # Needed because of the need of a copy of the selections.
             sys.setrecursionlimit(100000)
 
-            path1, path2 = self._edit_pdb(structures)
+            path1, path2 = self._edit_pdb(selections)
             output = subprocess.check_output(
                 [self.executable, path1, path2, "-o", "temp", "--superpose"]
             )
@@ -113,7 +122,7 @@ class MMLignerAligner(BaseAligner):
 
             # checks if there is metadata in the dict, if not, there was no significant alignment found.
             if "alignment" in result["metadata"]:
-                superposed_models = self._calculate_transformed(structures, result["metadata"])
+                superposed_models = self._calculate_transformed(structures, selections, result["metadata"])
                 result["superposed"] = superposed_models
         return result
 
@@ -213,7 +222,7 @@ class MMLignerAligner(BaseAligner):
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
         }
 
-    def _calculate_transformed(self, structures, metadata):
+    def _calculate_transformed(self, structures, selections, metadata):
         """
         Parse back output PDBs and construct updated Structure objects.
 
@@ -228,12 +237,15 @@ class MMLignerAligner(BaseAligner):
             Input structures with updated coordinates
         """
         ref, mobile, *_ = structures
-        translation = metadata["translation"]
+        ref_selection, mob_selection, *_ = selections
+        translation = metadata["translation"] # not used
         rotation = metadata["rotation"]
 
-        mob_com = mobile.atoms.center_of_geometry()
-        ref_com = ref.atoms.center_of_geometry()
+        # calculation on selections
+        mob_com = mob_selection.atoms.center_of_geometry()
+        ref_com = ref_selection.atoms.center_of_geometry()
 
+        # transformation on structure
         mobile.atoms.translate(-mob_com)
         mobile.atoms.rotate(rotation)
         mobile.atoms.translate(ref_com)
@@ -284,7 +296,7 @@ class MMLignerAligner(BaseAligner):
 
         return result
 
-    def _edit_pdb(self, structures, path=("structure1.pdb", "structure2.pdb")):
+    def _edit_pdb(self, selections, path=("structure1.pdb", "structure2.pdb")):
         """
         Method to write Structure protein models to PDBs readable by MMLigner.
 
@@ -308,8 +320,8 @@ class MMLignerAligner(BaseAligner):
         """
         assert len(path) == 2
 
-        structures[0].select_atoms(self.protein_selector).write(path[0])
-        structures[1].select_atoms(self.protein_selector).write(path[1])
+        selections[0].select_atoms(self.protein_selector).write(path[0])
+        selections[1].select_atoms(self.protein_selector).write(path[1])
 
         for i in range(len(path)):
             pdb = []
