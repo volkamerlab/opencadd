@@ -159,7 +159,10 @@ class MMLignerAligner(BaseAligner):
 
         # checks if there is a signifcant alignment
         if rmsd == 0 and coverage == 0:
-            return {"scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage}, "metadata": {}}
+            return {
+                "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
+                "metadata": {},
+            }
         else:
             # fixed_com, moving_com, rotation and quaternion can only be obtained
             # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)

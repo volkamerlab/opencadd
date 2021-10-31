@@ -29,10 +29,10 @@ def parse_cli(argv=None, greet=False):
         help="Whether to print debugging info to stdout",
     )
     p.add_argument(
-    "--only_backbone",
-    action="store_true",
-    default=False,
-    help="Only use backbone residues (exclude insertions and HETATM entries)",
+        "--only_backbone",
+        action="store_true",
+        default=False,
+        help="Only use backbone residues (exclude insertions and HETATM entries)",
     )
     p.add_argument("--no-emoji", action="store_true", default=False, help="Disable emoji logging")
     p.add_argument(
@@ -105,7 +105,10 @@ def main():
             args.method,
         )
         result, *_empty = align(
-            [reference_model, mobile_model], method=METHODS[args.method], only_backbone=args.only_backbone, **args.method_options
+            [reference_model, mobile_model],
+            method=METHODS[args.method],
+            only_backbone=args.only_backbone,
+            **args.method_options,
         )
 
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
