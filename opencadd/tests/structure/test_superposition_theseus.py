@@ -21,6 +21,7 @@ def test_theseus_different_no_superposition():
     results = aligner.calculate(different_models)
     assert "scores" in results
     assert "rmsd" in results["scores"]
+    assert "coverage" in results["scores"]
     assert "metadata" in results
     assert "least_squares" in results["metadata"]
     assert "maximum_likelihood" in results["metadata"]
@@ -41,7 +42,6 @@ def test_theseus_different_no_superposition():
     assert "d_p" in results["metadata"]
     assert "median_structure" in results["metadata"]
     assert "n_total" in results["metadata"]
-    assert "n_atoms" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
 
@@ -53,6 +53,7 @@ def test_theseus_different():
     assert "superposed" in results
     assert "scores" in results
     assert "rmsd" in results["scores"]
+    assert "coverage" in results["scores"]
     assert "metadata" in results
     assert "transformation" in results["metadata"]
     assert "least_squares" in results["metadata"]
@@ -74,7 +75,6 @@ def test_theseus_different():
     assert "d_p" in results["metadata"]
     assert "median_structure" in results["metadata"]
     assert "n_total" in results["metadata"]
-    assert "n_atoms" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
     assert pytest.approx(results["scores"]["rmsd"], 1.54)
