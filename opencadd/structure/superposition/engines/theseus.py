@@ -50,7 +50,12 @@ class TheseusAligner(BaseAligner):
         if True, add `-I` flag to just compute the statistics (no superposition)
     """
 
-    def __init__(self, sequence_alignment: str = "MUSCLE", alignment_max_iterations: int = 32, statistics_only: bool = False) -> None:
+    def __init__(
+        self,
+        sequence_alignment: str = "MUSCLE",
+        alignment_max_iterations: int = 32,
+        statistics_only: bool = False,
+    ) -> None:
         self.alignment_max_iterations = alignment_max_iterations
         self.statistics_only = statistics_only
 
@@ -66,7 +71,7 @@ class TheseusAligner(BaseAligner):
         elif sequence_alignment == "CLUSTALO":
             self._alignment_log = "clustalo.log"
             self._alignment_executable = "clustalo"
-        else: 
+        else:
             raise ValueError("`sequence_alignment` must be one of `MUSCLE, CLUSTALO`.")
 
     def _safety_checks(self):
@@ -240,19 +245,19 @@ class TheseusAligner(BaseAligner):
 
         if self._alignment_executable == "muscle":
             output = subprocess.check_output(
-            [
-                self._alignment_executable,
-                "-maxiters",
-                str(self.alignment_max_iterations),
-                "-in",
-                self._fastafile,
-                "-out",
-                self._alignment_file,
-                "-clwstrict",
-                "-verbose",
-                "-log",
-                self._alignment_log,
-            ],
+                [
+                    self._alignment_executable,
+                    "-maxiters",
+                    str(self.alignment_max_iterations),
+                    "-in",
+                    self._fastafile,
+                    "-out",
+                    self._alignment_file,
+                    "-clwstrict",
+                    "-verbose",
+                    "-log",
+                    self._alignment_log,
+                ],
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
             )
@@ -264,7 +269,7 @@ class TheseusAligner(BaseAligner):
                     self._fastafile,
                     "-o",
                     self._alignment_file,
-                    "-outfmt"
+                    "-outfmt",
                 ],
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
