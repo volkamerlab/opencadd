@@ -17,10 +17,6 @@ METHODS = {
     "mda": MDAnalysisAligner,
 }
 
-# add user select
-# if user select 
-# calculate on selection 
-# otherwise calculate on struc
 def align(structures, user_select, method=TheseusAligner, only_backbone=False,**kwargs):
     """
     Main entry point for our project
