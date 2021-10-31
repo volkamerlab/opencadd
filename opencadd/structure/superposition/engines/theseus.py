@@ -89,7 +89,7 @@ class TheseusAligner(BaseAligner):
             raise OSError("theseus cannot be located. Is it installed?")
         # proceed normally
 
-    def _calculate(self, structures, *args, **kwargs) -> dict:
+    def _calculate(self, structures, selections, *args, **kwargs) -> dict:
         """
         Align the sequences with an alignment tool (``muscle``)
 
@@ -104,6 +104,9 @@ class TheseusAligner(BaseAligner):
         ----------
         structures : list
             list of opencadd.core.Structures objects
+        selections : list
+            list of selections done by MDAnalysis. 
+            calculation is done on selections, transforming is done on structures.
         **kwargs : dict
             optional parameters
 
@@ -139,14 +142,23 @@ class TheseusAligner(BaseAligner):
                     ``total_rounds``: total rounds
         """
 
+        # we want to perform the calculation on the selections
+        # if there is no selection, we reference to the structures
+        # e.g. id(selections[0]) equals id(structures[0])
+        # after calculation is done, we perform the transformation on the structure
+        # this way, we do not throw away any atoms and transform the whole structure
+        if not selections:
+            selections.append(structures[0])
+            selections.append(structures[1])
+
         with enter_temp_directory(remove=True) as (cwd, tmpdir):
             _logger.debug("All files are located in: %s", tmpdir)
 
             # 1st - Dump PDBs to disk
             filenames = []
-            for index, structure in enumerate(structures):
+            for index, selection in enumerate(selections):
                 filename = f"structure_{index}.pdb"
-                structure.write(filename)
+                selection.write(filename)
                 filenames.append(filename)
 
             # 2nd - Prepare sequence alignment with MUSCLE
@@ -175,6 +187,7 @@ class TheseusAligner(BaseAligner):
             results = self._parse_superposition(theseus_output)
 
         # 4th reapply transformation to the mobile model
+        # transformation on original structure
         mobile = structures[1]
         transformation = results["metadata"]["transformation"]
         rotation = transformation[:, :3]
@@ -215,6 +228,7 @@ class TheseusAligner(BaseAligner):
                     for line in infile:
                         outfile.write(line)
 
+
     def _filemap(self, filenames) -> None:
         """
         Create filemap for Theseus
@@ -227,6 +241,7 @@ class TheseusAligner(BaseAligner):
         with open(self._filemap_file, "w") as outfile:
             for fname in filenames:
                 outfile.write(f"{fname} {fname}\n")
+
 
     def _run_alignment(self, filenames):
         """
