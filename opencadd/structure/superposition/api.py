@@ -45,20 +45,6 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
     reference, *mobiles = structures
     results = []
 
-    # only take the backbone residues resulting in excluding insertions and HETATM entries
-    if only_backbone:
-        # only take the first models of the pdb files, this ensures that mda and theseus
-        # are working consitently comparing all models could provide better results,
-        # but would be very inefficient
-        # (e.g. 25 models would mean 25 times the computing time)
-        reference = reference.models[0].select_atoms("backbone").residues.atoms
-        for mobile in mobiles:
-            mobile = mobile.models[0].select_atoms("backbone").residues.atoms
-            result = aligner.calculate([reference, mobile])
-            reference_size = len(reference.residues)
-            mobile_size = len(mobile.residues)
-            results[0]["metadata"]["reference_size"] = reference_size
-            results[0]["metadata"]["mobile_size"] = mobile_size
 
     if user_select:
         # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
