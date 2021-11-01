@@ -4,7 +4,6 @@
 Defines easy programmatic access for any entry point
 """
 
-from MDAnalysis import _SELECTION_WRITERS
 from .engines.theseus import TheseusAligner
 from .engines.mmligner import MMLignerAligner
 from .engines.mda import MDAnalysisAligner
