@@ -24,6 +24,6 @@ Install from the conda package
 
     mamba install opencadd --no-deps
 
-   If you are planning on working with Jupyter notebooks, install JupyterLab::
+   If you are planning on working with Jupyter notebooks, install JupyterLab and IPyWidgets::
 
     mamba install jupyterlab ipywidgets
