@@ -235,9 +235,13 @@ class MDAnalysisAligner(BaseAligner):
                     residue_atom_names = set([a.name for a in residue.atoms])
                     if not backbone_atom_names.issubset(residue_atom_names):
                         incomplete_residues.append(residue)
-                    sequences.append(convert_aa_code(residue.resname))
-                    residue_ids.append(residue.resid)
-                    segment_ids.append(residue.segid)
+                    # some structures are missing atoms in the aligned residues,
+                    # then an error would occur, where the amount of atoms of both
+                    #  structures is not the same (needs to be the same amount for superposition)
+                    else:
+                        sequences.append(convert_aa_code(residue.resname))
+                        residue_ids.append(residue.resid)
+                        segment_ids.append(residue.segid)
         if incomplete_residues:
             _logger.warning(
                 "%d residues in %s are missing backbone atoms. "
