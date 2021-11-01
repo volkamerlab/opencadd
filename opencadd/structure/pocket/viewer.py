@@ -9,7 +9,7 @@ import logging
 from matplotlib import colors
 import nglview
 
-from opencadd.io import DataFrame
+from opencadd.io.dataframe import DataFrame
 
 _logger = logging.getLogger(__name__)
 

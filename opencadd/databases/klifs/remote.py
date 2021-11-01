@@ -25,7 +25,8 @@ from .core import (
 )
 from .schema import FIELDS
 from .utils import metadata_to_filepath, silence_logging
-from opencadd.io import DataFrame, Rdkit
+from opencadd.io.dataframe import DataFrame
+from opencadd.io.rdkit import Rdkit
 
 _logger = logging.getLogger(__name__)
 

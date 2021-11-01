@@ -30,7 +30,8 @@ from .schema import (
 from .utils import PATH_DATA, metadata_to_filepath, filepath_to_metadata
 from .remote import KLIFS_CLIENT
 from .exceptions import KlifsPocketIncompleteError, KlifsPocketUnequalSequenceStructure
-from opencadd.io import DataFrame, Rdkit
+from opencadd.io.dataframe import DataFrame
+from opencadd.io.rdkit import Rdkit
 
 # Get the newest file version (* = YYYYMMDD)
 PATH_TO_KLIFS_IDS = sorted(PATH_DATA.glob("klifs_ids.*.csv.gz"), key=lambda x: x.suffixes[0])[-1]

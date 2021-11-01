@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-from opencadd.io import DataFrame
+from opencadd.io.dataframe import DataFrame
 
 from .base import PocketBase
 from .features.region import Region
