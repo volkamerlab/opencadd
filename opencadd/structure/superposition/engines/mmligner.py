@@ -123,7 +123,9 @@ class MMLignerAligner(BaseAligner):
 
             # checks if there is metadata in the dict, if not, there was no significant alignment found.
             if "alignment" in result["metadata"]:
-                superposed_models = self._calculate_transformed(structures, selections, result["metadata"])
+                superposed_models = self._calculate_transformed(
+                    structures, selections, result["metadata"]
+                )
                 result["superposed"] = superposed_models
         return result
 
@@ -241,7 +243,7 @@ class MMLignerAligner(BaseAligner):
         """
         ref, mobile, *_ = structures
         ref_selection, mob_selection, *_ = selections
-        translation = metadata["translation"] # not used
+        translation = metadata["translation"]  # not used
         rotation = metadata["rotation"]
 
         # calculation on selections

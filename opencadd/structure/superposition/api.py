@@ -17,7 +17,8 @@ METHODS = {
     "mda": MDAnalysisAligner,
 }
 
-def align(structures, user_select, method=TheseusAligner, only_backbone=False,**kwargs):
+
+def align(structures, user_select, method=TheseusAligner, only_backbone=False, **kwargs):
     """
     Main entry point for our project
 
@@ -47,15 +48,17 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
     # comparing all models could provide better results, but would be very inefficient
     # (e.g. 25 models would mean 25 times the computing time)
     if user_select:
-        # selection always returns an AtomGroup. Alternative, which is not recommended, 
-        # because the aligners can handle AtomGroups aswell: 
+        # selection always returns an AtomGroup. Alternative, which is not recommended,
+        # because the aligners can handle AtomGroups aswell:
         # Structure.from_atomgroup(reference.models[0].select_atoms(f"{user_select}").residues.atoms)
         reference = reference.models[0]
         reference_selection = reference.select_atoms(f"{user_select[0]}")
         for mobile in mobiles:
             mobile = mobile.models[0]
             mobile_selection = mobile.select_atoms(f"{user_select[1]}")
-            result = aligner.calculate(structures = [reference, mobile], selections = [reference_selection, mobile_selection])
+            result = aligner.calculate(
+                structures=[reference, mobile], selections=[reference_selection, mobile_selection]
+            )
             # size of selections
             reference_size = len(reference_selection.residues)
             mobile_size = len(mobile_selection.residues)
@@ -67,7 +70,7 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False,**
         reference = reference.models[0]
         for mobile in mobiles:
             mobile = mobile.models[0]
-            result = aligner.calculate(structures = [reference, mobile], selections = [])
+            result = aligner.calculate(structures=[reference, mobile], selections=[])
             # size of whole structures
             reference_size = len(reference.residues)
             mobile_size = len(mobile.residues)

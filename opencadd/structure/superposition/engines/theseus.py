@@ -105,7 +105,7 @@ class TheseusAligner(BaseAligner):
         structures : list
             list of opencadd.core.Structures objects
         selections : list
-            list of selections done by MDAnalysis. 
+            list of selections done by MDAnalysis.
             calculation is done on selections, transforming is done on structures.
         **kwargs : dict
             optional parameters
@@ -227,7 +227,6 @@ class TheseusAligner(BaseAligner):
                     for line in infile:
                         outfile.write(line)
 
-
     def _filemap(self, filenames) -> None:
         """
         Create filemap for Theseus
@@ -240,7 +239,6 @@ class TheseusAligner(BaseAligner):
         with open(self._filemap_file, "w") as outfile:
             for fname in filenames:
                 outfile.write(f"{fname} {fname}\n")
-
 
     def _run_alignment(self, filenames):
         """

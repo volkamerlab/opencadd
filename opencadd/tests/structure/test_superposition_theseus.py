@@ -81,10 +81,14 @@ def test_theseus_different():
     assert "total_rounds" in results["metadata"]
     assert pytest.approx(results["scores"]["rmsd"], 1.54)
 
+
 def test_theseus_different_selections():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
     user_select = ["backbone and name CA and segid A", "backbone and name CA and segid A"]
-    selections = [different_models[0].select_atoms(f"{user_select[0]}"), different_models[1].select_atoms(f"{user_select[0]}")]
+    selections = [
+        different_models[0].select_atoms(f"{user_select[0]}"),
+        different_models[1].select_atoms(f"{user_select[0]}"),
+    ]
     aligner = TheseusAligner()
     results = aligner.calculate(different_models, selections, identical=False)
     assert "superposed" in results
@@ -115,6 +119,7 @@ def test_theseus_different_selections():
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
     assert pytest.approx(results["scores"]["rmsd"], 0.574)
+
 
 def test_metadata_parsing():
     output = """

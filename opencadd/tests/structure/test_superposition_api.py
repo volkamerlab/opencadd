@@ -13,6 +13,7 @@ def test_api(method):
     results = align(structures, user_select, method=method)
     assert len(results) == len(structures) - 1
 
+
 @pytest.mark.parametrize("method", list(METHODS.values()))
 def test_api_selections(method):
     structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]

@@ -57,11 +57,13 @@ def parse_method_options(string):
     options = dict(option.split(": ") for option in string.split("; "))
     return options
 
+
 def parse_selection(string):
     if not string:
         return []
     selection = string.split("; ")
     return selection
+
 
 def greeting():
     return (
@@ -110,7 +112,10 @@ def main():
             args.method,
         )
         result, *_empty = align(
-            [reference_model, mobile_model], method=METHODS[args.method], user_select=args.select, **args.method_options
+            [reference_model, mobile_model],
+            method=METHODS[args.method],
+            user_select=args.select,
+            **args.method_options,
         )
 
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)

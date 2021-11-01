@@ -70,7 +70,7 @@ class MDAnalysisAligner(BaseAligner):
         alignment_matrix: str = "BLOSUM62",
         alignment_gap: int = -10,
         strict_superposition: bool = False,
-        per_residue_selection="name CA and not altloc B and not altloc C", # TODO: why not "name CA and altloc A"
+        per_residue_selection="name CA and not altloc B and not altloc C",  # TODO: why not "name CA and altloc A"
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
