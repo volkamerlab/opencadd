@@ -26,7 +26,7 @@ bibliography: paper.bib
 Protein kinases are involved in most aspects of cell life due to their role in signal transduction. Dysregulated kinases can cause severe diseases such as cancer, inflammatory and neurodegenerative diseases, which has made them a frequent target in drug discovery for the last decades [@Cohen:2001].
 The immense research on kinases has led to an increasing amount of kinase resources [@Kooistra:2017].
 Among them is the KLIFS database, which focuses on storing and analyzing structural data on kinases and interacting drugs and other small molecules [@Kanev:2021].
-The OpenCADD-KLIFS Python module offeres a convenient integration of the KLIFS data into workflows to facilitate computational kinase research.
+The OpenCADD-KLIFS Python module offers a convenient integration of the KLIFS data into workflows to facilitate computational kinase research.
 
 # Statement of need
 
@@ -43,15 +43,15 @@ standardized Pandas [@pandas] DataFrames to allow for easy and quick downstream 
 
 The KLIFS database offers a REST API including an OpenAPI specification. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these OpenAPI definitions and adds wrappers to enable the following functionalities:
 
-- A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, ligands, structures, drugs, pockets, bioactivities, structural conformations, modified residues, and coordinates; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more.
+- A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more.
 For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
 - Query results obtained from the remote KLIFS webserver are streamlined with those obtained from a local KLIFS download using the same API.
 - All results obtained with bravado are formatted as Pandas DataFrames with standardized column names, data types, and handling of missing data.
 - Structural files deposited on KLIFS include full complexes or selections such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded via biopandas [@biopandas] or RDKit [@rdkit].
 
-OpenCADD-KLIFS is especially convenient whenever users are interested in multiple or more complex queries such as "fetching all interaction profiles of kinases bound to the drug Gefitinib". Formatting the output as DataFrames facilitates subsequent filtering steps and DataFrame merges in case multiple KLIFS datasets need to be combined.
+OpenCADD-KLIFS is especially convenient whenever users are interested in multiple or more complex queries such as "fetching all structures for the kinase EGFR in the DFG-in conformation" or "fetching the measured bioactivity profiles for all ligands that are structurally resolved in complex with EGFR". Formatting the output as DataFrames facilitates subsequent filtering steps and DataFrame merges in case multiple KLIFS datasets need to be combined.
 OpenCADD-KLIFS is currently used in several projects from the Volkamer Lab [@volkamerlab] including TeachOpenCADD [@teachopencadd], OpenCADD-pocket [@opencaddpocket], KiSSim [@kissim], KinoML [@kinoml], and PLIPify [@plifify].
-For example, OpenCADD-KLIFS is applied in a [TeachOpenCADD tutorial](https://projects.volkamerlab.org/teachopencadd/talktorials/T012_query_klifs.html) to demonstrate how to fetch all kinase-ligand interaction profiles for all available EGFR kinase structures in order to visualize the per-residue interaction types and frequencies with only a few lines of code.
+For example, OpenCADD-KLIFS is applied in a [TeachOpenCADD tutorial](https://projects.volkamerlab.org/teachopencadd/talktorials/T012_query_klifs.html) to demonstrate how to fetch all kinase-ligand interaction profiles for all available EGFR kinase structures to visualize the per-residue interaction types and frequencies with only a few lines of code.
 
 # Acknowledgements
 
