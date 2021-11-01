@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from opencadd.io import DataFrame
+from opencadd.io.dataframe import DataFrame
 from opencadd.io.schema import DATAFRAME_COLUMNS
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
