@@ -41,7 +41,7 @@ standardized Pandas DataFrames [@pandas] to allow for easy and quick downstream 
 
 ![OpenCADD-KLIFS fetches KLIFS data [@Kanev:2021] offline from a KLIFS download or online from the KLIFS database and formats the output in user-friendly Pandas DataFrames [@pandas].\label{fig:opencadd_klifs_toc}](opencadd_klifs_toc.png)
 
-The KLIFS database offers a REST API including an OpenAPI specification [@klifs_swagger]. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these OpenAPI definitions and adds wrappers to enable the following functionalities:
+The KLIFS database offers a REST API including a Swagger API specification [@klifs_swagger]. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these Swagger API definitions and adds wrappers to enable the following functionalities:
 
 - A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more.
 For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
