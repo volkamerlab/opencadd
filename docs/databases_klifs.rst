@@ -7,7 +7,7 @@ In case you wish to install only the dependencies relevant to OpenCADD-KLIFS, pl
 
 OpenCADD-KLIFS offers a simple API to interact with data from KLIFS remotely and locally.
 
-Find a detailed tutorial at the `TeachOpenCADD platform <https://projects.volkamerlab.org/teachopencadd/talktorials/T012_query_klifs.html>`_ on the KLIFS database (including its Swagger API) and on how to apply the module OpenCADD-KLIFS to an example research question.
+Find a detailed tutorial at the `TeachOpenCADD platform <https://projects.volkamerlab.org/teachopencadd/talktorials/T012_query_klifs.html>`_ on the KLIFS database and on how to apply the module OpenCADD-KLIFS to an example research question.
 
 What is KLIFS and who created it?
 ---------------------------------
@@ -33,7 +33,7 @@ Work with KLIFS data from KLIFS server (remotely)
 
 The ``opencadd.databases.klifs.remote`` submodule offers you to access KLIFS data from the KLIFS server.
 
-Our API relies on the REST API and Swagger API (Swagger) specification at https://dev.klifs.net/swagger_v2/ to dynamically generate a Python client with ``bravado``.
+Our API relies on the REST API and OpenAPI (formerly Swagger API) specification at https://dev.klifs.net/swagger_v2/ to dynamically generate a Python client with ``bravado``.
 
 Example for ``opencadd``'s API to access remote data:
 
@@ -108,51 +108,51 @@ The module's structure looks like this, using the same API for both modules ``lo
                 ├── utils.py       # Defines utility functions.
                 └── exceptions.py  # Defines exceptions.
 
-This structure mirrors the KLIFS Swagger API structure in the following way to access different kinds of information both remotely and locally:
+This structure mirrors the KLIFS OpenAPI structure in the following way to access different kinds of information both remotely and locally:
 
 - ``kinases``  
 
   - Get information about kinases (groups, families, names).  
-  - In KLIFS Swagger API called ``Information``: https://dev.klifs.net/swagger_v2/#/Information
+  - In KLIFS OpenAPI called ``Information``: https://dev.klifs.net/swagger_v2/#/Information
 
 - ``ligands``  
 
   - Get ligand information.  
-  - In KLIFS Swagger API called ``Ligands``: https://dev.klifs.net/swagger_v2/#/Ligands
+  - In KLIFS OpenAPI called ``Ligands``: https://dev.klifs.net/swagger_v2/#/Ligands
 
 - ``structures``
 
   - Get structure information.  
-  - In KLIFS Swagger API called ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures  
+  - In KLIFS OpenAPI called ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures  
 
 - ``bioactivities``  
 
   - Get bioactivity information.  
-  - In KLIFS Swagger API part of ``Ligands``: https://dev.klifs.net/swagger_v2/#/Ligands  
+  - In KLIFS OpenAPI part of ``Ligands``: https://dev.klifs.net/swagger_v2/#/Ligands  
 
 - ``interactions``  
 
   - Get interaction information.  
-  - In KLIFS Swagger API called ``Interactions``: https://dev.klifs.net/swagger_v2/#/Interactions  
+  - In KLIFS OpenAPI called ``Interactions``: https://dev.klifs.net/swagger_v2/#/Interactions  
 
 - ``pocket``  
 
   - Get interaction information.  
-  - In KLIFS Swagger API part of ``Interactions``: https://dev.klifs.net/swagger_v2/#/Interactions/get_interactions_match_residues 
+  - In KLIFS OpenAPI part of ``Interactions``: https://dev.klifs.net/swagger_v2/#/Interactions/get_interactions_match_residues 
 
 - ``coordinates``  
 
   - Get structural data (structure coordinates).
-  - In KLIFS Swagger API part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures 
+  - In KLIFS OpenAPI part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures 
 
 - ``conformations``
 
   - Get information on structure conformations.
-  - In KLIFS Swagger API part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+  - In KLIFS OpenAPI part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
 
 - ``modified_residues``
 
   - Get information on residue modifications in structures.
-  - In KLIFS Swagger API part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures/get_structure_modified_residues
+  - In KLIFS OpenAPI part of ``Structures``: https://dev.klifs.net/swagger_v2/#/Structures/get_structure_modified_residues
 
 

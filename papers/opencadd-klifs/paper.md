@@ -41,12 +41,11 @@ standardized Pandas DataFrames [@pandas] to allow for easy and quick downstream 
 
 ![OpenCADD-KLIFS fetches KLIFS data [@Kanev:2021] offline from a KLIFS download or online from the KLIFS database and formats the output as user-friendly Pandas DataFrames [@pandas].\label{fig:opencadd_klifs_toc}](opencadd_klifs_toc.png)
 
-The KLIFS database offers a REST API including a Swagger API specification [@klifsswagger]. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these Swagger API definitions and adds wrappers to enable the following functionalities:
+The KLIFS database offers a REST API compliant with the OpenAPI specification [@klifsswagger]. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on the OpenAPI definitions and adds wrappers to enable the following functionalities:
 
-- A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more.
-For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
-- Query results obtained from the remote KLIFS webserver are streamlined with those obtained from a local KLIFS download using the same API.
-- All results obtained with bravado are formatted as Pandas DataFrames with standardized column names, data types, and handling of missing data.
+- A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more. For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
+- The same API is used for local and remote sessions.
+- The returned data follows the same schema regardless of the session type (local/remote); all results obtained with bravado are formatted as Pandas DataFrames with standardized column names, data types, and handling of missing data.
 - Files with the structural 3D coordinates deposited on KLIFS include full complexes or selections such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded via biopandas [Raschka:2017] or RDKit [@rdkit].
 
 OpenCADD-KLIFS is especially convenient whenever users are interested in multiple or more complex queries such as "fetching all structures for the kinase EGFR in the DFG-in conformation" or "fetching the measured bioactivity profiles for all ligands that are structurally resolved in complex with EGFR". Formatting the output as DataFrames facilitates subsequent filtering steps and DataFrame merges in case multiple KLIFS datasets need to be combined.
