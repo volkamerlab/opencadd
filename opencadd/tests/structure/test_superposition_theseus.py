@@ -17,8 +17,9 @@ def test_theseus_instantiation():
 )
 def test_theseus_different_no_superposition():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
+    selections = []
     aligner = TheseusAligner(statistics_only=True)
-    results = aligner.calculate(different_models)
+    results = aligner.calculate(different_models, selections)
     assert "scores" in results
     assert "rmsd" in results["scores"]
     assert "coverage" in results["scores"]
@@ -48,8 +49,9 @@ def test_theseus_different_no_superposition():
 
 def test_theseus_different():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
+    selections = []
     aligner = TheseusAligner()
-    results = aligner.calculate(different_models, identical=False)
+    results = aligner.calculate(different_models, selections, identical=False)
     assert "superposed" in results
     assert "scores" in results
     assert "rmsd" in results["scores"]

@@ -14,7 +14,8 @@ def test_mda_instantiation():
 def test_mda_calculation():
     aligner = MDAnalysisAligner()
     structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
-    result = aligner.calculate(structures)
+    selections = []
+    result = aligner.calculate(structures, selections)
 
     # Check API compliance
     assert "superposed" in result
