@@ -31,23 +31,23 @@ The OpenCADD-KLIFS Python module offers a convenient integration of the KLIFS da
 # Statement of need
 
 [OpenCADD-KLIFS](https://opencadd.readthedocs.io/en/latest/databases_klifs.html) (``opencadd.databases.klifs``) is a part of the [OpenCADD](https://opencadd.readthedocs.io/) package, a collection of Python modules for structural cheminformatics.
-This module offers access to KLIFS [@Kanev:2021] data such as information about kinases, structures, ligands, 
+This module offers access to KLIFS data [@Kanev:2021; @klifs_website] such as information about kinases, structures, ligands, 
 interaction fingerprints, and bioactivities. 
 KLIFS thereby focuses especially on the ATP binding site, defined as a set of 85 residues and aligned across all structures using a multiple sequence alignment (MSA) [vanLinden:2014].
 With OpenCADD-KLIFS, KLIFS data can be queried either locally from a KLIFS download or remotely from the KLIFS webserver. 
 The presented module provides identical APIs for the remote and local queries for KLIFS data and streamlines all output into 
-standardized Pandas [@pandas] DataFrames to allow for easy and quick downstream data analyses (Figure \autoref{fig:opencadd_klifs_toc}). This Pandas-focused setup is ideal to work with in Jupyter notebooks [@jupyterhub; @Kluyver:2016]. 
+standardized Pandas DataFrames [@pandas] to allow for easy and quick downstream data analyses (Figure \autoref{fig:opencadd_klifs_toc}). This Pandas-focused setup is ideal to work with in Jupyter notebooks [@jupyterhub; @Kluyver:2016]. 
 
 
-![OpenCADD-KLIFS fetches KLIFS [@Kanev:2021] data offline from a KLIFS download or online from the KLIFS database and formats the output in user-friendly Pandas [@pandas] DataFrames.\label{fig:opencadd_klifs_toc}](opencadd_klifs_toc.png)
+![OpenCADD-KLIFS fetches KLIFS data [@Kanev:2021] offline from a KLIFS download or online from the KLIFS database and formats the output in user-friendly Pandas DataFrames [@pandas].\label{fig:opencadd_klifs_toc}](opencadd_klifs_toc.png)
 
-The KLIFS database offers a REST API including an OpenAPI specification. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these OpenAPI definitions and adds wrappers to enable the following functionalities:
+The KLIFS database offers a REST API including an OpenAPI specification [@klifs_swagger]. Our module OpenCADD-KLIFS uses bravado [@bravado] to dynamically generate a Python client based on these OpenAPI definitions and adds wrappers to enable the following functionalities:
 
 - A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more.
 For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
 - Query results obtained from the remote KLIFS webserver are streamlined with those obtained from a local KLIFS download using the same API.
 - All results obtained with bravado are formatted as Pandas DataFrames with standardized column names, data types, and handling of missing data.
-- Structural files deposited on KLIFS include full complexes or selections such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded via biopandas [@biopandas] or RDKit [@rdkit].
+- Files with the structural 3D coordinates deposited on KLIFS include full complexes or selections such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded via biopandas [@biopandas] or RDKit [@rdkit].
 
 OpenCADD-KLIFS is especially convenient whenever users are interested in multiple or more complex queries such as "fetching all structures for the kinase EGFR in the DFG-in conformation" or "fetching the measured bioactivity profiles for all ligands that are structurally resolved in complex with EGFR". Formatting the output as DataFrames facilitates subsequent filtering steps and DataFrame merges in case multiple KLIFS datasets need to be combined.
 OpenCADD-KLIFS is currently used in several projects from the Volkamer Lab [@volkamerlab] including TeachOpenCADD [@teachopencadd], OpenCADD-pocket [@opencaddpocket], KiSSim [@kissim], KinoML [@kinoml], and PLIPify [@plifify].
