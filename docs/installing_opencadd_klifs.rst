@@ -26,4 +26,4 @@ Install from the conda package
 
    If you are planning on working with Jupyter notebooks, install JupyterLab::
 
-    mamba install jupyterlab
+    mamba install jupyterlab ipywidgets
