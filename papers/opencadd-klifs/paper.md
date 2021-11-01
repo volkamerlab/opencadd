@@ -9,14 +9,14 @@ authors:
     orcid: 0000-0003-4205-8705
     affiliation: 1
   - name: Jaime Rodríguez-Guerra
-    affiliation: 2
+    orcid: 0000-0001-8974-1566
+    affiliation: 1
   - name: Andrea Volkamer
     affiliation: 1
+    orcid: 0000-0002-3760-580X
 affiliations:
  - name: _In Silico_ Toxicology and Structural Bioinformatics, Institute of Physiology, Charité – Universitätsmedizin Berlin, corporate member of Freie Universität Berlin and Humboldt-Universität zu Berlin, Augustenburger Platz 1, 13353 Berlin, Germany
    index: 1
- - name: Institution Name
-   index: 2
 date: 27 October 2021
 bibliography: paper.bib
 ---
