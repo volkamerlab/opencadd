@@ -114,7 +114,7 @@ def main():
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
         if "superposed" in result:
             _logger.log(
-                25,  # this the level id for results
+                25,  # this is the level id for results
                 "results for alignment #%d between `%s`and `%s`: \nRMSD: %.3f Å \ncoverage: %d \nlenght of structures: %s has %d residues; %s has %d residues \n",
                 i,
                 reference_id,
