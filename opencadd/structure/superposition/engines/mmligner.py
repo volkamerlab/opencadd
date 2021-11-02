@@ -88,7 +88,7 @@ class MMLignerAligner(BaseAligner):
         -------
         dict
             As returned by ``._parse_metadata(output)``.
-            - ``superposed`` ([opencadd.core.Structure, opencadd.core.Structure]): the superposed models
+            - ``superposed`` ([opencadd.core.Structure, opencadd.core.Structure]): the superposed models if a significant alignment was found. Otherwise no superposition is done.
             - ``scores`` (dict):
                 - ``rmsd`` (float): RMSD value of the alignment
                 - ``score`` (float): ivalue of the alignment
