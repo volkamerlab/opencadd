@@ -7,10 +7,11 @@ dependencies:
   # Base depends
   - python
   - pip
-  - MDAnalysis
-  - nglview
+  - numpy
   - pandas
   - matplotlib-base
+  - mdanalysis
+  - nglview
   # Remove jsonschema once this issue is fixed: https://github.com/Yelp/bravado/issues/478
   - jsonschema<4.0.0
   - bravado
@@ -19,7 +20,7 @@ dependencies:
   - tqdm
   # Chimera reimplementation
   - biotite
-  - biopython 1.77
+  - biopython <=1.77
   # mmligner
   - mmligner
   # theseus
