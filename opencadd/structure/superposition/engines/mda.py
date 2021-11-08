@@ -140,7 +140,7 @@ class MDAnalysisAligner(BaseAligner):
             coverage = len(ref_atoms)
         else:
             raise ValueError(
-                "The number of atoms to match should be the same for both structures."
+                "The number of atoms to match has to be the same for both structures."
             )
 
         # Compute initial RMSD (no preprocessing)

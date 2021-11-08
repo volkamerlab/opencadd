@@ -45,7 +45,7 @@ class TheseusAligner(BaseAligner):
         - "MUSCLE"
         - "CLUSTALO" (CLUSTAL OMEGA)
     alignment_max_iterations : int
-        number of iterations for alignment program (only for muscle)
+        number of iterations for alignment program (this parameter is only used by MUSCLE, not CLUSTAL OMEGA)
     statistics_only : bool
         if True, add `-I` flag to just compute the statistics (no superposition)
     """
@@ -137,7 +137,7 @@ class TheseusAligner(BaseAligner):
                     ``free_params``: free params
                     ``d_p``: d_p
                     ``median_structure``: median_structure
-                    ``n_total``: number total
+                    ``n_total``: total number of atoms used for superposition
                     ``n_structures``: number of structures
                     ``total_rounds``: total rounds
         """

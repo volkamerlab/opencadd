@@ -17,7 +17,7 @@ METHODS = {
 }
 
 
-def align(structures, user_select, method=TheseusAligner, only_backbone=False, **kwargs):
+def align(structures, user_select, method=TheseusAligner, **kwargs):
     """
     Main entry point for our project
 
@@ -43,7 +43,7 @@ def align(structures, user_select, method=TheseusAligner, only_backbone=False, *
     reference, *mobiles = structures
     results = []
 
-    # only take the first models of the pdb files, this ensures that mda and theseus are working consitently
+    # only take the first models of the pdb files, this ensures that mda and theseus are working consistently
     # comparing all models could provide better results, but would be very inefficient
     # (e.g. 25 models would mean 25 times the computing time)
     if user_select:
