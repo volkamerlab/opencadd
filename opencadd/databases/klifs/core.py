@@ -1443,7 +1443,7 @@ class DrugsProvider(BaseProvider):
     """
     Class for drugs requests.
 
-    From the KLIFS Swagger API:
+    From the KLIFS OpenAPI:
     https://dev.klifs.net/swagger_v2/#/Ligands/get_drug_list
     > The drug list endpoint returns a list of all annotated kinase ligands that are either
     > approved or are/have been in clinical trials.

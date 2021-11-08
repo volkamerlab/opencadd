@@ -9,7 +9,7 @@ from opencadd.databases.klifs.schema import FIELDS
 
 class TestSyncKlifsSwaggerWithOpencadd:
     """
-    Test if opencadd is up-to-date with the KLIFS Swagger API (remote!).
+    Test if opencadd is up-to-date with the KLIFS OpenAPI (remote!).
     """
 
     def _test_klifs_model(self, data_opencadd, data_klifs):
