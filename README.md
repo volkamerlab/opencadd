@@ -14,12 +14,12 @@ A Python library for structural cheminformatics.
 
 ## Overview
 
-> This library is still in early stages of development.
+> Some modules of this library are still in early stages of development as indicated below.
 
 - `databases.klifs`: utilities to query the KLIFS database, offline or online.
-- `io`: read and write molecules from/to files.
-- `structure.pocket`: identification and analysis of protein (sub)pockets.
-- `structure.superposition` (formerly `superposer`): superimpose macromolecules using sequence and structural information.
+- :construction: `io`: read and write molecules from/to files.
+- :construction: `structure.pocket`: identification and analysis of protein (sub)pockets.
+- :construction: `structure.superposition` (formerly `superposer`): superimpose macromolecules using sequence and structural information.
 
 ## Documentation
 
