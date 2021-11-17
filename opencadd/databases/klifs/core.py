@@ -684,9 +684,9 @@ class StructuresProvider(BaseProvider):
     structure.missing_atoms : int
         Number of missing atoms.
     structure.rmsd1 : float
-        RMSD between the structure and the reference template for the conserved pocket residues
+        RMSD between the structure and the reference template for the conserved pocket residues.
     structure.rmsd2 : float
-        RMSD between the structure and the reference template for the full pocket
+        RMSD between the structure and the reference template for the full pocket.
     structure.front : bool
         Orthosteric ligand occupies KLIFS front cleft.
         Available remotely only.
