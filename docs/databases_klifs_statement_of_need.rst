@@ -6,18 +6,18 @@ Statement of need
 `OpenCADD-KLIFS <https://opencadd.readthedocs.io/en/latest/databases_klifs.html>`_ 
 (``opencadd.databases.klifs``) is a part of the `OpenCADD <https://opencadd.readthedocs.io/>`_ 
 package, a collection of Python modules for structural cheminformatics.
-This module offers access to KLIFS data [Kanev_2021] such as information about kinases, 
+This module offers access to KLIFS data [Kanev_2021]_ such as information about kinases, 
 structures, ligands, 
 interaction fingerprints, and bioactivities. 
 KLIFS thereby focuses especially on the ATP binding site, defined as a set of 85 residues and 
-aligned across all structures using a multiple sequence alignment (MSA) [vanLinden_2014].
+aligned across all structures using a multiple sequence alignment (MSA) [vanLinden_2014]_.
 With OpenCADD-KLIFS, KLIFS data can be queried either locally from a KLIFS download or remotely 
 from the KLIFS webserver. 
 The presented module provides identical APIs for the remote and local queries for KLIFS data and 
 streamlines all output into 
 standardized `Pandas <https://doi.org/10.5281/zenodo.5574486>`_ DataFrames to allow for easy and quick downstream data analyses 
 (Figure 1). This Pandas-focused setup is ideal to work with in Jupyter 
-notebooks [Kluyver_2016]. 
+notebooks [Kluyver_2016]_. 
 
 
 .. raw:: html
@@ -26,7 +26,7 @@ notebooks [Kluyver_2016].
    <img src="_static/opencadd_klifs_toc.png" alt="OpenCADD-KLIFS" width="600"/>
    </p>
 
-*Figure 1*: OpenCADD-KLIFS fetches KLIFS data [Kanev_2021] offline from a KLIFS download or 
+*Figure 1*: OpenCADD-KLIFS fetches KLIFS data [Kanev_2021]_ offline from a KLIFS download or 
 online from the KLIFS database and formats the output as user-friendly Pandas DataFrames.
 
 The KLIFS database offers a REST API compliant with the OpenAPI specification 
@@ -47,7 +47,7 @@ following functionalities:
   data types, and handling of missing data.
 - Files with the structural 3D coordinates deposited on KLIFS include full complexes or selections 
   such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded 
-  via biopandas [Raschka_2017] or `RDKit <http://www.rdkit.org>`_. 
+  via biopandas [Raschka_2017]_ or `RDKit <http://www.rdkit.org>`_. 
 
 OpenCADD-KLIFS is especially convenient whenever users are interested in multiple or more 
 complex queries such as "fetching all structures for the kinase EGFR in the DFG-in conformation" 
