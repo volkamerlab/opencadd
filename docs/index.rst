@@ -65,6 +65,7 @@ OpenCADD is a Python package for structural cheminformatics!
    :caption: OpenCADD-KLIFS
 
    databases_klifs
+   databases_klifs_statement_of_need
    tutorials/databases_klifs
 
 .. toctree::
