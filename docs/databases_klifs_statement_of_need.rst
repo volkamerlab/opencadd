@@ -68,17 +68,19 @@ to demonstrate how to fetch all kinase-ligand interaction profiles for all avail
 structures to visualize the per-residue interaction types and frequencies with only a few 
 lines of code.
 
-.. [Kanev_2021] KLIFS: an overhaul after the first 5 years of supporting kinase research,
-   Georgi K Kanev, Chris de Graaf, Bart A Westerman, Iwan J P de Esch, Albert J Kooistra, 
-   *Nucleic Acids Research*, 2021 49 D1, D562–D569, 
-   https://doi.org/10.1093/nar/gkaa895.
-.. [vanLinden_2014] KLIFS: A Knowledge-Based Structural Database To Navigate Kinase–Ligand 
+.. [Kanev_2021] Kanev et al., (2021),
+   KLIFS: an overhaul after the first 5 years of supporting kinase research,
+   Nucleic Acids Research, 
+   49(D1), D562–D569, doi:10.1093/nar/gkaa895.
+.. [vanLinden_2014] van Linden et al., (2014)
+   KLIFS: A Knowledge-Based Structural Database To Navigate Kinase–Ligand 
    Interaction Space, 
-   Oscar P. J. van Linden, Albert J. Kooistra, Rob Leurs, Iwan J. P. de Esch, Chris de Graaf, 
-   *Journal of Medicinal Chemistry* 2014 57 (2), 249-277,
-   https://doi.org/10.1021/jm400378w.
-.. [Kluyver_2016] Jupyter Notebooks – a publishing format for reproducible computational workflows,
-   Thomas Kluyver, Benjamin Ragan-Kelley, Fernando Pérez, Brian Granger, Matthias Bussonnier, 
-   Jonathan Frederic, Kyle Kelley, Jessica Hamrick, Jason Grout, Sylvain Corlay, Paul Ivanov, 
-   Damián Avila, Safia Abdalla, Carol Willing, Jupyter Development Team,
-   https://doi.org/10.3233/978-1-61499-649-1-87.
+   Journal of Medicinal Chemistry, 
+   57(2), 249-277, doi:10.1021/jm400378w.
+.. [Kluyver_2016] Kluyver et al., (2016),
+   Jupyter Notebooks – a publishing format for reproducible computational workflows,
+   In Positioning and Power in Academic Publishing: Players, Agents and Agendas. IOS Press. pp. 87-90,
+   doi:10.3233/978-1-61499-649-1-87.
+.. [Raschka_2017] Raschka, (2017), 
+   BioPandas: Working with molecular structures in pandas DataFrames, Journal of Open Source Software, 
+   2(14), 279, doi:10.21105/joss.00279.
