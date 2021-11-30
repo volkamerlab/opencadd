@@ -26,7 +26,7 @@ notebooks [Kluyver_2016]_.
    <img src="_static/opencadd_klifs_toc.png" alt="OpenCADD-KLIFS" width="600"/>
    </p>
 
-*Figure 1*: OpenCADD-KLIFS fetches KLIFS data [Kanev_2021]_ offline from a KLIFS download or 
+*Figure 1*: OpenCADD-KLIFS fetches KLIFS data offline from a KLIFS download or 
 online from the KLIFS database and formats the output as user-friendly Pandas DataFrames.
 
 The KLIFS database offers a REST API compliant with the OpenAPI specification 
