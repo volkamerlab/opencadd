@@ -1,11 +1,8 @@
 Statement of need
-=================
+================= 
 
-
-
-`OpenCADD-KLIFS <https://opencadd.readthedocs.io/en/latest/databases_klifs.html>`_ 
-(``opencadd.databases.klifs``) is a part of the `OpenCADD <https://opencadd.readthedocs.io/>`_ 
-package, a collection of Python modules for structural cheminformatics.
+OpenCADD-KLIFS is aimed at current and future users of the KLIFS database who seek to 
+integrate kinase resources into Python-based research projects.
 This module offers access to KLIFS data [Kanev_2021]_ such as information about kinases, 
 structures, ligands, 
 interaction fingerprints, and bioactivities. 
@@ -15,10 +12,13 @@ With OpenCADD-KLIFS, KLIFS data can be queried either locally from a KLIFS downl
 from the KLIFS webserver. 
 The presented module provides identical APIs for the remote and local queries for KLIFS data and 
 streamlines all output into 
-standardized `Pandas <https://doi.org/10.5281/zenodo.5574486>`_ DataFrames to allow for easy and quick downstream data analyses 
-(Figure 1). This Pandas-focused setup is ideal to work with in Jupyter 
-notebooks [Kluyver_2016]_. 
+standardized `Pandas <https://doi.org/10.5281/zenodo.5574486>`_ DataFrames to allow for easy and 
+quick downstream data analyses (Figure 1). This Pandas-focused setup is ideal to work with in 
+Jupyter notebooks [Kluyver_2016]_. 
 
+`OpenCADD-KLIFS <https://opencadd.readthedocs.io/en/latest/databases_klifs.html>`_  
+(``opencadd.databases.klifs``) is a part of the `OpenCADD <https://opencadd.readthedocs.io/>`_ 
+package, a collection of Python modules for structural cheminformatics. 
 
 .. raw:: html
 
