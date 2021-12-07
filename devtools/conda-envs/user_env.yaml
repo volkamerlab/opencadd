@@ -1,0 +1,27 @@
+name: test
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  # Base depends
+  - python
+  - pip
+  - MDAnalysis
+  - nglview
+  - pandas
+  - matplotlib-base
+  # Remove jsonschema once this issue is fixed: https://github.com/Yelp/bravado/issues/478
+  - jsonschema<4.0.0
+  - bravado
+  - biopandas
+  - rdkit
+  - tqdm
+  # Chimera reimplementation
+  - biotite
+  - biopython 1.77
+  # mmligner
+  - mmligner
+  # theseus
+  - muscle
+  - theseus

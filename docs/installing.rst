@@ -33,7 +33,11 @@ Install the latest development snapshot from the `GitHub repository's master bra
 
 1. Create a new conda environment called ``opencadd``::
 
-    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd
+    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/user_env.yaml -n opencadd-dev
+
+    # Or for contributors:
+    # We recommend to install the test environment, which includes all necessary packages for testing and documentation
+    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd-dev
 
 2. Activate the new conda environment::
 
