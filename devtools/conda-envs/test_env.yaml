@@ -29,7 +29,10 @@ dependencies:
   - pytest
   - pytest-cov
   - codecov
-  # docs
+  # Docs
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
+  # Linting and code style
+  - pylint
+  - black

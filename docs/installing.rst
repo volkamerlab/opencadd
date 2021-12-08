@@ -33,11 +33,7 @@ Install the latest development snapshot from the `GitHub repository's master bra
 
 1. Create a new conda environment called ``opencadd``::
 
-    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/user_env.yaml 
-
-    # Or for contributors:
-    # We recommend to install the test environment, which includes all necessary packages for testing and documentation
-    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd-dev
+    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/user_env.yaml
 
 2. Activate the new conda environment::
 
@@ -50,3 +46,32 @@ Install the latest development snapshot from the `GitHub repository's master bra
 .. 4. Test that your installation works::
 
     superposer -h
+
+
+Development version
+-------------------
+
+To install the development environment version of OpenCADD, you can run::
+
+    # Install development environment (incl. packages for testing and documentation)
+    mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd-dev
+    conda activate opencadd-dev
+    
+    # Download repository and install `opencadd` package in editable mode
+    git clone git@github.com:volkamerlab/opencadd.git
+    pip install -e opencadd
+
+    # Let's change into the repo's folder
+    cd opencadd
+    
+    # Run tests like this
+    pytest -v opencadd/tests/
+
+    # Before you push changes to GitHub, lint and style-check your code
+    pylint opencadd
+    black --check -l 99 opencadd
+
+    # Check how the documentation renders
+    cd docs
+    make html
+    
