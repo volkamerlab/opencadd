@@ -51,7 +51,7 @@ Install the latest development snapshot from the `GitHub repository's master bra
 Development version
 -------------------
 
-To install the development environment version of OpenCADD, you can run::
+To install the development version of OpenCADD, you can run::
 
     # Install development environment (incl. packages for testing and documentation)
     mamba env create -f https://raw.githubusercontent.com/volkamerlab/opencadd/master/devtools/conda-envs/test_env.yaml -n opencadd-dev
