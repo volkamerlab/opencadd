@@ -74,4 +74,37 @@ To install the development version of OpenCADD, you can run::
     # Check how the documentation renders
     cd docs
     make html
-    
+
+Note: If you add new dependencies to ``opencadd``, please update the 
+`test <https://github.com/volkamerlab/opencadd/blob/master/devtools/conda-envs/test_env.yaml>`_ and 
+`user <https://github.com/volkamerlab/opencadd/blob/master/devtools/conda-envs/user_env.yaml>`_ environment, 
+and leave a note in the 
+`dependencies <https://github.com/volkamerlab/opencadd/blob/master/docs/installing.rst#dependencies>`_ section.
+
+
+Dependencies
+------------
+
+``opencadd`` requires at least Python 3.6 and needs the following modules: 
+
+- ``pandas``
+- ``biopandas`` [1,2]
+- ``bravado`` [1]
+- ``jsonschema`` <4.0.0 [1] (pinned until `this issue <https://github.com/Yelp/bravado/issues/478>`_ is resolved)
+- ``rdkit`` [1]
+- ``tqdm`` [1]
+- ``biopython`` <=1.77 [2]
+- ``numpy`` [3]
+- ``mdanalysis`` (with support of 2.0) [3]
+- ``biotite`` [3]
+- ``mmligner`` [3]
+- ``muscle`` [3]
+- ``theseus`` [3]
+- ``matplotlib-base`` [4]
+- ``nglview`` [4]
+
+
+Some packages are only needed for a subset of the following modules: [1] ``opencadd.databases.klifs``, 
+[2] ``opencadd.io``, 
+[3] ``opencadd.structure.superposition``, 
+[4] ``opencadd.structure.pocket``
