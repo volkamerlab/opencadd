@@ -28,34 +28,48 @@ def parse_cli(argv=None, greet=False):
         default=False,
         help="Whether to print debugging info to stdout",
     )
-    p.add_argument("--no-emoji", action="store_true", default=False, help="Disable emoji logging")
+    p.add_argument(
+        "--no-emoji",
+        action="store_true",
+        default=False,
+        help="Disable emoji logging",
+    )
     p.add_argument(
         "--method",
         default="theseus",
         help="Which alignment method to use",
         choices=[m.lower() for m in METHODS],
     )
-    # p.add_argument(
-    #     "--method-options",
-    #     default={},
-    #     type=parse_method_options,
-    #     help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
-    # )
+    p.add_argument(
+        "--select",
+        default={},
+        type=parse_selection,
+        help="MDAnalysis like selection for the structures. Syntax is `Selection; Seletion`, Example:`backbone; backbone`",
+    )
+    p.add_argument(
+        "--method-options",
+        default={},
+        type=parse_method_options,
+        help="Options to be passed to the chosen method. Syntax is `key: value; key: value;...`",
+    )
 
     return p.parse_args()
 
 
 def parse_method_options(string):
-    options = {}
     if not string or not string.strip():
+        return {}
+    else:
+        options = dict(option.split(": ") for option in string.split("; "))
         return options
-    fields = string.split(";")
-    # use YAML (through ruamel_yaml) to parse each field
-    for field in fields:
-        # TODO: REPLACE WITH some_ruamel_yaml_function(field)  # -> {key: value}
-        minidict = {"dummy": "value"}
-        options.update(minidict)
-    return options
+
+
+def parse_selection(string):
+    if not string:
+        return []
+    else:
+        selection = string.split("; ")
+        return selection
 
 
 def greeting():
@@ -89,34 +103,35 @@ def main():
     # Delegate to the API method
     reference_id, *mobile_ids = args.structures
 
-    _logger.debug("Fetching reference model `%s`", reference_id)
+    _logger.debug(f"Fetching reference model `{reference_id}`")
     reference_model = Structure.from_string(reference_id)
 
     for i, mobile_id in enumerate(mobile_ids, 1):
         if mobile_id == reference_id and args.method == "theseus":
-            _logger.error("Cannot align model `%s` against itself using theseus!", mobile_id)
+            _logger.error(f"Cannot align model `{mobile_id}` against itself using theseus!")
             continue
-        _logger.debug("Fetching mobile model #%d `%s`", i, mobile_id)
+        _logger.debug(f"Fetching mobile model #{i} `{mobile_id}`")
         mobile_model = Structure.from_string(mobile_id)
         _logger.debug(
-            "Aligning reference `%s` and mobile `%s` with method `%s`",
-            reference_id,
-            mobile_id,
-            args.method,
+            f"Aligning reference `{reference_id}` and mobile `{mobile_id}` with method `{args.method}`",
         )
         result, *_empty = align(
-            [reference_model, mobile_model], method=METHODS[args.method], **args.method_options
+            [reference_model, mobile_model],
+            method=METHODS[args.method],
+            user_select=args.select,
+            **args.method_options,
         )
 
         # checks if the superposition is done, if not, there was no structural alignemnt found (for mmligner)
         if "superposed" in result:
             _logger.log(
                 25,  # this the level id for results
-                "RMSD for alignment #%d between `%s` and `%s` is %.1fÅ",
-                i,
-                reference_id,
-                mobile_id,
-                result["scores"]["rmsd"],
+                f"results for alignment #{i} between `{reference_id}` and `{mobile_id}`:\n"
+                f"RMSD: {round(result['scores']['rmsd'], 3)} Å \n"
+                f"coverage: {result['scores']['coverage']} \n"
+                # size of selections; if no selection provided, size of structures
+                f"lenght of selections: {reference_id} has {result['metadata']['reference_size']} residues; "
+                f"{mobile_id} has {result['metadata']['mobile_size']} residues \n",
             )
             for j, structure in enumerate(result["superposed"], 1):
                 structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
@@ -126,9 +141,5 @@ def main():
         else:
             _logger.log(
                 25,
-                "`%s` found no alignment for #%d between `%s` and `%s`.",
-                args.method,
-                i,
-                reference_id,
-                mobile_id,
+                f"`{args.method}` found no alignment for #{i} between `{reference_id}` and `{mobile_id}`.",
             )

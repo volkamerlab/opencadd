@@ -17,10 +17,12 @@ def test_theseus_instantiation():
 )
 def test_theseus_different_no_superposition():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["2BBM", "1CFC"]]
+    selections = []
     aligner = TheseusAligner(statistics_only=True)
-    results = aligner.calculate(different_models)
+    results = aligner.calculate(different_models, selections)
     assert "scores" in results
     assert "rmsd" in results["scores"]
+    assert "coverage" in results["scores"]
     assert "metadata" in results
     assert "least_squares" in results["metadata"]
     assert "maximum_likelihood" in results["metadata"]
@@ -41,18 +43,19 @@ def test_theseus_different_no_superposition():
     assert "d_p" in results["metadata"]
     assert "median_structure" in results["metadata"]
     assert "n_total" in results["metadata"]
-    assert "n_atoms" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
 
 
 def test_theseus_different():
     different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
+    selections = []
     aligner = TheseusAligner()
-    results = aligner.calculate(different_models, identical=False)
+    results = aligner.calculate(different_models, selections, identical=False)
     assert "superposed" in results
     assert "scores" in results
     assert "rmsd" in results["scores"]
+    assert "coverage" in results["scores"]
     assert "metadata" in results
     assert "transformation" in results["metadata"]
     assert "least_squares" in results["metadata"]
@@ -74,10 +77,48 @@ def test_theseus_different():
     assert "d_p" in results["metadata"]
     assert "median_structure" in results["metadata"]
     assert "n_total" in results["metadata"]
-    assert "n_atoms" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
     assert pytest.approx(results["scores"]["rmsd"], 1.54)
+
+
+def test_theseus_different_selections():
+    different_models = [Structure.from_pdbid(pdb_id) for pdb_id in ["6HG4", "6HG9"]]
+    user_select = ["backbone and name CA and segid A", "backbone and name CA and segid A"]
+    selections = [
+        different_models[0].select_atoms(f"{user_select[0]}"),
+        different_models[1].select_atoms(f"{user_select[0]}"),
+    ]
+    aligner = TheseusAligner()
+    results = aligner.calculate(different_models, selections, identical=False)
+    assert "superposed" in results
+    assert "scores" in results
+    assert "rmsd" in results["scores"]
+    assert "coverage" in results["scores"]
+    assert "metadata" in results
+    assert "transformation" in results["metadata"]
+    assert "least_squares" in results["metadata"]
+    assert "maximum_likelihood" in results["metadata"]
+    assert "log_marginal_likelihood" in results["metadata"]
+    assert "aic" in results["metadata"]
+    assert "bic" in results["metadata"]
+    assert "omnibus_chi_square" in results["metadata"]
+    assert "hierarchical_var_chi_square" in results["metadata"]
+    assert "rotational_translational_covar_chi_square" in results["metadata"]
+    assert "hierarchical_minimum_var" in results["metadata"]
+    assert "hierarchical_minimum_sigma" in results["metadata"]
+    assert "skewness" in results["metadata"]
+    assert "skewness_z" in results["metadata"]
+    assert "kurtosis" in results["metadata"]
+    assert "kurtosis_z" in results["metadata"]
+    assert "data_pts" in results["metadata"]
+    assert "free_params" in results["metadata"]
+    assert "d_p" in results["metadata"]
+    assert "median_structure" in results["metadata"]
+    assert "n_total" in results["metadata"]
+    assert "n_structures" in results["metadata"]
+    assert "total_rounds" in results["metadata"]
+    assert pytest.approx(results["scores"]["rmsd"], 0.574)
 
 
 def test_metadata_parsing():

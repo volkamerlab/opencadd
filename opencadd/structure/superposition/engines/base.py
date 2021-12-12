@@ -9,13 +9,15 @@ _logger = logging.getLogger(__name__)
 class BaseAligner:
     """ """
 
-    def calculate(self, structures, *args, **kwargs):
+    def calculate(self, structures, selections, *args, **kwargs):
         """
         Compute superposition for given structures
 
         Parameters
         ----------
         structures : list of opencadd.core.Structure
+        selections : list of MDAnalysis.core.groups.AtomGroup
+            The selection is done by user input and the api provides the selection in form of AtomGroups
 
         Returns
         -------
@@ -32,7 +34,7 @@ class BaseAligner:
             len(structures) == 2,
             "This method can only be used for two structures at the same time, for now",
         )
-        return self._calculate(structures, *args, **kwargs)
+        return self._calculate(structures, selections, *args, **kwargs)
 
     def _calculate(self, structures, *args, **kwargs):
         raise NotImplementedError("Reimplement in your subclass")

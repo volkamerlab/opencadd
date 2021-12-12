@@ -24,6 +24,7 @@ dependencies:
   - mmligner
   # theseus
   - muscle
+  - clustalo
   - theseus
   # Testing
   - pytest

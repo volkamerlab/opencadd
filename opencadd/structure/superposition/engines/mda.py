@@ -5,6 +5,7 @@ Aligner based on MDAnalysis' superposition algorithms.
 import logging
 
 import numpy as np
+import subprocess
 from MDAnalysis.analysis import align as mda_align, rms
 from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
 import biotite.sequence.align as align
@@ -70,7 +71,7 @@ class MDAnalysisAligner(BaseAligner):
         alignment_matrix: str = "BLOSUM62",
         alignment_gap: int = -10,
         strict_superposition: bool = False,
-        per_residue_selection="name CA and not altloc B and not altloc C",
+        per_residue_selection="name CA and not altloc B and not altloc C",  # TODO: why not "name CA and altloc A"
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
@@ -80,8 +81,10 @@ class MDAnalysisAligner(BaseAligner):
             self._align_local = False
         elif self.alignment_strategy == "local":
             self._align_local = True
+        elif self.alignment_strategy == "clustalo":
+            self._align_local = False
         else:
-            raise ValueError("`alignment_strategy` must be one of `global, local`.")
+            raise ValueError("`alignment_strategy` must be one of `global, local, clustalo`.")
 
         if alignment_matrix not in align.SubstitutionMatrix.list_db():
             raise ValueError(f"Substitution Matrix '{alignment_matrix }' could not be found.")
@@ -101,13 +104,15 @@ class MDAnalysisAligner(BaseAligner):
 
         pass
 
-    def _calculate(self, structures, *args, **kwargs):
+    def _calculate(self, structures, selections, *args, **kwargs):
         """
 
         Parameters
         ----------
         structures : list of opencadd.core.Structure
             First one will be the target (static structure). Following ones will be mobile.
+        selections : list of MDAnalysis.core.groups.AtomGroup
+            Selection of atoms on which the calculation is done. If no selection is given, the whole structure is used for calculation.
 
         Returns
         -------
@@ -119,10 +124,27 @@ class MDAnalysisAligner(BaseAligner):
 
         ref_universe, mob_universe = structures
 
-        # Get matching atoms
-        selection, alignment = self.matching_selection(*structures)
-        ref_atoms = ref_universe.select_atoms(selection["reference"])
-        mobile_atoms = mob_universe.select_atoms(selection["mobile"])
+        # we want to perform the calculation on the selections
+        # if there is no selection, we reference to the structures
+        # e.g. id(selections[0]) equals id(structures[0])
+        # after calculation is done, we perform the transformation on the structure
+        # this way, we do not throw away any atoms and transform the whole structure
+        if not selections:
+            selections.append(ref_universe)
+            selections.append(mob_universe)
+
+        ref_selection, mob_selection = selections
+
+        # Get matching atoms of selection
+        selection, alignment = self.matching_selection(*selections)
+        ref_atoms = ref_selection.select_atoms(selection["reference"])
+        mobile_atoms = mob_selection.select_atoms(selection["mobile"])
+        if len(ref_atoms) == len(mobile_atoms):
+            coverage = len(ref_atoms)
+        else:
+            raise ValueError(
+                "The number of atoms to match has to be the same for both structures."
+            )
 
         # Compute initial RMSD (no preprocessing)
         initial_rmsd = rms.rmsd(ref_atoms.positions, mobile_atoms.positions)
@@ -138,13 +160,14 @@ class MDAnalysisAligner(BaseAligner):
 
         # Calculate optimum rotation matrix
         rotation, rmsd = mda_align.rotation_matrix(mobile_coordinates, ref_coordinates)
+        # Transformation on the whole structure
         mob_universe.atoms.translate(-mobile_com)
         mob_universe.atoms.rotate(rotation)
         mob_universe.atoms.translate(ref_com)
 
         return {
             "superposed": [ref_universe, mob_universe],
-            "scores": {"rmsd": rmsd},
+            "scores": {"rmsd": rmsd, "coverage": coverage},
             "metadata": {
                 "selection": selection,
                 "alignment": alignment,
@@ -155,13 +178,13 @@ class MDAnalysisAligner(BaseAligner):
             },
         }
 
-    def matching_selection(self, reference, mobile):
+    def matching_selection(self, ref_selection, mob_selection):
         """
         Compute best matching atom sets
 
         Parameters
         ----------
-        structures : list of opencadd.core.Structure
+        selections : list of MDAnalysis.core.groups.AtomGroup
 
         Returns
         -------
@@ -172,31 +195,58 @@ class MDAnalysisAligner(BaseAligner):
             The sequence alignment
         """
         # Compute sequence alignment and matching atoms
-        ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(reference)
-        mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mobile)
-        alignment = self._align(ref_sequence, mob_sequence)
-        with enter_temp_directory():
-            fasta = FastaFile()
-            fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
-            fasta.write("temp.fasta")
-            selection = fasta2select(
-                "temp.fasta",
-                ref_resids=ref_resids,
-                target_resids=mob_resids,
-                ref_segids=ref_segids,
-                target_segids=mob_segids,
-                backbone_selection=self.per_residue_selection,
-            )
-        return selection, alignment
+        ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(ref_selection)
+        mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mob_selection)
+        if self.alignment_strategy == "clustalo":
+            with enter_temp_directory():
+                fasta = FastaFile()
+                fasta["ref"] = ref_sequence
+                fasta["mob"] = mob_sequence
+                fasta.write("temp.fasta")
+                output = subprocess.check_output(
+                    [
+                        "clustalo",
+                        "-i",
+                        "temp.fasta",
+                        "-o",
+                        "clustalo_alignment.aln",
+                    ],
+                    stderr=subprocess.PIPE,
+                    universal_newlines=True,
+                )
+                selection = fasta2select(
+                    "clustalo_alignment.aln",
+                    ref_resids=ref_resids,
+                    target_resids=mob_resids,
+                    ref_segids=ref_segids,
+                    target_segids=mob_segids,
+                    backbone_selection=self.per_residue_selection,
+                )
+            return selection, output
+        else:
+            alignment = self._align(ref_sequence, mob_sequence)
+            with enter_temp_directory():
+                fasta = FastaFile()
+                fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
+                fasta.write("temp.fasta")
+                selection = fasta2select(
+                    "temp.fasta",
+                    ref_resids=ref_resids,
+                    target_resids=mob_resids,
+                    ref_segids=ref_segids,
+                    target_segids=mob_segids,
+                    backbone_selection=self.per_residue_selection,
+                )
+            return selection, alignment
 
     @staticmethod
-    def _retrieve_sequence(universe):
+    def _retrieve_sequence(atom_group):
         """
         Get the amino acid sequence
 
         Parameters
         ----------
-        universe : mdanalysis.Universe
+        atom_group : MDAnalysis.core.groups.AtomGroup
 
         Returns
         -------
@@ -210,15 +260,19 @@ class MDAnalysisAligner(BaseAligner):
         segment_ids = []
         backbone_atom_names = {"C", "CA", "N", "O"}
         incomplete_residues = []
-        for segment in universe.segments:
+        for segment in atom_group.segments:
             for residue in segment.residues:
                 if residue.resname in canonical_inverse_aa_codes:
                     residue_atom_names = set([a.name for a in residue.atoms])
                     if not backbone_atom_names.issubset(residue_atom_names):
                         incomplete_residues.append(residue)
-                    sequences.append(convert_aa_code(residue.resname))
-                    residue_ids.append(residue.resid)
-                    segment_ids.append(residue.segid)
+                    # some structures are missing atoms in the aligned residues,
+                    # then an error would occur, where the amount of atoms of both
+                    #  structures is not the same (needs to be the same amount for superposition)
+                    else:
+                        sequences.append(convert_aa_code(residue.resname))
+                        residue_ids.append(residue.resid)
+                        segment_ids.append(residue.segid)
         if incomplete_residues:
             _logger.warning(
                 "%d residues in %s are missing backbone atoms. "
@@ -227,7 +281,7 @@ class MDAnalysisAligner(BaseAligner):
                 "`same residue as (<your original selection>)` "
                 "to avoid potential matching problems.",
                 len(incomplete_residues),
-                universe,
+                atom_group,
             )
         return "".join(sequences), residue_ids, segment_ids
 

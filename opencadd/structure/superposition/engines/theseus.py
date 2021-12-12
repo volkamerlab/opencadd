@@ -39,23 +39,40 @@ class TheseusAligner(BaseAligner):
 
     Parameters
     ----------
+    sequence_alignment : str, optional, default=MUSCLE
+        What algorithm will be used to calculate the
+        sequence alignment. Choose between:
+        - "MUSCLE"
+        - "CLUSTALO" (CLUSTAL OMEGA)
     alignment_max_iterations : int
-        number of iterations for alignment program (muscle)
+        number of iterations for alignment program (this parameter is only used by MUSCLE, not CLUSTAL OMEGA)
     statistics_only : bool
         if True, add `-I` flag to just compute the statistics (no superposition)
     """
 
-    def __init__(self, alignment_max_iterations: int = 32, statistics_only: bool = False) -> None:
+    def __init__(
+        self,
+        sequence_alignment: str = "MUSCLE",
+        alignment_max_iterations: int = 32,
+        statistics_only: bool = False,
+    ) -> None:
         self.alignment_max_iterations = alignment_max_iterations
         self.statistics_only = statistics_only
 
         self._fastafile = "theseus.fasta"
         self._filemap_file = "theseus.filemap"
         self._alignment_file = "theseus.aln"
-        self._alignment_log = "muscle.log"
         self._alignment_file_biotite = "theseus_biotite.aln"
-        self._alignment_executable = "muscle"
         self._theseus_transformation_file = "theseus_transf.txt"
+
+        if sequence_alignment == "MUSCLE":
+            self._alignment_log = "muscle.log"
+            self._alignment_executable = "muscle"
+        elif sequence_alignment == "CLUSTALO":
+            self._alignment_log = "clustalo.log"
+            self._alignment_executable = "clustalo"
+        else:
+            raise ValueError("`sequence_alignment` must be one of `MUSCLE, CLUSTALO`.")
 
     def _safety_checks(self):
         """
@@ -72,7 +89,7 @@ class TheseusAligner(BaseAligner):
             raise OSError("theseus cannot be located. Is it installed?")
         # proceed normally
 
-    def _calculate(self, structures, *args, **kwargs) -> dict:
+    def _calculate(self, structures, selections, *args, **kwargs) -> dict:
         """
         Align the sequences with an alignment tool (``muscle``)
 
@@ -87,6 +104,9 @@ class TheseusAligner(BaseAligner):
         ----------
         structures : list
             list of opencadd.core.Structures objects
+        selections : list
+            list of selections done by MDAnalysis.
+            calculation is done on selections, transforming is done on structures.
         **kwargs : dict
             optional parameters
 
@@ -97,6 +117,7 @@ class TheseusAligner(BaseAligner):
 
             - ``scores`` (dict)
                     ``rmsd`` (float): RMSD value of the alignment
+                    ``coverage`` (integer): number of alpha carbon atoms used for superposition
             - ``metadata`` (dict)
                     ``least_squares``: least squares
                     ``maximum_likelihood``: maximum likelihood
@@ -116,20 +137,28 @@ class TheseusAligner(BaseAligner):
                     ``free_params``: free params
                     ``d_p``: d_p
                     ``median_structure``: median_structure
-                    ``n_total``: number total
-                    ``n_atoms``: number of atoms
+                    ``n_total``: total number of atoms used for superposition
                     ``n_structures``: number of structures
                     ``total_rounds``: total rounds
         """
+
+        # we want to perform the calculation on the selections
+        # if there is no selection, we reference to the structures
+        # e.g. id(selections[0]) equals id(structures[0])
+        # after calculation is done, we perform the transformation on the structure
+        # this way, we do not throw away any atoms and transform the whole structure
+        if not selections:
+            selections.append(structures[0])
+            selections.append(structures[1])
 
         with enter_temp_directory(remove=True) as (cwd, tmpdir):
             _logger.debug("All files are located in: %s", tmpdir)
 
             # 1st - Dump PDBs to disk
             filenames = []
-            for index, structure in enumerate(structures):
+            for index, selection in enumerate(selections):
                 filename = f"structure_{index}.pdb"
-                structure.write(filename)
+                selection.write(filename)
                 filenames.append(filename)
 
             # 2nd - Prepare sequence alignment with MUSCLE
@@ -213,37 +242,53 @@ class TheseusAligner(BaseAligner):
 
     def _run_alignment(self, filenames):
         """
-        Run MUSCLE
+        Run MUSCLE or CLUSTALO
 
         Returns
         -------
         filenames : list of str
-            Paths to PDB files containing the structures
+            Paths to PDB files containing the selection structures
         str
-            Output of MUSCLE
+            Output of MUSCLE or CLUSTALO
         """
         self._get_fasta(filenames)
         self._concatenate_fasta(filenames)
         self._filemap(filenames)
-        output = subprocess.check_output(
-            [
-                self._alignment_executable,
-                "-maxiters",
-                str(self.alignment_max_iterations),
-                "-in",
-                self._fastafile,
-                "-out",
-                self._alignment_file,
-                "-clwstrict",
-                "-verbose",
-                "-log",
-                self._alignment_log,
-            ],
-            stderr=subprocess.PIPE,
-            universal_newlines=True,
-        )
+
+        if self._alignment_executable == "muscle":
+            output = subprocess.check_output(
+                [
+                    self._alignment_executable,
+                    "-maxiters",
+                    str(self.alignment_max_iterations),
+                    "-in",
+                    self._fastafile,
+                    "-out",
+                    self._alignment_file,
+                    "-clwstrict",
+                    "-verbose",
+                    "-log",
+                    self._alignment_log,
+                ],
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+        elif self._alignment_executable == "clustalo":
+            output = subprocess.check_output(
+                [
+                    self._alignment_executable,
+                    "-i",
+                    self._fastafile,
+                    "-o",
+                    self._alignment_file,
+                    "-outfmt",
+                ],
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+            )
+        else:
+            raise ValueError("alignment_executable not valid.")
         _logger.info(output)
-        return output
 
     def _get_transformation_matrix(self) -> dict:
         """
@@ -338,7 +383,7 @@ class TheseusAligner(BaseAligner):
             elif "Total rounds" in line:
                 total_rounds = float(blocks[3])
         return {
-            "scores": {"rmsd": rmsd},
+            "scores": {"rmsd": rmsd, "coverage": n_atoms},
             "metadata": {
                 "transformation": self._get_transformation_matrix(),
                 "least_squares": least_squares,
@@ -360,7 +405,6 @@ class TheseusAligner(BaseAligner):
                 "d_p": d_p,
                 "median_structure": median_structure,
                 "n_total": n_total,
-                "n_atoms": n_atoms,
                 "n_structures": n_structures,
                 "total_rounds": total_rounds,
             },
