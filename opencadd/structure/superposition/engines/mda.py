@@ -5,6 +5,7 @@ Aligner based on MDAnalysis' superposition algorithms.
 import logging
 
 import numpy as np
+import subprocess
 from MDAnalysis.analysis import align as mda_align, rms
 from MDAnalysis.lib.util import canonical_inverse_aa_codes, convert_aa_code
 import biotite.sequence.align as align
@@ -80,8 +81,10 @@ class MDAnalysisAligner(BaseAligner):
             self._align_local = False
         elif self.alignment_strategy == "local":
             self._align_local = True
+        elif self.alignment_strategy == "clustalo":
+            self._align_local = False
         else:
-            raise ValueError("`alignment_strategy` must be one of `global, local`.")
+            raise ValueError("`alignment_strategy` must be one of `global, local, clustalo`.")
 
         if alignment_matrix not in align.SubstitutionMatrix.list_db():
             raise ValueError(f"Substitution Matrix '{alignment_matrix }' could not be found.")
@@ -160,6 +163,7 @@ class MDAnalysisAligner(BaseAligner):
         # Transformation on the whole structure
         mob_universe.atoms.translate(-mobile_com)
         mob_universe.atoms.rotate(rotation)
+        mob_universe.atoms.translate(ref_com)
 
         return {
             "superposed": [ref_universe, mob_universe],
@@ -193,20 +197,47 @@ class MDAnalysisAligner(BaseAligner):
         # Compute sequence alignment and matching atoms
         ref_sequence, ref_resids, ref_segids = self._retrieve_sequence(ref_selection)
         mob_sequence, mob_resids, mob_segids = self._retrieve_sequence(mob_selection)
-        alignment = self._align(ref_sequence, mob_sequence)
-        with enter_temp_directory():
-            fasta = FastaFile()
-            fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
-            fasta.write("temp.fasta")
-            selection = fasta2select(
-                "temp.fasta",
-                ref_resids=ref_resids,
-                target_resids=mob_resids,
-                ref_segids=ref_segids,
-                target_segids=mob_segids,
-                backbone_selection=self.per_residue_selection,
-            )
-        return selection, alignment
+        if self.alignment_strategy == "clustalo":
+            with enter_temp_directory():
+                fasta = FastaFile()
+                fasta["ref"] = ref_sequence
+                fasta["mob"] = mob_sequence
+                fasta.write("temp.fasta")
+                output = subprocess.check_output(
+                    [
+                        "clustalo",
+                        "-i",
+                        "temp.fasta",
+                        "-o",
+                        "clustalo_alignment.aln",
+                    ],
+                    stderr=subprocess.PIPE,
+                    universal_newlines=True,
+                )
+                selection = fasta2select(
+                    "clustalo_alignment.aln",
+                    ref_resids=ref_resids,
+                    target_resids=mob_resids,
+                    ref_segids=ref_segids,
+                    target_segids=mob_segids,
+                    backbone_selection=self.per_residue_selection,
+                )
+            return selection, output
+        else:
+            alignment = self._align(ref_sequence, mob_sequence)
+            with enter_temp_directory():
+                fasta = FastaFile()
+                fasta["ref"], fasta["mob"], *_empty = alignment.get_gapped_sequences()
+                fasta.write("temp.fasta")
+                selection = fasta2select(
+                    "temp.fasta",
+                    ref_resids=ref_resids,
+                    target_resids=mob_resids,
+                    ref_segids=ref_segids,
+                    target_segids=mob_segids,
+                    backbone_selection=self.per_residue_selection,
+                )
+            return selection, alignment
 
     @staticmethod
     def _retrieve_sequence(atom_group):
