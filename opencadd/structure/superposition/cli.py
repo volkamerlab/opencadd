@@ -20,10 +20,7 @@ def parse_cli(argv=None, greet=False):
         nargs="+",
         help="PDB IDs or paths to structure files to be aligned. At least two are needed. First one will be considered the target.",
     )
-    p.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s " + __version__)
+    p.add_argument("--version", action="version", version="%(prog)s " + __version__)
     p.add_argument(
         "-v",
         "--verbose",
@@ -32,8 +29,8 @@ def parse_cli(argv=None, greet=False):
         help="Whether to print debugging info to stdout",
     )
     p.add_argument(
-        "--no-emoji", 
-        action="store_true", 
+        "--no-emoji",
+        action="store_true",
         default=False,
         help="Disable emoji logging",
     )
@@ -117,7 +114,6 @@ def main():
         mobile_model = Structure.from_string(mobile_id)
         _logger.debug(
             f"Aligning reference `{reference_id}` and mobile `{mobile_id}` with method `{args.method}`",
-
         )
         result, *_empty = align(
             [reference_model, mobile_model],
@@ -135,7 +131,7 @@ def main():
                 f"coverage: {result['scores']['coverage']} \n"
                 # size of selections; if no selection provided, size of structures
                 f"lenght of selections: {reference_id} has {result['metadata']['reference_size']} residues; "
-                f"{mobile_id} has {result['metadata']['mobile_size']} residues \n"
+                f"{mobile_id} has {result['metadata']['mobile_size']} residues \n",
             )
             for j, structure in enumerate(result["superposed"], 1):
                 structure.write(f"superposed_{args.method}_{i}_{j}.pdb")
@@ -145,5 +141,5 @@ def main():
         else:
             _logger.log(
                 25,
-                f"`{args.method}` found no alignment for #{i} between `{reference_id}` and `{mobile_id}`."
+                f"`{args.method}` found no alignment for #{i} between `{reference_id}` and `{mobile_id}`.",
             )
