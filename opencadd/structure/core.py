@@ -4,6 +4,7 @@ Core objects used across the library
 
 from MDAnalysis import Universe
 import numpy as np
+import redo
 
 
 class Structure(Universe):
@@ -14,6 +15,7 @@ class Structure(Universe):
     """
 
     @classmethod
+    @redo.retriable(attempts=10, sleeptime=2)
     def from_pdbid(cls, pdbid):
         import mmtf
 
