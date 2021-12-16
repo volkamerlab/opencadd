@@ -90,7 +90,7 @@ Dependencies
 +---------------------+---------------------------+--------------------+--+--+
 | Package             | Minimal supported version | Used by submodules |  |  |
 +=====================+===========================+====================+==+==+
-| ``pandas``          | 1.3.4                     | all                |  |  |
+| ``pandas``          | 1.3.4                     | 1, 2, 4            |  |  |
 +---------------------+---------------------------+--------------------+--+--+
 | ``biopandas``       | 0.2.9                     | 1, 2               |  |  |
 +---------------------+---------------------------+--------------------+--+--+
@@ -123,4 +123,4 @@ Some packages are only needed for a subset of the following modules: [1] ``openc
 [3] ``opencadd.structure.superposition``, 
 [4] ``opencadd.structure.pocket``
 
-This list of minimal supported version is based on `this CI run <https://github.com/volkamerlab/opencadd/runs/4462667598?check_suite_focus=true#step:6:42>`_.
+This list of minimal supported versions is based on `this CI run <https://github.com/volkamerlab/opencadd/runs/4462667598?check_suite_focus=true#step:6:42>`_.
