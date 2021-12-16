@@ -1,4 +1,4 @@
-name: test
+name: opencadd
 channels:
   - conda-forge
   - defaults
@@ -9,7 +9,7 @@ dependencies:
   - pip
   - pandas
   - matplotlib-base
-  - mdanalysis
+  - MDAnalysis
   - nglview
   - bravado
   - biopandas
@@ -23,14 +23,3 @@ dependencies:
   # theseus
   - muscle
   - theseus
-  # Testing
-  - pytest
-  - pytest-cov
-  - codecov
-  # Docs
-  - sphinx
-  - sphinx_rtd_theme
-  - nbsphinx
-  # Linting and code style
-  - pylint
-  - black

@@ -11,10 +11,7 @@ In case you would like to install the dependencies for the OpenCADD-KLIFS module
     If you installed ``mamba`` into an existing ``conda`` installation, also make sure that the ``conda-forge`` channel is configured by running ``conda config --add channels conda-forge``.
 
 
-Install from the conda package
-------------------------------
-
-1. Create a new conda environment called ``opencadd-klifs`` with the ``opencadd`` package and all its dependencies installed::
+1. Create a new conda environment called ``opencadd-klifs`` only with the dependencies needed for the OpenCADD-KLIFS module::
 
     mamba create -n opencadd-klifs bravado pandas tqdm rdkit biopandas
 
@@ -22,7 +19,7 @@ Install from the conda package
 
     conda activate opencadd-klifs
 
-3. Install ``opencadd`` without any dependencies (all ``opencadd-klifs`` relevant dependencies have been installed in step 1)::
+3. Install the ``opencadd`` package without any dependencies (all OpenCADD-KLIFS-relevant dependencies have been installed in step 1 already)::
 
     mamba install opencadd --no-deps
 
