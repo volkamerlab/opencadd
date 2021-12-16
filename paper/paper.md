@@ -34,7 +34,7 @@ The OpenCADD-KLIFS Python module offers a convenient integration of the KLIFS da
 
 The KLIFS resource [@Kanev:2021] contains information about kinases, structures, ligands, interaction fingerprints, and bioactivities. 
 KLIFS thereby focuses especially on the ATP binding site, defined as a set of 85 residues and aligned across all structures using a multiple sequence alignment [@vanLinden:2014].
-Fetching, filtering, and integrating the KLIFS content on a larger scale into Python-based pipelines is currently not straight-forward, especially for users without a background in online queries. Effortless switching between data queries from a _local_ KLIFS download and the _remote_ KLIFS database is not possible.
+Fetching, filtering, and integrating the KLIFS content on a larger scale into Python-based pipelines is currently not straight-forward, especially for users without a background in online queries. Furthermore, switching between data queries from a _local_ KLIFS download and the _remote_ KLIFS database is not readily possible.
 
 OpenCADD-KLIFS is aimed at current and future users of the KLIFS database who seek to 
 integrate kinase resources into Python-based research projects.
@@ -53,20 +53,20 @@ The KLIFS database is unique in the structure-based kinase field in terms of int
 - Bioactivity data measured against kinases are fetched from ChEMBL [@Mendez:2018] and linked to kinases, structures, and ligands available in KLIFS.
 - Kinase inhibitor metadata are fetched from the PKIDB [@Carles:2018] and linked to co-crystallized ligands available in KLIFS.
 
-The KLIFS data integrations and annotations can be accessed in different ways, which are all open-sourced:
+The KLIFS data integrations and annotations can be accessed in different ways, which are all open source:
 
 - Manually via the [KLIFS website](https://klifs.net/) interface: This mode is preferable when searching for information on a specific structure or smaller set of structures.
 - Automated via the [KLIFS KNIME](https://github.com/3D-e-Chem/knime-klifs) nodes [@McGuire:2017; @Kooistra:2018]: This mode is extremely useful if the users' projects are embedded in KNIME workflows; programming is not needed.
 - Programmatically using the REST API and KLIFS OpenAPI specifications: This mode is needed for users who seek to perform larger scale queries or to integrate different queries into programmatic workflows. In the following, we will discuss this mode in context of Python-based projects and explain how OpenCADD-KLIFS improves the user experience.
 
 The KLIFS database offers standardized URL schemes (REST API), which allows users to query data by defined URLs, using e.g. the Python package requests [@requests]. Instead of writing customized scripts to generate such KLIFS URLs, the KLIFS OpenAPI specifications &mdash; a document that defines the KLIFS REST API scheme &mdash; can be used to generate a Python client, using e.g. the Python package bravado [@bravado]. This client offers a Python API to send requests and receive responses.
-This setup is already extremely useful, however, it has a few drawbacks: the setup is technical, the output is not easily readable for humans and not ready for immediate down-stream integrations &mdash; requiring similar but not identical reformatting functions for different query results &mdash;, and switching from remote requests to local KLIFS download queries is not possible. Facilitating and streamlining these tasks is the purpose of OpenCADD-KLIFS as discussed in more detail in the next section.
+This setup is already extremely useful, however, it has a few drawbacks: the setup is technical, the output is not easily readable for humans and not ready for immediate downstream integrations &mdash; requiring similar but not identical reformatting functions for different query results &mdash;, and switching from remote requests to local KLIFS download queries is not possible. Facilitating and streamlining these tasks is the purpose of OpenCADD-KLIFS as discussed in more detail in the next section.
 
 # Key Features
 
 The KLIFS database offers a REST API compliant with the OpenAPI specification [@klifsswagger]. Our module OpenCADD-KLIFS uses bravado to dynamically generate a Python client based on the OpenAPI definitions and adds wrappers to enable the following functionalities:
 
-- A session is set up, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more. For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
+- A session is set up automatically, which allows access to various KLIFS *data sources* by different *identifiers* with the API ``session.data_source.by_identifier``. *Data sources* currently include kinases, structures and annotated conformations, modified residues, pockets, ligands, drugs, and bioactivities; *identifiers* refer to kinase names, PDB IDs, KLIFS IDs, and more. For example, ``session.structures.by_kinase_name`` fetches information on all structures for a query kinase.
 - The same API is used for local and remote sessions, i.e. interacting with data from a KLIFS download folder and from the KLIFS website, respectively.
 - The returned data follows the same schema regardless of the session type (local/remote); all results obtained with bravado are formatted as Pandas DataFrames with standardized column names, data types, and handling of missing data.
 - Files with the structural 3D coordinates deposited on KLIFS include full complexes or selections such as proteins, pockets, ligands, and more. These files can be downloaded to disc or loaded via biopandas [@Raschka:2017] or RDKit [@rdkit].
