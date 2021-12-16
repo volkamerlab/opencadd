@@ -25,7 +25,7 @@ bibliography: paper.bib
 
 Protein kinases are involved in most aspects of cell life due to their role in signal transduction. Dysregulated kinases can cause severe diseases such as cancer, inflammation, and neurodegeneration, which has made them a frequent target in drug discovery for the last decades [@Cohen:2021].
 The immense research on kinases has led to an increasing amount of kinase resources [@Kooistra:2017].
-Among them is the KLIFS database, which focuses on storing and analyzing structural data on kinases and interacting drugs and other small molecules [@Kanev:2021].
+Among them is the KLIFS database, which focuses on storing and analyzing structural data on kinases and interacting ligands [@Kanev:2021].
 The OpenCADD-KLIFS Python module offers a convenient integration of the KLIFS data into workflows to facilitate computational kinase research.
 
 [OpenCADD-KLIFS](https://opencadd.readthedocs.io/en/latest/databases_klifs.html) (``opencadd.databases.klifs``) is a part of the [OpenCADD](https://opencadd.readthedocs.io/) package, a collection of Python modules for structural cheminformatics.
