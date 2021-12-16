@@ -40,7 +40,7 @@ OpenCADD-KLIFS is aimed at current and future users of the KLIFS database who se
 integrate kinase resources into Python-based research projects.
 With OpenCADD-KLIFS, KLIFS data can be queried either locally from a KLIFS download or remotely from the KLIFS webserver. 
 The presented module provides identical APIs for the remote and local queries and streamlines all output into 
-standardized Pandas DataFrames [@pandas] to allow for easy and quick downstream data analyses (\autoref{fig:opencadd_klifs_toc}). This Pandas-focused setup is ideal to work with in Jupyter notebooks [@Kluyver:2016]. 
+standardized Pandas DataFrames [@pandas] to allow for easy and quick downstream data analyses (\autoref{fig:opencadd_klifs_toc}). This Pandas-focused setup is ideal if you work with Jupyter notebooks [@Kluyver:2016]. 
 
 ![OpenCADD-KLIFS fetches KLIFS data [@Kanev:2021] offline from a KLIFS download or online from the KLIFS database and formats the output as user-friendly Pandas DataFrames [@pandas].\label{fig:opencadd_klifs_toc}](opencadd_klifs_toc.png)
 
