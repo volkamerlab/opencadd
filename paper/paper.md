@@ -33,7 +33,7 @@ The OpenCADD-KLIFS Python module offers a convenient integration of the KLIFS da
 # Statement of need
 
 The KLIFS resource [@Kanev:2021] contains information about kinases, structures, ligands, interaction fingerprints, and bioactivities. 
-KLIFS thereby focuses especially on the ATP binding site, defined as a set of 85 residues and aligned across all structures using a multiple sequence alignment (MSA) [@vanLinden:2014].
+KLIFS thereby focuses especially on the ATP binding site, defined as a set of 85 residues and aligned across all structures using a multiple sequence alignment [@vanLinden:2014].
 Fetching, filtering, and integrating the KLIFS content on a larger scale into Python-based pipelines is currently not straight-forward, especially for users without a background in online queries. Effortless switching between data queries from a _local_ KLIFS download and the _remote_ KLIFS database is not possible.
 
 OpenCADD-KLIFS is aimed at current and future users of the KLIFS database who seek to 
