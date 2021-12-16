@@ -56,7 +56,7 @@ The KLIFS database is unique in the structure-based kinase field in terms of int
 The KLIFS data integrations and annotations can be accessed in different ways, which are all open-sourced:
 
 - Manually via the [KLIFS website](https://klifs.net/) interface: This mode is preferable when searching for information on a specific structure or smaller set of structures.
-- Automated via the [KLIFS KNIME](https://github.com/3D-e-Chem/knime-klifs) nodes [@McGuire:2017; @Kooistra:2018]: This mode is extremely useful if the users' projects are embedded in KNIME; programming is not needed.
+- Automated via the [KLIFS KNIME](https://github.com/3D-e-Chem/knime-klifs) nodes [@McGuire:2017; @Kooistra:2018]: This mode is extremely useful if the users' projects are embedded in KNIME workflows; programming is not needed.
 - Programmatically using the REST API and KLIFS OpenAPI specifications: This mode is needed for users who seek to perform larger scale queries or integrate different queries into programmatic workflows. In the following, we will discuss this mode in context of Python-based projects and explain how OpenCADD-KLIFS improves the user experience.
 
 The KLIFS database offers standardized URL schemes (REST API), which allows users to query data by defined URLs, using e.g. the Python package requests [@requests]. Instead of writing customized scripts to generate such KLIFS URLs, the KLIFS OpenAPI specifications &mdash; a document that defines the KLIFS REST API scheme &mdash; can be used to generate a Python client, using e.g. the Python package bravado [@bravado]. This client offers a Python API to send requests and receive responses.
