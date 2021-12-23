@@ -1,5 +1,3 @@
-# was zum teufel habe ich da gemacht
-
 """
 Defines easy programmatic access for any entry point
 """
