@@ -28,6 +28,9 @@ dependencies:
   - pytest-cov
   - codecov
   # Docs
+  # Pin setuptools until this fix is part of latest MDA release:
+  # https://github.com/volkamerlab/opencadd/issues/136
+  - setuptools<60
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
