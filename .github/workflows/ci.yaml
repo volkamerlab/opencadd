@@ -151,4 +151,4 @@ jobs:
         run: |
           cd docs
           make clean
-          make html
+          SPHINXOPTS="-T" make html
