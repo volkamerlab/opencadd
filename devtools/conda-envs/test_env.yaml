@@ -33,7 +33,9 @@ dependencies:
   - setuptools<60
   - sphinx
   - sphinx_rtd_theme
-  - nbsphinx
+  # Pin nbsphix until this fix is part of their latest release
+  # https://github.com/spatialaudio/nbsphinx/pull/621
+  - nbsphinx<0.8.8
   # Linting and code style
   - pylint
   - black
