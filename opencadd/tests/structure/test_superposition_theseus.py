@@ -79,7 +79,7 @@ def test_theseus_different():
     assert "n_total" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
-    assert pytest.approx(results["scores"]["rmsd"], 1.54)
+    assert round(results["scores"]["rmsd"], 3) == 1.54
 
 
 def test_theseus_different_selections():
@@ -118,7 +118,7 @@ def test_theseus_different_selections():
     assert "n_total" in results["metadata"]
     assert "n_structures" in results["metadata"]
     assert "total_rounds" in results["metadata"]
-    assert pytest.approx(results["scores"]["rmsd"], 0.574)
+    assert round(results["scores"]["rmsd"], 3) == 0.575
 
 
 def test_metadata_parsing():

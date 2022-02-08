@@ -13,7 +13,7 @@ def test_mda_instantiation():
 
 def test_mda_calculation():
     aligner = MDAnalysisAligner()
-    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
+    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["2gz9", "5r8t"]]
     selections = []
     result = aligner.calculate(structures, selections)
 
@@ -24,13 +24,12 @@ def test_mda_calculation():
     assert "metadata" in result
 
     # Check RMSD values
-    # TODO: pytest.approx is not working reliably - check with Dennis too, he has the same problem
-    assert pytest.approx(result["scores"]["rmsd"], 1.989)
+    assert 1.68 == round(result["scores"]["rmsd"], 3)
 
 
 def test_mda_calculation_selections():
     aligner = MDAnalysisAligner()
-    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
+    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["2gz9", "5r8t"]]
     user_select = ["backbone and name CA and segid A", "backbone and name CA and segid A"]
     selections = [
         structures[0].select_atoms(f"{user_select[0]}"),
@@ -45,5 +44,4 @@ def test_mda_calculation_selections():
     assert "metadata" in result
 
     # Check RMSD values
-    # TODO: pytest.approx is not working reliably - check with Dennis too, he has the same problem
-    assert pytest.approx(result["scores"]["rmsd"], 1.989)
+    assert 1.68 == round(result["scores"]["rmsd"], 3)
