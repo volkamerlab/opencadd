@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from rdkit import Chem
 
-from opencadd.io import Rdkit
+from opencadd.io.rdkit import Rdkit
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
 

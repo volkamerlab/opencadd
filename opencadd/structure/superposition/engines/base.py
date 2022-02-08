@@ -30,13 +30,13 @@ class BaseAligner:
 
         """
         self._safety_checks()
-        assert (
-            len(structures) == 2,
-            "This method can only be used for two structures at the same time, for now",
-        )
+
+        message = "This method can only be used for two structures at the same time, for now"
+        assert len(structures) == 2, message
+
         return self._calculate(structures, selections, *args, **kwargs)
 
-    def _calculate(self, structures, *args, **kwargs):
+    def _calculate(self, structures, selections, *args, **kwargs):
         raise NotImplementedError("Reimplement in your subclass")
 
     def _safety_checks(self):

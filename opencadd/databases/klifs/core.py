@@ -684,9 +684,9 @@ class StructuresProvider(BaseProvider):
     structure.missing_atoms : int
         Number of missing atoms.
     structure.rmsd1 : float
-        RMSD between structure and reference structures based on full kinase domain.
+        RMSD between the structure and the reference template for the conserved pocket residues.
     structure.rmsd2 : float
-        RMSD between structure and reference structures based on kinase pocket residues.
+        RMSD between the structure and the reference template for the full pocket.
     structure.front : bool
         Orthosteric ligand occupies KLIFS front cleft.
         Available remotely only.
@@ -1443,7 +1443,7 @@ class DrugsProvider(BaseProvider):
     """
     Class for drugs requests.
 
-    From the KLIFS Swagger API:
+    From the KLIFS OpenAPI:
     https://dev.klifs.net/swagger_v2/#/Ligands/get_drug_list
     > The drug list endpoint returns a list of all annotated kinase ligands that are either
     > approved or are/have been in clinical trials.

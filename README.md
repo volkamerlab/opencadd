@@ -7,6 +7,7 @@
 [![Documentation Status](https://readthedocs.org/projects/opencadd/badge/?version=latest)](https://opencadd.readthedocs.io)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/opencadd.svg)](https://anaconda.org/conda-forge/opencadd)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/237947037.svg)](https://zenodo.org/badge/latestdoi/237947037)
 
 ![OpenCADD](/docs/_static/opencadd.png)
 
@@ -14,12 +15,12 @@ A Python library for structural cheminformatics.
 
 ## Overview
 
-> This library is still in early stages of development.
+> Some modules of this library are still in early stages of development as indicated below.
 
 - `databases.klifs`: utilities to query the KLIFS database, offline or online.
-- `io`: read and write molecules from/to files.
-- `structure.pocket`: identification and analysis of protein (sub)pockets.
-- `structure.superposition` (formerly `superposer`): superimpose macromolecules using sequence and structural information.
+- :construction: `io`: read and write molecules from/to files.
+- :construction: `structure.pocket`: identification and analysis of protein (sub)pockets.
+- :construction: `structure.superposition` (formerly `superposer`): superimpose macromolecules using sequence and structural information.
 
 ## Documentation
 
