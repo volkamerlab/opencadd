@@ -7,7 +7,8 @@
 [![Documentation Status](https://readthedocs.org/projects/opencadd/badge/?version=latest)](https://opencadd.readthedocs.io)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/opencadd.svg)](https://anaconda.org/conda-forge/opencadd)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/237947037.svg)](https://zenodo.org/badge/latestdoi/237947037)
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.03951/status.svg)](https://doi.org/10.21105/joss.03951) [![DOI](https://zenodo.org/badge/237947037.svg)](https://zenodo.org/badge/latestdoi/237947037)
 
 ![OpenCADD](/docs/_static/opencadd.png)
 
