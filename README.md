@@ -27,6 +27,27 @@ A Python library for structural cheminformatics.
 
 The documentation is available [here](https://opencadd.readthedocs.io/en/latest/).
 
+## Citation
+
+If you are using the OpenCADD-KLIFS module, please cite our [JOSS publication](https://joss.theoj.org/papers/10.21105/joss.03951):
+
+```
+@article{Sydow2022,
+  doi = {10.21105/joss.03951},
+  url = {https://doi.org/10.21105/joss.03951},
+  year = {2022},
+  publisher = {The Open Journal},
+  volume = {7},
+  number = {70},
+  pages = {3951},
+  author = {Dominique Sydow and Jaime Rodríguez-Guerra and Andrea Volkamer},
+  title = {OpenCADD-KLIFS: A Python package to fetch kinase data from the KLIFS database},
+  journal = {Journal of Open Source Software}
+}
+```
+
+If you are using other modules of the OpenCADD package, please cite our [Zenodo entry](https://doi.org/10.5281/zenodo.5653542).
+
 ## License
 
 `opencadd` is free software and is licensed under the MIT license. Copyright (c) 2020, Volkamer Lab
