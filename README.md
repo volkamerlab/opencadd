@@ -7,7 +7,8 @@
 [![Documentation Status](https://readthedocs.org/projects/opencadd/badge/?version=latest)](https://opencadd.readthedocs.io)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/opencadd.svg)](https://anaconda.org/conda-forge/opencadd)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![DOI](https://zenodo.org/badge/237947037.svg)](https://zenodo.org/badge/latestdoi/237947037)
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.03951/status.svg)](https://doi.org/10.21105/joss.03951) [![DOI](https://zenodo.org/badge/237947037.svg)](https://zenodo.org/badge/latestdoi/237947037)
 
 ![OpenCADD](/docs/_static/opencadd.png)
 
@@ -25,6 +26,27 @@ A Python library for structural cheminformatics.
 ## Documentation
 
 The documentation is available [here](https://opencadd.readthedocs.io/en/latest/).
+
+## Citation
+
+If you are using the OpenCADD-KLIFS module, please cite our [JOSS publication](https://joss.theoj.org/papers/10.21105/joss.03951):
+
+```
+@article{Sydow2022,
+  doi = {10.21105/joss.03951},
+  url = {https://doi.org/10.21105/joss.03951},
+  year = {2022},
+  publisher = {The Open Journal},
+  volume = {7},
+  number = {70},
+  pages = {3951},
+  author = {Dominique Sydow and Jaime Rodríguez-Guerra and Andrea Volkamer},
+  title = {OpenCADD-KLIFS: A Python package to fetch kinase data from the KLIFS database},
+  journal = {Journal of Open Source Software}
+}
+```
+
+If you are using other modules of the OpenCADD package, please cite our [Zenodo entry](https://doi.org/10.5281/zenodo.5653542).
 
 ## License
 
