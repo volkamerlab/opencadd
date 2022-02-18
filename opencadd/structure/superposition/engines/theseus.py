@@ -45,7 +45,7 @@ class TheseusAligner(BaseAligner):
         - "MUSCLE"
         - "CLUSTALO" (CLUSTAL OMEGA)
     alignment_max_iterations : int
-        number of iterations for alignment program (this parameter is only used by MUSCLE, not CLUSTAL OMEGA)
+        number of refinement iterations for alignment program (this parameter is only used by MUSCLE, not CLUSTAL OMEGA)
     statistics_only : bool
         if True, add `-I` flag to just compute the statistics (no superposition)
     """
@@ -259,13 +259,12 @@ class TheseusAligner(BaseAligner):
             output = subprocess.check_output(
                 [
                     self._alignment_executable,
-                    "-maxiters",
-                    str(self.alignment_max_iterations),
-                    "-in",
+                    "-align",
                     self._fastafile,
-                    "-out",
+                    "-refineiters",
+                    str(self.alignment_max_iterations),
+                    "-output",
                     self._alignment_file,
-                    "-clwstrict",
                     "-verbose",
                     "-log",
                     self._alignment_log,
