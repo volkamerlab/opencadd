@@ -9,6 +9,7 @@ dependencies:
   - pip
   - pandas
   - matplotlib-base
+  - redo
   - mdanalysis
   - nglview
   - bravado
@@ -22,6 +23,7 @@ dependencies:
   - mmligner
   # theseus
   - muscle
+  - clustalo
   - theseus
   # Testing
   - pytest
