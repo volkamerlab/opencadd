@@ -5,6 +5,7 @@ Defines core classes and functions.
 """
 
 import logging
+import html
 
 from bravado_core.exception import SwaggerMappingError
 import numpy as np
@@ -32,7 +33,9 @@ class BaseProvider:
         # https://stackoverflow.com/questions/16301253/what-exactly-is-pythons-iterator-protocol
         # test for behaviour (value.__iter__()) instead of type
         # can be removed once input lists are unpacked *kinases_ids
-        if not isinstance(value, list):
+        if value is None:
+            return value
+        elif not isinstance(value, list):
             return [value]
         else:
             return value
@@ -64,7 +67,7 @@ class BaseProvider:
             for key in keys:
                 results_dict[key].append(result[key])
 
-        return pd.DataFrame(results_dict)
+        return pd.DataFrame(results_dict).apply(html.unescape)
 
     @staticmethod
     def _map_old_to_new_column_names(dataframe, columns_mapping):
@@ -135,18 +138,25 @@ class BaseProvider:
         local data is already performed upon session initialization.
         """
 
+        # TODO Use None instead of "-"; but may affect downstream pipelines that use "-" already
         if "structure.alternate_model" in dataframe.columns:
-            # Remote
             dataframe["structure.alternate_model"].replace("", "-", inplace=True)
         if "ligand.expo_id" in dataframe.columns:
-            # Remote
             dataframe["ligand.expo_id"].replace(0, "-", inplace=True)
         if "ligand_allosteric.expo_id" in dataframe.columns:
-            # Remote
             dataframe["ligand_allosteric.expo_id"].replace(0, "-", inplace=True)
         if "structure.resolution" in dataframe.columns:
-            # Remote
             dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
+
+        # In case of drugs
+        if "drug.brand_name" in dataframe.columns:
+            dataframe["drug.brand_name"] = dataframe["drug.brand_name"].apply(
+                lambda x: x.split(";") if x != "" else []
+            )
+        if "drug.synonyms" in dataframe.columns:
+            dataframe["drug.synonyms"] = dataframe["drug.synonyms"].apply(
+                lambda x: x.split("\t") if x != "" else []
+            )
 
         return dataframe
 
@@ -167,8 +177,8 @@ class BaseProvider:
         ----------
         dataframe : pandas.DataFrame
             Remote query result.
-        columns : list of (str, str)
-            Column names and dtypes(in the order of interest for output).
+        columns : dict
+            Column names and dtypes (in the order of interest for output).
         columns_mapping : dict or None
             Mapping of old to new column names. If None, no changes are made.
 
@@ -183,19 +193,14 @@ class BaseProvider:
             dataframe = self._map_old_to_new_column_names(dataframe, columns_mapping)
 
         # Add missing columns (None values)
-        column_names = [column[0] for column in columns]
+        column_names = list(columns.keys())
         dataframe = self._add_missing_columns(dataframe, column_names)
 
         # Standardize column values
         dataframe = self._standardize_column_values(dataframe)
 
         # Standardize dtypes
-        column_dtypes_dict = {
-            column_name: column_dtype
-            for (column_name, column_dtype) in columns
-            if column_name in dataframe.columns
-        }
-        dataframe = dataframe.astype(column_dtypes_dict)
+        dataframe = dataframe.astype(columns)
 
         # Select and sort columns
         dataframe = dataframe[column_names].copy()
@@ -293,7 +298,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_name : str
             Kinase name according to KLIFS.
-        kinase.class : str
+        kinase.subfamily : str
             Kinase class.
             Available remotely only.
         kinase.full_name : str
@@ -314,7 +319,7 @@ class KinasesProvider(BaseProvider):
 
         kinase.klifs_id : int
             Kinase KLIFS ID.
-        kinase.hgnc_name : str
+        kinase.gene_name : str
             Kinase name according to the HUGO Gene Nomenclature Committee.
             Available remotely only.
         kinase.family : str
@@ -431,7 +436,6 @@ class KinasesProvider(BaseProvider):
             Kinase names (remote: KLIFS or HGNC name; local: any of the given kinase names).
         species : None or str
             Species name (default is None, i.e. all species are selected).
-
 
         Returns
         -------
@@ -670,7 +674,7 @@ class StructuresProvider(BaseProvider):
     structure.dfg : str
         DFG conformation (in, out, out-like, na).
     structure.ac_helix : str
-        aC helix conformation (in, out, out-like, na).
+        aC helix conformation (in, out, na).
     structure.resolution : float
         Structure resolution in Angström.
     structure.qualityscore : float
@@ -680,9 +684,9 @@ class StructuresProvider(BaseProvider):
     structure.missing_atoms : int
         Number of missing atoms.
     structure.rmsd1 : float
-        RMSD between structure and reference structures based on full kinase domain.
+        RMSD between the structure and the reference template for the conserved pocket residues.
     structure.rmsd2 : float
-        RMSD between structure and reference structures based on kinase pocket residues.
+        RMSD between the structure and the reference template for the full pocket.
     structure.front : bool
         Orthosteric ligand occupies KLIFS front cleft.
         Available remotely only.
@@ -1048,10 +1052,13 @@ class InteractionsProvider(BaseProvider):
     """
     Class for interactions requests.
 
-    Methods
-    -------
+    Properties
+    ----------
     interaction_types()
         Get all available interaction types.
+
+    Methods
+    -------
     all_interactions()
         Get all available interaction fingerprints.
     by_structure_klifs_id(structure_klifs_ids)
@@ -1196,7 +1203,7 @@ class PocketsProvider(BaseProvider):
 
     Notes
     -----
-    Class methods all return a pandas.DataFrame of interactions (rows) with the (or a subset of
+    Class methods all return a pandas.DataFrame of pocket residues (rows) with the (or a subset of
     the) following attributes (columns):
 
     residue.klifs_id : int
@@ -1430,3 +1437,228 @@ class CoordinatesProvider(BaseProvider):
         extensions = ["pdb", "mol2"]
         if extension not in extensions:
             raise ValueError(f"Invalid extension. Select from: {', '.join(extensions)}")
+
+
+class DrugsProvider(BaseProvider):
+    """
+    Class for drugs requests.
+
+    From the KLIFS OpenAPI:
+    https://dev.klifs.net/swagger_v2/#/Ligands/get_drug_list
+    > The drug list endpoint returns a list of all annotated kinase ligands that are either
+    > approved or are/have been in clinical trials.
+    > This information is primarily powered by the PKIDB and complemented with KLIFS curation and
+    > annotation + manually curated data from other sources (e.g. approved INNs).
+
+    Methods
+    -------
+    all_drugs()
+        Get all available drugs.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
+    (columns):
+
+    drug.inn : string
+        International nonproprietary name.
+    drug.brand_name : list of string
+        Brand name(s).
+    drug.synonym : list of string
+        Synonym(s).
+    drug.phase : string
+        Current clinical phase of the drug.
+    drug.approval_year : string
+        Year of FDA-approval.
+        If approval by another institution, syntax as follows, example: "2017 (EMA)".
+    drug.smiles : string
+        SMILES string of drug.
+        TODO: "ligand.smiles" would be more consistent with Ligand class, howover it is not
+        garanteed that SMILES will be the same for the same ligand, thus use "drug.smiles".
+    ligand.chembl_id : string
+        Ligand ChEMBL ID.
+    ligand.expo_id : string
+        Ligand expo ID.
+    """
+
+    def all_drugs(self):
+        """
+        Get all available drugs.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Drugs (rows) with the columns as defined in the class docstring.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureConformationsProvider(BaseProvider):
+    """
+    Class for structure conformation requests.
+
+    For detailed information on the conformation definitions, please the toolstips at
+    https://dev.klifs.net/search.php > Conformations > hover over "?" tooltips
+
+
+    Methods
+    -------
+    all_conformations()
+        Get all available drugs.
+    by_structure_klifs_id(structure_klifs_ids)
+        Get structure conformation data by one or more structure KLIFS IDs.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of drugs (rows) with the following attributes
+    (columns):
+
+    structure.dfg : str
+        DFG conformation (in, out, out-like, na).
+    structure.ac_helix : str
+        aC helix conformation (in, out, na).
+    structure.ac_helix_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.aloop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_angle_d_f : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_d_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_outer_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.dfg_f_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.distance_67_82_out : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.mobitz_dihedral : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_angle : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.ploop_rotation : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.reference_distance : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.salt_bridge_17_24 : float
+        Check https://dev.klifs.net/swagger_v2/#/Structures/get_structure_conformation
+    structure.klifs_id : float
+        Structure KLIFS ID.
+    """
+
+    def all_conformations(self):
+        """
+        Get all available conformations.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structures (rows) with the columns as defined in the class docstring.
+
+        Raises
+        ------
+        ValueError
+            If DataFrame is empty.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get structure conformation data by one or more structure PDB IDs.
+
+        Parameters
+        ----------
+        structure_pdb_ids : str or list of str
+            Structure PDB ID(s).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Structure conformation data.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+
+class StructureModifiedResiduesProvider(BaseProvider):
+    """
+    Class for a structure's modified residues requests.
+    Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Methods
+    -------
+    by_structure_klifs_id()
+        Get residue ID and the corresponding residue KLIFS ID plus the residue modification.
+
+    Notes
+    -----
+    Class methods all return a pandas.DataFrame of modified residues (rows) with the (or a subset
+    of the) following attributes (columns):
+
+    residue.klifs_id : int
+        Residue KLIFS ID.
+    residue.id : str
+        Residue ID.
+    residue.modification : str
+        The type of modification for this residue.
+    """
+
+    def by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Get a structure's modified residues by structure ID.
+
+        Parameters
+        ----------
+        structure_klifs_id : str
+            Structure KLIFS ID.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modified residues details.
+
+        Raises
+        ------
+        bravado_core.exception.SwaggerMappingError
+            Remote module: Structure KLIFS ID does not exist.
+        """
+        raise NotImplementedError("Implement in your subclass!")
+
+    @staticmethod
+    def _add_klifs_region_details(modifications):
+        """
+        Based on KLIFS region ID, add KLIFS ID and region name.
+
+        Parameters
+        ----------
+        pandas.DataFrame
+            Modification data.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Modification data with KLIFS ID and region name.
+        """
+
+        modifications["residue.klifs_region"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: ".".join(x.split(".")[:-1]) if x != "-" else x
+        )
+        modifications["residue.klifs_id"] = modifications["residue.klifs_region_id"].apply(
+            lambda x: x.split(".")[-1] if x != "-" else np.nan
+        )
+
+        return modifications

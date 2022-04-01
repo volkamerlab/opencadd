@@ -18,7 +18,8 @@ def test_mmligner_instantiation():
 def test_mmligner_alignment():
     aligner = MMLignerAligner()
     structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
-    result = aligner.calculate(structures)
+    selections = []
+    result = aligner.calculate(structures, selections)
     # Check API compliance
     assert "superposed" in result
     assert "scores" in result
@@ -26,4 +27,23 @@ def test_mmligner_alignment():
     assert "metadata" in result
 
     # Check RMSD value for these PDBs
-    assert pytest.approx(result["scores"]["rmsd"], 2.279)
+    assert round(result["scores"]["rmsd"], 3) == 1.469
+
+
+def test_mmligner_alignment_selections():
+    aligner = MMLignerAligner()
+    structures = [Structure.from_pdbid(pdb_id) for pdb_id in ["4u3y", "4u40"]]
+    user_select = ["backbone and name CA and segid B", "backbone and name CA and segid B"]
+    selections = [
+        structures[0].select_atoms(f"{user_select[0]}"),
+        structures[1].select_atoms(f"{user_select[0]}"),
+    ]
+    result = aligner.calculate(structures, selections)
+    # Check API compliance
+    assert "superposed" in result
+    assert "scores" in result
+    assert "rmsd" in result["scores"]
+    assert "metadata" in result
+
+    # Check RMSD value for these PDBs
+    assert round(result["scores"]["rmsd"], 3) == 1.164

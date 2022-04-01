@@ -1,0 +1,25 @@
+name: opencadd
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  # Base depends
+  - python
+  - pip
+  - pandas
+  - matplotlib-base
+  - MDAnalysis
+  - nglview
+  - bravado
+  - biopandas
+  - rdkit
+  - tqdm
+  # Chimera reimplementation
+  - biotite
+  - biopython<=1.77
+  # mmligner
+  - mmligner
+  # theseus
+  - muscle
+  - theseus

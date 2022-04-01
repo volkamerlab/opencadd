@@ -10,7 +10,7 @@ import pytest
 from rdkit import Chem
 
 from opencadd.databases.klifs.api import setup_local, setup_remote
-from opencadd.databases.klifs.schema import DATAFRAME_COLUMNS
+from opencadd.databases.klifs.schema import FIELDS
 from opencadd.utils import enter_temp_directory
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
@@ -28,7 +28,7 @@ def check_dataframe(dataframe, columns):
     assert isinstance(dataframe, pd.DataFrame)
 
     # Are DataFrame column names and their order correct?
-    assert dataframe.columns.to_list() == [column[0] for column in columns]
+    assert dataframe.columns.to_list() == list(columns.keys())
 
     # Are DataFrame indices enumerated starting from 0 to length of DataFrame - 1?
     assert dataframe.index.to_list() == list(range(0, len(dataframe)))
@@ -48,8 +48,8 @@ class TestsAllQueries:
         result_remote = REMOTE.kinases.all_kinase_groups()
         result_local = LOCAL.kinases.all_kinase_groups()
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["kinase_groups"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["kinase_groups"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("kinase_groups"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("kinase_groups"))
 
         assert sorted(result_remote["kinase.group"].to_list()) == [
             "AGC",
@@ -75,8 +75,8 @@ class TestsAllQueries:
         result_remote = REMOTE.kinases.all_kinase_families(group)
         result_local = LOCAL.kinases.all_kinase_families(group)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["kinase_families"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["kinase_families"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("kinase_families"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("kinase_families"))
 
         assert result_local["kinase.family"].to_list() == local_families
         # Do not test remote,
@@ -130,10 +130,10 @@ class TestsAllQueries:
         result_remote = REMOTE.kinases.all_kinases(group, family, species)
         result_local = LOCAL.kinases.all_kinases(group, family, species)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["kinases_all"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["kinases_all"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("kinases_all"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("kinases_all"))
 
-        assert result_local["kinase.hgnc_name"].to_list() == local_kinases[0]
+        assert result_local["kinase.gene_name"].to_list() == local_kinases[0]
         assert result_local["species.klifs"].to_list() == local_kinases[1]
         # Do not test remote,
         # since too many and may vary if structures are added to KLIFS.
@@ -160,8 +160,8 @@ class TestsAllQueries:
         result_remote = REMOTE.ligands.all_ligands()
         result_local = LOCAL.ligands.all_ligands()
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["ligands"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["ligands"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("ligands"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("ligands"))
 
         assert result_local["ligand.expo_id"].to_list() == ["1N1", "QH1", "PRC", "-"]
         # Do not test remote,
@@ -175,8 +175,8 @@ class TestsAllQueries:
         result_remote = REMOTE.structures.all_structures()
         result_local = LOCAL.structures.all_structures()
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
         assert result_local["structure.klifs_id"].to_list() == [
             3482,
@@ -195,7 +195,7 @@ class TestsAllQueries:
         """
 
         result_remote = REMOTE.interactions.interaction_types
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["interaction_types"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("interaction_types"))
 
         with pytest.raises(NotImplementedError):
             LOCAL.interactions.interaction_types()
@@ -208,8 +208,8 @@ class TestsAllQueries:
         result_remote = REMOTE.interactions.all_interactions()
         result_local = LOCAL.interactions.all_interactions()
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["interactions"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["interactions"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("interactions"))
 
     def test_all_bioactivities(self):
 
@@ -223,7 +223,29 @@ class TestsAllQueries:
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.all_bioactivities()
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["bioactivities"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("bioactivities"))
+
+    def test_all_drugs(self):
+        """
+        Test request result for all drugs.
+        """
+
+        result_remote = REMOTE.drugs.all_drugs()
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("drugs"))
+
+        with pytest.raises(NotImplementedError):
+            LOCAL.drugs.all_drugs()
+
+    def test_all_conformations(self):
+        """
+        Test request result for all conformations.
+        """
+
+        result_remote = REMOTE.conformations.all_conformations()
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
+        with pytest.raises(NotImplementedError):
+            LOCAL.conformations.all_conformations()
 
 
 class TestsFromKinaseIds:
@@ -241,41 +263,43 @@ class TestsFromKinaseIds:
         result_remote = REMOTE.kinases.by_kinase_klifs_id(kinase_klifs_ids)
         result_local = LOCAL.kinases.by_kinase_klifs_id(kinase_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["kinases"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["kinases"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("kinases"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("kinases"))
 
         # Ligands
         result_remote = REMOTE.ligands.by_kinase_klifs_id(kinase_klifs_ids)
         result_local = LOCAL.ligands.by_kinase_klifs_id(kinase_klifs_ids)
         check_dataframe(
-            result_remote, DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id (query)", "int32")]
+            result_remote,
+            FIELDS.oc_name_to_type("ligands", {"kinase.klifs_id (query)": "int32"}),
         )
         check_dataframe(
-            result_local, DATAFRAME_COLUMNS["ligands"] + [("kinase.klifs_id (query)", "int32")]
+            result_local,
+            FIELDS.oc_name_to_type("ligands", {"kinase.klifs_id (query)": "int32"}),
         )
 
         # Structures
         result_remote = REMOTE.structures.by_kinase_klifs_id(kinase_klifs_ids)
         result_local = LOCAL.structures.by_kinase_klifs_id(kinase_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
         # Bioactivities
         result_remote = REMOTE.bioactivities.by_kinase_klifs_id(kinase_klifs_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_kinase_klifs_id(kinase_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["bioactivities"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("bioactivities"))
 
         # Interactions
         result_remote = REMOTE.interactions.by_kinase_klifs_id(kinase_klifs_ids)
         result_local = LOCAL.interactions.by_kinase_klifs_id(kinase_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["interactions"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
         check_dataframe(
             result_local,
-            DATAFRAME_COLUMNS["interactions"] + [("kinase.klifs_id (query)", "int32")],
+            FIELDS.oc_name_to_type("interactions", {"kinase.klifs_id (query)": "int32"}),
         )
 
     @pytest.mark.parametrize("kinase_klifs_ids", [10000, "XXX"])
@@ -314,14 +338,14 @@ class TestsFromLigandIds:
         with pytest.raises(NotImplementedError):
             LOCAL.ligands.by_ligand_klifs_id(ligand_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["ligands"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("ligands"))
 
         # Structures
         result_remote = REMOTE.structures.by_ligand_klifs_id(ligand_klifs_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.structures.by_ligand_klifs_id(ligand_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
 
         # Bioactivities
         result_remote = REMOTE.bioactivities.by_ligand_klifs_id(ligand_klifs_ids)
@@ -330,7 +354,7 @@ class TestsFromLigandIds:
 
         check_dataframe(
             result_remote,
-            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.klifs_id (query)", "int32")],
+            FIELDS.oc_name_to_type("bioactivities", {"ligand.klifs_id (query)": "int32"}),
         )
 
         # Interactions
@@ -338,7 +362,7 @@ class TestsFromLigandIds:
         with pytest.raises(NotImplementedError):
             LOCAL.interactions.by_ligand_klifs_id(ligand_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["interactions"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
 
     @pytest.mark.parametrize("ligand_klifs_ids", [10000, "XXX"])
     def test_by_ligand_klifs_id_raise(self, ligand_klifs_ids):
@@ -370,30 +394,53 @@ class TestsFromStructureIds:
         result_remote = REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
         result_local = LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
         # Interactions
         result_remote = REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
         result_local = LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["interactions"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["interactions"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("interactions"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("interactions"))
 
-        # Pockets (takes only one structure ID as input!)
+        # Conformations
+        result_remote = REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
+        # No local access available
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_conformations"))
+
+        # Pockets and modified residues (takes only one structure ID as input!)
         if isinstance(structure_klifs_ids, int):
             structure_klifs_id = structure_klifs_ids
 
+            # Pockets
             result_remote = REMOTE.pockets.by_structure_klifs_id(structure_klifs_ids)
             result_local_mol2 = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "mol2")
             result_local_pdb = LOCAL.pockets.by_structure_klifs_id(structure_klifs_ids, "pdb")
 
-            check_dataframe(result_remote, DATAFRAME_COLUMNS["pockets"])
-            check_dataframe(result_local_mol2, DATAFRAME_COLUMNS["pockets"])
-            check_dataframe(result_local_pdb, DATAFRAME_COLUMNS["pockets"])
+            check_dataframe(result_remote, FIELDS.oc_name_to_type("pockets"))
+            check_dataframe(result_local_mol2, FIELDS.oc_name_to_type("pockets"))
+            check_dataframe(result_local_pdb, FIELDS.oc_name_to_type("pockets"))
 
             assert all(result_local_mol2 == result_local_pdb)
             assert all(result_local_mol2 == result_remote)
+
+            # Modified residues
+            result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+            # No local access available
+            check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
+
+    @pytest.mark.parametrize("structure_klifs_id", [4126])
+    def test_modifications_by_structure_klifs_id(self, structure_klifs_id):
+        """
+        Extra test for modifications: Use structure that has modified residues in and outside the
+        pocket (e.g. structure KLIFS ID 4126).
+        """
+
+        # Modified residues
+        result_remote = REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
+        # No local access available
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structure_modified_residues"))
 
     @pytest.mark.parametrize("structure_klifs_ids", [100000, "XXX"])
     def test_by_structure_klifs_id_raise(self, structure_klifs_ids):
@@ -404,15 +451,20 @@ class TestsFromStructureIds:
         with pytest.raises(SwaggerMappingError):
             REMOTE.structures.by_structure_klifs_id(structure_klifs_ids)
             REMOTE.interactions.by_structure_klifs_id(structure_klifs_ids)
+            REMOTE.conformations.by_structure_klifs_id(structure_klifs_ids)
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
                 REMOTE.pockets.by_structure_klifs_id(structure_klifs_id)
+                REMOTE.modified_residues.by_structure_klifs_id(structure_klifs_id)
 
         with pytest.raises(ValueError):
             LOCAL.structures.by_structure_klifs_id(structure_klifs_ids)
             LOCAL.interactions.by_structure_klifs_id(structure_klifs_ids)
+            # No local structure conformations
             if isinstance(structure_klifs_ids, int):
                 structure_klifs_id = structure_klifs_ids
+                LOCAL.pockets.by_structure_klifs_id(structure_klifs_id)
+                # No local structure's residue modifications
 
 
 class TestsFromKinaseNames:
@@ -433,8 +485,8 @@ class TestsFromKinaseNames:
         result_remote = REMOTE.kinases.by_kinase_name(kinase_names, species)
         result_local = LOCAL.kinases.by_kinase_name(kinase_names, species)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["kinases"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["kinases"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("kinases"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("kinases"))
 
         # Ligands
         result_remote = REMOTE.ligands.by_kinase_name(kinase_names)
@@ -442,30 +494,34 @@ class TestsFromKinaseNames:
 
         check_dataframe(
             result_remote,
-            DATAFRAME_COLUMNS["ligands"]
-            + [
-                ("kinase.klifs_id (query)", "int32"),
-                ("kinase.klifs_name (query)", "string"),
-                ("kinase.hgnc_name (query)", "string"),
-                ("species.klifs (query)", "string"),
-            ],
+            FIELDS.oc_name_to_type(
+                "ligands",
+                {
+                    "kinase.klifs_id (query)": "int32",
+                    "kinase.klifs_name (query)": "string",
+                    "kinase.gene_name (query)": "string",
+                    "species.klifs (query)": "string",
+                },
+            ),
         )
         check_dataframe(
             result_local,
-            DATAFRAME_COLUMNS["ligands"]
-            + [
-                ("kinase.klifs_name (query)", "string"),
-                ("kinase.hgnc_name (query)", "string"),
-                ("species.klifs (query)", "string"),
-            ],
+            FIELDS.oc_name_to_type(
+                "ligands",
+                {
+                    "kinase.klifs_name (query)": "string",
+                    "kinase.gene_name (query)": "string",
+                    "species.klifs (query)": "string",
+                },
+            ),
         )
 
         # Structures
         result_remote = REMOTE.structures.by_kinase_name(kinase_names)
         result_local = LOCAL.structures.by_kinase_name(kinase_names)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
     @pytest.mark.parametrize("kinase_names, species", [("XXX", None), ("XXX", "XXX")])
     def test_by_kinase_name_raise(self, kinase_names, species):
@@ -499,24 +555,23 @@ class TestsFromLigandPdbs:
         result_remote = REMOTE.ligands.by_ligand_expo_id(ligand_expo_ids)
         result_local = LOCAL.ligands.by_ligand_expo_id(ligand_expo_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["ligands"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["ligands"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("ligands"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("ligands"))
 
         # Structure
         result_remote = REMOTE.structures.by_ligand_expo_id(ligand_expo_ids)
         result_local = LOCAL.structures.by_ligand_expo_id(ligand_expo_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
         # Bioactivities
         result_remote = REMOTE.bioactivities.by_ligand_expo_id(ligand_expo_ids)
         with pytest.raises(NotImplementedError):
             LOCAL.bioactivities.by_ligand_expo_id(ligand_expo_ids)
-        print(result_remote)
         check_dataframe(
             result_remote,
-            DATAFRAME_COLUMNS["bioactivities"] + [("ligand.expo_id (query)", "string")],
+            FIELDS.oc_name_to_type("bioactivities", {"ligand.expo_id (query)": "string"}),
         )
 
     @pytest.mark.parametrize("ligand_expo_ids", [1, "XXX"])
@@ -547,8 +602,8 @@ class TestsFromStructurePdbs:
         result_remote = REMOTE.structures.by_structure_pdb_id(structure_pdb_ids)
         result_local = LOCAL.structures.by_structure_pdb_id(structure_pdb_ids)
 
-        check_dataframe(result_remote, DATAFRAME_COLUMNS["structures"])
-        check_dataframe(result_local, DATAFRAME_COLUMNS["structures"])
+        check_dataframe(result_remote, FIELDS.oc_name_to_type("structures"))
+        check_dataframe(result_local, FIELDS.oc_name_to_type("structures"))
 
     @pytest.mark.parametrize("structure_pdb_ids", [1, "xxxx"])
     def test_by_structure_pdb_id_raise(self, structure_pdb_ids):
@@ -676,7 +731,7 @@ class TestsCoordinates:
         """
 
         assert isinstance(dataframe, pd.DataFrame)
-        column_names = [column[0] for column in DATAFRAME_COLUMNS["coordinates"]]
+        column_names = list(FIELDS.oc_name_to_type("coordinates").keys())
         assert dataframe.columns.to_list() == column_names
         assert dataframe.shape[0] == n_atoms
         assert centroid[0] == pytest.approx(dataframe["atom.x"].mean(), abs=1.0e-6)

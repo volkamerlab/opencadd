@@ -7,34 +7,37 @@ dependencies:
   # Base depends
   - python
   - pip
-  - MDAnalysis
-  - nglview
   - pandas
-  # databases.klifs
+  - matplotlib-base
+  - redo
+  - mdanalysis
+  - nglview
   - bravado
   - biopandas
   - rdkit
   - tqdm
   # Chimera reimplementation
   - biotite
-  - biopython 1.77
+  - biopython<=1.77
   # mmligner
   - mmligner
   # theseus
   - muscle
+  - clustalo
   - theseus
   # Testing
   - pytest
   - pytest-cov
   - codecov
-  # docs
+  # Docs
+  # Pin setuptools until this fix is part of latest MDA release:
+  # https://github.com/volkamerlab/opencadd/issues/136
+  - setuptools<60
   - sphinx
   - sphinx_rtd_theme
-  - nbsphinx
-  # Temporary fix for issue #65
-  #- parso 0.8.1
-## For Jupyter, run:
-# conda install jupyter jupyterlab=2 ipywidgets>=7.5
-## For Jupyter lab extensions, run:
-# conda install nodejs
-# jupyter labextension install @jupyter-widgets/jupyterlab-manager nglview-js-widgets @jupyterlab/toc
+  # Pin nbsphix until this fix is part of their latest release
+  # https://github.com/spatialaudio/nbsphinx/pull/621
+  - nbsphinx<0.8.8
+  # Linting and code style
+  - pylint
+  - black

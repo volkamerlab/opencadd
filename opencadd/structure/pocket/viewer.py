@@ -9,7 +9,7 @@ import logging
 from matplotlib import colors
 import nglview
 
-from opencadd.io import DataFrame
+from opencadd.io.dataframe import DataFrame
 
 _logger = logging.getLogger(__name__)
 
@@ -351,7 +351,9 @@ class PocketViewer:
             return None
 
         color_rgb = colors.to_rgb(sphere_color)
-        self.viewer.shape.add_sphere(list(pocket.center), color_rgb, 2, f"center: {pocket.name}")
+        # Cast numpy.float to float (otherwise TypeError!)
+        center = [float(i) for i in pocket.center]
+        self.viewer.shape.add_sphere(center, color_rgb, 2, f"center: {pocket.name}")
         # Save NGLview component
         self._components_pocket_center[pocket.name] = self._component_counter
         self._component_counter += 1
@@ -382,7 +384,8 @@ class PocketViewer:
         self._components_subpockets[pocket.name] = {}
         for subpocket in pocket._subpockets:
             if subpocket.center is not None:
-                center = list(subpocket.center)
+                # Cast numpy.float to float (otherwise TypeError!)
+                center = [float(i) for i in subpocket.center]
                 name = subpocket.name
                 color_rgb = colors.to_rgb(subpocket.color)
                 self.viewer.shape.add_sphere(center, color_rgb, 2, f"{name}: {pocket.name}")
@@ -416,7 +419,8 @@ class PocketViewer:
         self._components_anchor_residues[pocket.name] = {}
         for _, anchor_residue in pocket.anchor_residues.iterrows():
             if anchor_residue["anchor_residue.center"] is not None:
-                center = list(anchor_residue["anchor_residue.center"])
+                # Cast numpy.float to float (otherwise TypeError!)
+                center = [float(i) for i in anchor_residue["anchor_residue.center"]]
                 color_rgb = colors.to_rgb(anchor_residue["anchor_residue.color"])
                 self.viewer.shape.add_sphere(center, color_rgb, 0.5)
                 # Save NGLview component
