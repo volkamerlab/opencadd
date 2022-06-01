@@ -168,6 +168,8 @@ class MMLignerAligner(BaseAligner):
                 rotation = [[float(x) for x in next(lines).split()] for _ in range(3)]
             elif "Print Quaternion matrix" in line:
                 quaternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
+            elif line.startswith("Compression"):
+                break
 
         # checks if there is a signifcant alignment
         if rmsd == 0 and coverage == 0:
