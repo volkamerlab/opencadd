@@ -9,8 +9,8 @@ on:
     branches:
       - "master"
   schedule:
-    # Nightly Tests
-    - cron: "0 0 * * *"
+    # Run a cron job once weekly on Monday
+    - cron: "0 3 * * 1"
 
 jobs:
   test:
