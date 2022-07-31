@@ -18,16 +18,16 @@ METHODS = {
 }
 
 
-def align(structures, user_select, method=TheseusAligner, **kwargs):
+def align(structures, user_select=False, method=TheseusAligner, **kwargs):
     """
     Main entry point for our project
 
     Parameters
     ----------
     structures : list of opencadd.core.Structure objects
-        First one will be the targer to which the rest are aligned.
-    user_seletct: list of MDAnalysis selection strings
-        Provided by user in the CLI-
+        First one will be the target to which the rest of the structures are aligned.
+    user_select: list of MDAnalysis selection strings
+        Provided by user in the CLI (default: False).
     method : BaseAligner-like
         Usually a subclass of BaseAligner. This will be passed ``**kwargs``. This class
         MUST define `.calculate()`.
