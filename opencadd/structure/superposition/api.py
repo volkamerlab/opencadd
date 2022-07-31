@@ -46,14 +46,14 @@ def align(structures, user_select=False, method=TheseusAligner, **kwargs):
 
     def _universe_to_atomgroup(universe):
         """
-        Universes can come with or without models. For downstream processing, cast all universes 
+        Universes can come with or without models. For downstream processing, cast all universes
         to AtomGroups.
 
         Parameters
         ----------
         universe : MDAnalysis.core.universe.Universe
             Input structure with or without models.
-        
+
         Returns
         -------
         MDAnalysis.core.groups.AtomGroup
