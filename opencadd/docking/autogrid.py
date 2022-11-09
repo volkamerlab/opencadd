@@ -16,6 +16,7 @@ https://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.2
 import os
 from typing import Sequence, Union, Optional, NoReturn
 from pathlib import Path
+import itertools
 # 3rd-party
 import numpy as np
 
@@ -200,3 +201,43 @@ def create_grid_tensor_from_map_file(
         lines = f.readlines()
     num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))) + 1
     return np.array(map(float, lines[6:])).reshape(tuple(reversed(num_points_per_axis)))
+
+
+def calculate_grid_point_coordinates(
+        gridcenter: Sequence[float, float, float],
+        npts: Sequence[int, int, int],
+        spacing: float = 0.375,
+):
+    """
+    Calculate coordinates of the grid points, in the reference frame of the target structure.
+    These are calculated from the same input parameters used in function `create_gpf` to create
+    the configuration file for AutoGrid.
+
+    Parameters
+    ----------
+    gridcenter : Sequence[float, float, float], Optional, default: "auto"
+        Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
+    npts : Sequence[int, int, int], Optional, default: (40, 40, 40)
+        Number of grid points to add to the central grid point, along x-, y- and z-axes,
+        respectively. Each value must be an even integer number; when added to the central grid
+        point, there will be an odd number of points in each dimension. The number of x-, y and
+        z-grid points need not be equal.
+    spacing : float, Optional, default: 0.375
+        The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
+        Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
+        all three dimensions.
+
+    Returns
+    -------
+    numpy.ndarray
+        A 2-dimensional array of shape (n, 3), containing the (x,y,z)-coordinates of n grid
+        points.
+    """
+    origin = np.array(gridcenter) - spacing * np.array(npts) / 2
+    num_grid_points_per_axis = np.array(npts) + 1
+    coordinates_unit_vectors = itertools.product(
+        range(num_grid_points_per_axis[2]),
+        range(num_grid_points_per_axis[1]),
+        range(num_grid_points_per_axis[0])
+    )
+    return np.flip(np.array(list(coordinates_unit_vectors)), axis=1) * spacing + origin
