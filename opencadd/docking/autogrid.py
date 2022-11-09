@@ -3,6 +3,12 @@ API for the AutoGrid4 program.
 
 This module contains functions and routines to communicate with the AutoGrid4 program via
 shell command executions.
+
+References
+----------
+https://autodock.scripps.edu/wp-content/uploads/sites/56/2022/04/AutoDock4.2.6_UserGuide.pdf
+https://autodock.scripps.edu/wp-content/uploads/sites/56/2021/10/AutoDock4.2.6_UserGuide.pdf
+https://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.21.html
 """
 
 
@@ -71,12 +77,6 @@ def create_gpf(
     Filepath to the generated grid parameter file (.GPF), followed by the filepath to the grid
     field file (.FLD), and a list of filepaths to grid map files (.MAP) for each of the provided
     ligand types in the given order.
-
-    References
-    ----------
-    http://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.21.html
-    https://autodock.scripps.edu/wp-content/uploads/sites/56/2022/04/AutoDock4.2.6_UserGuide.pdf
-    https://autodock.scripps.edu/wp-content/uploads/sites/56/2021/10/AutoDock4.2.6_UserGuide.pdf
     """
     # create filepaths for output files
     path_common = receptor if path_output is None else path_output / receptor.name
@@ -141,10 +141,38 @@ def submit_job(
         Calculated grid-point energies are written to respective '.map' files, as specified in the
         input gpf file.
     """
-    #TODO: This function relies on manual installation of AutoGrid4 program and inputting its
-    # filepath here. Find a better option!
+    # TODO: This function relies on manual installation of AutoGrid4 program and inputting its
+    #  filepath here. Find a better option!
     os.system(
         f"{filepath_autogrid} "
         f"-p {filepath_input_gpf.with_suffix('.gpf')} -l {filepath_output_glg.with_suffix('.glg')}"
     )
     return
+
+
+def extract_energies_from_map_file(
+        filepath: Path
+):
+    """
+    Extract the calculated grid point energies from a '.map' output file into a list.
+
+    Parameters
+    ----------
+    filepath : pathlib.Path
+        Filepath of a map file outputted by AutoGrid.
+
+    Returns
+    -------
+    list
+        A 1-dimensional list with a length equal to the number of grid points. Each element is
+        a float, corresponding to the calculated energy value at a grid point. The grid points
+        are ordered according to the nested loops $z(y(x))$, so the $x$-coordinate is changing
+        fastest. Therefore, the points are ordered according to their coordinates as follows:
+        [(0,0,0), (0,0,1), ..., (0,0,nx), (0,1,0), (0,1,1), ..., (0,ny,nx), (1,0,0), (1,0,1), ...,
+        (nz,ny,nx)]
+    """
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+    # The first 6 lines are headers. The energy values start at line 7,
+    # and are written one per line, until the end of file.
+    return list(map(float, lines[6:]))
