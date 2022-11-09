@@ -6,8 +6,9 @@ shell command executions.
 """
 
 
+import os
+from typing import Sequence, Union, Optional, NoReturn
 from pathlib import Path
-from typing import Sequence, Union, Optional
 
 
 def create_gpf(
@@ -117,3 +118,33 @@ def create_gpf(
         path_electrostatic_map,
         path_desolvation_map
     )
+
+
+def submit_job(
+        filepath_input_gpf: Path,
+        filepath_output_glg: Path,
+        filepath_autogrid: Path = "/home/michele/Software/autodock4/autogrid4"
+) -> NoReturn:
+    """
+    Initiate grid energy calculations using an input grid parameter file (GPF).
+
+    Parameters
+    ----------
+    filepath_input_gpf
+    filepath_output_glg
+    filepath_autogrid
+
+    Returns
+    -------
+    None
+        A log file (.glg) is generated in the given output path.
+        Calculated grid-point energies are written to respective '.map' files, as specified in the
+        input gpf file.
+    """
+    #TODO: This function relies on manual installation of AutoGrid4 program and inputting its
+    # filepath here. Find a better option!
+    os.system(
+        f"{filepath_autogrid} "
+        f"-p {filepath_input_gpf.with_suffix('.gpf')} -l {filepath_output_glg.with_suffix('.glg')}"
+    )
+    return
