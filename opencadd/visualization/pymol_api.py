@@ -57,8 +57,7 @@ def computeHBondEnvironment(
         "HOH": [["O"], ["H"]],
         "ZN": [["ZN"], ["ZN"]],
     }
-    pymol.pymol_argv = ["pymol", "-qc"]
-    pymol.finish_launching()
+
     cmd.reinitialize()
     cmd.load(filepath_pdb, object="proteinfile")
     donors_count = np.zeros(coordinates.shape[0], dtype=np.uint8)
