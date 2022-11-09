@@ -6,7 +6,7 @@ Functions and routines for easier communication with PyMOL.
 # Standard library
 from pathlib import Path
 # 3rd party
-import pymol
+from pymol import cmd
 import numpy as np
 
 
