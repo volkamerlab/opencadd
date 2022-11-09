@@ -12,9 +12,12 @@ https://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.2
 """
 
 
+# Standard library
 import os
 from typing import Sequence, Union, Optional, NoReturn
 from pathlib import Path
+# 3rd-party
+import numpy as np
 
 
 def create_gpf(
@@ -150,11 +153,12 @@ def submit_job(
     return
 
 
-def extract_energies_from_map_file(
+def create_grid_tensor_from_map_file(
         filepath: Path
 ):
     """
-    Extract the calculated grid point energies from a '.map' output file into a list.
+    Extract the calculated grid point energies from a '.map' output file into a 3-dimensional
+    array representing the grid.
 
     Parameters
     ----------
@@ -163,16 +167,36 @@ def extract_energies_from_map_file(
 
     Returns
     -------
-    list
-        A 1-dimensional list with a length equal to the number of grid points. Each element is
-        a float, corresponding to the calculated energy value at a grid point. The grid points
+    numpy.ndarray
+        A 3-dimensional array of shape (nz, ny, nx), where each point can be indexed by its
+        coordinates (normalized to units of grid point spacing). Each element is a float,
+        corresponding to the calculated energy value at a grid point. The grid points
         are ordered according to the nested loops $z(y(x))$, so the $x$-coordinate is changing
-        fastest. Therefore, the points are ordered according to their coordinates as follows:
-        [(0,0,0), (0,0,1), ..., (0,0,nx), (0,1,0), (0,1,1), ..., (0,ny,nx), (1,0,0), (1,0,1), ...,
-        (nz,ny,nx)]
+        fastest. The coordinate system is right-handed.
+
+    Notes
+    -----
+    In a MAP file, the first 6 lines are headers. The energy values start at line 7,
+    and are written one per line, until the end of file.
+
+    Example of first few lines of a MAP file:
+    ```
+    GRID_PARAMETER_FILE vac1.nbc.gpf
+    GRID_DATA_FILE 4phv.nbc_maps.fld
+    MACROMOLECULE 4phv.new.pdbq
+    SPACING 0.375
+    NELEMENTS 50 50 80
+    CENTER -0.026 4.353 -0.038
+    125.095596
+    123.634560
+    116.724602
+    108.233879
+    ```
+
+    The header `NELEMENTS` is the same as the input parameter `npts`, defined in function
+    `create_gpf`.
     """
     with open(filepath, "r") as f:
         lines = f.readlines()
-    # The first 6 lines are headers. The energy values start at line 7,
-    # and are written one per line, until the end of file.
-    return list(map(float, lines[6:]))
+    num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))) + 1
+    return np.array(map(float, lines[6:])).reshape(tuple(reversed(num_points_per_axis)))
