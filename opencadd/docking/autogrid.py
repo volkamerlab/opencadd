@@ -378,3 +378,41 @@ def calculate_grid_point_coordinates(
         range(num_grid_points_per_axis[0])
     )
     return np.flip(np.array(list(coordinates_unit_vectors)), axis=1) * spacing + origin
+
+
+def calculate_npts(
+        dimensions_pocket: Sequence[float, float, float],
+        spacing: float
+) -> np.ndarray:
+    """
+    Calculate the AutoGrid input argument `npts`, from given pocket dimensions and grid spacing
+    values.
+
+    Parameters
+    ----------
+    dimensions_pocket : Sequence[float, float, float]
+        Length of the target structure's binding pocket, along x-, y-, and z-axis, respectively.
+    spacing : float
+        The same parameter as in AutoGrid, i.e. the grid-point spacing.
+
+    Returns
+    -------
+    npts : numpy.ndarray
+        A 1-dimensional array of size 3, which can be used directly as input `npts` for AutoGrid
+        functions.
+
+    Notes
+    -----
+    The units of values in `dimensions_pocket` and `spacing` don't matter in this function,
+    as long as they are both in the same units. Notice that in AutoGrid functions, the `spacing`
+    atgument must be in Ångstrom.
+
+    See Also
+    --------
+    For more information on AutoGrid parameters `spacing` and `npts`, see the function
+    `routine_run_autogrid` in this module.
+    """
+    npts_required_min = np.ceil(np.array(dimensions_pocket) / spacing)
+    return np.where(
+        npts_required_min % 2 == 0, npts_required_min, npts_required_min + 1
+    ).astype(int)
