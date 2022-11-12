@@ -9,6 +9,42 @@ References
 https://autodock.scripps.edu/wp-content/uploads/sites/56/2022/04/AutoDock4.2.6_UserGuide.pdf
 https://autodock.scripps.edu/wp-content/uploads/sites/56/2021/10/AutoDock4.2.6_UserGuide.pdf
 https://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.21.html
+
+Notes
+-----
+List of AutoDock atom types, found at:
+'http://mmb.irbbarcelona.org/gitlab/BioExcel/structureChecking/blob/
+5f07d82dc36d1f43733ae3b1ecd9f40aebe8b0a2/biobb_structure_checking/dat/autodock_atomtypes.dat'
+
+H      2.00  0.020   0.0000   0.00051  0.0  0.0  0  -1  -1  3    Non H-bonding Hydrogen
+HD     2.00  0.020   0.0000   0.00051  0.0  0.0  2  -1  -1  3    Donor 1 H-bond Hydrogen
+HS     2.00  0.020   0.0000   0.00051  0.0  0.0  1  -1  -1  3    Donor S Spherical Hydrogen
+C      4.00  0.150  33.5103  -0.00143  0.0  0.0  0  -1  -1  0    Non H-bonding Aliphatic Carbon
+A      4.00  0.150  33.5103  -0.00052  0.0  0.0  0  -1  -1  0    Non H-bonding Aromatic Carbon
+N      3.50  0.160  22.4493  -0.00162  0.0  0.0  0  -1  -1  1    Non H-bonding Nitrogen
+NA     3.50  0.160  22.4493  -0.00162  1.9  5.0  4  -1  -1  1    Acceptor 1 H-bond Nitrogen
+NS     3.50  0.160  22.4493  -0.00162  1.9  5.0  3  -1  -1  1    Acceptor S Spherical Nitrogen
+OA     3.20  0.200  17.1573  -0.00251  1.9  5.0  5  -1  -1  2    Acceptor 2 H-bonds Oxygen
+OS     3.20  0.200  17.1573  -0.00251  1.9  5.0  3  -1  -1  2    Acceptor S Spherical Oxygen
+F      3.09  0.080  15.4480  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Fluorine
+Mg     1.30  0.875   1.5600  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Magnesium
+MG     1.30  0.875   1.5600  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Magnesium
+P      4.20  0.200  38.7924  -0.00110  0.0  0.0  0  -1  -1  5    Non H-bonding Phosphorus
+SA     4.00  0.200  33.5103  -0.00214  2.5  1.0  5  -1  -1  6    Acceptor 2 H-bonds Sulphur
+S      4.00  0.200  33.5103  -0.00214  0.0  0.0  0  -1  -1  6    Non H-bonding Sulphur
+Cl     4.09  0.276  35.8235  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Chlorine
+CL     4.09  0.276  35.8235  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Chlorine
+Ca     1.98  0.550   2.7700  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Calcium
+CA     1.98  0.550   2.7700  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Calcium
+Mn     1.30  0.875   2.1400  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Manganese
+MN     1.30  0.875   2.1400  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Manganese
+Fe     1.30  0.010   1.8400  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Iron
+FE     1.30  0.010   1.8400  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Iron
+Zn     1.48  0.550   1.7000  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Zinc
+ZN     1.48  0.550   1.7000  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Zinc
+Br     4.33  0.389  42.5661  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Bromine
+BR     4.33  0.389  42.5661  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Bromine
+I      4.72  0.550  55.0585  -0.00110  0.0  0.0  0  -1  -1  4    Non H-bonding Iodine
 """
 
 
