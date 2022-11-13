@@ -263,32 +263,52 @@ def create_gpf(
 
 def submit_job(
         filepath_input_gpf: Path,
-        filepath_output_glg: Path,
-        filepath_autogrid: Path = "/home/michele/Software/autodock4/autogrid4"
-) -> NoReturn:
+        filepath_output_glg: Optional[Path] = None,
+) -> subprocess.CompletedProcess:
     """
-    Initiate grid energy calculations using an input grid parameter file (GPF).
+    Run grid energy calculations with AutoGrid4, using the input grid parameter file (GPF).
 
     Parameters
     ----------
-    filepath_input_gpf
-    filepath_output_glg
-    filepath_autogrid
+    filepath_input_gpf : pathlib.Path
+        Path to the input Grid Parameter File (.gpf), used as an input specification file in
+        AutoGrid.
+    filepath_output_glg : pathlib.Path, Optional, default: None
+        Filepath to store the output log of the process produced by AutoGrid. If `None`,
+        then the log file will be created in the same directory as `filepath_input_gpf`,
+        with the same filename but with '.glg' extension.
 
     Returns
     -------
-    None
+    subprocess.CompletedProcess
+        If the process exits with a zero exit code (meaning it was successful),
+        a subprocess.CompletedProcess object is returned, containing the console output and
+        other attributes of the process. But more importan
         A log file (.glg) is generated in the given output path.
         Calculated grid-point energies are written to respective '.map' files, as specified in the
         input gpf file.
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the process exits with a non-zero exit code, an exception will be raised,
+        with attributes `returncode`, `stdout` and `stderr`, which hold the exit code,
+        console output and error message of the process.
     """
-    # TODO: This function relies on manual installation of AutoGrid4 program and inputting its
-    #  filepath here. Find a better option!
-    os.system(
-        f"{filepath_autogrid} "
-        f"-p {filepath_input_gpf.with_suffix('.gpf')} -l {filepath_output_glg.with_suffix('.glg')}"
+    if filepath_output_glg is None:
+        filepath_output_glg = filepath_input_gpf
+    process = subprocess.run(
+        args=[
+            Path(__file__).parent.resolve()/'autogrid4',
+            "-p",
+            filepath_input_gpf.with_suffix('.gpf'),
+            "-l",
+            filepath_output_glg.with_suffix('.glg')
+        ],
+        capture_output=True,
+        check=True,
     )
-    return
+    return process
 
 
 def create_grid_tensor_from_map_file(
