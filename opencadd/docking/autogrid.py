@@ -402,17 +402,14 @@ def calculate_grid_point_coordinates(
     return np.flip(np.array(list(coordinates_unit_vectors)), axis=1) * spacing + origin
 
 
-def calculate_npts(
-        dimensions_pocket: Sequence[float, float, float],
-        spacing: float
-) -> np.ndarray:
+def calculate_npts(dimensions_pocket: Tuple[float, float, float], spacing: float) -> np.ndarray:
     """
     Calculate the AutoGrid input argument `npts`, from given pocket dimensions and grid spacing
     values.
 
     Parameters
     ----------
-    dimensions_pocket : Sequence[float, float, float]
+    dimensions_pocket : tuple[float, float, float]
         Length of the target structure's binding pocket, along x-, y-, and z-axis, respectively.
     spacing : float
         The same parameter as in AutoGrid, i.e. the grid-point spacing.
@@ -421,7 +418,10 @@ def calculate_npts(
     -------
     npts : numpy.ndarray
         A 1-dimensional array of size 3, which can be used directly as input `npts` for AutoGrid
-        functions.
+        functions. The values are the smallest valid values (i.e. even integers) that are needed to
+        cover the whole cuboid pocket. Therefore, in cases where a dimension is not divisible by
+        the spacing value, or the resulting value is an odd number, the value will be rounded up to
+        the next even integer.
 
     Notes
     -----
@@ -434,7 +434,5 @@ def calculate_npts(
     For more information on AutoGrid parameters `spacing` and `npts`, see the function
     `routine_run_autogrid` in this module.
     """
-    npts_required_min = np.ceil(np.array(dimensions_pocket) / spacing)
-    return np.where(
-        npts_required_min % 2 == 0, npts_required_min, npts_required_min + 1
-    ).astype(int)
+    npts_min = np.ceil(np.array(dimensions_pocket) / spacing)
+    return np.where(npts_min % 2 == 0, npts_min, npts_min + 1).astype(int)
