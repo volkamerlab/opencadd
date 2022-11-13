@@ -62,13 +62,13 @@ def routine_run_autogrid(
         gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
         npts: Tuple[int, int, int] = (40, 40, 40),
         spacing: float = 0.375,
-        receptor_types: str = "A C HD N NA OA SA Cl",
-        ligand_types: str = "A C HD OA",
+        receptor_types: Sequence[str] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
+        ligand_types: Sequence[str] = ("A", "C", "HD", "OA"),
         smooth: float = 0.5,
         dielectric: float = -0.1465,
         parameter_file: Optional[Path] = None,
         path_output: Optional[Path] = None,
-):
+) -> np.ndarray:
     """
     Run AutoGrid with given input structure and specifications, and return the grid values.
     The set of input parameters are identical to that of function `create_gpf`.
@@ -77,7 +77,7 @@ def routine_run_autogrid(
     ----------
     receptor : pathlib.Path
         Filepath to the PDBQT structure file of the macromolecule.
-    gridcenter : Sequence[float, float, float], Optional, default: "auto"
+    gridcenter : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
         Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
         If not provided, the keyword "auto" signals AutoGrid to center the grid on the center of
         the macromolecule.
@@ -90,15 +90,14 @@ def routine_run_autogrid(
         The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
         Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
         all three dimensions.
-    receptor_types : str, Optional, default: "A C HD N NA OA SA Cl"
-        Atom types present in the receptor, separated by spaces; e.g. for a typical protein, this
-        will be, “A C HD N OA SA”. Atom types are one or two letters, and several specialized
-        types are used in the AutoDock4.2 forcefield, including: C (aliphatic carbon), A (aromatic
-        carbon), HD (hydrogen that donates hydrogen bond), OA (oxygen that accepts hydrogen
-        bond), N (nitrogen that doesn’t accept hydrogen bonds), SA (sulfur that accepts hydrogen
-        bonds).
-    ligand_types : str, Optional, default: "A C HD OA"
-        Atom types present in the ligand, separated by spaces, such as “A C HD N NA OA SA”.
+    receptor_types : Sequence[str], Optional, default: ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl")
+        Atom types present in the receptor. For a typical protein, this will be: A, C, HD, N,
+        OA, SA. Atom types are one or two letters, and several specialized types are used in the
+        AutoDock4.2 forcefield, including: C (aliphatic carbon), A (aromatic carbon),
+        HD (hydrogen that donates hydrogen bond), OA (oxygen that accepts hydrogen bond),
+        N (nitrogen that doesn’t accept hydrogen bonds), SA (sulfur that accepts hydrogen bonds).
+    ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
+        Atom types present in the ligand, for example: A, C, HD, N, NA, OA, SA.
     smooth : float, Optional, default: 0.5
         Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
         and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
@@ -117,13 +116,7 @@ def routine_run_autogrid(
     numpy.ndarray, numpy.ndarray
     """
     # 1. Create GPF config file for AutoGrid.
-    (
-        path_gpf,
-        path_gridfld,
-        paths_ligand_type_maps,
-        path_electrostatic_map,
-        path_desolvation_map
-    ) = create_gpf(
+    path_gpf, paths_energy_maps, paths_gridfld_xyz = create_gpf(
         receptor=receptor,
         gridcenter=gridcenter,
         npts=npts,
@@ -138,24 +131,22 @@ def routine_run_autogrid(
     # 2. Submit job to AutoGrid.
     submit_job(
         filepath_input_gpf=path_gpf,
-        filepath_output_glg=path_output/receptor.stem,
+        filepath_output_glg=path_output,
     )
     # 3. Extract calculated grid-point energies from map files.
     grid = np.empty(
-        shape=(npts[2]+1, npts[1]+1, npts[0]+1, len(paths_ligand_type_maps)+2),
+        shape=(npts[2]+1, npts[1]+1, npts[0]+1, len(paths_energy_maps)+1),
         dtype=np.float32
     )
-    for idx, filepath_map in enumerate(
-            paths_ligand_type_maps + path_electrostatic_map + path_desolvation_map
-    ):
+    for idx, filepath_map in enumerate(paths_energy_maps):
         grid[..., idx] = create_grid_tensor_from_map_file(filepath=filepath_map)
     # 4. Calculate coordinates of the grid points in reference frame of the target.
-    coordinates = calculate_grid_point_coordinates(
+    grid[..., -1] = calculate_grid_point_coordinates(
         gridcenter=gridcenter,
         npts=npts,
         spacing=spacing
     )
-    return grid, coordinates
+    return grid
 
 
 def create_gpf(
