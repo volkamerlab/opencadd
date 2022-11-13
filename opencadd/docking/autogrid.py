@@ -108,7 +108,24 @@ def routine_run_autogrid(
 
     Returns
     -------
-    numpy.ndarray, numpy.ndarray
+    grid : numpy.ndarray[dtype=numpy.float64, ndims=4]
+        A 4-dimensional array, where the first three dimensions represent the grid points,
+        and the last dimension contains the data for each grid point.
+
+        Each grid point contains energy values for each of the input ligand atom-types (probes),
+        in the given order. Thus, with 'nt' being the number of input probes, the first 'nt'
+        elements of the last dimension of the grid array correspond to their energy values.
+        There are five other elements at the end of the last dimension, namely the electrostatic
+        potential and desolvation energy, followed by the x-, y- and z-coordinates of the grid
+        point in the reference frame of the target structure.
+
+        The shape of the array is thus (nx, ny, nz, nt + 5), where nx, ny, and nz are the number of
+        grid points along the x-, y-, and z-axis, respectively. These are each equal to their
+        corresponding `npts` value, plus 1 (due to center point). The array is ordered in
+        the same way that the grid points are ordered in space, and thus the individual grid
+        points can be indexed using their actual coordinates (in unit vectors), assuming the
+        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
     """
     # 1. Create GPF config file for AutoGrid.
     receptor_types = tuple(set(extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor)))
@@ -131,13 +148,15 @@ def routine_run_autogrid(
     )
     # 3. Extract calculated grid-point energies from map files.
     grid = np.empty(
-        shape=(npts[2]+1, npts[1]+1, npts[0]+1, len(paths_energy_maps)+1),
-        dtype=np.float32
+        shape=(*(np.array(npts)+1), len(paths_energy_maps)+3),
+        dtype=np.float64
     )
     for idx, filepath_map in enumerate(paths_energy_maps):
         grid[..., idx] = create_grid_tensor_from_map_file(filepath=filepath_map)
     # 4. Calculate coordinates of the grid points in reference frame of the target.
-    grid[..., -1] = calculate_grid_point_coordinates(
+    if gridcenter == "auto":
+        gridcenter, _, _ = extract_grid_params_from_mapfile(filepath_map=paths_energy_maps[0])
+    grid[..., -3:] = calculate_grid_point_coordinates(
         gridcenter=gridcenter,
         npts=npts,
         spacing=spacing
@@ -230,7 +249,7 @@ def create_gpf(
         f"receptor_types {' '.join(receptor_types)}\n"
         f"ligand_types {' '.join(ligand_types)}\n"
         f"receptor {receptor}\n"
-        f"gridcenter {gridcenter}\n"
+        f"gridcenter {gridcenter[0]} {gridcenter[1]} {gridcenter[2]}\n"
         f"smooth {smooth}\n"
     )
     for path_map in paths_ligand_type_maps:
@@ -314,12 +333,15 @@ def create_grid_tensor_from_map_file(
 
     Returns
     -------
-    numpy.ndarray
-        A 3-dimensional array of shape (nz, ny, nx), where each point can be indexed by its
-        coordinates (normalized to units of grid point spacing). Each element is a float,
-        corresponding to the calculated energy value at a grid point. The grid points
-        are ordered according to the nested loops $z(y(x))$, so the $x$-coordinate is changing
-        fastest. The coordinate system is right-handed.
+    grid : numpy.ndarray[dtype=numpy.float64, ndims=3]
+        A 3-dimensional array containing the calculated energy values for each grid point.
+        The shape of the array is (nx, ny, nz), where nx, ny, and nz are the number of grid
+        points along the x-, y-, and z-axis, respectively. These are each equal to the
+        corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
+        the same way that the grid points are ordered in space, and thus the individual grid
+        points can be indexed using their actual coordinates (in unit vectors), assuming the
+        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
 
     Notes
     -----
@@ -339,21 +361,22 @@ def create_grid_tensor_from_map_file(
     116.724602
     108.233879
     ```
-
+    The grid points are ordered according to the nested loops z(y(x)), so the x-coordinate
+    is changing fastest. The coordinate system is right-handed.
     The header `NELEMENTS` is the same as the input parameter `npts`, defined in function
     `create_gpf`.
     """
     with open(filepath, "r") as f:
         lines = f.readlines()
-    num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))) + 1
-    return np.array(map(float, lines[6:])).reshape(tuple(reversed(num_points_per_axis)))
+    num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))).astype(int) + 1
+    return np.array(lines[6:]).astype(np.float64).reshape(tuple(num_points_per_axis), order="F")
 
 
 def calculate_grid_point_coordinates(
         gridcenter: Tuple[float, float, float],
         npts: Tuple[int, int, int],
         spacing: float = 0.375,
-):
+) -> np.ndarray:
     """
     Calculate coordinates of the grid points, in the reference frame of the target structure.
     These are calculated from the same input parameters used in function `create_gpf` to create
@@ -376,17 +399,32 @@ def calculate_grid_point_coordinates(
     Returns
     -------
     numpy.ndarray
-        A 2-dimensional array of shape (n, 3), containing the (x,y,z)-coordinates of n grid
-        points.
+        A 4-dimensional array containing the (x,y,z)-coordinates of each grid point
+        in Ångstrom (Å), in the target structure's reference frame.
+
+        The shape of the array is (nx, ny, nz, 3), where nx, ny, and nz are the number of grid
+        points along the x-, y-, and z-axis, respectively. These are each equal to the
+        corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
+        the same way that the grid points are ordered in space, and thus the individual grid
+        points can be indexed using their actual coordinates (in unit vectors), assuming the
+        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
     """
-    origin = np.array(gridcenter) - spacing * np.array(npts) / 2
     num_grid_points_per_axis = np.array(npts) + 1
-    coordinates_unit_vectors = itertools.product(
-        range(num_grid_points_per_axis[2]),
-        range(num_grid_points_per_axis[1]),
-        range(num_grid_points_per_axis[0])
-    )
-    return np.flip(np.array(list(coordinates_unit_vectors)), axis=1) * spacing + origin
+    coordinates_unit_vectors = np.flip(
+        np.array(
+            list(
+                itertools.product(
+                    range(num_grid_points_per_axis[2]),
+                    range(num_grid_points_per_axis[1]),
+                    range(num_grid_points_per_axis[0])
+                )
+            )
+        ),
+        axis=1
+    ).reshape((*num_grid_points_per_axis, 3), order="F")
+    origin = np.array(gridcenter) - spacing * np.array(npts) / 2
+    return coordinates_unit_vectors * spacing + origin
 
 
 def calculate_npts(dimensions_pocket: Tuple[float, float, float], spacing: float) -> np.ndarray:
@@ -439,6 +477,10 @@ def extract_grid_params_from_mapfile(
     Returns
     -------
     gridcenter, npts, spacing : tuple[tuple, tuple, float]
+
+    See Also
+    --------
+    For a sample of '.map' file contents, see function `create_grid_tensor_from_map_file`.
     """
     with open(filepath_map, "r") as f:
         lines = f.readlines()
