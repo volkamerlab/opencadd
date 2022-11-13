@@ -55,6 +55,8 @@ from pathlib import Path
 import itertools
 # 3rd-party
 import numpy as np
+# Self
+from opencadd.io.pdbqt import extract_autodock_atom_types_from_pdbqt
 
 
 def routine_run_autogrid(
@@ -62,7 +64,6 @@ def routine_run_autogrid(
         gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
         npts: Tuple[int, int, int] = (40, 40, 40),
         spacing: float = 0.375,
-        receptor_types: Sequence[str] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
         ligand_types: Sequence[str] = ("A", "C", "HD", "OA"),
         smooth: float = 0.5,
         dielectric: float = -0.1465,
@@ -90,12 +91,6 @@ def routine_run_autogrid(
         The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
         Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
         all three dimensions.
-    receptor_types : Sequence[str], Optional, default: ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl")
-        Atom types present in the receptor. For a typical protein, this will be: A, C, HD, N,
-        OA, SA. Atom types are one or two letters, and several specialized types are used in the
-        AutoDock4.2 forcefield, including: C (aliphatic carbon), A (aromatic carbon),
-        HD (hydrogen that donates hydrogen bond), OA (oxygen that accepts hydrogen bond),
-        N (nitrogen that doesn’t accept hydrogen bonds), SA (sulfur that accepts hydrogen bonds).
     ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
         Atom types present in the ligand, for example: A, C, HD, N, NA, OA, SA.
     smooth : float, Optional, default: 0.5
@@ -116,6 +111,7 @@ def routine_run_autogrid(
     numpy.ndarray, numpy.ndarray
     """
     # 1. Create GPF config file for AutoGrid.
+    receptor_types = tuple(set(extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor)))
     path_gpf, paths_energy_maps, paths_gridfld_xyz = create_gpf(
         receptor=receptor,
         gridcenter=gridcenter,
