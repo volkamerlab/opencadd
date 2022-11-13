@@ -82,3 +82,26 @@ def pdb_to_pdbqt_openbabel(
             atom.OBAtom.GetPartialCharge()
     molecule.write("pdbqt", str(pdbqt_filepath.with_suffix(".pdbqt")), overwrite=True)
     return molecule
+
+
+def extract_autodock_atom_types_from_pdbqt(filepath_pdbqt: Path) -> Tuple[str]:
+    """
+    Extract the AutoDock-defined atom types for all atoms in a PDBQT file.
+
+    Parameters
+    ----------
+    filepath_pdbqt : pathlib.Path
+        Path to the PDBQT file.
+
+    Returns
+    -------
+    tuple[str]
+        Type of each atom in the same order as in the file, where each type is defined by AutoDock
+        as a string of one or two characters, such as "A", "C", "HD", "N", "NA", "OA", "SA", etc.
+    """
+    # TODO: Create a complete PDBQT parser class and add this and other related functions as
+    #  methods.
+    with open(filepath_pdbqt, "r") as f:
+        lines = f.readlines()
+    atom_types = [line.split()[-1] for line in lines if line.startswith("ATOM")]
+    return tuple(set(atom_types))
