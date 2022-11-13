@@ -363,8 +363,8 @@ def create_grid_tensor_from_map_file(
 
 
 def calculate_grid_point_coordinates(
-        gridcenter: Sequence[float, float, float],
-        npts: Sequence[int, int, int],
+        gridcenter: Tuple[float, float, float],
+        npts: Tuple[int, int, int],
         spacing: float = 0.375,
 ):
     """
