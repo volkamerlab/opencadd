@@ -423,3 +423,26 @@ def calculate_npts(dimensions_pocket: Tuple[float, float, float], spacing: float
     """
     npts_min = np.ceil(np.array(dimensions_pocket) / spacing)
     return np.where(npts_min % 2 == 0, npts_min, npts_min + 1).astype(int)
+
+
+def extract_grid_params_from_mapfile(
+        filepath_map: Path
+) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], float]:
+    """
+    Extract `gridcenter`, `npts` and `spacing` parameters from a .MAP file.
+
+    Parameters
+    ----------
+    filepath_map : pathlib.Path
+        Path to one of the calculated .MAP files.
+
+    Returns
+    -------
+    gridcenter, npts, spacing : tuple[tuple, tuple, float]
+    """
+    with open(filepath_map, "r") as f:
+        lines = f.readlines()
+    spacing = float(lines[3].split()[1])
+    npts = tuple(map(float, lines[4].split()[1:4]))
+    gridcenter = tuple(map(float, lines[5].split()[1:4]))
+    return gridcenter, npts, spacing
