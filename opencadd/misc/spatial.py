@@ -3,10 +3,27 @@ General functions and routines for spatial calculations, such as distances, volu
 """
 
 
-#Standard library
+# Standard library
 from typing import Any, Sequence
 # 3rd-party
 import numpy as np
+
+
+# Direction vectors in a 3x3x3 grid:
+GRID_DIR_ORTHO_POS = np.array([[1,0,0], [0,1,0], [0,0,1]], dtype=np.byte)
+GRID_DIR_DIAG_2D_POS = np.array(
+    [[1,1,0], [1,0,1], [0,1,1], [-1,1,0], [-1,0,1], [0,-1,1]],
+    dtype=np.byte
+)
+GRID_DIR_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
+GRID_DIRS_ORTHO_NEG = -GRID_DIR_ORTHO_POS
+GRID_DIRS_DIAG_2D_NEG = -GRID_DIR_DIAG_2D_POS
+GRID_DIRS_DIAG_3D_NEG = -GRID_DIR_DIAG_3D_POS
+GRID_DIRS_ORTHO = np.insert(GRID_DIRS_ORTHO_NEG, np.arange(3), GRID_DIR_ORTHO_POS, axis=0)
+GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(3), GRID_DIR_DIAG_2D_POS, axis=0)
+GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(3), GRID_DIR_DIAG_3D_POS, axis=0)
+GRID_DIRS_DIAG = np.concatenate([GRID_DIRS_DIAG_2D, GRID_DIRS_DIAG_3D])
+GRID_DIRS = np.concatenate([GRID_DIRS_ORTHO, GRID_DIRS_DIAG])
 
 
 def grid_distance(
