@@ -20,7 +20,7 @@ import itertools
 # 3rd-party
 import numpy as np
 # Self
-from opencadd.io.pdbqt import extract_autodock_atom_types_from_pdbqt
+from opencadd.io.pdbqt import extract_autodock_atom_types_from_pdbqt, TYPE_AUTODOCK_ATOM_TYPE
 
 
 def routine_run_autogrid(
@@ -28,7 +28,7 @@ def routine_run_autogrid(
         gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
         npts: Tuple[int, int, int] = (40, 40, 40),
         spacing: float = 0.375,
-        ligand_types: Sequence[str] = ("A", "C", "HD", "OA"),
+        ligand_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
         smooth: float = 0.5,
         dielectric: float = -0.1465,
         parameter_file: Optional[Path] = None,
@@ -52,7 +52,7 @@ def routine_run_autogrid(
         point, there will be an odd number of points in each dimension. The number of x-, y and
         z-grid points need not be equal.
     spacing : float, Optional, default: 0.375
-        The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
+        The grid-point spacing, i.e. distance between two adjacent grid points in Ångstrom (Å).
         Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
         all three dimensions.
     ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
@@ -133,8 +133,8 @@ def create_gpf(
         gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
         npts: Tuple[int, int, int] = (40, 40, 40),
         spacing: float = 0.375,
-        receptor_types: Sequence[str] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
-        ligand_types: Sequence[str] = ("A", "C", "HD", "OA"),
+        receptor_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
+        ligand_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
         smooth: float = 0.5,
         dielectric: float = -0.1465,
         parameter_file: Optional[Path] = None,

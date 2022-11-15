@@ -4,7 +4,7 @@ Functions for handling pdbqt files.
 
 # Standard library
 import os
-from typing import NoReturn, Tuple, Optional, Union
+from typing import NoReturn, Tuple, Optional, Union, Literal
 from pathlib import Path
 # 3rd-party
 import numpy as np
@@ -13,6 +13,13 @@ from openbabel import pybel
 # Self
 from opencadd.misc.parsing import extract_column_from_string_array
 
+
+TYPE_AUTODOCK_ATOM_TYPE = Literal[
+    "H", "HD", "HS", "A", "C", "N", "NA", "NS", "OA", "OS", "F", "Mg",
+    "P", "SA", "S", "Cl", "Ca", "Mn", "Fe", "Zn", "Br", "I"
+]
+
+DATA_AUTODOCK_ATOM_TYPE = pd.read_csv(Path("./autodock_atom_types.csv"), comment="#")
 
 def pdb_to_pdbqt_autodocktools(
         filepath_input_pdb: Path,
