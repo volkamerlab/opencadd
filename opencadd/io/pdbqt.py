@@ -147,7 +147,7 @@ def parse_pdbqt(filepath_pdbqt: Path):
         https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
     """
 
-    def parse_atom_records(lines_atom: np.ndarray):
+    def parse_atom_records(record_lines_atom: np.ndarray):
         """
         Parse ATOM records
         """
@@ -172,10 +172,15 @@ def parse_pdbqt(filepath_pdbqt: Path):
         for col_name, (col_range, col_dtype) in columns.items():
             df[col_name] = np.char.strip(
                 extract_column_from_string_array(
-                    array=lines_atom,
+                    array=record_lines_atom,
                     char_range=(col_range[0] - 1, col_range[1])
                 )
             ).astype(col_dtype)
+        indices_target_atom_types = np.where(
+            df.autodock_atom_type.values[..., np.newaxis] == DATA_AUTODOCK_ATOM_TYPE.type.values
+        )[1]
+        for hbond_data in ["is_acceptor", "is_donor", "hbond_type"]:
+            df[hbond_data] = DATA_AUTODOCK_ATOM_TYPE[hbond_data].values[indices_target_atom_types]
         return df
 
     record_parsers = {
