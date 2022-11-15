@@ -19,7 +19,11 @@ TYPE_AUTODOCK_ATOM_TYPE = Literal[
     "P", "SA", "S", "Cl", "Ca", "Mn", "Fe", "Zn", "Br", "I"
 ]
 
-DATA_AUTODOCK_ATOM_TYPE = pd.read_csv(Path("./autodock_atom_types.csv"), comment="#")
+DATA_AUTODOCK_ATOM_TYPE = pd.read_csv(
+    Path(__file__).parent.resolve()/'autodock_atom_types.csv',
+    comment="#",
+    na_filter=False
+)
 
 def pdb_to_pdbqt_autodocktools(
         filepath_input_pdb: Path,
