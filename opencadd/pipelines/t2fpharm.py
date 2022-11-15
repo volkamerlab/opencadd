@@ -14,6 +14,7 @@ from scipy.spatial import distance_matrix
 from opencadd.docking import autogrid
 from opencadd.io import pdbqt
 from opencadd.io.pdbqt import TYPE_AUTODOCK_ATOM_TYPE, DATA_AUTODOCK_ATOM_TYPE
+from opencadd.bindingsite.utils import count_psp_events_from_vacancy_tensor
 
 
 class T2FPharm:
@@ -54,10 +55,12 @@ class T2FPharm:
         self._filepath_target: Path = filepath_target
         self._path_output: Path = path_output
         # Instance attributes that are set after calling respective methods:
+        self._spacing_grid_points: float = None
         self._grid: np.ndarray = None
         self._type_probes: np.ndarray = None
         self._type_energy_grids: np.ndarray = None
-        self._grid_vacant: np.ndarray = None
+        self._grid_vacancy: np.ndarray = None
+        self._grid_buriedness = None
         return
 
     def calculate_energy_grid(
@@ -103,19 +106,20 @@ class T2FPharm:
             argument is provided, the `dims_grid` argument will be ignored.
         return_copy : bool, Optional, default: False
             Whether to also return a copy of the calculated grid values (when True),
-            or only store internally (when False)
+            or only store internally (when False).
 
         Returns
         -------
-        Optional[numpy.ndarray]
+        grid_energy : numpy.ndarray, Optional, default: None
+            A 4-dimensional array, where the first three dimensions represent the grid points,
+            and the last dimension contains the data for each grid point. It is the direct
+            return value of the function `opencadd.docking.autogrid.routine_run_autogrid`;
+            for more information, see the documentation of that function.
+
             Only when the input parameter `return_copy` is set to True, a copy of the calculated
             grid energies will be returned, otherwise the grid is stored internally for
-            easier further processing.
+            easier further processing, and `None` is returned.
 
-            The grid is 4-dimensional array, where the first three dimensions represent the grid
-            points, and the last dimension contains the data for each grid point. It is the
-            direct return value of the function `opencadd.docking.autogrid.routine_run_autogrid`;
-            for more information, see the documentation of that function.
         """
         type_probes = np.array(type_probes)
         probe_is_invalid = np.isin(
@@ -129,6 +133,7 @@ class T2FPharm:
                 f"{type_probes[probe_is_invalid]}"
             )
 
+        self._spacing_grid_points = spacing_grid_points
         self._type_probes = type_probes
         self._type_energy_grids = np.concatenate([type_probes, ["e", "d"]])
         self._grid = autogrid.routine_run_autogrid(
@@ -146,11 +151,11 @@ class T2FPharm:
 
     def calculate_vacancy_from_energy(
             self,
-            energy_ref: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]],
+            energy_refs: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]],
             energy_cutoff: float = +0.6,
             mode: Optional[Literal["max", "min", "avg", "sum"]] = "sum",
             return_copy: bool = False,
-    ):
+    ) -> Optional[np.ndarray]:
         """
         Calculate whether each grid point is vacant (or occupied by a target atom), based on given
         reference energy types, and a cutoff value.
@@ -159,7 +164,7 @@ class T2FPharm:
 
         Parameters
         ----------
-        energy_ref : Sequence[Literal]
+        energy_refs : Sequence[Literal]
             Grid-point energy value(s) to take as reference. These can be from the probe
             types for which energy grids were calculated (i.e. elements of input argument
             `type_probes` in method `calculate_energy_grid`), plus "e" and "d", referring to the
@@ -171,38 +176,40 @@ class T2FPharm:
             If more than one energy type is inputted in `energy_ref`, this parameter defines how
             those different energy values must be processed, before comparing with the cutoff
             value. If only one energy type is entered, then this parameter is ignored.
+        return_copy : bool, Optional, default: False
+            Whether to also return a copy of the calculated grid values (when True),
+            or only store internally (when False).
 
         Returns
         -------
-        grid_vacant : np.ndarray
+        grid_vacancy : numpy.ndarray, Optional, default: None
+            A 3-dimensional boolean array matching the dimensions of the energy grid,
+            indicating whether each grid point is vacant (True), or occupied (False).
+            Thus, the vacant grid points can easily be indexed using boolean indexing with this
+            array, i.e.: `grid[grid_vacancy]`.
 
             Only when the input parameter `return_copy` is set to True, a copy of the calculated
             vacancy grid will be returned, otherwise it is stored internally for easier
             further processing.
-
-            It is a 3-dimensional boolean array matching the dimensions of the energy grid,
-            indicating whether each grid point is vacant (True), or occupied (False).
-            Thus, the vacant grid points can easily be indexed using boolean indexing with this
-            array, i.e.: `grid[grid_vacant]`.
         """
         # The reducing operations corresponding to each `mode`:
         reducing_op = {"max": np.max, "min": np.min, "avg": np.mean, "sum": np.sum}
         # Depending on whether one or several reference energies were given, transform the input
         # into numpy array and verify `mode` is valid if several energies are given.
-        if isinstance(energy_ref, Sequence):
-            energy_ref = np.array(energy_ref)
+        if isinstance(energy_refs, Sequence):
+            energy_refs = np.array(energy_refs)
             if mode not in reducing_op:
                 raise ValueError("Input argument `mode` not recognized.")
         else:
-            energy_ref = np.array([energy_ref])
+            energy_refs = np.array([energy_refs])
         # Verify that all given reference energy types are already calculated
-        not_calculated = np.isin(energy_ref, self._type_energy_grids, invert=True)
+        not_calculated = np.isin(energy_refs, self._type_energy_grids, invert=True)
         if np.any(not_calculated):
             raise ValueError(
-                f"The following energy grids were not calculated: {energy_ref[not_calculated]}"
+                f"The following energy grids were not calculated: {energy_refs[not_calculated]}"
             )
         # Take the subgrid corresponding to given energy references
-        subgrid_ref = self._grid[..., np.isin(self._type_energy_grids, energy_ref)]
+        subgrid_ref = self._grid[..., np.isin(self._type_energy_grids, energy_refs)]
         # If only one energy reference is selected, take that,
         if subgrid_ref.shape[-1] == 1:
             energy_vals = subgrid_ref
@@ -210,6 +217,63 @@ class T2FPharm:
         else:
             energy_vals = reducing_op[mode](subgrid_ref, axis=-1)
         # Apply cutoff
-        self._grid_vacant = energy_vals < energy_cutoff
-        return self._grid_vacant.copy() if return_copy else None
+        self._grid_vacancy = energy_vals < energy_cutoff
+        return self._grid_vacancy.copy() if return_copy else None
+
+    def calculate_buriedness_from_psp_count(
+            self,
+            num_directions: Literal[3, 7, 13] = 7,
+            psp_len_max: float = 10.0,
+            psp_count_min: int = 4,
+            return_copy: bool = False,
+    ) -> Optional[np.ndarray]:
+        """
+        Calculate whether each grid point is buried inside the target structure or not, based on
+        counting the number of protein-solvent-protein (PSP) events for each point, and applying
+        a cutoff.
+
+        Notice that before using this method, a vacancy grid must be calculated using the method
+        `calculate_vacancy_from_energy`.
+
+        Parameters
+        ----------
+        num_directions : Literal[3, 7, 13], Optional, default: 7
+            Number of directions to look for PSP events for each grid point. Directions are
+            all symmetric around each point, and each direction entails both positive and
+            negative directions, along an axis. Directions are defined in a 3x3x3 unit cell,
+            i.e. for each point, there are 26 neighbors, and thus max. 13 directions.
+            Options are:
+            3: x-, y- and z-directions
+            7: x, y, z, and four 3d-diagonals (i.e. with absolute unit vector [1, 1, 1])
+            13: x, y, z, four 3d-diagonals, and six 2d-diagonals (e.g. [1, 1, 0])
+        psp_len_max : float, Optional, default: 10.0
+            Maximum acceptable distance for a PSP event, in Ångstrom (Å).
+        psp_count_min : int, Optional, default: 4
+            Minimum required number of PSP events for a grid point, in order to count as buried.
+        return_copy : bool, Optional, default: False
+            Whether to also return a copy of the calculated grid values (when True),
+            or only store internally (when False).
+
+        Returns
+        -------
+        grid_buriedness : numpy.ndarray, Optional, default: None
+            A 3-dimensional array matching the dimensions of the energy grid,
+            indicating whether each grid point is buried (True), or exposed (False).
+            Thus, the buried grid points can easily be indexed using boolean indexing with this
+            array, i.e.: `grid[grid_buriedness]`.
+
+            Only when the input parameter `return_copy` is set to True, a copy of the calculated
+            buriedness grid will be returned, otherwise it is stored internally for easier
+            further processing.
+        """
+        grid_psp_counts = count_psp_events_from_vacancy_tensor(
+            grid_vacancy=self._grid_vacancy,
+            spacing_grid_points=self._spacing_grid_points,
+            num_directions=num_directions,
+            psp_len_max=psp_len_max
+        )
+        self._grid_buriedness = grid_psp_counts >= psp_count_min
+        return self._grid_buriedness.copy() if return_copy else None
+
+
 
