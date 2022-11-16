@@ -20,8 +20,8 @@ GRID_DIRS_ORTHO_NEG = -GRID_DIR_ORTHO_POS
 GRID_DIRS_DIAG_2D_NEG = -GRID_DIR_DIAG_2D_POS
 GRID_DIRS_DIAG_3D_NEG = -GRID_DIR_DIAG_3D_POS
 GRID_DIRS_ORTHO = np.insert(GRID_DIRS_ORTHO_NEG, np.arange(3), GRID_DIR_ORTHO_POS, axis=0)
-GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(3), GRID_DIR_DIAG_2D_POS, axis=0)
-GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(3), GRID_DIR_DIAG_3D_POS, axis=0)
+GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(6), GRID_DIR_DIAG_2D_POS, axis=0)
+GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(4), GRID_DIR_DIAG_3D_POS, axis=0)
 GRID_DIRS_DIAG = np.concatenate([GRID_DIRS_DIAG_2D, GRID_DIRS_DIAG_3D])
 GRID_DIRS = np.concatenate([GRID_DIRS_ORTHO, GRID_DIRS_DIAG])
 
@@ -72,9 +72,9 @@ def grid_distance(
     for idx_point, point in enumerate(start_indices):
         for idx_dir, direct in enumerate(directions):
             len_max = np.min(
-                np.concatenate([(np.array(grid.shape) - point)[direct==1], point[direct==-1]])
+                np.concatenate([(np.array(grid.shape) - 1 - point)[direct==1], point[direct==-1]])
             )
-            for i in range(1, min(len_max+1, max_dist_in_dir[idx_dir])):
+            for i in range(1, int(min(len_max, max_dist_in_dir[idx_dir]))+1):
                 if grid[tuple(point + i * direct)] == target_value:
                     dists[idx_point, idx_dir] = i
                     break
