@@ -81,7 +81,7 @@ class T2FPharm:
         except Exception as e:
             raise ValueError("Could not parse the input PDBQT file.") from e
         if path_output is None:
-            path_output = filepath_target.parent / filepath_target.stem
+            path_output = filepath_target.parent
         else:
             path_output = Path(path_output)
             path_output.mkdir(parents=True, exist_ok=True)
@@ -114,7 +114,7 @@ class T2FPharm:
             ),
             spacing=spacing_grid_points,
             ligand_types=type_probes,
-            path_output=self._path_output / self._filepath_target.stem
+            path_output=self._path_output
         )
         return
 
