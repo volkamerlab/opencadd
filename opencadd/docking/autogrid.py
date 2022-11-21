@@ -21,6 +21,7 @@ import itertools
 import numpy as np
 # Self
 from opencadd.io.pdbqt import extract_autodock_atom_types_from_pdbqt, TYPE_AUTODOCK_ATOM_TYPE
+from opencadd.misc.spatial import Grid
 
 
 def routine_run_autogrid(
@@ -33,7 +34,7 @@ def routine_run_autogrid(
         dielectric: float = -0.1465,
         parameter_file: Optional[Path] = None,
         path_output: Optional[Path] = None,
-) -> np.ndarray:
+) -> Grid:
     """
     Run AutoGrid with given input structure and specifications, and return the grid values.
     The set of input parameters are identical to that of function `create_gpf`.
@@ -111,20 +112,21 @@ def routine_run_autogrid(
         filepath_output_glg=path_output,
     )
     # 3. Extract calculated grid-point energies from map files.
-    grid = np.empty(
-        shape=(*(np.array(npts)+1), len(paths_energy_maps)+3),
-        dtype=np.float64
-    )
-    for idx, filepath_map in enumerate(paths_energy_maps):
-        grid[..., idx] = create_grid_tensor_from_map_file(filepath=filepath_map)
-    # 4. Calculate coordinates of the grid points in reference frame of the target.
+    npts = np.array(npts)
+    type_maps = (*ligand_types, "e", "d")
     if gridcenter == "auto":
         gridcenter, _, _ = extract_grid_params_from_mapfile(filepath_map=paths_energy_maps[0])
-    grid[..., -3:] = calculate_grid_point_coordinates(
-        gridcenter=gridcenter,
-        npts=npts,
-        spacing=spacing
+    grid = Grid(
+        coords_origin=np.array(gridcenter) - spacing * npts / 2,
+        shape=npts+1,
+        spacing=spacing,
+        name_properties=type_maps,
     )
+    for type_map, filepath_map in zip(type_maps, paths_energy_maps):
+        grid.set_property(
+            name=type_map,
+            values=create_grid_tensor_from_map_file(filepath=filepath_map)
+        )
     return grid
 
 
@@ -332,63 +334,9 @@ def create_grid_tensor_from_map_file(
     """
     with open(filepath, "r") as f:
         lines = f.readlines()
+    # Extract `npts` from map file, and add 1 to get the shape of grid
     num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))).astype(int) + 1
     return np.array(lines[6:]).astype(np.float64).reshape(tuple(num_points_per_axis), order="F")
-
-
-def calculate_grid_point_coordinates(
-        gridcenter: Tuple[float, float, float],
-        npts: Tuple[int, int, int],
-        spacing: float = 0.375,
-) -> np.ndarray:
-    """
-    Calculate coordinates of the grid points, in the reference frame of the target structure.
-    These are calculated from the same input parameters used in function `create_gpf` to create
-    the configuration file for AutoGrid.
-
-    Parameters
-    ----------
-    gridcenter : Sequence[float, float, float], Optional, default: "auto"
-        Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
-    npts : Sequence[int, int, int], Optional, default: (40, 40, 40)
-        Number of grid points to add to the central grid point, along x-, y- and z-axes,
-        respectively. Each value must be an even integer number; when added to the central grid
-        point, there will be an odd number of points in each dimension. The number of x-, y and
-        z-grid points need not be equal.
-    spacing : float, Optional, default: 0.375
-        The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
-        Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
-        all three dimensions.
-
-    Returns
-    -------
-    numpy.ndarray
-        A 4-dimensional array containing the (x,y,z)-coordinates of each grid point
-        in Ångstrom (Å), in the target structure's reference frame.
-
-        The shape of the array is (nx, ny, nz, 3), where nx, ny, and nz are the number of grid
-        points along the x-, y-, and z-axis, respectively. These are each equal to the
-        corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
-        the same way that the grid points are ordered in space, and thus the individual grid
-        points can be indexed using their actual coordinates (in unit vectors), assuming the
-        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
-        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
-    """
-    num_grid_points_per_axis = np.array(npts) + 1
-    coordinates_unit_vectors = np.flip(
-        np.array(
-            list(
-                itertools.product(
-                    range(num_grid_points_per_axis[2]),
-                    range(num_grid_points_per_axis[1]),
-                    range(num_grid_points_per_axis[0])
-                )
-            )
-        ),
-        axis=1
-    ).reshape((*num_grid_points_per_axis, 3), order="F")
-    origin = np.array(gridcenter) - spacing * np.array(npts) / 2
-    return coordinates_unit_vectors * spacing + origin
 
 
 def calculate_npts(dimensions_pocket: Tuple[float, float, float], spacing: float) -> np.ndarray:
