@@ -4,7 +4,7 @@ T2F-Pharm (Truly Target-Focused Pharmacophore) model.
 
 
 # Standard library
-from typing import Sequence, Union, Optional, Literal, Tuple
+from typing import Sequence, Union, Optional, Literal, Tuple, Dict
 from pathlib import Path
 # 3rd-party
 import numpy as np
@@ -15,6 +15,7 @@ from opencadd.docking import autogrid
 from opencadd.io import pdbqt
 from opencadd.io.pdbqt import TYPE_AUTODOCK_ATOM_TYPE, DATA_AUTODOCK_ATOM_TYPE
 from opencadd.bindingsite.utils import count_psp_events_from_vacancy_tensor
+from opencadd.misc.spatial import Grid
 
 
 class T2FPharm:
@@ -100,12 +101,9 @@ class T2FPharm:
         # Set instance attributes.
         self._filepath_target: Path = filepath_target
         self._path_output: Path = path_output
-        self._type_probes: np.ndarray = type_probes
-        self._spacing_grid_points: float = spacing_grid_points
-        self._df_pdbqt: pd.DataFrame = df_pdbqt
-        self._type_energy_grids: np.ndarray = np.concatenate([type_probes, ["e", "d"]])
+        self._data_target_structure: pd.DataFrame = df_pdbqt
         # Calculate grid energies using AutoGrid4
-        self._grid: np.ndarray = autogrid.routine_run_autogrid(
+        self._grid: Grid = autogrid.routine_run_autogrid(
             receptor=self._filepath_target,
             gridcenter=coords_grid_center,
             npts=npts if npts is not None else autogrid.calculate_npts(
@@ -119,7 +117,7 @@ class T2FPharm:
         return
 
     @property
-    def grid(self):
+    def grid(self) -> Grid:
         """
         The complete grid.
 
@@ -133,13 +131,16 @@ class T2FPharm:
         """
         return self._grid
 
-    def calculate_vacancy_from_energy(
+    @property
+    def target(self) -> pd.DataFrame:
+        return self._data_target_structure
+
+    def calculate_mask_vacant(
             self,
             energy_refs: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]],
             energy_cutoff: float = +0.6,
             mode: Optional[Literal["max", "min", "avg", "sum"]] = "sum",
-            return_copy: bool = False,
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray:
         """
         Calculate whether each grid point is vacant (or occupied by a target atom), based on given
         reference energy types, and a cutoff value.
@@ -158,32 +159,17 @@ class T2FPharm:
             If more than one energy type is inputted in `energy_ref`, this parameter defines how
             those different energy values must be processed, before comparing with the cutoff
             value. If only one energy type is entered, then this parameter is ignored.
-        return_copy : bool, Optional, default: False
-            Whether to also return a copy of the calculated grid values (when True),
-            or only store internally (when False).
 
         Returns
         -------
-        grid_vacancy : numpy.ndarray, Optional, default: None
+        mask_vacant : numpy.ndarray
             A 3-dimensional boolean array matching the dimensions of the energy grid,
             indicating whether each grid point is vacant (True), or occupied (False).
             Thus, the vacant grid points can easily be indexed using boolean indexing with this
-            array, i.e.: `grid[grid_vacancy]`.
-
-            Only when the input parameter `return_copy` is set to True, a copy of the calculated
-            vacancy grid will be returned, otherwise it is stored internally for easier
-            further processing.
+            array, i.e.: `grid[mask_vacant]`.
         """
         # The reducing operations corresponding to each `mode`:
         reducing_op = {"max": np.max, "min": np.min, "avg": np.mean, "sum": np.sum}
-        # Depending on whether one or several reference energies were given, transform the input
-        # into numpy array and verify `mode` is valid if several energies are given.
-        if isinstance(energy_refs, Sequence):
-            energy_refs = np.array(energy_refs)
-            if mode not in reducing_op:
-                raise ValueError("Input argument `mode` not recognized.")
-        else:
-            energy_refs = np.array([energy_refs])
         # Verify that all given reference energy types are already calculated
         not_calculated = np.isin(energy_refs, self._type_energy_grids, invert=True)
         if np.any(not_calculated):
@@ -191,24 +177,20 @@ class T2FPharm:
                 f"The following energy grids were not calculated: {energy_refs[not_calculated]}"
             )
         # Take the subgrid corresponding to given energy references
-        subgrid_ref = self._grid[..., np.isin(self._type_energy_grids, energy_refs)]
-        # If only one energy reference is selected, take that,
-        if subgrid_ref.shape[-1] == 1:
-            energy_vals = subgrid_ref
-        # otherwise reduce the given references using the given operation.
-        else:
-            energy_vals = reducing_op[mode](subgrid_ref, axis=-1)
-        # Apply cutoff
-        self._grid_vacancy = energy_vals < energy_cutoff
-        return self._grid_vacancy.copy() if return_copy else None
+        subgrid_ref = self._grid.get_properties(names=energy_refs)
+        # If only one energy reference is selected, take that, otherwise reduce the given
+        # references using the given operation.
+        energy_vals = subgrid_ref if len(energy_refs) == 1 else reducing_op[mode](subgrid_ref, axis=-1)
+        # Apply cutoff and return
+        return energy_vals < energy_cutoff
 
-    def calculate_buriedness_from_psp_count(
+    def calculate_mask_buried(
             self,
+            mask_vacancy: np.ndarray,
             num_directions: Literal[3, 7, 13] = 7,
             psp_len_max: float = 10.0,
             psp_count_min: int = 4,
-            return_copy: bool = False,
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray:
         """
         Calculate whether each grid point is buried inside the target structure or not, based on
         counting the number of protein-solvent-protein (PSP) events for each point, and applying
@@ -232,30 +214,177 @@ class T2FPharm:
             Maximum acceptable distance for a PSP event, in Ångstrom (Å).
         psp_count_min : int, Optional, default: 4
             Minimum required number of PSP events for a grid point, in order to count as buried.
-        return_copy : bool, Optional, default: False
-            Whether to also return a copy of the calculated grid values (when True),
-            or only store internally (when False).
 
         Returns
         -------
-        grid_buriedness : numpy.ndarray, Optional, default: None
+        mask_buriedness : numpy.ndarray, Optional, default: None
             A 3-dimensional array matching the dimensions of the energy grid,
             indicating whether each grid point is buried (True), or exposed (False).
             Thus, the buried grid points can easily be indexed using boolean indexing with this
-            array, i.e.: `grid[grid_buriedness]`.
-
-            Only when the input parameter `return_copy` is set to True, a copy of the calculated
-            buriedness grid will be returned, otherwise it is stored internally for easier
-            further processing.
+            array, i.e.: `grid[mask_buried]`.
         """
         grid_psp_counts = count_psp_events_from_vacancy_tensor(
-            grid_vacancy=self._grid_vacancy,
-            spacing_grid_points=self._spacing_grid_points,
+            grid_vacancy=mask_vacancy,
+            spacing_grid_points=self._grid.spacing,
             num_directions=num_directions,
             psp_len_max=psp_len_max
         )
-        self._grid_buriedness = grid_psp_counts >= psp_count_min
-        return self._grid_buriedness.copy() if return_copy else None
+        mask_buried = np.zeros(shape=self._grid.shape, dtype=np.bool_)
+        mask_buried[mask_vacancy] = grid_psp_counts >= psp_count_min
+        return mask_buried
+
+    def count_hbond_partners_in_target(
+            self,
+            max_len_hbond: float = 3.0,
+            mask_grid: Optional[np.ndarray] = None,
+    ):
+        if mask_grid is None:
+            mask_grid = np.ones(shape=self._grid.shape, dtype=np.bool_)
+        coords_target_atoms = self._data_target_structure[["x", "y", "z"]].to_numpy()
+        mask_proximate = self._grid.calculate_mask_proximate(
+            coords_targets=coords_target_atoms,
+            distance=max_len_hbond,
+            mask=mask_grid,
+        )
+        count_acc_don_in_target = np.zeros(shape=(*self._grid.shape, 2), dtype=np.byte)
+        for idx, hbond_role in enumerate(["is_acceptor", "is_donor"]):
+            count_acc_don_in_target[mask_grid, idx] = np.count_nonzero(
+                np.logical_and(
+                    self._data_target_structure[hbond_role],
+                    mask_proximate
+                ),
+                axis=-1
+            )
+        return count_acc_don_in_target
+
+    def calculate_mask_feature(
+            self,
+            mask_grid: np.ndarray,
+            count_acceptors_in_target: np.ndarray,
+            max_energy: float = -0.35,
+            min_count_acceptor_atoms: int = 1
+    ):
+        mask_feature_hbond_donor = np.zeros(shape=self._grid.shape[:3], dtype=np.bool_)
+        mask_feature_hbond_donor[mask_grid] = np.logical_and(
+            self._grid[mask_grid, 2] <= max_energy,
+            count_acceptors_in_target[mask_grid] >= min_count_acceptor_atoms
+        )
+        return mask_feature_hbond_donor
+
+
+    def calculate_features(
+            self,
+            mask_vacant: np.ndarray,
+            mask_buried: np.ndarray,
+            mask_proximate: np.ndarray,
+            count_hbond_acc: np.ndarray,
+            count_hbond_donor: np.ndarray,
+            cutoff_energies: Tuple[
+                Tuple[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]], float]
+            ] = (("A", -0.4), ("C", -0.4), ("HD", -0.35), ("OA", -0.6), ("e", -1.2)),
+    ):
 
 
 
+# def routine_run_t2fpharm(
+#             filepath_target_structure: Union[str, Path],
+#             path_output: Optional[Union[str, Path]] = None,
+#             type_probes: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
+#             coords_grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
+#             spacing_grid_points: float = 0.6,
+#             dims_grid: Optional[Tuple[float, float, float]] = (16, 16, 16),
+#             npts: Optional[Tuple[int, int, int]] = None,
+#             energy_refs: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]] = ["OA"],
+#             energy_cutoff: float = +0.6,
+#             mode: Optional[Literal["max", "min", "avg", "sum"]] = "sum",
+# ):
+#     t2fpharm = T2FPharm(
+#         filepath_target_structure=filepath_target_structure,
+#         path_output=path_output,
+#         type_probes=type_probes,
+#         coords_grid_center=coords_grid_center,
+#         spacing_grid_points=spacing_grid_points,
+#         dims_grid=dims_grid,
+#         npts=npts,
+#     )
+#
+#     mask_vacant = t2fpharm.calculate_mask_vacant(
+#         energy_refs=energy_refs,
+#         energy_cutoff=energy_cutoff,
+#         mode=mode
+#     )
+#
+#     mask_buried = t2fpharm.calculate_mask_buried(
+#         mask_vacancy=mask_vacant,
+#         num_directions=num_directions,
+#         psp_len_max=,
+#         psp_count_min=
+#     )
+#
+#     mask_proximate = t2fpharm.calculate_mask_proximate(
+#         mask_grid=
+#     )
+#
+#
+#
+#
+#
+#
+#         is_donor = DATA_AUTODOCK_ATOM_TYPE.is_donor.values[indices_target_atom_types]
+#         is_acceptor = DATA_AUTODOCK_ATOM_TYPE.is_acceptor.values[indices_target_atom_types]
+#
+#
+#
+#
+#         atom_types_hbond_donor = np.array(["HD", "HS"])
+#         atom_types_hbond_acceptor = np.array(["NA", "NS", "OA", "OS", "SA"])
+#         grid_acceptor_donor_count = []
+#         for grid_point_proximity_mask in proximity_mask:
+#             proximate_atom_types = pdbqt_df.autock_atom_type.values[grid_point_proximity_mask]
+#             acceptor_count = np.count_nonzero(
+#                 np.isin(proximate_atom_types, atom_types_hbond_acceptor))
+#             donor_count = np.count_nonzero(np.isin(proximate_atom_types, atom_types_hbond_donor))
+#             grid_acceptor_donor_count.append([acceptor_count, donor_count])
+#         grid_acceptor_donor_count = np.array(
+#             grid_acceptor_donor_count, dtype=np.int8
+#         ).reshape((*subgrid.shape[:3], 2))
+#         hbond_mask = grid_acceptor_donor_count.sum(axis=-1) > 0
+#
+#         points_hydrophilic = subgrid[hbond_mask]
+#         points_hydrophobic = subgrid[~hbond_mask]
+#
+#         points_hbond_donor_mask = (grid_acceptor_donor_count[..., 0] > 0) & (subgrid)
+
+
+# def t2fpharm(
+#         filepath_target_structure: Path,
+#         coordinates_pocket_center: Union[Tuple[float, float, float], str] = "auto",
+#         dimensions_pocket: Tuple[float, float, float] = (16, 16, 16),
+#         spacing_grid: float = 0.6,
+#         atom_types_target: Sequence[str] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
+#         types_maxpot_probes: Sequence[Tuple[str, float]] = (
+#                 ("A", -0.4),
+#                 ("C", -0.4),
+#                 ("HD", -0.35),
+#                 ("OA", -0.6),
+#         ),
+#         maxpot_abs_electrostat: float = 1.0,
+#         maxpot_occupancy: float = +0.6,
+#         count_dirs_psp: Literal[3, 7, 13] = 7,
+#         max_psp_len: float = 10.0,
+#         min_psp_count: int = 4,
+#         max_hbond_len: float = 3.0,
+#         min_neighbor_dist_clustering: float = 1.21,
+#         min_common_neighbor_count_clustering: int = 6,
+#         min_points_per_cluster_count: int = 15,
+#         path_output: Optional[Path] = None
+# ):
+
+a=np.array([1,2,3])
+print(a[1])
+
+pharm = T2FPharm(filepath_target_structure="/Users/home/Downloads/test_run/3w32.pdbqt")
+mask_vacant = pharm.calculate_mask_vacant(
+    energy_refs=["e","d"],
+)
+pharm.calculate_mask_buried(mask_vacant)
