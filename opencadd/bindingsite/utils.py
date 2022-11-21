@@ -62,13 +62,13 @@ def count_psp_events_from_vacancy_tensor(
     dists_single_dir = grid_distance(
         grid=grid_vacancy,
         start_indices=np.argwhere(grid_vacancy),
-        directions=dirs[:num_directions],
+        directions=dirs[:num_directions*2],
         target_value=0,
-        max_dist_in_dir=max_mult_factors[:num_directions]
+        max_dist_in_dir=max_mult_factors[:num_directions*2]
     )
     # For each grid-point, filter directions where one half-direction is zero (meaning no
     # neighbor was found in that direction).
-    has_psp = np.logical_or(dists_single_dir[..., 0::2] == 0, dists_single_dir[..., 1::2] == 0)
+    has_psp = np.logical_and(dists_single_dir[..., 0::2] != 0, dists_single_dir[..., 1::2] != 0)
     # Add distances to neighbors in positive half-directions , to distances to neighbors in
     # negative half-directions, in order to get the PSP length in units of direction vectors,
     # and then multiply by direction unit vector lengths, to get the actual PSP distances.
