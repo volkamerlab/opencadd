@@ -4,7 +4,7 @@ Functions for handling pdbqt files.
 
 # Standard library
 import os
-from typing import NoReturn, Tuple, Optional, Union, Literal
+from typing import NoReturn, Tuple, Optional, Union
 from pathlib import Path
 # 3rd-party
 import numpy as np
@@ -12,18 +12,8 @@ import pandas as pd
 from openbabel import pybel
 # Self
 from opencadd.misc.parsing import extract_column_from_string_array
+from opencadd.consts import autodock
 
-
-TYPE_AUTODOCK_ATOM_TYPE = Literal[
-    "H", "HD", "HS", "A", "C", "N", "NA", "NS", "OA", "OS", "F", "Mg",
-    "P", "SA", "S", "Cl", "Ca", "Mn", "Fe", "Zn", "Br", "I"
-]
-
-DATA_AUTODOCK_ATOM_TYPE = pd.read_csv(
-    Path(__file__).parent.resolve()/'autodock_atom_types.csv',
-    comment="#",
-    na_filter=False
-)
 
 def pdb_to_pdbqt_autodocktools(
         filepath_input_pdb: Path,
@@ -176,11 +166,17 @@ def parse_pdbqt(filepath_pdbqt: Path):
                     char_range=(col_range[0] - 1, col_range[1])
                 )
             ).astype(col_dtype)
+
+        autodock_atom_types = autodock.AtomTypes()
+        autodock_atom_types_data = [
+            np.array([getattr(atom_type, attr) for atom_type in autodock_atom_types])
+            for attr in ["name", "hbond_status", "hbond_count"]
+        ]
         indices_target_atom_types = np.where(
-            df.autodock_atom_type.values[..., np.newaxis] == DATA_AUTODOCK_ATOM_TYPE.type.values
+            df.autodock_atom_type.values[..., np.newaxis] == autodock_atom_types_data[0]
         )[1]
-        for hbond_data in ["is_acceptor", "is_donor", "hbond_type"]:
-            df[hbond_data] = DATA_AUTODOCK_ATOM_TYPE[hbond_data].values[indices_target_atom_types]
+        df["hbond_status"] = autodock_atom_types_data[1][indices_target_atom_types]
+        df["hbond_count"] = autodock_atom_types_data[2][indices_target_atom_types]
         return df
 
     record_parsers = {
