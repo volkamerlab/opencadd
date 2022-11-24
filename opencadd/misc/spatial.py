@@ -11,23 +11,6 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 
-# Direction vectors in a 3x3x3 grid:
-GRID_DIR_ORTHO_POS = np.array([[1,0,0], [0,1,0], [0,0,1]], dtype=np.byte)
-GRID_DIR_DIAG_2D_POS = np.array(
-    [[1,1,0], [1,0,1], [0,1,1], [-1,1,0], [-1,0,1], [0,-1,1]],
-    dtype=np.byte
-)
-GRID_DIR_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
-GRID_DIRS_ORTHO_NEG = -GRID_DIR_ORTHO_POS
-GRID_DIRS_DIAG_2D_NEG = -GRID_DIR_DIAG_2D_POS
-GRID_DIRS_DIAG_3D_NEG = -GRID_DIR_DIAG_3D_POS
-GRID_DIRS_ORTHO = np.insert(GRID_DIRS_ORTHO_NEG, np.arange(3), GRID_DIR_ORTHO_POS, axis=0)
-GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(6), GRID_DIR_DIAG_2D_POS, axis=0)
-GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(4), GRID_DIR_DIAG_3D_POS, axis=0)
-GRID_DIRS_DIAG = np.concatenate([GRID_DIRS_DIAG_2D, GRID_DIRS_DIAG_3D])
-GRID_DIRS = np.concatenate([GRID_DIRS_ORTHO, GRID_DIRS_DIAG])
-
-
 def grid_distance(
         grid: np.ndarray,
         start_indices: np.ndarray,
@@ -84,55 +67,85 @@ def grid_distance(
 
 
 class Grid:
+    """
+    An n-dimensional grid of evenly spaced points.
+    """
+    # Direction vectors in a 3x3x3 grid:
+    _DIR_ORTHO_POS = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.byte)
+    _DIR_DIAG_2D_POS = np.array(
+        [[1, 1, 0], [1, 0, 1], [0, 1, 1], [-1, 1, 0], [-1, 0, 1], [0, -1, 1]],
+        dtype=np.byte
+    )
+    _DIR_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
+    _DIRS_ORTHO_NEG = -_DIR_ORTHO_POS
+    _DIRS_DIAG_2D_NEG = -_DIR_DIAG_2D_POS
+    _DIRS_DIAG_3D_NEG = -_DIR_DIAG_3D_POS
+    _DIRS_ORTHO = np.insert(_DIRS_ORTHO_NEG, np.arange(3), _DIR_ORTHO_POS, axis=0)
+    _DIRS_DIAG_2D = np.insert(_DIRS_DIAG_2D_NEG, np.arange(6), _DIR_DIAG_2D_POS, axis=0)
+    _DIRS_DIAG_3D = np.insert(_DIRS_DIAG_3D_NEG, np.arange(4), _DIR_DIAG_3D_POS, axis=0)
+    _DIRS_DIAG = np.concatenate([_DIRS_DIAG_2D, _DIRS_DIAG_3D])
+    _DIRS = np.concatenate([_DIRS_ORTHO, _DIRS_DIAG])
+
     def __init__(
             self,
-            coords_origin: Sequence[float],
             shape: Sequence[int],
+            coords_origin: Sequence[float],
             spacing: float,
-            name_properties: Tuple[Union[str, int]],
-            dtype: np.dtype = np.single,
+            data: Sequence[Any],
+            data_labels: Optional[Sequence[Any]] = None,
+            data_type: np.dtype = np.single,
     ):
+        """
+        Parameters
+        ----------
+        shape : Sequence[int]
+            The number of grid points in each direction.
+        data : Sequence[Any]
+            Sequence of different data for each grid point. Each data should be in a form
+            broadcastable to the grid with given `shape`, i.e. either a single value,
+            or a sequence of values as many as the number of grid points. For sequential data,
+            the values should be ordered such that the last index is moving fastest.
+        data_labels : Sequence[str]
+            Label for each type of data present. The grid can then be indexed using labels as well.
+        coords_origin : Sequence[float]
+            Real coordinates (e.g. in 3D this would be x, y, z) of the origin point,
+            i.e. the point where all grid coordinates are zero.
+            This is used to calculate the real coordinates of all other points.
+        spacing : float
+            The distance between two adjacent grid points. Since the grid is evenly spaced in
+            all dimensions, this argument must be a single number.
+            This is used to calculate the real coordinates of all other points.
+        data_type : numpy.dtype, Optional, default: numpy.single
+            The datatype of the grid point values
+        """
         if len(coords_origin) != len(shape):
             raise ValueError("`coords_origin` and `shape` must have the same dimension.")
-        self._coords_origin = coords_origin
-        self._shape = shape
+        # if data_labels is None:
+        #     self._labels = np.arange(len(data))
+        # elif len(data) == len(data_labels):
+        #     self._labels = np.array(data_labels)
+        # else:
+        #     raise ValueError("`data` and `data_labels` must have the same length.")
+        self._coords_origin = np.array(coords_origin)
+        self._shape = np.array(shape)
         self._spacing = spacing
-        if len(name_properties) > 1:
-            self._name_properties = np.array(name_properties)
-            tensor_shape = (*shape, len(name_properties))
-        else:
-            self._name_properties = np.array([name_properties])
-            tensor_shape = shape
-        self._tensor = np.zeros(
-            shape=tensor_shape,
-            dtype=dtype
-        )
+
+        self._tensor = np.empty(shape=(*self._shape, len(data)), dtype=data_type)
+        for dat_idx, dat in enumerate(data):
+            self._tensor[..., dat_idx] = dat
+        return
 
     @property
     def shape(self):
-        return self._shape
+        return tuple(self._shape)
 
     @property
     def spacing(self):
         return self._spacing
 
-    @property
-    def name_properties(self):
-        return self._name_properties
-
-    def get_properties(self, names: Tuple[Union[str, int]]):
-        indices = np.where(np.isin(self._name_properties, names))[0]
-        indices_squeezed = indices if len(indices) > 1 else indices[0]
-        return self._tensor[..., indices_squeezed]
-
-    def set_property(self, name, values):
-        if np.isin(name, self._name_properties, invert=True):
-            raise ValueError("Property was not found.")
-        if len(self._name_properties) == 1:
-            self._tensor[...] = values
-        else:
-            self._tensor[..., np.where(self._name_properties == name)[0][0]] = values
-        return
+    # @property
+    # def data_labels(self):
+    #     return self._labels
 
     def coordinates_grid_points(
             self,
@@ -187,11 +200,19 @@ class Grid:
         )
         return dist_matrix < distance
 
-    def select_by_property(
-            self,
-            names: Tuple[Union[str, int]],
-
-    ):
-
     def __getitem__(self, item):
         return self._tensor.__getitem__(item)
+        # def index_of_label(label) -> np.array:
+        #     index = np.argwhere(self._labels == np.expand_dims(np.array(label), axis=-1))[:, -1]
+        #     if index.size == 0:
+        #         raise IndexError("data label not found.")
+        #     elif index.size == 1:
+        #         return index[0]
+        #     return index
+        # if isinstance(item, int) or (isinstance(item, tuple) and isinstance(item[-1], int)):
+        #
+        # if isinstance(item, str):
+        #     return self._tensor.__getitem__(..., index_of_label(item))
+        # elif isinstance(item, tuple) and isinstance(item[-1], (str, Sequence, np.ndarray)):
+        #     return self._tensor.__getitem__(*item[:-1], index_of_label(item))
+        # else:
