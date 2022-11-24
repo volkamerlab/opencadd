@@ -59,7 +59,7 @@ def pdb_to_pdbqt_openbabel(
     return molecule
 
 
-def extract_autodock_atom_types_from_pdbqt(filepath_pdbqt: Path) -> Tuple[str]:
+def extract_autodock_atom_types_from_pdbqt(filepath_pdbqt: Path) -> Tuple[autodock.AtomType]:
     """
     Extract the AutoDock-defined atom types for all atoms in a PDBQT file.
 
@@ -74,12 +74,11 @@ def extract_autodock_atom_types_from_pdbqt(filepath_pdbqt: Path) -> Tuple[str]:
         Type of each atom in the same order as in the file, where each type is defined by AutoDock
         as a string of one or two characters, such as "A", "C", "HD", "N", "NA", "OA", "SA", etc.
     """
-    # TODO: Create a complete PDBQT parser class and add this and other related functions as
-    #  methods.
     with open(filepath_pdbqt, "r") as f:
         lines = f.readlines()
     atom_types = [line.split()[-1] for line in lines if line.startswith("ATOM")]
-    return tuple(set(atom_types))
+    unique_atom_types = set(atom_types)
+    return tuple(autodock.AtomType[atom_type] for atom_type in unique_atom_types)
 
 
 def parse_pdbqt(filepath_pdbqt: Path):
@@ -132,16 +131,17 @@ def parse_pdbqt(filepath_pdbqt: Path):
                 )
             ).astype(col_dtype)
 
-        autodock_atom_types = autodock.AtomTypes()
+        autodock_atom_types_ids = np.array([atom_type.name for atom_type in autodock.AtomType])
         autodock_atom_types_data = [
-            np.array([getattr(atom_type, attr) for atom_type in autodock_atom_types])
-            for attr in ["name", "hbond_status", "hbond_count"]
+            np.array([getattr(atom_type, attr) for atom_type in autodock.AtomType])
+            for attr in ["hbond_status", "hbond_count"]
         ]
         indices_target_atom_types = np.where(
-            df.autodock_atom_type.values[..., np.newaxis] == autodock_atom_types_data[0]
+            df.autodock_atom_type.values[..., np.newaxis] == autodock_atom_types_ids
         )[1]
-        df["hbond_status"] = autodock_atom_types_data[1][indices_target_atom_types]
-        df["hbond_count"] = autodock_atom_types_data[2][indices_target_atom_types]
+        df["hbond_acc"] = autodock_atom_types_data[0][indices_target_atom_types] == 1
+        df["hbond_don"] = autodock_atom_types_data[0][indices_target_atom_types] == -1
+        df["hbond_count"] = autodock_atom_types_data[1][indices_target_atom_types]
         return df
 
     record_parsers = {
