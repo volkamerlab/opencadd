@@ -2,7 +2,7 @@
 API for the AutoGrid4 program.
 
 This module contains functions and routines to communicate with the AutoGrid4 program via
-shell command executions.
+shell command executions, and get the results as numpy arrays.
 
 References
 ----------
@@ -13,51 +13,50 @@ https://www.csb.yale.edu/userguides/datamanip/autodock/html/Using_AutoDock_305.2
 
 
 # Standard library
-from typing import Sequence, Union, Optional, NoReturn, Tuple, Literal
+from typing import Sequence, Union, Optional, Tuple, Literal
 import subprocess
 from pathlib import Path
-import itertools
 # 3rd-party
 import numpy as np
 # Self
-from opencadd.io.pdbqt import extract_autodock_atom_types_from_pdbqt, TYPE_AUTODOCK_ATOM_TYPE
-from opencadd.misc.spatial import Grid
+from opencadd.io import pdbqt
+from opencadd.consts import autodock
 
 
-def routine_run_autogrid(
-        receptor: Path,
-        gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-        npts: Tuple[int, int, int] = (40, 40, 40),
-        spacing: float = 0.375,
-        ligand_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
-        smooth: float = 0.5,
-        dielectric: float = -0.1465,
-        parameter_file: Optional[Path] = None,
-        path_output: Optional[Path] = None,
-) -> Grid:
+def routine_run(
+            receptor_filepath: Path,
+            ligand_types: Sequence[autodock.AtomType],
+            grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
+            grid_npts: Tuple[float, float, float] = (40, 40, 40),
+            grid_spacing: float = 0.375,
+            smooth: float = 0.5,
+            dielectric: float = -0.1465,
+            param_filepath: Optional[Path] = None,
+            output_path: Optional[Path] = None,
+) -> Tuple[Tuple[np.ndarray], Tuple[Path]]:
     """
-    Run AutoGrid with given input structure and specifications, and return the grid values.
-    The set of input parameters are identical to that of function `create_gpf`.
+    Run AutoGrid energy calculations and get the results.
 
     Parameters
     ----------
-    receptor : pathlib.Path
-        Filepath to the PDBQT structure file of the macromolecule.
-    gridcenter : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
-        Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
-        If not provided, the keyword "auto" signals AutoGrid to center the grid on the center of
-        the macromolecule.
-    npts : Sequence[int, int, int], Optional, default: (40, 40, 40)
+    receptor_filepath : pathlib.Path
+        Path to the PDBQT structure file of the macromolecule.
+    ligand_types : Sequence[opencadd.consts.autodock.AtomType]
+        Types of ligand atoms, for which interaction energies must be calculated.
+        For more information, see `opencadd.consts.autodock.AtomType`.
+    grid_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
+        Coordinates (x, y, z) of the center of grid map, in the reference frame of the target
+        structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers the grid
+        on the receptor's center of mass.
+    grid_npts : Tuple[int, int, int], Optional, default: (40, 40, 40)
         Number of grid points to add to the central grid point, along x-, y- and z-axes,
         respectively. Each value must be an even integer number; when added to the central grid
         point, there will be an odd number of points in each dimension. The number of x-, y and
         z-grid points need not be equal.
-    spacing : float, Optional, default: 0.375
+    grid_spacing : float, Optional, default: 0.375
         The grid-point spacing, i.e. distance between two adjacent grid points in Ångstrom (Å).
         Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
         all three dimensions.
-    ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
-        Atom types present in the ligand, for example: A, C, HD, N, NA, OA, SA.
     smooth : float, Optional, default: 0.5
         Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
         and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
@@ -66,80 +65,55 @@ def routine_run_autogrid(
         Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
         of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
         dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
-    parameter_file : pathlib.Path, Optional, default: None
+    param_filepath : pathlib.Path, Optional, default: None
         User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
-    path_output: pathlib.Path
-        Path to a folder to write the output files in.
+    output_path: pathlib.Path
+        Path to a folder to write the output files in. If not provided, the output files will be
+        stored in the same folder as the input file. If a non-existing path is given,
+        a new directory will be created with all necessary parent directories.
 
     Returns
     -------
-    grid : numpy.ndarray[dtype=numpy.float64, ndims=4]
-        A 4-dimensional array, where the first three dimensions represent the grid points,
-        and the last dimension contains the data for each grid point.
-
-        Each grid point contains energy values for each of the input ligand atom-types (probes),
-        in the given order. Thus, with 'nt' being the number of input probes, the first 'nt'
-        elements of the last dimension of the grid array correspond to their energy values.
-        There are five other elements at the end of the last dimension, namely the electrostatic
-        potential and desolvation energy, followed by the x-, y- and z-coordinates of the grid
-        point in the reference frame of the target structure.
-
-        The shape of the array is thus (nx, ny, nz, nt + 5), where nx, ny, and nz are the number of
-        grid points along the x-, y-, and z-axis, respectively. These are each equal to their
-        corresponding `npts` value, plus 1 (due to center point). The array is ordered in
-        the same way that the grid points are ordered in space, and thus the individual grid
-        points can be indexed using their actual coordinates (in unit vectors), assuming the
-        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
-        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
+    grid_energies, grid_mapfiles : Tuple[numpy.ndarray], Tuple[pathlib.Path]
+        Calculated grid-point energies, as a tuple of 1-dimensional arrays containing the
+        energy values for each grid point for a specific type of energy. The grid points are
+        ordered according to the nested loops z(y(x)), so the x-coordinate is changing fastest.
+        The tuple of energy arrays is ordered in the same way as the input `ligand_types`,
+        with two additional grids, namely electrostatic potential, and desolvation energy,
+        added to the end of the tuple, respectively. The second tuple contains the paths to each
+        of the energy map files in the same order.
     """
     # 1. Create GPF config file for AutoGrid.
-    receptor_types = tuple(set(extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor)))
     path_gpf, paths_energy_maps, paths_gridfld_xyz = create_gpf(
-        receptor=receptor,
-        gridcenter=gridcenter,
-        npts=npts,
-        spacing=spacing,
-        receptor_types=receptor_types,
+        receptor_filepath=receptor_filepath,
+        grid_center=grid_center,
+        grid_npts=grid_npts,
+        grid_spacing=grid_spacing,
         ligand_types=ligand_types,
         smooth=smooth,
         dielectric=dielectric,
-        parameter_file=parameter_file,
-        path_output=path_output,
+        parameter_filepath=param_filepath,
+        path_output=output_path,
     )
     # 2. Submit job to AutoGrid.
     submit_job(
-        filepath_input_gpf=path_gpf,
-        filepath_output_glg=path_output,
+        gpf_filepath=path_gpf,
+        glg_filepath=output_path,
     )
     # 3. Extract calculated grid-point energies from map files.
-    npts = np.array(npts)
-    type_maps = (*ligand_types, "e", "d")
-    if gridcenter == "auto":
-        gridcenter, _, _ = extract_grid_params_from_mapfile(filepath_map=paths_energy_maps[0])
-    grid = Grid(
-        coords_origin=np.array(gridcenter) - spacing * npts / 2,
-        shape=npts+1,
-        spacing=spacing,
-        name_properties=type_maps,
-    )
-    for type_map, filepath_map in zip(type_maps, paths_energy_maps):
-        grid.set_property(
-            name=type_map,
-            values=create_grid_tensor_from_map_file(filepath=filepath_map)
-        )
-    return grid
+    energies = tuple(extract_grid_energies(map_filepath=path) for path in paths_energy_maps)
+    return energies, paths_energy_maps
 
 
 def create_gpf(
-        receptor: Path,
-        gridcenter: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-        npts: Tuple[int, int, int] = (40, 40, 40),
-        spacing: float = 0.375,
-        receptor_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
-        ligand_types: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
+        receptor_filepath: Path,
+        ligand_types: Sequence[autodock.AtomType],
+        grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
+        grid_npts: Tuple[int, int, int] = (40, 40, 40),
+        grid_spacing: float = 0.375,
         smooth: float = 0.5,
         dielectric: float = -0.1465,
-        parameter_file: Optional[Path] = None,
+        parameter_filepath: Optional[Path] = None,
         path_output: Optional[Path] = None,
 ) -> Tuple[Path, Tuple[Path], Path, Path]:
     """
@@ -147,26 +121,20 @@ def create_gpf(
 
     Parameters
     ----------
-    receptor : pathlib.Path
+    receptor_filepath : pathlib.Path
         Filepath to the PDBQT structure file of the macromolecule.
-    gridcenter : tuple[float, float, float] | "auto", Optional, default: "auto"
+    grid_center : tuple[float, float, float] | "auto", Optional, default: "auto"
         Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
         If set to "auto", AutoGrid automatically centers the grid on macromolecule's center.
-    npts : tuple[int, int, int], Optional, default: (40, 40, 40)
+    grid_npts : tuple[int, int, int], Optional, default: (40, 40, 40)
         Number of grid points to add to the central grid point, along x-, y- and z-axes,
         respectively. Each value must be an even integer number; when added to the central grid
         point, there will be an odd number of points in each dimension. The number of x-, y and
         z-grid points need not be equal.
-    spacing : float, Optional, default: 0.375
+    grid_spacing : float, Optional, default: 0.375
         The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
         Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
         all three dimensions.
-    receptor_types : Sequence[str], Optional, default: ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl")
-        Atom types present in the receptor. for a typical protein, this will be: A, C, HD, N, OA,
-        SA. Atom types are one or two letters, and several specialized types are used in the
-        AutoDock4.2 forcefield, including: C (aliphatic carbon), A (aromatic carbon),
-        HD (hydrogen that donates hydrogen bond), OA (oxygen that accepts hydrogen bond),
-        N (nitrogen that doesn’t accept hydrogen bonds), SA (sulfur that accepts hydrogen bonds).
     ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
         Atom types present in the ligand, such as A, C, HD, N, NA, OA, SA.
     smooth : float, Optional, default: 0.5
@@ -177,7 +145,7 @@ def create_gpf(
         Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
         of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
         dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
-    parameter_file : pathlib.Path, Optional, default: None
+    parameter_filepath : pathlib.Path, Optional, default: None
         User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
     path_output: pathlib.Path
         Path to a folder to write the output files in.
@@ -194,28 +162,30 @@ def create_gpf(
     generated.
     """
     # Create filepaths for output files.
-    path_common = receptor if path_output is None else path_output / receptor.name
+    path_common = receptor_filepath if path_output is None else path_output / receptor_filepath.name
     path_gpf, path_gridfld, path_xyz, path_electrostatic_map, path_desolvation_map = (
         path_common.with_suffix(ext) for ext in (".gpf", ".maps.fld", ".maps.xyz", ".e.map", ".d.map")
     )
     paths_ligand_type_maps = [
         path_common.with_suffix(f'.{ligand_type}.map') for ligand_type in ligand_types
     ]
+    # Get receptor types
+    receptor_types = pdbqt.extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor_filepath)
     # Generate the file content.
     # It is recommended by AutoDock to generate the gpf file in this exact order.
     # TODO: apparently AutoGrid cannot handle filepaths in the gpf file that have spaces. Using
     #  quotation marks around the filepath, and escaping with \ did not work. Find a solution.
     file_content: str = ""
-    if parameter_file is not None:
-        file_content += f"parameter_file {parameter_file}\n"
+    if parameter_filepath is not None:
+        file_content += f"parameter_file {parameter_filepath}\n"
     file_content += (
-        f"npts {npts[0]} {npts[1]} {npts[2]}\n"
+        f"npts {grid_npts[0]} {grid_npts[1]} {grid_npts[2]}\n"
         f"gridfld {path_gridfld}\n"
-        f"spacing {spacing}\n"
-        f"receptor_types {' '.join(receptor_types)}\n"
-        f"ligand_types {' '.join(ligand_types)}\n"
-        f"receptor {receptor}\n"
-        f"gridcenter {gridcenter[0]} {gridcenter[1]} {gridcenter[2]}\n"
+        f"spacing {grid_spacing}\n"
+        f"receptor_types {' '.join(receptor_type.name for receptor_type in receptor_types)}\n"
+        f"ligand_types {' '.join(ligand_type.name for ligand_type in ligand_types)}\n"
+        f"receptor {receptor_filepath}\n"
+        f"gridcenter {grid_center[0]} {grid_center[1]} {grid_center[2]}\n"
         f"smooth {smooth}\n"
     )
     for path_map in paths_ligand_type_maps:
@@ -236,31 +206,30 @@ def create_gpf(
 
 
 def submit_job(
-        filepath_input_gpf: Path,
-        filepath_output_glg: Optional[Path] = None,
+        gpf_filepath: Path,
+        glg_filepath: Optional[Path] = None,
 ) -> subprocess.CompletedProcess:
     """
     Run grid energy calculations with AutoGrid4, using the input grid parameter file (GPF).
 
     Parameters
     ----------
-    filepath_input_gpf : pathlib.Path
-        Path to the input Grid Parameter File (.gpf), used as an input specification file in
+    gpf_filepath : pathlib.Path
+        Path to the input Grid Parameter File (GPF), used as an input specification file in
         AutoGrid.
-    filepath_output_glg : pathlib.Path, Optional, default: None
+    glg_filepath : pathlib.Path, Optional, default: None
         Filepath to store the output log of the process produced by AutoGrid. If `None`,
         then the log file will be created in the same directory as `filepath_input_gpf`,
-        with the same filename but with '.glg' extension.
+        with the same filename but with .GLG extension.
 
     Returns
     -------
     subprocess.CompletedProcess
         If the process exits with a zero exit code (meaning it was successful),
         a subprocess.CompletedProcess object is returned, containing the console output and
-        other attributes of the process. But more importan
-        A log file (.glg) is generated in the given output path.
-        Calculated grid-point energies are written to respective '.map' files, as specified in the
-        input gpf file.
+        other attributes of the process. But more importantly, a log file (.glg) is generated in
+        the given output path. Calculated grid-point energies are written to respective MAP
+        files, as specified in the input GPF file.
 
     Raises
     ------
@@ -269,15 +238,15 @@ def submit_job(
         with attributes `returncode`, `stdout` and `stderr`, which hold the exit code,
         console output and error message of the process.
     """
-    if filepath_output_glg is None:
-        filepath_output_glg = filepath_input_gpf
+    if glg_filepath is None:
+        glg_filepath = gpf_filepath
     process = subprocess.run(
         args=[
             Path(__file__).parent.resolve()/'autogrid4',
             "-p",
-            filepath_input_gpf.with_suffix('.gpf'),
+            gpf_filepath.with_suffix('.gpf'),
             "-l",
-            filepath_output_glg.with_suffix('.glg')
+            glg_filepath.with_suffix('.glg')
         ],
         capture_output=True,
         check=True,
@@ -285,29 +254,26 @@ def submit_job(
     return process
 
 
-def create_grid_tensor_from_map_file(
-        filepath: Path
-):
+def extract_grid_energies(
+        map_filepath: Path,
+        data_type: np.dtype = np.single,
+) -> np.ndarray:
     """
-    Extract the calculated grid point energies from a '.map' output file into a 3-dimensional
-    array representing the grid.
+    Extract the calculated grid point energies from a MAP output file.
 
     Parameters
     ----------
-    filepath : pathlib.Path
-        Filepath of a map file outputted by AutoGrid.
+    map_filepath : pathlib.Path
+        Filepath of a MAP file outputted by AutoGrid.
+    data_type : numpy.dtype, Optional, default: numpy.single
+        Numpy datatype of the output array. Default is 32-bit float (numpy.single).
 
     Returns
     -------
-    grid : numpy.ndarray[dtype=numpy.float64, ndims=3]
-        A 3-dimensional array containing the calculated energy values for each grid point.
-        The shape of the array is (nx, ny, nz), where nx, ny, and nz are the number of grid
-        points along the x-, y-, and z-axis, respectively. These are each equal to the
-        corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
-        the same way that the grid points are ordered in space, and thus the individual grid
-        points can be indexed using their actual coordinates (in unit vectors), assuming the
-        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
-        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
+    grid : numpy.ndarray
+        A 1-dimensional array containing the calculated energy values for each grid point.
+        The grid points are ordered according to the nested loops z(y(x)), so the x-coordinate
+        is changing fastest. The coordinate system is right-handed.
 
     Notes
     -----
@@ -327,64 +293,25 @@ def create_grid_tensor_from_map_file(
     116.724602
     108.233879
     ```
-    The grid points are ordered according to the nested loops z(y(x)), so the x-coordinate
-    is changing fastest. The coordinate system is right-handed.
+
     The header `NELEMENTS` is the same as the input parameter `npts`, defined in function
     `create_gpf`.
     """
-    with open(filepath, "r") as f:
+    with open(map_filepath, "r") as f:
         lines = f.readlines()
-    # Extract `npts` from map file, and add 1 to get the shape of grid
-    num_points_per_axis = np.array(list(map(float, lines[4].split()[1:]))).astype(int) + 1
-    return np.array(lines[6:]).astype(np.float64).reshape(tuple(num_points_per_axis), order="F")
+    return np.array(lines[6:]).astype(data_type)
 
 
-def calculate_npts(dimensions_pocket: Tuple[float, float, float], spacing: float) -> np.ndarray:
-    """
-    Calculate the AutoGrid input argument `npts`, from given pocket dimensions and grid spacing
-    values.
-
-    Parameters
-    ----------
-    dimensions_pocket : tuple[float, float, float]
-        Length of the target structure's binding pocket, along x-, y-, and z-axis, respectively.
-    spacing : float
-        The same parameter as in AutoGrid, i.e. the grid-point spacing.
-
-    Returns
-    -------
-    npts : numpy.ndarray
-        A 1-dimensional array of size 3, which can be used directly as input `npts` for AutoGrid
-        functions. The values are the smallest valid values (i.e. even integers) that are needed to
-        cover the whole cuboid pocket. Therefore, in cases where a dimension is not divisible by
-        the spacing value, or the resulting value is an odd number, the value will be rounded up to
-        the next even integer.
-
-    Notes
-    -----
-    The units of values in `dimensions_pocket` and `spacing` don't matter in this function,
-    as long as they are both in the same units. Notice that in AutoGrid functions, the `spacing`
-    atgument must be in Ångstrom.
-
-    See Also
-    --------
-    For more information on AutoGrid parameters `spacing` and `npts`, see the function
-    `routine_run_autogrid` in this module.
-    """
-    npts_min = np.ceil(np.array(dimensions_pocket) / spacing)
-    return np.where(npts_min % 2 == 0, npts_min, npts_min + 1).astype(int)
-
-
-def extract_grid_params_from_mapfile(
-        filepath_map: Path
+def extract_grid_params(
+        map_filepath: Path
 ) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], float]:
     """
-    Extract `gridcenter`, `npts` and `spacing` parameters from a .MAP file.
+    Extract the AutoGrid parameters `gridcenter`, `npts` and `spacing` from a MAP file.
 
     Parameters
     ----------
-    filepath_map : pathlib.Path
-        Path to one of the calculated .MAP files.
+    map_filepath : pathlib.Path
+        Path to one of the calculated MAP files.
 
     Returns
     -------
@@ -392,11 +319,48 @@ def extract_grid_params_from_mapfile(
 
     See Also
     --------
-    For a sample of '.map' file contents, see function `create_grid_tensor_from_map_file`.
+    For a sample of MAP file contents, see function `create_grid_tensor_from_map_file`.
     """
-    with open(filepath_map, "r") as f:
+    with open(map_filepath, "r") as f:
         lines = f.readlines()
-    spacing = float(lines[3].split()[1])
+    grid_spacing = float(lines[3].split()[1])
     npts = tuple(map(float, lines[4].split()[1:4]))
-    gridcenter = tuple(map(float, lines[5].split()[1:4]))
-    return gridcenter, npts, spacing
+    grid_center = tuple(map(float, lines[5].split()[1:4]))
+    return grid_center, npts, grid_spacing
+
+
+def calculate_npts(
+        grid_size: Tuple[float, float, float],
+        grid_spacing: float
+) -> Tuple[int, int, int]:
+    """
+    Calculate the AutoGrid input argument `npts`.
+
+    Parameters
+    ----------
+    grid_size : tuple[float, float, float]
+        Length of the grid along x-, y-, and z-axis, respectively.
+    grid_spacing : float
+        The same parameter as in AutoGrid, i.e. the grid-point spacing.
+
+    Returns
+    -------
+    npts : tuple[int, int, int]
+        Can be used directly as input `npts` for AutoGrid functions. The values are the smallest
+        valid values (i.e. even integers) that are needed to cover the whole cuboid pocket.
+        Therefore, in cases where a dimension is not divisible by the spacing value, or the
+        resulting value is an odd number, the value will be rounded up to the next even integer.
+
+    Notes
+    -----
+    The units of values in `grid_size` and `grid_spacing` don't matter in this function,
+    as long as they are both in the same units. Notice that in AutoGrid functions, the `spacing`
+    argument must be in Ångstrom.
+
+    See Also
+    --------
+    For more information on AutoGrid parameters `spacing` and `npts`, see the function
+    `routine_run` in this module.
+    """
+    npts_min = np.ceil(np.array(grid_size) / grid_spacing)
+    return tuple(np.where(npts_min % 2 == 0, npts_min, npts_min + 1).astype(int))
