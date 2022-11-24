@@ -9,135 +9,163 @@ from pathlib import Path
 # 3rd-party
 import numpy as np
 import pandas as pd
-from scipy.spatial import distance_matrix
 # Self
 from opencadd.docking import autogrid
 from opencadd.io import pdbqt
-from opencadd.io.pdbqt import TYPE_AUTODOCK_ATOM_TYPE, DATA_AUTODOCK_ATOM_TYPE
-from opencadd.bindingsite.utils import count_psp_events_from_vacancy_tensor
-from opencadd.misc.spatial import Grid
+from opencadd.consts import autodock
+from opencadd.misc.spatial import grid_distance, Grid
 
-
-class T2FPharm:
+class T2FPharm(Grid):
     """
     Truly Target Focused (T2F) pharmacophore model.
+
+    A 3-dimensional array containing the calculated energy values for each grid point.
+        The shape of the array is (nx, ny, nz), where nx, ny, and nz are the number of grid
+        points along the x-, y-, and z-axis, respectively. These are each equal to the
+        corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
+        the same way that the grid points are ordered in space, and thus the individual grid
+        points can be indexed using their actual coordinates (in unit vectors), assuming the
+        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
+
+    A 4-dimensional array, where the first three dimensions represent the grid points,
+        and the last dimension contains the data for each grid point.
+
+        Each grid point contains energy values for each of the input ligand atom-types (probes),
+        in the given order. Thus, with 'nt' being the number of input probes, the first 'nt'
+        elements of the last dimension of the grid array correspond to their energy values.
+        There are five other elements at the end of the last dimension, namely the electrostatic
+        potential and desolvation energy, followed by the x-, y- and z-coordinates of the grid
+        point in the reference frame of the target structure.
+
+        The shape of the array is thus (nx, ny, nz, nt + 5), where nx, ny, and nz are the number of
+        grid points along the x-, y-, and z-axis, respectively. These are each equal to their
+        corresponding `npts` value, plus 1 (due to center point). The array is ordered in
+        the same way that the grid points are ordered in space, and thus the individual grid
+        points can be indexed using their actual coordinates (in unit vectors), assuming the
+        origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+        grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
+
+    Get interaction energies between the target structure and each of the input probe types
+        (plus electrostatic and desolvation energies), calculated using AutoGrid4 at every point
+        on a regular (i.e. evenly spaced) cuboid grid, placed on (usually the binding pocket of)
+        the target structure, as defined by the input arguments.
     """
 
     def __init__(
             self,
-            filepath_target_structure: Union[str, Path],
-            path_output: Optional[Union[str, Path]] = None,
-            type_probes: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
-            coords_grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-            spacing_grid_points: float = 0.6,
-            dims_grid: Optional[Tuple[float, float, float]] = (16, 16, 16),
-            npts: Optional[Tuple[int, int, int]] = None,
+            receptor_filepath: Path,
+            ligand_types: Sequence[autodock.AtomType],
+            grid_center: Union[Tuple[float, float, float], Literal["auto"]],
+            grid_size: Tuple[float, float, float] = (16, 16, 16),
+            grid_spacing: float = 0.6,
+            smooth: float = 0.5,
+            dielectric: float = -0.1465,
+            param_filepath: Optional[Path] = None,
+            output_path: Optional[Path] = None,
     ):
         """
-        Get interaction energies between the target structure and each of the input probe types
-        (plus electrostatic and desolvation energies), calculated using AutoGrid4 at every point
-        on a regular (i.e. evenly spaced) cuboid grid, placed on (usually the binding pocket of)
-        the target structure, as defined by the input arguments.
-
 
         Parameters
         ----------
-        filepath_target_structure : str | pathlib.Path
-            Path to the input PDBQT file containing the target structure.
-        path_output : str | pathlib.Path, Optional, default: None
-            An output path to store the results. If not provided, the output files will be
+        receptor_filepath : pathlib.Path
+            Path to the PDBQT structure file of the macromolecule.
+        ligand_types : Sequence[opencadd.consts.autodock.AtomType]
+            Types of ligand atoms, for which interaction energies must be calculated.
+            For more information, see `opencadd.consts.autodock.AtomType`.
+        grid_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
+            Coordinates (x, y, z) of the center of grid map, in the reference frame of the target
+            structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers the grid
+            on the receptor's center of mass.
+        grid_npts : Tuple[int, int, int], Optional, default: (40, 40, 40)
+            Number of grid points to add to the central grid point, along x-, y- and z-axes,
+            respectively. Each value must be an even integer number; when added to the central grid
+            point, there will be an odd number of points in each dimension. The number of x-, y and
+            z-grid points need not be equal.
+        grid_spacing : float, Optional, default: 0.375
+            The grid-point spacing, i.e. distance between two adjacent grid points in Ångstrom (Å).
+            Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
+            all three dimensions.
+        smooth : float, Optional, default: 0.5
+            Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
+            and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
+            0.5 Å.
+        dielectric : float, Optional, default: -0.1465
+            Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
+            of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
+            dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
+        param_filepath : pathlib.Path, Optional, default: None
+            User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
+        output_path: pathlib.Path
+            Path to a folder to write the output files in. If not provided, the output files will be
             stored in the same folder as the input file. If a non-existing path is given,
             a new directory will be created with all necessary parent directories.
-        type_probes : Sequence[Literal]
-            AutoDock-defined atom types (e.g. "A", "C", "HD", "N", "NA", "OA", "SA", "Cl") of
-            the probes, for which interaction energies must be calculated.
-            For a full list of atom types, see `opencadd.io.pdbqt.DATA_AUTODOCK_ATOM_TYPE`.
-        coords_grid_center : tuple[float, float, float] | "auto"
-            Coordinates (x, y, z) of the center of grid, in the reference frame of the target
-            structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers
-            the grid on the target structure's center.
-        spacing_grid_points : float, Optional, default: 0.6
-            The grid-point spacing, i.e. distance between two adjacent grid points in Å.
-            Grid points are orthogonal and uniformly spaced in AutoGrid4, i.e. this value is
-            used for all three dimensions.
-        dims_grid : tuple[float, float, float], Optional, default: (16, 16, 16)
-            Length of the grid (in Å), along x-, y-, and z-axis, respectively.
-        npts : tuple[float, float, float], Optional, default: None
-            Number of grid points along x-, y-, and z-axis respectively (loosely defined; for an
-            accurate definition, see function `opencadd.docking.autogrid.routine_run_autogrid`).
-            If not provided, this will be automatically calculated from input arguments
-            `dims_grid` and `spacing_grid_points`, since AutoGrid4 actually requires
-            `coords_grid_center`, `spacing_grid_points` and `npts`, in order to define a grid.
-            Notice that since `npts` values can only be even integers, calculating `npts` may
-            result in a grid that is slightly larger than the input dimensions (for more info,
-            see the function `opencadd.docking.autogrid.calculate_npts`). Therefore, if this
-            argument is provided, the `dims_grid` argument will be ignored.
         """
-        # Verify the input file is an existing PDBQT file and assign output path.
-        filepath_target = Path(filepath_target_structure)
-        if not filepath_target.is_file():
-            raise ValueError("Input filepath does not point to a file.")
-        try:
-            df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=filepath_target)["ATOM"]
-        except Exception as e:
-            raise ValueError("Could not parse the input PDBQT file.") from e
-        if path_output is None:
-            path_output = filepath_target.parent
-        else:
-            path_output = Path(path_output)
-            path_output.mkdir(parents=True, exist_ok=True)
-        # Verify that all input probe types are valid AutoDock atom types
-        type_probes = np.array(type_probes)
-        probe_is_invalid = np.isin(
-            element=type_probes,
-            test_elements=DATA_AUTODOCK_ATOM_TYPE.type.values,
-            invert=True
+        npts = np.array(autogrid.calculate_npts(grid_size=grid_size, grid_spacing=grid_spacing))
+        energies, filepaths_mapfiles = autogrid.routine_run(
+            receptor_filepath=receptor_filepath,
+            ligand_types=ligand_types,
+            grid_center=grid_center,
+            grid_npts=npts,
+            grid_spacing=grid_spacing,
+            smooth=smooth,
+            dielectric=dielectric,
+            param_filepath=param_filepath,
+            output_path=output_path,
         )
-        if np.any(probe_is_invalid):
-            raise ValueError(
-                f"The following `type_probes` are not valid AutoDock atom types: "
-                f"{type_probes[probe_is_invalid]}"
-            )
-        # Set instance attributes.
-        self._filepath_target: Path = filepath_target
-        self._path_output: Path = path_output
-        self._data_target_structure: pd.DataFrame = df_pdbqt
-        # Calculate grid energies using AutoGrid4
-        self._grid: Grid = autogrid.routine_run_autogrid(
-            receptor=self._filepath_target,
-            gridcenter=coords_grid_center,
-            npts=npts if npts is not None else autogrid.calculate_npts(
-                dimensions_pocket=dims_grid,
-                spacing=spacing_grid_points
-            ),
-            spacing=spacing_grid_points,
-            ligand_types=type_probes,
-            path_output=self._path_output
+        grid_shape = npts + 1
+        if grid_center == "auto":
+            grid_center, _, _ = autogrid.extract_grid_params(map_filepath=filepaths_mapfiles[0])
+        super().__init__(
+            shape=grid_shape,
+            coords_origin=np.array(grid_center) - grid_spacing * npts / 2,
+            spacing=grid_spacing,
+            data=[energy_value.reshape(tuple(grid_shape), order="F") for energy_value in energies],
         )
+        self._ligand_types = np.array(ligand_types, dtype=object)
+        self._path_mapfiles = filepaths_mapfiles
+        self._output_path = receptor_filepath.parent if output_path is None else output_path
+        self._output_path.mkdir(parents=True, exist_ok=True)
+        self._df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=receptor_filepath)["ATOM"]
         return
 
     @property
-    def grid(self) -> Grid:
-        """
-        The complete grid.
-
-        Returns
-        -------
-        numpy.ndarray
-        A 4-dimensional array, where the first three dimensions represent the grid points,
-        and the last dimension contains the data for each grid point. It is the direct
-        return value of the function `opencadd.docking.autogrid.routine_run_autogrid`;
-        for more information, see the documentation of that function.
-        """
-        return self._grid
+    def receptor_data(self) -> pd.DataFrame:
+        return self._df_pdbqt
 
     @property
-    def target(self) -> pd.DataFrame:
-        return self._data_target_structure
+    def grid_electrostat_pot(self) -> np.ndarray:
+        """
+        Grid of calculated electrostatic potentials.
+        """
+        return self._tensor[..., -2]
+
+    @property
+    def grid_desolvation(self) -> np.ndarray:
+        """
+        Grid of calculated desolvation energies.
+        """
+        return self._tensor[..., -1]
+
+    @property
+    def grid_probes(self) -> np.ndarray:
+        """
+        Grid of calculated probe interaction energies.
+        """
+        return self._tensor[..., :-2]
+
+    def grid_probe(self, ligand_type: autodock.AtomType) -> np.ndarray:
+        """
+        Grid of calculated probe interaction energies.
+        """
+        idx = np.argwhere(self._ligand_types == ligand_type)
+        if idx.size == 0:
+            raise IndexError("No energy has been calculated for the given ligand type.")
+        return self._tensor[..., idx[0, 0]]
 
     def calculate_mask_vacant(
             self,
-            energy_refs: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]],
+            energy_refs: Sequence[Literal["e", "d"]],
             energy_cutoff: float = +0.6,
             mode: Optional[Literal["max", "min", "avg", "sum"]] = "sum",
     ) -> np.ndarray:
@@ -223,9 +251,9 @@ class T2FPharm:
             Thus, the buried grid points can easily be indexed using boolean indexing with this
             array, i.e.: `grid[mask_buried]`.
         """
-        grid_psp_counts = count_psp_events_from_vacancy_tensor(
-            grid_vacancy=mask_vacancy,
-            spacing_grid_points=self._grid.spacing,
+        grid_psp_counts = self.count_psp_events(
+            mask_vacancy=mask_vacancy,
+
             num_directions=num_directions,
             psp_len_max=psp_len_max
         )
@@ -238,24 +266,24 @@ class T2FPharm:
             max_len_hbond: float = 3.0,
             mask_grid: Optional[np.ndarray] = None,
     ):
-        if mask_grid is None:
-            mask_grid = np.ones(shape=self._grid.shape, dtype=np.bool_)
-        coords_target_atoms = self._data_target_structure[["x", "y", "z"]].to_numpy()
-        mask_proximate = self._grid.calculate_mask_proximate(
+        coords_target_atoms = self._df_pdbqt[["x", "y", "z"]].to_numpy()
+        mask_proximate = self.calculate_mask_proximate(
             coords_targets=coords_target_atoms,
             distance=max_len_hbond,
             mask=mask_grid,
         )
-        count_acc_don_in_target = np.zeros(shape=(*self._grid.shape, 2), dtype=np.byte)
-        for idx, hbond_role in enumerate(["is_acceptor", "is_donor"]):
-            count_acc_don_in_target[mask_grid, idx] = np.count_nonzero(
+        counts = []
+        for hbond_role in ["hbond_acc", "hbond_don"]:
+            count = np.zeros(shape=self.shape, dtype=np.byte)
+            count[... if mask_grid is None else mask_grid] = np.count_nonzero(
                 np.logical_and(
-                    self._data_target_structure[hbond_role],
+                    self._df_pdbqt[hbond_role],
                     mask_proximate
                 ),
                 axis=-1
             )
-        return count_acc_don_in_target
+            counts.append(count)
+        return tuple(counts)
 
     def calculate_mask_feature(
             self,
@@ -272,119 +300,155 @@ class T2FPharm:
         return mask_feature_hbond_donor
 
 
-    def calculate_features(
+    def count_psp_events(
             self,
-            mask_vacant: np.ndarray,
-            mask_buried: np.ndarray,
-            mask_proximate: np.ndarray,
-            count_hbond_acc: np.ndarray,
-            count_hbond_donor: np.ndarray,
-            cutoff_energies: Tuple[
-                Tuple[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]], float]
-            ] = (("A", -0.4), ("C", -0.4), ("HD", -0.35), ("OA", -0.6), ("e", -1.2)),
-    ):
+            mask_vacancy: np.ndarray,
+            num_directions: Literal[3, 7, 13] = 7,
+            psp_len_max: float = 10.0,
+    ) -> np.ndarray:
+        """
+        Count the number of protein-solvent-protein (PSP) events for each point on a 3-dimensional
+        grid, given a 3-dimensional boolean array indicating the vacancy of each grid point.
+
+        Parameters
+        ----------
+        mask_vacancy : numpy.ndarray
+            A 3-dimensional boolean array representing a 3-dimensional grid, indicating
+            whether each grid point is vacant (True), or occupied (False).
+        num_directions : Literal[3, 7, 13]
+            Number of directions to look for PSP events for each grid point. Directions are
+            all symmetric around each point, and each direction entails both positive and
+            negative directions, along an axis. Directions are defined in a 3x3x3 unit cell,
+            i.e. for each point, there are 26 neighbors, and thus max. 13 directions.
+            Options are:
+            3: x-, y- and z-directions
+            7: x, y, z, and four 3d-diagonals (i.e. with absolute direction unit vector [1, 1, 1])
+            13: x, y, z, four 3d-diagonals, and six 2d-diagonals (e.g. [1, 1, 0])
+        psp_len_max : float
+            Maximum acceptable distance for a PSP event, in the same units as `spacing_grid_points`.
+
+        Returns
+        -------
+        grid_psp_count : numpy.ndarray
+            A 3-dimensional array with the same shape as the input `grid_vacancy` argument,
+            where each value corresponds to the number of found PSP events for that grid point.
+        """
+        if num_directions not in [3, 7, 13]:
+            raise ValueError("Argument `num_directions` must be either 3, 7, or 13.")
+        # Get all 26 half directions, in the order: orthogonal, 3d-diagonal, 2d-diagonal
+        dirs = np.concatenate([self._DIRS_ORTHO, self._DIRS_DIAG_3D, self._DIRS_DIAG_2D])
+        # Calculate the length of each direction unit vector
+        len_dir_vectors = np.repeat(self.spacing, 26) * np.repeat(
+            np.array([1, np.sqrt(3), np.sqrt(2)]),
+            repeats=[6, 8, 12],
+        )
+        # Calculate the maximum allowed number of times to travel in each half-direction
+        max_mult_factors = psp_len_max // len_dir_vectors
+        # Calculate distance of each vacant grid point to the nearest occupied grid point in each
+        # half direction, in units of corresponding distance vectors
+        dists_single_dir = grid_distance(
+            grid=mask_vacancy,
+            start_indices=np.argwhere(mask_vacancy),
+            directions=dirs[:num_directions * 2],
+            target_value=0,
+            max_dist_in_dir=max_mult_factors[:num_directions * 2]
+        )
+        # For each grid-point, filter directions where one half-direction is zero (meaning no
+        # neighbor was found in that direction).
+        has_psp = np.logical_and(dists_single_dir[..., 0::2] != 0,
+                                 dists_single_dir[..., 1::2] != 0)
+        # Add distances to neighbors in positive half-directions , to distances to neighbors in
+        # negative half-directions, in order to get the PSP length in units of direction vectors,
+        # and then multiply by direction unit vector lengths, to get the actual PSP distances.
+        dists_psp = (dists_single_dir[..., 0::2] + dists_single_dir[..., 1::2]) * len_dir_vectors[
+                                                                                  :num_directions]
+        # Select and count PSP events that are shorter than the given cutoff.
+        psp_is_within_range = np.logical_and(has_psp, dists_psp <= psp_len_max)
+        return np.count_nonzero(psp_is_within_range, axis=-1)
 
 
 
-# def routine_run_t2fpharm(
-#             filepath_target_structure: Union[str, Path],
-#             path_output: Optional[Union[str, Path]] = None,
-#             type_probes: Sequence[TYPE_AUTODOCK_ATOM_TYPE] = ("A", "C", "HD", "OA"),
-#             coords_grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-#             spacing_grid_points: float = 0.6,
-#             dims_grid: Optional[Tuple[float, float, float]] = (16, 16, 16),
-#             npts: Optional[Tuple[int, int, int]] = None,
-#             energy_refs: Sequence[Union[TYPE_AUTODOCK_ATOM_TYPE, Literal["e", "d"]]] = ["OA"],
-#             energy_cutoff: float = +0.6,
-#             mode: Optional[Literal["max", "min", "avg", "sum"]] = "sum",
-# ):
-#     t2fpharm = T2FPharm(
-#         filepath_target_structure=filepath_target_structure,
-#         path_output=path_output,
-#         type_probes=type_probes,
-#         coords_grid_center=coords_grid_center,
-#         spacing_grid_points=spacing_grid_points,
-#         dims_grid=dims_grid,
-#         npts=npts,
-#     )
-#
-#     mask_vacant = t2fpharm.calculate_mask_vacant(
-#         energy_refs=energy_refs,
-#         energy_cutoff=energy_cutoff,
-#         mode=mode
-#     )
-#
-#     mask_buried = t2fpharm.calculate_mask_buried(
-#         mask_vacancy=mask_vacant,
-#         num_directions=num_directions,
-#         psp_len_max=,
-#         psp_count_min=
-#     )
-#
-#     mask_proximate = t2fpharm.calculate_mask_proximate(
-#         mask_grid=
-#     )
-#
-#
-#
-#
-#
-#
-#         is_donor = DATA_AUTODOCK_ATOM_TYPE.is_donor.values[indices_target_atom_types]
-#         is_acceptor = DATA_AUTODOCK_ATOM_TYPE.is_acceptor.values[indices_target_atom_types]
-#
-#
-#
-#
-#         atom_types_hbond_donor = np.array(["HD", "HS"])
-#         atom_types_hbond_acceptor = np.array(["NA", "NS", "OA", "OS", "SA"])
-#         grid_acceptor_donor_count = []
-#         for grid_point_proximity_mask in proximity_mask:
-#             proximate_atom_types = pdbqt_df.autock_atom_type.values[grid_point_proximity_mask]
-#             acceptor_count = np.count_nonzero(
-#                 np.isin(proximate_atom_types, atom_types_hbond_acceptor))
-#             donor_count = np.count_nonzero(np.isin(proximate_atom_types, atom_types_hbond_donor))
-#             grid_acceptor_donor_count.append([acceptor_count, donor_count])
-#         grid_acceptor_donor_count = np.array(
-#             grid_acceptor_donor_count, dtype=np.int8
-#         ).reshape((*subgrid.shape[:3], 2))
-#         hbond_mask = grid_acceptor_donor_count.sum(axis=-1) > 0
-#
-#         points_hydrophilic = subgrid[hbond_mask]
-#         points_hydrophobic = subgrid[~hbond_mask]
-#
-#         points_hbond_donor_mask = (grid_acceptor_donor_count[..., 0] > 0) & (subgrid)
+def routine_run_t2fpharm(
+        receptor_filepath: Path,
+        grid_center: Union[Tuple[float, float, float], Literal["auto"]],
+        grid_size: Tuple[float, float, float] = (16, 16, 16),
+        grid_spacing: float = 0.6,
+        smooth: float = 0.5,
+        dielectric: float = -0.1465,
+        param_filepath: Optional[Path] = None,
+        output_path: Optional[Path] = None,
+        vacancy_max_energy: float = +0.6,
+        buriedness_psp_num_dirs: Literal[3, 7, 13] = 7,
+        buriedness_psp_max_len: float = 10.0,
+        buriedness_psp_min_count: int = 4,
+        hbond_max_len: float = 3.0,
+        probes_max_energy: Tuple[float, float, float, float] = (-0.6,-0.35,-0.4,-0.4),
+        electrostat_pot_exclusion_range: Tuple[float, float] = (-1.0, 1.0),
+        min_neighbor_dist_clustering: float = 1.21,
+        min_common_neighbor_count_clustering: int = 6,
+        min_points_per_cluster_count: int = 15,
+
+):
+    hba = autodock.AtomType.OA  # hydrogen-bond acceptor probe
+    hbd = autodock.AtomType.HD  # hydrogen-bond donor probe
+    aliph = autodock.AtomType.C  # aliphatic hydrophobic probe
+    arom = autodock.AtomType.A  # aromatic hydrophobic probe
+    probes = (hba, hbd, aliph, arom)
+
+    t2fpharm = T2FPharm(
+        receptor_filepath=receptor_filepath,
+        ligand_types=probes,
+        grid_center=grid_center,
+        grid_size=grid_size,
+        grid_spacing=grid_spacing,
+        smooth=smooth,
+        dielectric=dielectric,
+        param_filepath=param_filepath,
+        output_path=output_path,
+    )
+    # Vacancy of each grid point is a boolean grid
+    is_vacant = t2fpharm.grid_probe(hba) < vacancy_max_energy
+    # Buriedness of each vacant point as a boolean array
+    is_buried = t2fpharm.count_psp_events(
+        mask_vacancy=is_vacant,
+        num_directions=buriedness_psp_num_dirs,
+        psp_len_max=buriedness_psp_max_len,
+    ) >= buriedness_psp_min_count
+    # A boolean grid indicating points that are both vacant and buried
+    is_vacant_n_buried = np.zeros_like(is_vacant)
+    is_vacant_n_buried[is_vacant] = is_buried
+    # A boolean grid indicating whether a specific probe at a specific grid point has high affinity
+    is_high_affinity = t2fpharm.grid_probes < np.array(probes_max_energy)
+    # A boolean grid indicating points that are both high affinity and buried
+    is_high_affinity_n_buried = np.logical_and(
+        is_high_affinity,
+        is_vacant_n_buried[..., np.newaxis],
+    )
+    # Count of H-bond acceptor and donor atoms (from protein) in proximity of each grid point
+    count_hba, count_hbd = t2fpharm.count_hbond_partners_in_target(
+        max_len_hbond=hbond_max_len,
+        mask_grid=is_vacant_n_buried
+    )
+    # Boolean grids describing the H-bond environment for each grid point
+    has_hba_env = count_hba > 0
+    has_hbd_env = count_hbd > 0
+    has_hydrophilic_env = np.logical_or(has_hba_env, has_hbd_env)
+    has_hydrophobic_env = np.logical_not(has_hydrophilic_env)
+
+    is_hba, is_hbd, is_aliph, is_arom = (
+        np.logical_and(is_high_affinity_n_buried[..., probes.index(probe)], condition)
+        for probe, condition in zip(probes, [has_hbd_env, has_hba_env, has_hydrophobic_env, has_hydrophobic_env])
+    )
 
 
-# def t2fpharm(
-#         filepath_target_structure: Path,
-#         coordinates_pocket_center: Union[Tuple[float, float, float], str] = "auto",
-#         dimensions_pocket: Tuple[float, float, float] = (16, 16, 16),
-#         spacing_grid: float = 0.6,
-#         atom_types_target: Sequence[str] = ("A", "C", "HD", "N", "NA", "OA", "SA", "Cl"),
-#         types_maxpot_probes: Sequence[Tuple[str, float]] = (
-#                 ("A", -0.4),
-#                 ("C", -0.4),
-#                 ("HD", -0.35),
-#                 ("OA", -0.6),
-#         ),
-#         maxpot_abs_electrostat: float = 1.0,
-#         maxpot_occupancy: float = +0.6,
-#         count_dirs_psp: Literal[3, 7, 13] = 7,
-#         max_psp_len: float = 10.0,
-#         min_psp_count: int = 4,
-#         max_hbond_len: float = 3.0,
-#         min_neighbor_dist_clustering: float = 1.21,
-#         min_common_neighbor_count_clustering: int = 6,
-#         min_points_per_cluster_count: int = 15,
-#         path_output: Optional[Path] = None
-# ):
+    mask_pi = np.logical_and(
+        is_vacant_n_buried,
+        t2fpharm.grid_electrostat_pot < -elec_max_abs_pot,
+        has_hydrophilic_env,
+    )
 
-a=np.array([1,2,3])
-print(a[1])
-
-pharm = T2FPharm(filepath_target_structure="/Users/home/Downloads/test_run/3w32.pdbqt")
-mask_vacant = pharm.calculate_mask_vacant(
-    energy_refs=["e","d"],
-)
-pharm.calculate_mask_buried(mask_vacant)
+    mask_ni = np.logical_and(
+        is_vacant_n_buried,
+        t2fpharm.grid_electrostat_pot > elec_max_abs_pot,
+        has_hydrophilic_env
+    )
