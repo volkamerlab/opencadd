@@ -11,6 +11,24 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 
+
+# Direction vectors in a 3x3x3 grid:
+GRID_DIRS_ORTHO_POS = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.byte)
+GRID_DIRS_DIAG_2D_POS = np.array(
+    [[1, 1, 0], [1, 0, 1], [0, 1, 1], [-1, 1, 0], [-1, 0, 1], [0, -1, 1]],
+    dtype=np.byte,
+)
+GRID_DIRS_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
+GRID_DIRS_ORTHO_NEG = -GRID_DIRS_ORTHO_POS
+GRID_DIRS_DIAG_2D_NEG = -GRID_DIRS_DIAG_2D_POS
+GRID_DIRS_DIAG_3D_NEG = -GRID_DIRS_DIAG_3D_POS
+GRID_DIRS_ORTHO = np.insert(GRID_DIRS_ORTHO_NEG, np.arange(3), GRID_DIRS_ORTHO_POS, axis=0)
+GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(6), GRID_DIRS_DIAG_2D_POS, axis=0)
+GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(4), GRID_DIRS_DIAG_3D_POS, axis=0)
+GRID_DIRS_DIAG = np.concatenate([GRID_DIRS_DIAG_2D, GRID_DIRS_DIAG_3D])
+GRID_DIRS = np.concatenate([GRID_DIRS_ORTHO, GRID_DIRS_DIAG])
+
+
 def grid_distance(
         grid: np.ndarray,
         start_indices: np.ndarray,
@@ -113,21 +131,7 @@ class Grid:
     """
     An n-dimensional grid of evenly spaced points.
     """
-    # Direction vectors in a 3x3x3 grid:
-    _DIR_ORTHO_POS = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.byte)
-    _DIR_DIAG_2D_POS = np.array(
-        [[1, 1, 0], [1, 0, 1], [0, 1, 1], [-1, 1, 0], [-1, 0, 1], [0, -1, 1]],
-        dtype=np.byte
-    )
-    _DIR_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
-    _DIRS_ORTHO_NEG = -_DIR_ORTHO_POS
-    _DIRS_DIAG_2D_NEG = -_DIR_DIAG_2D_POS
-    _DIRS_DIAG_3D_NEG = -_DIR_DIAG_3D_POS
-    _DIRS_ORTHO = np.insert(_DIRS_ORTHO_NEG, np.arange(3), _DIR_ORTHO_POS, axis=0)
-    _DIRS_DIAG_2D = np.insert(_DIRS_DIAG_2D_NEG, np.arange(6), _DIR_DIAG_2D_POS, axis=0)
-    _DIRS_DIAG_3D = np.insert(_DIRS_DIAG_3D_NEG, np.arange(4), _DIR_DIAG_3D_POS, axis=0)
-    _DIRS_DIAG = np.concatenate([_DIRS_DIAG_2D, _DIRS_DIAG_3D])
-    _DIRS = np.concatenate([_DIRS_ORTHO, _DIRS_DIAG])
+
 
     def __init__(
             self,
