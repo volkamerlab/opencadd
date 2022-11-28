@@ -473,15 +473,37 @@ class T2FPharm:
             )
         return counts
 
-
-    mask_pi = np.logical_and(
-        is_vacant_n_buried,
-        t2fpharm.grid_electrostat_pot < -elec_max_abs_pot,
-        has_hydrophilic_env,
-    )
-
-    mask_ni = np.logical_and(
-        is_vacant_n_buried,
-        t2fpharm.grid_electrostat_pot > elec_max_abs_pot,
-        has_hydrophilic_env
-    )
+    def visualize(
+            self,
+            grid_mask,
+            weights1 = None,
+            weights2 = None,
+            color_map: str = "bwr",
+            opacity: float = 0.8,
+    ):
+        view = nglview.show_file(str(self._receptor_filepaths[0]), ext="pdbqt")
+        normalizer = mpl.colors.Normalize()
+        mapper = plt.cm.ScalarMappable(
+            norm=normalizer,
+            cmap=mpl.colormaps[color_map]
+        )
+        if weights1 is None:
+            weights1 = np.repeat(0.5, np.count_nonzero(grid_mask) * 3)
+        elif isinstance(weights1, Sequence):
+            weights1 = np.tile(weights1, np.count_nonzero(grid_mask) * 3)
+        else:
+            weights1 = (mapper.to_rgba(weights1.flatten())[..., :3]).flatten()
+        if weights2 is None:
+            weights2 = np.ones(np.count_nonzero(grid_mask)) * self._grid_spacing
+        elif isinstance(weights2, (int, float)):
+            weights2 = np.ones(np.count_nonzero(grid_mask)) + weights2
+        else:
+            weights2 = normalizer(weights2).flatten() * (self._grid_spacing - 0.05) + 0.05
+        nglview_api.add_spheres(
+            view=view,
+            coords=list(self.grid_coordinates[grid_mask].flatten()),
+            colors=list(weights1),
+            radii=list(weights2),
+            opacity=opacity
+        )
+        return view
