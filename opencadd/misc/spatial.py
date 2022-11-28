@@ -66,6 +66,49 @@ def grid_distance(
     return dists
 
 
+def dist_vectorized(
+        grid: np.ndarray,
+        directions: np.ndarray,
+        directions_mult: Optional[Union[Sequence[int], int]] = None,
+):
+    def slicer(vec):
+        slice_start, slice_end, slice_exclude = [], [], []
+        for val in vec:
+            if val > 0:
+                slice_start.append(slice(None, -val))
+                slice_end.append(slice(val, None))
+                slice_exclude.append(slice(-val, None))
+            elif val < 0:
+                slice_start.append(slice(-val, None))
+                slice_end.append(slice(None, val))
+                slice_exclude.append(slice(None, -val))
+            else:
+                for lis in [slice_start, slice_end, slice_exclude]:
+                    lis.append(slice(None, None))
+        return tuple(slice_start), tuple(slice_end), tuple(slice_exclude)
+
+    dists = np.zeros(shape=(*grid.shape, directions.shape[0]), dtype=np.uintc)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        max_mult_axis = (np.array(grid.shape) - 1) / np.abs(directions)
+        max_mult_axis[np.isnan(max_mult_axis)] = np.inf
+        max_mult_dir = np.min(max_mult_axis, axis=-1)
+    if directions_mult is None:
+        directions_mult = np.ones(directions.shape[0]) * np.max(grid.shape)
+    elif isinstance(directions_mult, int):
+        directions_mult = np.ones(directions.shape[0]) * directions_mult
+    max_mult = np.min((max_mult_dir, directions_mult), axis=0).astype(int) + 1
+    for idx_dir, direction in enumerate(directions):
+        curr_mask = np.ones_like(grid)
+        for mult in range(1, max_mult[idx_dir]):
+            start_slice, end_slice, excl_slice = slicer(mult*direction)
+            reached_xeno = np.logical_xor(grid[start_slice], grid[end_slice])
+            dists[(*start_slice, idx_dir)][curr_mask[start_slice]] = reached_xeno[curr_mask[
+                start_slice]] * mult
+            curr_mask[start_slice][reached_xeno] = 0
+    return dists
+
+
+
 class Grid:
     """
     An n-dimensional grid of evenly spaced points.
