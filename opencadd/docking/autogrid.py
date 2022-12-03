@@ -1,8 +1,8 @@
 """
 API for the AutoGrid4 program.
 
-This module contains functions and routines to communicate with the AutoGrid4 program via
-shell command executions, and get the results as numpy arrays.
+Functions and routines to communicate with the AutoGrid4 program via shell command executions,
+and get the results as numpy arrays.
 
 References
 ----------
@@ -18,28 +18,34 @@ import subprocess
 from pathlib import Path
 # 3rd-party
 import numpy as np
+import numpy.typing as npt
 # Self
+from opencadd.typing import PathLike
 from opencadd.io import pdbqt
 from opencadd.consts import autodock
+from opencadd.misc import spatial
 
 
 def routine_run(
-            receptor_filepath: Path,
-            ligand_types: Sequence[autodock.AtomType],
-            grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-            grid_npts: Tuple[float, float, float] = (40, 40, 40),
-            grid_spacing: float = 0.375,
-            smooth: float = 0.5,
-            dielectric: float = -0.1465,
-            param_filepath: Optional[Path] = None,
-            output_path: Optional[Path] = None,
-) -> Tuple[Tuple[np.ndarray], Tuple[Path]]:
+        receptor_filepaths: Sequence[PathLike],
+        ligand_types: Sequence[autodock.AtomType],
+        grid_center: Union[Tuple[float, float, float]],
+        grid_size: Tuple[float, float, float] = (25, 25, 25),
+        grid_npts: Optional[Tuple[int, int, int]] = None,
+        grid_spacing: float = 0.375,
+        smooth: float = 0.5,
+        dielectric: float = -0.1465,
+        receptor_types: Optional[Sequence[Sequence[autodock.AtomType]]] = None,
+        param_filepath: Optional[Path] = None,
+        output_path: Optional[Path] = None,
+        field_datatype: npt.DTypeLike = np.single,
+) -> spatial.Field:
     """
     Run AutoGrid energy calculations and get the results.
 
     Parameters
     ----------
-    receptor_filepath : pathlib.Path
+    receptor_filepaths : pathlib.Path
         Path to the PDBQT structure file of the macromolecule.
     ligand_types : Sequence[opencadd.consts.autodock.AtomType]
         Types of ligand atoms, for which interaction energies must be calculated.
@@ -74,7 +80,7 @@ def routine_run(
 
     Returns
     -------
-    grid_energies, grid_mapfiles : Tuple[numpy.ndarray], Tuple[pathlib.Path]
+    field : opencadd.misc.spatial.Field
         Calculated grid-point energies, as a tuple of 1-dimensional arrays containing the
         energy values for each grid point for a specific type of energy. The grid points are
         ordered according to the nested loops z(y(x)), so the x-coordinate is changing fastest.
@@ -83,30 +89,71 @@ def routine_run(
         added to the end of the tuple, respectively. The second tuple contains the paths to each
         of the energy map files in the same order.
     """
-    # 1. Create GPF config file for AutoGrid.
-    path_gpf, paths_energy_maps, paths_gridfld_xyz = create_gpf(
-        receptor_filepath=receptor_filepath,
-        grid_center=grid_center,
-        grid_npts=grid_npts,
-        grid_spacing=grid_spacing,
-        ligand_types=ligand_types,
-        smooth=smooth,
-        dielectric=dielectric,
-        parameter_filepath=param_filepath,
-        path_output=output_path,
+    if isinstance(receptor_filepaths, PathLike):
+        receptor_filepaths = [receptor_filepaths]
+    elif not isinstance(receptor_filepaths, npt.ArrayLike):
+        raise ValueError("`receptor_filepaths` must be path-like or array-like of path-likes.")
+    num_receptors = len(receptor_filepaths)
+    if receptor_types is None:
+        receptor_types = [
+            pdbqt.extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor_filepath)
+            for receptor_filepath in receptor_filepaths
+        ]
+    else:
+        receptor_types = np.array(receptor_types)
+        if receptor_types.ndim == 1:
+            receptor_types = np.tile(
+                receptor_types, num_receptors
+            ).reshape(num_receptors, -1)
+
+    if grid_npts is None:
+        grid_npts = calculate_npts(grid_size=grid_size, grid_spacing=grid_spacing)
+
+    grid_shape = np.array(grid_npts) + 1
+
+    fields_tensor = np.empty(
+        shape=(num_receptors, *grid_shape, len(ligand_types)+2),
+        dtype=field_datatype
     )
-    # 2. Submit job to AutoGrid.
-    submit_job(
-        gpf_filepath=path_gpf,
-        glg_filepath=output_path,
+
+    for receptor_idx, receptor_filepath in enumerate(receptor_filepaths):
+        # 1. Create GPF config file for AutoGrid.
+        path_gpf, paths_fields, path_gridfld, path_xyz = create_gpf(
+            receptor_filepath=receptor_filepath,
+            output_path=output_path,
+            receptor_types=receptor_types[receptor_idx],
+            ligand_types=ligand_types,
+            grid_center=grid_center,
+            grid_npts=grid_npts,
+            grid_spacing=grid_spacing,
+            smooth=smooth,
+            dielectric=dielectric,
+            parameter_filepath=param_filepath,
+        )
+        # 2. Submit job to AutoGrid.
+        submit_job(
+            gpf_filepath=path_gpf,
+            glg_filepath=output_path,
+        )
+        # 3. Extract calculated grid-point energies from map files.
+        for field_idx, path_field in enumerate(paths_fields):
+            fields_tensor[receptor_idx, ..., field_idx] = extract_field_values(
+                map_filepath=path_field,
+                data_type=field_datatype
+            ).reshape(shape=tuple(grid_shape), order="F")
+
+    field = spatial.Field(
+        field_tensor=fields_tensor,
+        grid_origin=np.array(grid_center) - grid_spacing * np.array(grid_npts) / 2,
+        grid_point_spacing=grid_spacing,
     )
-    # 3. Extract calculated grid-point energies from map files.
-    energies = tuple(extract_grid_energies(map_filepath=path) for path in paths_energy_maps)
-    return energies, paths_energy_maps
+    return field
 
 
 def create_gpf(
-        receptor_filepath: Path,
+        receptor_filepath: PathLike,
+        output_path: PathLike,
+        receptor_types: Sequence[autodock.AtomType],
         ligand_types: Sequence[autodock.AtomType],
         grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
         grid_npts: Tuple[int, int, int] = (40, 40, 40),
@@ -114,7 +161,6 @@ def create_gpf(
         smooth: float = 0.5,
         dielectric: float = -0.1465,
         parameter_filepath: Optional[Path] = None,
-        path_output: Optional[Path] = None,
 ) -> Tuple[Path, Tuple[Path], Path, Path]:
     """
     Create a Grid Parameter File (GPF), used as an input specification file in AutoGrid.
@@ -147,12 +193,12 @@ def create_gpf(
         dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
     parameter_filepath : pathlib.Path, Optional, default: None
         User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
-    path_output: pathlib.Path
+    output_path: pathlib.Path
         Path to a folder to write the output files in.
 
     Returns
     -------
-    tuple[pathlib.Path, tuple[pathlib.Path], tuple[pathlib.Path, pathlib.Path]]
+    tuple[pathlib.Path, tuple[pathlib.Path], pathlib.Path, pathlib.Path]
     Filepath to the generated grid parameter file (.GPF), followed by a tuple of paths to grid
     map files (.MAP), followed by a tuple of paths to the grid field file (.FLD) and .XYZ file,
     respectively.
@@ -161,20 +207,28 @@ def create_gpf(
     elements of this tuple correspond to electrostatic and desolvation map files that are always
     generated.
     """
+    receptor_filepath = Path(receptor_filepath).absolute()
+    output_path = Path(output_path).absolute()
+    if not receptor_filepath.is_file() or receptor_filepath.suffix.lower() != ".pdbqt":
+        raise ValueError(f"No PDBQT file found at: {receptor_filepath}")
+    # TODO: apparently AutoGrid cannot handle filepaths in the gpf file that have spaces. Using
+    #  quotation marks around the filepath, and escaping with \ did not work. Find a solution.
+    if " " in str(receptor_filepath) + str(output_path):
+        raise ValueError("Paths can not contain spaces.")
     # Create filepaths for output files.
-    path_common = receptor_filepath if path_output is None else path_output / receptor_filepath.name
+    output_path.mkdir(parents=True, exist_ok=True)
+    path_common = output_path / receptor_filepath.name
     path_gpf, path_gridfld, path_xyz, path_electrostatic_map, path_desolvation_map = (
-        path_common.with_suffix(ext) for ext in (".gpf", ".maps.fld", ".maps.xyz", ".e.map", ".d.map")
+        path_common.with_suffix(ext)
+        for ext in (".gpf", ".maps.fld", ".maps.xyz", ".e.map", ".d.map")
     )
     paths_ligand_type_maps = [
         path_common.with_suffix(f'.{ligand_type}.map') for ligand_type in ligand_types
     ]
-    # Get receptor types
-    receptor_types = pdbqt.extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor_filepath)
+    paths_fields = tuple(paths_ligand_type_maps + [path_electrostatic_map, path_desolvation_map])
     # Generate the file content.
     # It is recommended by AutoDock to generate the gpf file in this exact order.
-    # TODO: apparently AutoGrid cannot handle filepaths in the gpf file that have spaces. Using
-    #  quotation marks around the filepath, and escaping with \ did not work. Find a solution.
+
     file_content: str = ""
     if parameter_filepath is not None:
         file_content += f"parameter_file {parameter_filepath}\n"
@@ -198,16 +252,12 @@ def create_gpf(
     # write to the file content to pgf file.
     with open(path_gpf, "w") as f:
         f.write(file_content)
-    return (
-        path_gpf,
-        tuple(paths_ligand_type_maps + [path_electrostatic_map, path_desolvation_map]),
-        (path_gridfld, path_xyz),
-    )
+    return path_gpf, paths_fields, path_gridfld, path_xyz
 
 
 def submit_job(
-        gpf_filepath: Path,
-        glg_filepath: Optional[Path] = None,
+        gpf_filepath: PathLike,
+        glg_filepath: Optional[PathLike] = None,
 ) -> subprocess.CompletedProcess:
     """
     Run grid energy calculations with AutoGrid4, using the input grid parameter file (GPF).
@@ -244,9 +294,9 @@ def submit_job(
         args=[
             Path(__file__).parent.resolve()/'autogrid4',
             "-p",
-            gpf_filepath.with_suffix('.gpf'),
+            Path(gpf_filepath).with_suffix('.gpf'),
             "-l",
-            glg_filepath.with_suffix('.glg')
+            Path(glg_filepath).with_suffix('.glg')
         ],
         capture_output=True,
         check=True,
@@ -254,8 +304,8 @@ def submit_job(
     return process
 
 
-def extract_grid_energies(
-        map_filepath: Path,
+def extract_field_values(
+        map_filepath: PathLike,
         data_type: np.dtype = np.single,
 ) -> np.ndarray:
     """
@@ -303,7 +353,7 @@ def extract_grid_energies(
 
 
 def extract_grid_params(
-        map_filepath: Path
+        map_filepath: PathLike
 ) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], float]:
     """
     Extract the AutoGrid parameters `gridcenter`, `npts` and `spacing` from a MAP file.
@@ -315,7 +365,7 @@ def extract_grid_params(
 
     Returns
     -------
-    gridcenter, npts, spacing : tuple[tuple, tuple, float]
+    gridcenter, npts, spacing : tuple[tuple[float, float, float], tuple[float, float, float], float]
 
     See Also
     --------
