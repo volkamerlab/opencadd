@@ -1,0 +1,51 @@
+name: opencadd
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+dependencies:
+  # Base depends
+  - python
+  - numpy
+  - pandas
+  - matplotlib
+  - scipy
+  - jupyter
+  - jupyterlab
+  - mayavi
+  - plotly
+  - rdkit
+  - biotite
+  - biopython
+  - nglview
+  - openbabel
+  - redo
+  - mdanalysis
+  - bravado
+  - biopandas
+  - tqdm
+  - ipywidgets<8
+  - ipyevents
+  - pip
+  # mmligner
+  - mmligner
+  # theseus
+  - muscle
+  - clustalo
+  - theseus
+  # Testing
+  - pytest
+  - pytest-cov
+  - codecov
+  # Docs
+  # Pin setuptools until this fix is part of latest MDA release:
+  # https://github.com/volkamerlab/opencadd/issues/136
+  - setuptools<60
+  - sphinx
+  - sphinx_rtd_theme
+  # Pin nbsphix until this fix is part of their latest release
+  # https://github.com/spatialaudio/nbsphinx/pull/621
+  - nbsphinx<0.8.8
+  # Linting and code style
+  - pylint
+  - black
