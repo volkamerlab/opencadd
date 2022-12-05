@@ -163,7 +163,7 @@ class Grid:
             (*self.shape, *coordinates.shape) if coordinates.ndim == 2
             else (coordinates.shape[0], *self.shape, *coordinates.shape[1:])
         )
-        dist_vects = dist_vects_origin_repeated + self._shift_vectors[..., np.newaxis, :]
+        dist_vects = dist_vects_origin_repeated - self._shift_vectors[..., np.newaxis, :]
         return np.linalg.norm(dist_vects, axis=-1)
 
 
