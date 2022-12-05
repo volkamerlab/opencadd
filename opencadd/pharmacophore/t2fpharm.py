@@ -1,29 +1,48 @@
 """
-T2F-Pharm (Truly Target-Focused Pharmacophore) model.
+T2F (Truly Target-Focused) Pharmacophore modeler.
+
+This module contains the `T2Fpharm` class, used for pharmacophore modeling
+from protein apo structures.
 """
 
 
 # Standard library
-from typing import Sequence, Union, Optional, Literal, Tuple, Dict
+from typing import Literal, Optional, Sequence, Tuple, Union
 from pathlib import Path
 # 3rd-party
 import numpy as np
-import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import nglview
-from scipy.spatial import distance_matrix
 # Self
-from opencadd.docking import autogrid
-from opencadd.io import pdbqt
+from opencadd import protein
+from opencadd.interaction import autogrid
 from opencadd.consts import autodock
 from opencadd.misc import spatial
 from opencadd.visualization import nglview_api
+from opencadd.typing import PathLike
 
 
 class T2FPharm:
     """
-    Truly Target Focused (T2F) pharmacophore model.
+    Truly Target Focused (T2F) pharmacophore modeler.
+
+    Design a pharmacophore from one or several protein apo structures.
+
+    Instantiate the modeler by entering one or several protein structures, defining their
+    binding pocket's coordinates and size, and indicating a set of pharmacophore features
+    to consider. The modeler automatically calculates interaction energy fields inside the
+    binding pocket of each protein structure, for each pharmacophore feature, plus desolvation
+    energy and electrostatic potential fields. All data are stored in a single higher-dimensional
+    array, allowing for easy and fast data manipulation and visualization. With the methods
+    available to the class, a variety of information on the binding pocket can be extracted and
+    used to develop a pharmacophore model.
+
+
+
+    calculate the interaction energies
+    between each protein structure and each atomic probe (representing a pharmacophore feature),
+    at regular grid points spanned over the defined binding pocket.
 
     A 3-dimensional array containing the calculated energy values for each grid point.
         The shape of the array is (nx, ny, nz), where nx, ny, and nz are the number of grid
@@ -58,27 +77,18 @@ class T2FPharm:
 
     def __init__(
             self,
-            receptor_filepaths: Sequence[Path],
-            ligand_types: Sequence[autodock.AtomType],
-            grid_center: Union[Tuple[float, float, float], Literal["auto"]],
-            grid_size: Tuple[float, float, float] = (16, 16, 16),
-            grid_spacing: float = 0.6,
-            smooth: float = 0.5,
-            dielectric: float = -0.1465,
-            param_filepath: Optional[Path] = None,
-            output_path: Optional[Path] = None,
-            data_type: np.dtype = np.single,
+            receptor: protein.Protein,
+            interaction_field: autogrid.IntraMolecularInteractionField,
     ):
         """
-
         Parameters
         ----------
-        receptor_filepaths : Sequence[pathlib.Path]
+        receptors : Sequence[pathlib.Path]
             Path to the PDBQT structure files of the macromolecule.
-        ligand_types : Sequence[opencadd.consts.autodock.AtomType]
+        probe_types : Sequence[opencadd.consts.autodock.AtomType]
             Types of ligand atoms, for which interaction energies must be calculated.
             For more information, see `opencadd.consts.autodock.AtomType`.
-        grid_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
+        receptor_pocket_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
             Coordinates (x, y, z) of the center of grid map, in the reference frame of the target
             structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers the grid
             on the receptor's center of mass.
@@ -106,68 +116,46 @@ class T2FPharm:
             stored in the same folder as the input file. If a non-existing path is given,
             a new directory will be created with all necessary parent directories.
         """
-        self._receptor_filepaths = receptor_filepaths
-        self._temporal_len = len(receptor_filepaths)
-        self._output_path = receptor_filepaths[0].parent if output_path is None else output_path
-        self._output_path.mkdir(parents=True, exist_ok=True)
-        self._ligand_types = np.array(ligand_types, dtype=object)
-        self._grid_center = np.array(grid_center)
-        self._grid_size = grid_size
-        self._grid_spacing = grid_spacing
-        npts = np.array(autogrid.calculate_npts(grid_size=grid_size, grid_spacing=grid_spacing))
-        self._grid_shape = npts + 1
-        self._grid_origin = self._grid_center - self._grid_spacing * npts / 2
-        self._grid = np.empty(
-            shape=(self._temporal_len, *self._grid_shape, self._ligand_types.size+2),
-            dtype=data_type
-        )
-        self._df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=receptor_filepaths[0])["ATOM"]
-        self._protein_coordinates = np.empty(
-            shape=(self._temporal_len, len(self._df_pdbqt.index), 3)
-        )
-        for t, receptor_filepath in enumerate(receptor_filepaths):
-            df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=receptor_filepath)["ATOM"]
-            self._protein_coordinates[t, ...] = df_pdbqt[["x", "y", "z"]].to_numpy()
-            energies, filepaths_mapfiles = autogrid.routine_run(
-                receptor_filepath=receptor_filepath,
-                ligand_types=ligand_types,
-                grid_center=grid_center,
-                grid_npts=tuple(npts),
-                grid_spacing=grid_spacing,
-                smooth=smooth,
-                dielectric=dielectric,
-                param_filepath=param_filepath,
-                output_path=output_path,
-            )
-            for idx_energy, energy in enumerate(energies):
-                self._grid[t, ..., idx_energy] = energy.reshape(tuple(self._grid_shape), order="F")
+        self._receptor: protein.Protein = receptor
+        self._interaction_field = interaction_field
 
-        self._grid_coords = np.array(
-            list(np.ndindex(*self._grid_shape))
-        ).reshape(*self._grid_shape, 3) * self._grid_spacing + self._grid_origin
-
-        self._grid_dists_protein = np.moveaxis(
-            distance_matrix(
-                self._grid_coords.reshape(-1, 3),
-                self._protein_coordinates.reshape(-1, 3)
-            ).reshape(*self._grid_shape, self._temporal_len, len(self._df_pdbqt.index)),
-            source=3,
-            destination=0,
-        )
-
-        # Get all 26 half directions, in the order: orthogonal, 3d-diagonal, 2d-diagonal
-        self._direction_vects = np.zeros(shape=(26, 4), dtype=np.byte)
-        self._direction_vects[:, 1:] = np.concatenate(
-            [spatial.GRID_DIRS_ORTHO, spatial.GRID_DIRS_DIAG_3D, spatial.GRID_DIRS_DIAG_2D]
-        )
-        # Calculate the length of each direction unit vector
-        self._direction_vects_len = np.linalg.norm(self._direction_vects, axis=-1) * self._grid_spacing
+        self._vacancy: np.ndarray = None
+        self._psp_distances: np.ndarray = None
+        self._buriedness: np.ndarray = None
+        self._distances_to_protein_atoms: np.ndarray = None
+        self._hbonding_atoms_count: np.ndarray = None
         return
 
-    def __str__(self):
-        str = f"""
-        Grid shape (n_, nx, ny, nz, n)
-        """
+    @property
+    def receptor(self) -> protein.Protein:
+        return self._receptor
+
+    @property
+    def field(self):
+        return self._interaction_field
+
+    @property
+    def distances_to_protein_atoms(self):
+        return (
+            self._distances_to_protein_atoms if self._distances_to_protein_atoms is not None
+            else self.calculate_distances_to_protein_atoms()
+        )
+
+    @property
+    def vacancy(self):
+        return self._vacancy if self._vacancy is not None else self.calculate_vacancy()
+
+    @property
+    def psp_distances(self):
+        return self._psp_distances if self._psp_distances is not None else self.calculate_psp_distances()
+
+    @property
+    def buriedness(self):
+        return self._buriedness if self._buriedness is not None else self.calculate_buriedness()
+
+    @property
+    def hbonding_atoms_count(self):
+        return self._hbonding_atoms_count if self._hbonding_atoms_count is not None else self.count_hbonding_atoms_in_radius()
 
     def __call__(
             self,
@@ -189,16 +177,16 @@ class T2FPharm:
         probes = (hba, hbd, aliph, arom)
 
         # Vacancy of each grid point as a boolean grid
-        vacant = self.grid_vacancy(energy_cutoff=vacancy_max_energy)
+        vacant = self.vacancy(energy_cutoff=vacancy_max_energy)
         # Buriedness of each vacant point as a boolean array
-        buried = self.grid_buriedness(
-            grid_vacancy=vacant,
-            grid_psp_dist=self.grid_psp_dist(
+        buried = self.calculate_buriedness(
+            vacancy=vacant,
+            psp_distances=self.grid_psp_dist(
                 grid_vacancy=vacant,
                 num_directions=buriedness_psp_num_dirs,
                 max_radius=buriedness_psp_max_len
             ),
-            psp_max_len=buriedness_psp_max_len,
+            psp_max_length=buriedness_psp_max_len,
             psp_min_count=buriedness_psp_min_count
         )
         # A boolean grid indicating whether a specific probe at a specific grid point has high affinity
@@ -209,7 +197,7 @@ class T2FPharm:
             buried[..., np.newaxis],
         )
         # Count of H-bond acceptor and donor atoms (from protein) in proximity of each grid point
-        count_hba, count_hbd = self.grid_hbonding_atoms_count(
+        count_hba, count_hbd = self.count_hbonding_atoms_in_radius(
             max_len_hbond=hbond_max_len,
         )
         # Boolean grids describing the H-bond environment for each grid point
@@ -235,100 +223,10 @@ class T2FPharm:
         )
         return
 
-    @property
-    def grid(self) -> np.ndarray:
-        """
-        5-dimensional array containing data of all grid points,
-        calculated for each protein structure.
-
-        Returns
-        -------
-        numpy.ndarray
-            A 5-dimensional array of shape (n_t, n_x, n_y, n_z, n_p), with
-            n_t: number of input protein structures.
-            n_x, n_y, n_z: number of grid points along x, y, and z directions.
-            n_p: number of calculated properties for each point, i.e. number of input ligand types
-                 plus 2 (for electrostatic potential and desolvation energy).
-        """
-        return self._grid
-
-    @property
-    def grid_probes(self) -> np.ndarray:
-        """
-        Sub-array of `T2FPharm.grid`, containing only the ligand interaction energies.
-
-        Returns
-        -------
-        numpy.ndarray
-            A 5-dimensional array of shape (n_t, n_x, n_y, n_z, n_l), with
-            n_t: number of input protein structures.
-            n_x, n_y, n_z: number of grid points along x, y, and z directions.
-            n_l: number of input ligand types.
-        """
-        return self._grid[..., :-2]
-
-    @property
-    def grid_electrostatic(self) -> np.ndarray:
-        """
-        Sub-array of `T2FPharm.grid`, containing only the electrostatic potential.
-
-        Returns
-        -------
-        numpy.ndarray
-            A 4-dimensional array of shape (n_t, n_x, n_y, n_z), with
-            n_t: number of input protein structures.
-            n_x, n_y, n_z: number of grid points along x, y, and z directions.
-        """
-        return self._grid[..., -2]
-
-    @property
-    def grid_desolvation(self) -> np.ndarray:
-        """
-        Sub-array of `T2FPharm.grid`, containing only the desolvation energy.
-
-        Returns
-        -------
-        numpy.ndarray
-            A 4-dimensional array of shape (n_t, n_x, n_y, n_z), with
-            n_t: number of input protein structures.
-            n_x, n_y, n_z: number of grid points along x, y, and z directions.
-        """
-        return self._grid[..., -1]
-
-    @property
-    def grid_coordinates(self):
-        return self._grid_coords
-
-    @property
-    def receptor_data(self) -> pd.DataFrame:
-        return self._df_pdbqt
-
-    def grid_probe(self, ligand_type: autodock.AtomType) -> np.ndarray:
-        """
-        Sub-array of `T2FPharm.grid`, containing only
-        the interaction energy of a given ligand type.
-
-        Parameters
-        ----------
-        ligand_type : opencadd.consts.autodock.AtomType
-
-        Returns
-        -------
-        numpy.ndarray
-            A 4-dimensional array of shape (n_t, n_x, n_y, n_z), with
-            n_t: number of input protein structures.
-            n_x, n_y, n_z: number of grid points along x, y, and z directions.
-        """
-        idx = np.argwhere(self._ligand_types == ligand_type)
-        if idx.size == 0:
-            raise IndexError("No energy has been calculated for the given ligand type.")
-        return self._grid[..., idx[0, 0]]
-
-    def grid_vacancy(
+    def calculate_vacancy(
             self,
             energy_cutoff: float = +0.6,
             mode: Optional[Literal["max", "min", "avg", "sum"]] = "min",
-            ligand_types: Optional[Sequence[autodock.AtomType]] = None,
     ) -> np.ndarray:
         """
         Calculate whether each grid point is vacant, or occupied by a target atom.
@@ -356,21 +254,22 @@ class T2FPharm:
         # The reducing operations corresponding to each `mode`:
         red_fun = {"max": np.max, "min": np.min, "avg": np.mean, "sum": np.sum}
         # Get index of input ligand types
-        if ligand_types is None:
-            ind = slice(None)
-        else:
-            ind = np.argwhere(np.expand_dims(ligand_types, axis=-1) == self._ligand_types)[:, 1]
-            # Verify that all input ligand types are valid
-            if len(ind) != len(ligand_types):
-                raise ValueError(f"Some of input energies were not calculated.")
+        # if ligand_types is None:
+        #     ind = slice(None)
+        # else:
+        #     ind = np.argwhere(np.expand_dims(ligand_types, axis=-1) == self._probe_types)[:, 1]
+        #     # Verify that all input ligand types are valid
+        #     if len(ind) != len(ligand_types):
+        #         raise ValueError(f"Some of input energies were not calculated.")
         # Reduce the given references using the given operation.
-        energy_vals = red_fun[mode](self.grid_probes[..., ind], axis=-1)
+        energy_vals = red_fun[mode](self._interaction_field.van_der_waals, axis=-1)
         # Apply cutoff and return
-        return energy_vals < energy_cutoff
+        self._vacancy = energy_vals < energy_cutoff
+        return self._vacancy
 
-    def grid_psp_dist(
+    def calculate_psp_distances(
             self,
-            grid_vacancy: np.ndarray,
+            vacancy: Optional[np.ndarray] = None,
             num_directions: Literal[3, 7, 13] = 7,
             max_radius: Optional[float] = None,
     ) -> np.ndarray:
@@ -381,7 +280,7 @@ class T2FPharm:
 
         Parameters
         ----------
-        grid_vacancy : numpy.ndarray
+        vacancy : numpy.ndarray
             A 4-dimensional boolean array, indicating whether each grid point is vacant (True),
             or occupied (False), i.e. the output of `T2FPharm.grid_vacancy`.
         num_directions : Literal[3, 7, 13]
@@ -402,30 +301,35 @@ class T2FPharm:
             A 4-dimensional array matching the first four dimensions of `T2FPharm.grid`,
             indicating for each grid point its psp distances in each given direction.
         """
-        if num_directions not in [3, 7, 13]:
-            raise ValueError("Argument `num_directions` must be either 3, 7, or 13.")
+        if vacancy is None:
+            vacancy = self.vacancy
+        dimensions = {3: 1, 7: (1, 3), 13: None}
+        dir_vectors = self._interaction_field.spatial_direction_vectors(
+            dimensions=dimensions[num_directions]
+        )
+        len_dir_vectors = np.linalg.norm(dir_vectors, axis=-1)
+        num_dir_vectors = dir_vectors.shape[0]
         # Calculate distance of each vacant grid point to the nearest occupied grid point in each
         # half direction, in units of corresponding distance vectors
-        dists = spatial.dist_vectorized(
-            grid=grid_vacancy,
-            directions=self._direction_vects[:num_directions * 2],
-            directions_mult=(
-                    max_radius // self._direction_vects_len[:num_directions * 2]
-            ) if max_radius is not None else None
+        dists = spatial.xeno_neighbor_distance(
+            bool_array=vacancy,
+            dir_vectors=dir_vectors,
+            dir_multipliers=(max_radius // len_dir_vectors) if max_radius is not None else None
         ).astype(np.single)
         # set distances that are 0 (meaning no neighbor was found in that direction) to Nan.
         dists[dists == 0] = np.nan
         # Add distances to neighbors in positive half-directions , to distances to neighbors in
         # negative half-directions, in order to get the PSP length in units of direction vectors,
         # and then multiply by direction unit vector lengths, to get the actual PSP distances.
-        psp_grid_dists = dists[..., 0::2] + dists[..., 1::2]
-        return psp_grid_dists * self._direction_vects_len[:num_directions * 2:2]
+        psp_grid_dists = dists[..., :num_dir_vectors//2] + dists[..., num_dir_vectors//2:]
+        self._psp_distances = psp_grid_dists * len_dir_vectors[:num_dir_vectors//2]
+        return self._psp_distances
 
-    @staticmethod
-    def grid_buriedness(
-            grid_vacancy: np.ndarray,
-            grid_psp_dist: np.ndarray,
-            psp_max_len: float = 10.0,
+    def calculate_buriedness(
+            self,
+            vacancy: Optional[np.ndarray] = None,
+            psp_distances: Optional[np.ndarray] = None,
+            psp_max_length: float = 10.0,
             psp_min_count: int = 4,
     ) -> np.ndarray:
         """
@@ -438,10 +342,10 @@ class T2FPharm:
 
         Parameters
         ----------
-        grid_vacancy : numpy.ndarray
+        vacancy : numpy.ndarray
 
-        grid_psp_dist : numpy.ndarray
-        psp_max_len : float, Optional, default: 10.0
+        psp_distances : numpy.ndarray
+        psp_max_length : float, Optional, default: 10.0
             Maximum acceptable distance for a PSP event, in Ångstrom (Å).
         psp_min_count : int, Optional, default: 4
             Minimum required number of PSP events for a grid point, in order to count as buried.
@@ -454,34 +358,51 @@ class T2FPharm:
             Thus, the buried grid points can easily be indexed using boolean indexing with this
             array, i.e.: `grid[buriedness]`.
         """
+        if vacancy is None:
+            vacancy = self.vacancy
+        if psp_distances is None:
+            psp_distances = self.psp_distances
         # Count PSP events that are shorter than the given cutoff.
-        grid_psp_counts = np.count_nonzero(grid_psp_dist <= psp_max_len, axis=-1)
+        grid_psp_counts = np.count_nonzero(psp_distances <= psp_max_length, axis=-1)
         buriedness = grid_psp_counts >= psp_min_count
-        buriedness[np.logical_not(grid_vacancy)] = False
+        buriedness[np.logical_not(vacancy)] = False
         return buriedness
 
-    def grid_hbonding_atoms_count(
+    def calculate_distances_to_protein_atoms(self):
+        self._distances_to_protein_atoms = self._interaction_field.grid.distance(
+            coordinates=self._receptor.trajectory
+        )
+        return self._distances_to_protein_atoms
+
+    def count_hbonding_atoms_in_radius(
             self,
             max_len_hbond: float = 3.0,
     ) -> np.ndarray:
-        proximates = self._grid_dists_protein < max_len_hbond
-        counts = np.zeros(shape=(*self._grid.shape[:-1], 2), dtype=np.byte)
+        proximates = self.distances_to_protein_atoms < max_len_hbond
+        self._hbonding_atoms_count = np.zeros(
+            shape=(*self.distances_to_protein_atoms.shape[:-1], 2),
+            dtype=np.byte
+        )
         for idx, hbond_role in enumerate(["hbond_acc", "hbond_don"]):
-            counts[..., idx] = np.count_nonzero(
-                np.logical_and(self._df_pdbqt[hbond_role], proximates),
+            self._hbonding_atoms_count[..., idx] = np.count_nonzero(
+                np.logical_and(self._receptor.atom_data[hbond_role], proximates),
                 axis=-1
             )
-        return counts
+        return self._hbonding_atoms_count
 
     def visualize(
             self,
-            grid_mask,
+            grid_mask = None,
             weights1 = None,
             weights2 = None,
+            view = None,
             color_map: str = "bwr",
             opacity: float = 0.8,
     ):
-        view = nglview.show_file(str(self._receptor_filepaths[0]), ext="pdbqt")
+        if grid_mask is None:
+            grid_mask = np.ones(shape=self._interaction_field.grid.shape, dtype=np.bool_)
+        if view is None:
+            view = self.receptor.view
         normalizer = mpl.colors.Normalize()
         mapper = plt.cm.ScalarMappable(
             norm=normalizer,
@@ -494,16 +415,126 @@ class T2FPharm:
         else:
             weights1 = (mapper.to_rgba(weights1.flatten())[..., :3]).flatten()
         if weights2 is None:
-            weights2 = np.ones(np.count_nonzero(grid_mask)) * self._grid_spacing
+            weights2 = (
+                    np.ones(np.count_nonzero(grid_mask)) * self._interaction_field.grid.spacing / 4
+            )
         elif isinstance(weights2, (int, float)):
             weights2 = np.ones(np.count_nonzero(grid_mask)) + weights2
         else:
-            weights2 = normalizer(weights2).flatten() * (self._grid_spacing - 0.05) + 0.05
+            weights2 = normalizer(weights2).flatten() * (self._interaction_field.grid.spacing - 0.05) + 0.05
         nglview_api.add_spheres(
             view=view,
-            coords=list(self.grid_coordinates[grid_mask].flatten()),
+            coords=list(self._interaction_field.grid.coordinates[grid_mask].flatten()),
             colors=list(weights1),
             radii=list(weights2),
             opacity=opacity
         )
         return view
+
+# RECEPTOR_FILEPATHS = [Path("/Users/home/Downloads/3w32.pdbqt")]
+# GRID_CENTER = (15.91, 32.33, 11.03)
+# GRID_SIZE = (20, 20, 20)
+# GRID_SPACING = 0.6
+# HBD = autodock.AtomType.HD
+# HBA = autodock.AtomType.OA
+# AL = autodock.AtomType.C
+# AR = autodock.AtomType.A
+# PROBES = (HBD, HBA, AL, AR)
+# VACANCY_MAX_ENERGY = 0.6
+# PSP_NUM_DIRS = 7
+# PSP_LEN_MAX = 10.0
+# PSP_COUNT_MIN = 4
+# HBOND_LEN_MAX = 3.0
+# t2f = T2FPharm(
+#     receptor_filepaths=RECEPTOR_FILEPATHS,
+#     ligand_types=PROBES,
+#     grid_center=GRID_CENTER,
+#     grid_size=GRID_SIZE,
+#     grid_spacing=GRID_SPACING
+# )
+# t2f()
+
+
+
+        #
+        #
+        # if isinstance(receptors, (PathLike, Sequence)):
+        #     if isinstance(receptors, PathLike):
+        #         path = Path(receptors)
+        #         if path.is_file():
+        #             if path.suffix.lower() == ".pdbqt":
+        #                 pdbqt_filepaths = [path]
+        #             else:
+        #                 raise ValueError("Receptor's input file's extension should be PDBQT.")
+        #         elif path.is_dir():
+        #             pdbqt_filepaths = list(path.glob("*.pdbqt"))
+        #         else:
+        #             raise ValueError(f"No such file or directory: {path}")
+        #     else:
+        #         pdbqt_filepaths = [
+        #             Path(receptor) for receptor in receptors
+        #             if Path(receptor).is_file() and Path(receptor).suffix.lower() == ".pdbqt"
+        #         ]
+        #     if len(pdbqt_filepaths) == 0:
+        #         raise ValueError(f"No PDBQT file found.")
+        #     if len(pdbqt_filepaths) == 1:
+        #         self._receptor = protein.Protein.from_file(path=pdbqt_filepaths[0])
+        #         self._receptor_is_static = True
+        #         self._receptor_is_trajectory = False
+        #     else:
+        #         self._receptor_is_static = False
+        #         try:
+        #             self._receptor = protein.ProteinTrajectory.from_files(paths=pdbqt_filepaths)
+        #             self._receptor_is_trajectory: bool = True
+        #         except protein.TopologyError:
+        #             self._receptor = protein.ProteinFamily.from_files(paths=pdbqt_filepaths)
+        #             self._receptor_is_trajectory: bool = False
+        # elif isinstance(
+        #         receptors,
+        #         (protein.Protein, protein.ProteinTrajectory, protein.ProteinFamily)
+        # ):
+        #     self._receptor = receptors
+        #     pdbqt_filepaths = self._receptor.to_file_pdbqt()
+        #     if isinstance(receptors, protein.ProteinFamily):
+        #         self._receptor_is_static = False
+        #         self._receptor_is_trajectory = False
+        #     elif isinstance(receptors, protein.ProteinTrajectory):
+        #         self._receptor_is_static = False
+        #         self._receptor_is_trajectory = True
+        #     else:
+        #         self._receptor_is_static = True
+        #         self._receptor_is_trajectory = False
+        #         pdbqt_filepaths = [pdbqt_filepaths]
+        # else:
+        #     raise ValueError("Type of `receptor` not recognized.")
+        #
+        #
+        # self._output_path = pdbqt_filepaths[0].parent if output_path is None else output_path
+        # self._output_path.mkdir(parents=True, exist_ok=True)
+        # self._probe_types = np.array(probe_types, dtype=object)
+        #
+        #
+        #
+        #
+        # self._df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=receptors[0])["ATOM"]
+        #
+        # for t, receptor_filepath in enumerate(receptors):
+        #     df_pdbqt = pdbqt.parse_pdbqt(filepath_pdbqt=receptor_filepath)["ATOM"]
+        #     self._protein_coordinates[t, ...] = df_pdbqt[["x", "y", "z"]].to_numpy()
+        #
+        # self._grid_dists_protein = np.moveaxis(
+        #     distance_matrix(
+        #         self._grid_coords.reshape(-1, 3),
+        #         self._protein_coordinates.reshape(-1, 3)
+        #     ).reshape(*self._grid_shape, self._temporal_len, len(self._df_pdbqt.index)),
+        #     source=3,
+        #     destination=0,
+        # )
+        #
+        # # Get all 26 half directions, in the order: orthogonal, 3d-diagonal, 2d-diagonal
+        # self._direction_vects = np.zeros(shape=(26, 4), dtype=np.byte)
+        # self._direction_vects[:, 1:] = np.concatenate(
+        #     [spatial.GRID_DIRS_ORTHO, spatial.GRID_DIRS_DIAG_3D, spatial.GRID_DIRS_DIAG_2D]
+        # )
+        # # Calculate the length of each direction unit vector
+        # self._direction_vects_len = np.linalg.norm(self._direction_vects, axis=-1) * self._grid_spacing
