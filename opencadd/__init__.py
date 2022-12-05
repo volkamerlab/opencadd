@@ -30,3 +30,6 @@ _logger.info(
     - opencadd.structure.superposition
     """
 )
+
+
+from .protein import Protein
