@@ -4,29 +4,169 @@ General functions and routines for spatial calculations, such as distances, volu
 
 
 # Standard library
-from typing import Any, Sequence, Union, Optional, Tuple
+from typing import Any, Literal, Sequence, Union, Optional, Tuple
 import itertools
 # 3rd-party
 import numpy as np
-from scipy.spatial import distance_matrix
+import numpy.typing as npt
+from opencadd.typing import ArrayLike
 
 
+class Grid:
+    """
+    An n-dimensional grid of equidistant points.
+    """
 
-# Direction vectors in a 3x3x3 grid:
-GRID_DIRS_ORTHO_POS = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.byte)
-GRID_DIRS_DIAG_2D_POS = np.array(
-    [[1, 1, 0], [1, 0, 1], [0, 1, 1], [-1, 1, 0], [-1, 0, 1], [0, -1, 1]],
-    dtype=np.byte,
-)
-GRID_DIRS_DIAG_3D_POS = np.array([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1]], dtype=np.byte)
-GRID_DIRS_ORTHO_NEG = -GRID_DIRS_ORTHO_POS
-GRID_DIRS_DIAG_2D_NEG = -GRID_DIRS_DIAG_2D_POS
-GRID_DIRS_DIAG_3D_NEG = -GRID_DIRS_DIAG_3D_POS
-GRID_DIRS_ORTHO = np.insert(GRID_DIRS_ORTHO_NEG, np.arange(3), GRID_DIRS_ORTHO_POS, axis=0)
-GRID_DIRS_DIAG_2D = np.insert(GRID_DIRS_DIAG_2D_NEG, np.arange(6), GRID_DIRS_DIAG_2D_POS, axis=0)
-GRID_DIRS_DIAG_3D = np.insert(GRID_DIRS_DIAG_3D_NEG, np.arange(4), GRID_DIRS_DIAG_3D_POS, axis=0)
-GRID_DIRS_DIAG = np.concatenate([GRID_DIRS_DIAG_2D, GRID_DIRS_DIAG_3D])
-GRID_DIRS = np.concatenate([GRID_DIRS_ORTHO, GRID_DIRS_DIAG])
+    def __init__(
+            self,
+            shape: Sequence[int],
+            origin: Sequence[float],
+            spacing: float,
+    ):
+        """
+        Parameters
+        ----------
+        shape : Sequence[int]
+            Shape of the grid, i.e. number of grid points per dimension.
+        origin : Sequence[float]
+            Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
+        spacing : float
+            Distance between two adjacent points along a dimension.
+        """
+        self._shape: np.ndarray = np.array(shape).astype(int)
+        self._origin: np.ndarray = np.array(origin).astype(float)
+        self._spacing: float = spacing
+        self._dimension: int = len(self._shape)
+        self._size: np.ndarray = (self._shape - 1) * self._spacing
+        self._center: np.ndarray = self._origin + self._size / 2
+        self._indices: np.ndarray = np.array(
+            list(np.ndindex(*self._shape))
+        ).reshape(*self._shape, -1)
+        self._shift_vectors: np.ndarray = self._indices * self._spacing
+        self._coordinates: np.ndarray = self._shift_vectors + self._origin
+        self._direction_vectors = np.array(
+            list(itertools.product([-1, 0, 1], repeat=self._dimension))
+        )
+        self._direction_vectors_dimension: np.ndarray = np.count_nonzero(
+            self._direction_vectors,
+            axis=-1
+        )
+        return
+
+    @property
+    def dimension(self) -> int:
+        """
+        Dimension of the grid, i.e. number of axes.
+        """
+        return self._dimension
+
+    @property
+    def shape(self) -> Tuple[int]:
+        """
+        Shape of the grid, i.e. number of grid points in each dimension.
+        """
+        return tuple(self._shape)
+
+    @property
+    def size(self) -> Tuple[float]:
+        """
+        Size of the grid, i.e. length in each dimension,
+        calculated from number of points and spacing.
+        """
+        return tuple(self._size)
+
+    @property
+    def point_count(self) -> int:
+        """
+        Total number of points in the grid.
+        """
+        return self._shape.prod()
+
+    @property
+    def origin(self) -> Tuple[float]:
+        """
+        Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
+        """
+        return tuple(self._origin)
+
+    @property
+    def center(self) -> Tuple[float]:
+        """
+        Coordinates of the center of the grid.
+        """
+        return tuple(self._origin + self._size / 2)
+
+    @property
+    def spacing(self) -> float:
+        """
+        Distance between two adjacent points along a dimension.
+        """
+        return self._spacing
+
+    @property
+    def indices(self) -> np.ndarray:
+        """
+        Indices of all grid points.
+        """
+        return self._indices
+
+    @property
+    def coordinates(self) -> np.ndarray:
+        """
+        Coordinates of all grid points.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 4-dimensional array containing the (x,y,z)-coordinates of each grid point
+            in Ångstrom (Å), in the target structure's reference frame.
+
+            The shape of the array is (nx, ny, nz, 3), where nx, ny, and nz are the number of grid
+            points along the x-, y-, and z-axis, respectively. These are each equal to the
+            corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
+            the same way that the grid points are ordered in space, and thus the individual grid
+            points can be indexed using their actual coordinates (in unit vectors), assuming the
+            origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
+            grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
+        """
+        return self._coordinates
+
+    def direction_vectors(self, dimensions: Optional[Sequence[int]] = None) -> np.ndarray:
+        if dimensions is None:
+            dimensions = np.arange(1, self._dimension + 1)
+        return self._direction_vectors[np.isin(self._direction_vectors_dimension, dimensions)]
+
+    def distance(
+            self,
+            coordinates: np.ndarray
+    ):
+        """
+        Calculate distances between each grid point and a set of points.
+
+        Parameters
+        ----------
+        coordinates : numpy.ndarray
+            A 2-dimensional array of shape (n, d), containing the coordinates of n points in a
+            d-dimensional space, where d is equal to the grid dimension.
+
+        Returns
+        -------
+        dists : numpy.ndarray
+            Distances between each grid point and each point in `coordinates`.
+        """
+
+        dist_vects_origin = coordinates - self._origin
+        dist_vects_origin_repeated = np.tile(
+            dist_vects_origin[np.newaxis],
+            reps=(self.point_count, 1, 1) if coordinates.ndim == 2 else (1, self.point_count, 1, 1)
+        ).reshape(
+            (*self.shape, *coordinates.shape) if coordinates.ndim == 2
+            else (coordinates.shape[0], *self.shape, *coordinates.shape[1:])
+        )
+        dist_vects = dist_vects_origin_repeated + self._shift_vectors[..., np.newaxis, :]
+        return np.linalg.norm(dist_vects, axis=-1)
+
+
 
 
 def grid_distance(
@@ -84,182 +224,79 @@ def grid_distance(
     return dists
 
 
-def dist_vectorized(
-        grid: np.ndarray,
-        directions: np.ndarray,
-        directions_mult: Optional[Union[Sequence[int], int]] = None,
+def xeno_neighbor_distance(
+        bool_array: np.ndarray,
+        dir_vectors: np.ndarray,
+        dir_multipliers: Optional[Union[Sequence[int], int]] = None,
 ):
+    """
+    Given an n-dimensional boolean array, for each boolean element calculate its distances
+    to the first opposite elements along a number of given directions.
+
+    Parameters
+    ----------
+    bool_array : numpy.ndarray
+        An n-dimensional boolean array.
+    dir_vectors : numpy.ndarray
+        A 2-dimensional array of shape (k, n), containing k direction vectors in an
+        n-dimensional space.
+    dir_multipliers : Sequence[int] | int, Optional, default: None
+        Maximum multipliers for direction vectors, i.e. maximum number of times to travel along
+        each direction to find the opposite neighbor of an element, before terminating the
+        search. This can be a single integer used for all direction vectors, or a sequence of k
+        integers, one for each direction vector. If not provided, search will continue until one
+        edge of the array is reached.
+
+    Returns
+    -------
+    numpy.ndarray
+        An (n+1)-dimensional array of integers, where the first n dimensions match the shape of
+        the input `bool_array`, and the last dimension has k elements, each describing the
+        distance to the nearest opposite element along the corresponding direction vector in
+        `dir_vectors`. The values are all integers, and correspond to the number of times to
+        travel along the corresponding direction vector to reach the nearest xeno element.
+        The value will be 0 for directions where no opposite element was found.
+    """
     def slicer(vec):
-        slice_start, slice_end, slice_exclude = [], [], []
+        """
+        For a given displacement vector (i.e. direction vector times a multiplier), calculate
+        two tuples of slices, which index the starting elements and end elements of that
+        displacement on the array.
+        """
+        start_slices, end_slices = [], []
         for val in vec:
             if val > 0:
-                slice_start.append(slice(None, -val))
-                slice_end.append(slice(val, None))
-                slice_exclude.append(slice(-val, None))
+                start_slices.append(slice(None, -val))
+                end_slices.append(slice(val, None))
             elif val < 0:
-                slice_start.append(slice(-val, None))
-                slice_end.append(slice(None, val))
-                slice_exclude.append(slice(None, -val))
+                start_slices.append(slice(-val, None))
+                end_slices.append(slice(None, val))
             else:
-                for lis in [slice_start, slice_end, slice_exclude]:
+                for lis in [start_slices, end_slices]:
                     lis.append(slice(None, None))
-        return tuple(slice_start), tuple(slice_end), tuple(slice_exclude)
-
-    dists = np.zeros(shape=(*grid.shape, directions.shape[0]), dtype=np.uintc)
+        return tuple(start_slices), tuple(end_slices)
+    # Initiate the array of distance with zeros.
+    dists = np.zeros(shape=(*bool_array.shape, dir_vectors.shape[0]), dtype=np.uintc)
+    # Calculate the maximum multiplier along each direction:
+    # First, calculate the maximum possible multipliers
     with np.errstate(divide='ignore', invalid='ignore'):
-        max_mult_axis = (np.array(grid.shape) - 1) / np.abs(directions)
+        max_mult_axis = (np.array(bool_array.shape) - 1) / np.abs(dir_vectors)
         max_mult_axis[np.isnan(max_mult_axis)] = np.inf
         max_mult_dir = np.min(max_mult_axis, axis=-1)
-    if directions_mult is None:
-        directions_mult = np.ones(directions.shape[0]) * np.max(grid.shape)
-    elif isinstance(directions_mult, int):
-        directions_mult = np.ones(directions.shape[0]) * directions_mult
-    max_mult = np.min((max_mult_dir, directions_mult), axis=0).astype(int) + 1
-    for idx_dir, direction in enumerate(directions):
-        curr_mask = np.ones_like(grid)
+    # Then, compare with user-input multipliers and take the smaller one in each direction.
+    if dir_multipliers is None:
+        dir_multipliers = np.ones(dir_vectors.shape[0]) * np.max(bool_array.shape)
+    elif isinstance(dir_multipliers, int):
+        dir_multipliers = np.ones(dir_vectors.shape[0]) * dir_multipliers
+    max_mult = np.min((max_mult_dir, dir_multipliers), axis=0).astype(int) + 1
+    # Loop through directions, and for each direction through multipliers, and calculate
+    # distances between starting elements and end elements.
+    for idx_dir, direction in enumerate(dir_vectors):
+        curr_mask = np.ones_like(bool_array)
         for mult in range(1, max_mult[idx_dir]):
-            start_slice, end_slice, excl_slice = slicer(mult*direction)
-            reached_xeno = np.logical_xor(grid[start_slice], grid[end_slice])
+            start_slice, end_slice = slicer(mult*direction)
+            reached_xeno = np.logical_xor(bool_array[start_slice], bool_array[end_slice])
             dists[(*start_slice, idx_dir)][curr_mask[start_slice]] = reached_xeno[curr_mask[
                 start_slice]] * mult
             curr_mask[start_slice][reached_xeno] = 0
     return dists
-
-
-
-class Grid:
-    """
-    An n-dimensional grid of evenly spaced points.
-    """
-
-
-    def __init__(
-            self,
-            shape: Sequence[int],
-            coords_origin: Sequence[float],
-            spacing: float,
-            data: Sequence[Any],
-            data_labels: Optional[Sequence[Any]] = None,
-            data_type: np.dtype = np.single,
-    ):
-        """
-        Parameters
-        ----------
-        shape : Sequence[int]
-            The number of grid points in each direction.
-        data : Sequence[Any]
-            Sequence of different data for each grid point. Each data should be in a form
-            broadcastable to the grid with given `shape`, i.e. either a single value,
-            or a sequence of values as many as the number of grid points. For sequential data,
-            the values should be ordered such that the last index is moving fastest.
-        data_labels : Sequence[str]
-            Label for each type of data present. The grid can then be indexed using labels as well.
-        coords_origin : Sequence[float]
-            Real coordinates (e.g. in 3D this would be x, y, z) of the origin point,
-            i.e. the point where all grid coordinates are zero.
-            This is used to calculate the real coordinates of all other points.
-        spacing : float
-            The distance between two adjacent grid points. Since the grid is evenly spaced in
-            all dimensions, this argument must be a single number.
-            This is used to calculate the real coordinates of all other points.
-        data_type : numpy.dtype, Optional, default: numpy.single
-            The datatype of the grid point values
-        """
-        if len(coords_origin) != len(shape):
-            raise ValueError("`coords_origin` and `shape` must have the same dimension.")
-        # if data_labels is None:
-        #     self._labels = np.arange(len(data))
-        # elif len(data) == len(data_labels):
-        #     self._labels = np.array(data_labels)
-        # else:
-        #     raise ValueError("`data` and `data_labels` must have the same length.")
-        self._coords_origin = np.array(coords_origin)
-        self._shape = np.array(shape)
-        self._spacing = spacing
-
-        self._tensor = np.empty(shape=(*self._shape, len(data)), dtype=data_type)
-        for dat_idx, dat in enumerate(data):
-            self._tensor[..., dat_idx] = dat
-        return
-
-    @property
-    def shape(self):
-        return tuple(self._shape)
-
-    @property
-    def spacing(self):
-        return self._spacing
-
-    # @property
-    # def data_labels(self):
-    #     return self._labels
-
-    def coordinates_grid_points(
-            self,
-            mask: Optional[np.ndarray] = None,
-    ) -> np.ndarray:
-        """
-        Calculate coordinates of the grid points, in the reference frame of the target structure.
-        These are calculated from the same input parameters used in function `create_gpf` to create
-        the configuration file for AutoGrid.
-
-        Parameters
-        ----------
-        gridcenter : Sequence[float, float, float], Optional, default: "auto"
-            Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
-        npts : Sequence[int, int, int], Optional, default: (40, 40, 40)
-            Number of grid points to add to the central grid point, along x-, y- and z-axes,
-            respectively. Each value must be an even integer number; when added to the central grid
-            point, there will be an odd number of points in each dimension. The number of x-, y and
-            z-grid points need not be equal.
-        spacing : float, Optional, default: 0.375
-            The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
-            Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
-            all three dimensions.
-
-        Returns
-        -------
-        numpy.ndarray
-            A 4-dimensional array containing the (x,y,z)-coordinates of each grid point
-            in Ångstrom (Å), in the target structure's reference frame.
-
-            The shape of the array is (nx, ny, nz, 3), where nx, ny, and nz are the number of grid
-            points along the x-, y-, and z-axis, respectively. These are each equal to the
-            corresponding input `npts` value, plus 1 (due to center point). The array is ordered in
-            the same way that the grid points are ordered in space, and thus the individual grid
-            points can be indexed using their actual coordinates (in unit vectors), assuming the
-            origin is at the edge of the grid with smallest x, y, and z values. That is, indexing
-            grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
-        """
-        if mask is None:
-            mask = np.ones(shape=self._shape, dtype=np.bool_)
-        return np.argwhere(mask) * self._spacing + self._coords_origin
-
-    def calculate_mask_proximate(
-            self,
-            coords_targets: np.ndarray,
-            distance: float,
-            mask: Optional[np.ndarray] = None,
-    ) -> np.ndarray:
-        dist_matrix = distance_matrix(
-            self.coordinates_grid_points(mask=mask),
-            coords_targets
-        )
-        return dist_matrix < distance
-
-    def __getitem__(self, item):
-        return self._tensor.__getitem__(item)
-        # def index_of_label(label) -> np.array:
-        #     index = np.argwhere(self._labels == np.expand_dims(np.array(label), axis=-1))[:, -1]
-        #     if index.size == 0:
-        #         raise IndexError("data label not found.")
-        #     elif index.size == 1:
-        #         return index[0]
-        #     return index
-        # if isinstance(item, int) or (isinstance(item, tuple) and isinstance(item[-1], int)):
-        #
-        # if isinstance(item, str):
-        #     return self._tensor.__getitem__(..., index_of_label(item))
-        # elif isinstance(item, tuple) and isinstance(item[-1], (str, Sequence, np.ndarray)):
-        #     return self._tensor.__getitem__(*item[:-1], index_of_label(item))
-        # else:
