@@ -20,14 +20,194 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 # Self
-from opencadd.typing import PathLike
-from opencadd.io import pdbqt
+from opencadd.typing import PathLike, ArrayLike
 from opencadd.consts import autodock
-from opencadd.misc import spatial
+from opencadd.interaction.abc import IntraMolecularInteractionField
+
+
+class AutoGridField(IntraMolecularInteractionField):
+
+    def __init__(
+            self,
+            receptor_filepaths: Sequence[PathLike],
+            grid_center: Union[Tuple[float, float, float]],
+            grid_size: Tuple[float, float, float] = (25, 25, 25),
+            grid_npts: Optional[Tuple[int, int, int]] = None,
+            grid_spacing: float = 0.375,
+            ligand_type_hydrogen_bond_donor: autodock.AtomType = autodock.AtomType.HD,
+            ligand_type_hydrogen_bond_acceptor: autodock.AtomType = autodock.AtomType.OA,
+            ligand_type_hydrophobic: autodock.AtomType = autodock.AtomType.C,
+            ligand_type_aromatic: autodock.AtomType = autodock.AtomType.A,
+            ligand_types_other: Optional[Sequence[autodock.AtomType]] = (),
+            smooth: float = 0.5,
+            dielectric: float = -0.1465,
+            receptor_types: Optional[Sequence[Sequence[autodock.AtomType]]] = None,
+            param_filepath: Optional[Path] = None,
+            output_path: Optional[Path] = None,
+            field_datatype: npt.DTypeLike = np.single,
+    ):
+        """
+        Run AutoGrid energy calculations and get the results.
+
+        Parameters
+        ----------
+        receptor_filepaths : pathlib.Path
+            Path to the PDBQT structure file of the macromolecule.
+        ligand_types : Sequence[opencadd.consts.autodock.AtomType]
+            Types of ligand atoms, for which interaction energies must be calculated.
+            For more information, see `opencadd.consts.autodock.AtomType`.
+        grid_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
+            Coordinates (x, y, z) of the center of grid map, in the reference frame of the target
+            structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers the grid
+            on the receptor's center of mass.
+        grid_npts : Tuple[int, int, int], Optional, default: (40, 40, 40)
+            Number of grid points to add to the central grid point, along x-, y- and z-axes,
+            respectively. Each value must be an even integer number; when added to the central grid
+            point, there will be an odd number of points in each dimension. The number of x-, y and
+            z-grid points need not be equal.
+        grid_spacing : float, Optional, default: 0.375
+            The grid-point spacing, i.e. distance between two adjacent grid points in Ångstrom (Å).
+            Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
+            all three dimensions.
+        smooth : float, Optional, default: 0.5
+            Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
+            and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
+            0.5 Å.
+        dielectric : float, Optional, default: -0.1465
+            Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
+            of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
+            dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
+        param_filepath : pathlib.Path, Optional, default: None
+            User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
+        output_path: pathlib.Path
+            Path to a folder to write the output files in. If not provided, the output files will be
+            stored in the same folder as the input file. If a non-existing path is given,
+            a new directory will be created with all necessary parent directories.
+
+        Returns
+        -------
+        field : opencadd.misc.spatial.Field
+            Calculated grid-point energies, as a tuple of 1-dimensional arrays containing the
+            energy values for each grid point for a specific type of energy. The grid points are
+            ordered according to the nested loops z(y(x)), so the x-coordinate is changing fastest.
+            The tuple of energy arrays is ordered in the same way as the input `ligand_types`,
+            with two additional grids, namely electrostatic potential, and desolvation energy,
+            added to the end of the tuple, respectively. The second tuple contains the paths to each
+            of the energy map files in the same order.
+        """
+        if isinstance(receptor_filepaths, PathLike):
+            receptor_filepaths = [receptor_filepaths]
+        elif not isinstance(receptor_filepaths, ArrayLike):
+            raise ValueError("`receptor_filepaths` must be path-like or array-like of path-likes.")
+        num_receptors = len(receptor_filepaths)
+
+        if receptor_types is not None:
+            receptor_types = np.array(receptor_types)
+            if receptor_types.ndim == 1:
+                receptor_types = np.tile(
+                    receptor_types, num_receptors
+                ).reshape(num_receptors, -1)
+        if grid_npts is None:
+            grid_npts = calculate_npts(grid_size=grid_size, grid_spacing=grid_spacing)
+        grid_shape = np.array(grid_npts) + 1
+        ligand_types=(ligand_type_hydrogen_bond_donor, ligand_type_hydrogen_bond_acceptor,
+                      ligand_type_hydrophobic, ligand_type_aromatic, *ligand_types_other)
+        fields_tensor = np.empty(
+            shape=(num_receptors, *grid_shape, len(ligand_types) + 2),
+            dtype=field_datatype
+        )
+        for receptor_idx, receptor_filepath in enumerate(receptor_filepaths):
+            fields_values, paths_fields, path_gpf, path_gridfld, path_xyz = routine_run(
+                receptor_filepath=receptor_filepath,
+                ligand_types=ligand_types,
+                grid_center=grid_center,
+                grid_size=grid_size,
+                grid_npts=grid_npts,
+                grid_spacing=grid_spacing,
+                smooth=smooth,
+                dielectric=dielectric,
+                receptor_types=receptor_types[receptor_idx] if receptor_types is not None else
+                None,
+                param_filepath=param_filepath,
+                output_path=output_path,
+                field_datatype=field_datatype,
+            )
+            for field_idx, field_values in enumerate(fields_values):
+                fields_tensor[receptor_idx, ..., field_idx] = field_values.reshape(
+                    tuple(grid_shape),
+                    order="F"
+                )
+        super().__init__(
+            field_tensor=fields_tensor,
+            grid_origin=np.array(grid_center) - grid_spacing * np.array(grid_npts) / 2,
+            grid_point_spacing=grid_spacing,
+        )
+        for lig_idx, ligand_type in enumerate(ligand_types_other):
+            setattr(self, ligand_type.name, self._tensor[..., lig_idx+4])
+        return
+
+    @property
+    def electrostatic(self):
+        """
+        Electrostatic potential field. The values are in kcal.mol^-1.e^-1.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 4-dimensional array of shape (n_t, n_x, n_y, n_z), with
+            n_t: number of input protein structures.
+            n_x, n_y, n_z: number of grid points along x, y, and z directions.
+        """
+        return self._tensor[..., -2]
+
+    @property
+    def van_der_waals(self):
+        """
+        Sub-array of `T2FPharm.grid`, containing only the ligand interaction energies.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 5-dimensional array of shape (n_t, n_x, n_y, n_z, n_l), with
+            n_t: number of input protein structures.
+            n_x, n_y, n_z: number of grid points along x, y, and z directions.
+            n_l: number of input ligand types.
+        """
+        return self._tensor[..., 0:4]
+
+    @property
+    def h_bond_donor(self):
+        return self._tensor[..., 0]
+
+    @property
+    def h_bond_acceptor(self):
+        return self._tensor[..., 1]
+
+    @property
+    def hydrophobic(self):
+        return self._tensor[..., 2]
+
+    @property
+    def aromatic(self):
+        return self._tensor[..., 3]
+
+    @property
+    def desolvation(self):
+        """
+        Desolvation energy field.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 4-dimensional array of shape (n_t, n_x, n_y, n_z), with
+            n_t: number of input protein structures.
+            n_x, n_y, n_z: number of grid points along x, y, and z directions.
+        """
+        return self._tensor[..., -1]
 
 
 def routine_run(
-        receptor_filepaths: Sequence[PathLike],
+        receptor_filepath: PathLike,
         ligand_types: Sequence[autodock.AtomType],
         grid_center: Union[Tuple[float, float, float]],
         grid_size: Tuple[float, float, float] = (25, 25, 25),
@@ -35,17 +215,17 @@ def routine_run(
         grid_spacing: float = 0.375,
         smooth: float = 0.5,
         dielectric: float = -0.1465,
-        receptor_types: Optional[Sequence[Sequence[autodock.AtomType]]] = None,
-        param_filepath: Optional[Path] = None,
-        output_path: Optional[Path] = None,
+        receptor_types: Optional[Sequence[autodock.AtomType]] = None,
+        param_filepath: Optional[PathLike] = None,
+        output_path: Optional[PathLike] = None,
         field_datatype: npt.DTypeLike = np.single,
-) -> spatial.Field:
+) -> Tuple[Tuple[np.ndarray], Tuple[Path], Path, Path, Path]:
     """
     Run AutoGrid energy calculations and get the results.
 
     Parameters
     ----------
-    receptor_filepaths : pathlib.Path
+    receptor_filepath : pathlib.Path
         Path to the PDBQT structure file of the macromolecule.
     ligand_types : Sequence[opencadd.consts.autodock.AtomType]
         Types of ligand atoms, for which interaction energies must be calculated.
@@ -89,65 +269,39 @@ def routine_run(
         added to the end of the tuple, respectively. The second tuple contains the paths to each
         of the energy map files in the same order.
     """
-    if isinstance(receptor_filepaths, PathLike):
-        receptor_filepaths = [receptor_filepaths]
-    elif not isinstance(receptor_filepaths, npt.ArrayLike):
-        raise ValueError("`receptor_filepaths` must be path-like or array-like of path-likes.")
-    num_receptors = len(receptor_filepaths)
     if receptor_types is None:
-        receptor_types = [
-            pdbqt.extract_autodock_atom_types_from_pdbqt(filepath_pdbqt=receptor_filepath)
-            for receptor_filepath in receptor_filepaths
-        ]
-    else:
-        receptor_types = np.array(receptor_types)
-        if receptor_types.ndim == 1:
-            receptor_types = np.tile(
-                receptor_types, num_receptors
-            ).reshape(num_receptors, -1)
-
+        with open(receptor_filepath, "r") as f:
+            lines = f.readlines()
+        atom_types = [line.split()[-1] for line in lines if line.startswith("ATOM")]
+        unique_atom_types = set(atom_types)
+        receptor_types = tuple(autodock.AtomType[atom_type] for atom_type in unique_atom_types)
     if grid_npts is None:
         grid_npts = calculate_npts(grid_size=grid_size, grid_spacing=grid_spacing)
-
-    grid_shape = np.array(grid_npts) + 1
-
-    fields_tensor = np.empty(
-        shape=(num_receptors, *grid_shape, len(ligand_types)+2),
-        dtype=field_datatype
+    # 1. Create GPF config file for AutoGrid.
+    path_gpf, paths_fields, path_gridfld, path_xyz = create_gpf(
+        receptor_filepath=receptor_filepath,
+        output_path=output_path,
+        receptor_types=receptor_types,
+        ligand_types=ligand_types,
+        grid_center=grid_center,
+        grid_npts=grid_npts,
+        grid_spacing=grid_spacing,
+        smooth=smooth,
+        dielectric=dielectric,
+        parameter_filepath=param_filepath,
     )
-
-    for receptor_idx, receptor_filepath in enumerate(receptor_filepaths):
-        # 1. Create GPF config file for AutoGrid.
-        path_gpf, paths_fields, path_gridfld, path_xyz = create_gpf(
-            receptor_filepath=receptor_filepath,
-            output_path=output_path,
-            receptor_types=receptor_types[receptor_idx],
-            ligand_types=ligand_types,
-            grid_center=grid_center,
-            grid_npts=grid_npts,
-            grid_spacing=grid_spacing,
-            smooth=smooth,
-            dielectric=dielectric,
-            parameter_filepath=param_filepath,
-        )
-        # 2. Submit job to AutoGrid.
-        submit_job(
-            gpf_filepath=path_gpf,
-            glg_filepath=output_path,
-        )
-        # 3. Extract calculated grid-point energies from map files.
-        for field_idx, path_field in enumerate(paths_fields):
-            fields_tensor[receptor_idx, ..., field_idx] = extract_field_values(
-                map_filepath=path_field,
-                data_type=field_datatype
-            ).reshape(shape=tuple(grid_shape), order="F")
-
-    field = spatial.Field(
-        field_tensor=fields_tensor,
-        grid_origin=np.array(grid_center) - grid_spacing * np.array(grid_npts) / 2,
-        grid_point_spacing=grid_spacing,
+    # 2. Submit job to AutoGrid.
+    submit_job(
+        gpf_filepath=path_gpf,
+        glg_filepath=output_path,
     )
-    return field
+    # 3. Extract calculated grid-point energies from map files.
+    fields_values = []
+    for field_idx, path_field in enumerate(paths_fields):
+        fields_values.append(
+            extract_field_values(map_filepath=path_field, data_type=field_datatype)
+        )
+    return tuple(fields_values), paths_fields, path_gpf, path_gridfld, path_xyz
 
 
 def create_gpf(
@@ -160,7 +314,7 @@ def create_gpf(
         grid_spacing: float = 0.375,
         smooth: float = 0.5,
         dielectric: float = -0.1465,
-        parameter_filepath: Optional[Path] = None,
+        parameter_filepath: Optional[PathLike] = None,
 ) -> Tuple[Path, Tuple[Path], Path, Path]:
     """
     Create a Grid Parameter File (GPF), used as an input specification file in AutoGrid.
@@ -208,22 +362,27 @@ def create_gpf(
     generated.
     """
     receptor_filepath = Path(receptor_filepath).absolute()
-    output_path = Path(output_path).absolute()
-    if not receptor_filepath.is_file() or receptor_filepath.suffix.lower() != ".pdbqt":
-        raise ValueError(f"No PDBQT file found at: {receptor_filepath}")
     # TODO: apparently AutoGrid cannot handle filepaths in the gpf file that have spaces. Using
     #  quotation marks around the filepath, and escaping with \ did not work. Find a solution.
-    if " " in str(receptor_filepath) + str(output_path):
-        raise ValueError("Paths can not contain spaces.")
+    if " " in str(receptor_filepath):
+        raise ValueError("Path cannot contain spaces.")
+    if not receptor_filepath.is_file() or receptor_filepath.suffix.lower() != ".pdbqt":
+        raise ValueError(f"No PDBQT file found at: {receptor_filepath}")
+    if output_path is None:
+        output_path = receptor_filepath.parent
+    else:
+        output_path = Path(output_path).absolute()
+        if " " in str(output_path):
+            raise ValueError("Path cannot contain spaces.")
+        output_path.mkdir(parents=True, exist_ok=True)
     # Create filepaths for output files.
-    output_path.mkdir(parents=True, exist_ok=True)
     path_common = output_path / receptor_filepath.name
     path_gpf, path_gridfld, path_xyz, path_electrostatic_map, path_desolvation_map = (
         path_common.with_suffix(ext)
         for ext in (".gpf", ".maps.fld", ".maps.xyz", ".e.map", ".d.map")
     )
     paths_ligand_type_maps = [
-        path_common.with_suffix(f'.{ligand_type}.map') for ligand_type in ligand_types
+        path_common.with_suffix(f'.{ligand_type.name}.map') for ligand_type in ligand_types
     ]
     paths_fields = tuple(paths_ligand_type_maps + [path_electrostatic_map, path_desolvation_map])
     # Generate the file content.
@@ -231,7 +390,7 @@ def create_gpf(
 
     file_content: str = ""
     if parameter_filepath is not None:
-        file_content += f"parameter_file {parameter_filepath}\n"
+        file_content += f"parameter_file {Path(parameter_filepath).absolute()}\n"
     file_content += (
         f"npts {grid_npts[0]} {grid_npts[1]} {grid_npts[2]}\n"
         f"gridfld {path_gridfld}\n"
