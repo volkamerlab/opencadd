@@ -35,7 +35,6 @@ class WebAPIStatusCodeError(WebAPIError):
         error_msg = (
             f"HTTP {'client' if response.status_code < 500 else 'server'} error "
             f"(status code: {response.status_code}) from {response.url}: {reason}\n"
-            f"HTTP request: {response.request}\n"
             f"HTTP response: {response.text}"
         )
         super().__init__(error_msg)
