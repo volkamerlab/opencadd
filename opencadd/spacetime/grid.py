@@ -8,49 +8,154 @@ from typing import Any, Literal, Sequence, Union, Optional, Tuple
 import itertools
 # 3rd-party
 import numpy as np
+import jax.numpy as jnp
+import scipy as sp
 import numpy.typing as npt
 from opencadd.typing import ArrayLike
+from opencadd.spacetime.data_structure import TensorDataSet
+
+
+def from_shape_spacing_center(
+        center: Optional[Sequence[float]] = None,
+):
+    if origin is None:
+        if center is None:
+            self._origin = np.zeros(shape=self._dimension)
+            self._center = self._size / 2
+        else:
+            self._center = np.array(center)
+            self._origin = self._center - self._size / 2
+    else:
+        if center is None:
+            self._origin = np.array(origin)
+            self._center = self._origin + self._size / 2
+        else:
+            self._origin = np.array(origin)
+            self._center = np.array(center)
+            if not np.allclose(self._center, self._origin + self._size / 2):
+                raise ValueError("Both `origin` and `center` are provided, but do not match.")
+    pass
+
+
+def from_shape_spacing_origin(
+            shape: Sequence[int],
+            spacing: float = 1,
+            origin: Optional[Sequence[float]] = None,
+):
+    """
+    Instantiate a grid by providing its shape, spacing, and optionally either origin or
+    center coordinates. If neither is provided, the origin will be set to all zeros.
+
+    Parameters
+    ----------
+    shape : Sequence[int]
+        Shape of the grid, i.e. number of grid points per dimension.
+    spacing : float, Optional, default: 1
+        Distance between two adjacent points along a dimension.
+    origin : Sequence[float], Optional, default: None
+        Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
+    center : Sequence[float], Optional, default: None
+        Coordinates of the geometric center of the grid.
+    """
+
 
 
 class Grid:
     """
-    An n-dimensional grid of equidistant points.
+    An n-dimensional grid of equidistant points in space.
     """
 
-    def __init__(
-            self,
-            shape: Sequence[int],
-            origin: Sequence[float],
-            spacing: float,
-    ):
+    __slots__ = (
+        "_shape",
+        "_spacing",
+        "_meshgrid",
+        "_tensor",
+    )
+
+    def __init__(self, ranges: npt.ArrayLike):
         """
         Parameters
         ----------
-        shape : Sequence[int]
-            Shape of the grid, i.e. number of grid points per dimension.
-        origin : Sequence[float]
-            Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
-        spacing : float
-            Distance between two adjacent points along a dimension.
+        ranges : ArrayLike, shape=(n, 3), dtype=[float, float, int]
+            Start value, end value (inclusive), and total number of points each dimension.
         """
-        self._shape: np.ndarray = np.array(shape).astype(int)
-        self._origin: np.ndarray = np.array(origin).astype(float)
-        self._spacing: float = spacing
-        self._dimension: int = len(self._shape)
-        self._size: np.ndarray = (self._shape - 1) * self._spacing
-        self._center: np.ndarray = self._origin + self._size / 2
-        self._indices: np.ndarray = np.array(
-            list(np.ndindex(*self._shape))
-        ).reshape(*self._shape, -1)
-        self._shift_vectors: np.ndarray = self._indices * self._spacing
-        self._coordinates: np.ndarray = self._shift_vectors + self._origin
+        # Declare attributes
+        self._shape: jnp.ndarray
+        self._spacing: jnp.ndarray
+        self._meshgrid: jnp.ndarray
+        self._tensor: TensorDataSet
+
+        ranges_array = jnp.asarray(ranges)
+        if ranges_array.ndim != 2 or ranges_array.shape[1] != 3:
+            raise ValueError("Shape of `ranges` must be (n, 3).")
+        if jnp.any(ranges_array[:,-1] <= 0):
+            raise ValueError("Number of points in each dimension must be a positive integer.")
+
+        self._shape = ranges_array[:, -1].astype(int)
+        self._spacing = (
+                jnp.absolute(ranges_array[:, 0] - ranges_array[:, 1])
+                / (ranges_array[:, 2].astype(int) - 1)
+        )
+
+        # Calculating meshgrids with jax is sometimes inaccurate
+        # (see https://github.com/google/jax/issues/13782).
+        # Thus, create the meshgrid with numpy and transform to jax
+        self._meshgrid = jnp.asarray(
+            np.mgrid[
+                tuple(map(lambda axis: slice(axis[0], axis[1], complex(0, int(axis[2]))), ranges))
+            ]
+        )
+
+        self._tensor = TensorDataSet(
+            data=jnp.expand_dims(jnp.stack(self._meshgrid, axis=-1), axis=0),
+            title_instance="time",
+            title_sample="grid",
+            title_observation="position"
+        )
+
+
+
+        self._origin: np.ndarray
+        self._center: np.ndarray
+        self._dimension: int
+        self._size: np.ndarray
+        self._indices: np.ndarray
+        self._shift_vectors: np.ndarray
+        self._coordinates: np.ndarray
+        self._direction_vectors: np.ndarray
+        self._direction_vectors_dimension: np.ndarray
+
+        # Assign attributes
+        self._shape = np.array(shape).astype(int)
+        self._spacing = spacing
+        self._dimension = self._shape.size
+        self._size = (self._shape - 1) * self._spacing
+        self._indices = np.array(list(np.ndindex(*self._shape))).reshape(*self._shape, -1)
+
+        if origin is None:
+            if center is None:
+                self._origin = np.zeros(shape=self._dimension)
+                self._center = self._size / 2
+            else:
+                self._center = np.array(center)
+                self._origin = self._center - self._size / 2
+        else:
+            if center is None:
+                self._origin = np.array(origin)
+                self._center = self._origin + self._size / 2
+            else:
+                self._origin = np.array(origin)
+                self._center = np.array(center)
+                if not np.allclose(self._center, self._origin + self._size / 2):
+                    raise ValueError("Both `origin` and `center` are provided, but do not match.")
+
+        self._shift_vectors = self._indices * self._spacing
+        self._coordinates = self._shift_vectors + self._origin
         self._direction_vectors = np.array(
             list(itertools.product([-1, 0, 1], repeat=self._dimension))
         )
-        self._direction_vectors_dimension: np.ndarray = np.count_nonzero(
-            self._direction_vectors,
-            axis=-1
-        )
+        self._direction_vectors_dimension = np.count_nonzero(self._direction_vectors, axis=-1)
+        self._kdtree = sp.spatial.KDTree(data=self._coordinates.reshape(-1, self._dimension))
         return
 
     @property
@@ -130,6 +235,14 @@ class Grid:
             grid[i, j, k] gives the point located at position (i, j, k) on the actual grid.
         """
         return self._coordinates
+
+    @property
+    def coordinates_2d(self):
+        return
+
+    @property
+    def kdtree(self) -> sp.spatial.KDTree:
+        return self._kdtree
 
     def direction_vectors(self, dimensions: Optional[Sequence[int]] = None) -> np.ndarray:
         if dimensions is None:
@@ -300,3 +413,11 @@ def xeno_neighbor_distance(
                 start_slice]] * mult
             curr_mask[start_slice][reached_xeno] = 0
     return dists
+
+
+def from_bounds_and_spacing(
+        lower_bounds: npt.ArrayLike,
+        upper_bounds: npt.ArrayLike,
+        spacings: npt.ArrayLike,
+) -> Grid:
+    return
