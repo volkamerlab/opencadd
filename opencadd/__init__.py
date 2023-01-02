@@ -31,5 +31,7 @@ _logger.info(
     """
 )
 
+from opencadd import (
+    spacetime
+)
 
-from .protein import Protein
