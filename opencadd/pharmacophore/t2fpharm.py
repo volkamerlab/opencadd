@@ -7,20 +7,23 @@ from protein apo structures.
 
 
 # Standard library
-from typing import Literal, Optional, Sequence, Tuple, Union
-from pathlib import Path
+from typing import Literal, Optional, Sequence, Tuple, List, Union, Any, Callable
+import operator
+import asyncio
+from time import time
 # 3rd-party
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import nglview
+from ipywidgets import interact
 # Self
-from opencadd import protein
-from opencadd.interaction import autogrid
+from opencadd.chemical import protein
+from opencadd import interaction
 from opencadd.consts import autodock
-from opencadd.misc import spatial
+from opencadd.spacetime import field, vectorized
 from opencadd.visualization import nglview_api
-from opencadd.typing import PathLike
+import ipywidgets as widgets
+from IPython.display import display
 
 
 class T2FPharm:
@@ -78,46 +81,45 @@ class T2FPharm:
     def __init__(
             self,
             receptor: protein.Protein,
-            interaction_field: autogrid.IntraMolecularInteractionField,
+            fields: interaction.abc.IntraMolecularInteractionField,
+            distance_limit: float = 5,
     ):
         """
         Parameters
         ----------
-        receptors : Sequence[pathlib.Path]
-            Path to the PDBQT structure files of the macromolecule.
-        probe_types : Sequence[opencadd.consts.autodock.AtomType]
-            Types of ligand atoms, for which interaction energies must be calculated.
-            For more information, see `opencadd.consts.autodock.AtomType`.
-        receptor_pocket_center : tuple[float, float, float] | Literal["auto"], Optional, default: "auto"
-            Coordinates (x, y, z) of the center of grid map, in the reference frame of the target
-            structure, in Ångstrom (Å). If set to "auto", AutoGrid automatically centers the grid
-            on the receptor's center of mass.
-        grid_npts : Tuple[int, int, int], Optional, default: (40, 40, 40)
-            Number of grid points to add to the central grid point, along x-, y- and z-axes,
-            respectively. Each value must be an even integer number; when added to the central grid
-            point, there will be an odd number of points in each dimension. The number of x-, y and
-            z-grid points need not be equal.
-        grid_spacing : float, Optional, default: 0.375
-            The grid-point spacing, i.e. distance between two adjacent grid points in Ångstrom (Å).
-            Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
-            all three dimensions.
-        smooth : float, Optional, default: 0.5
-            Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
-            and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
-            0.5 Å.
-        dielectric : float, Optional, default: -0.1465
-            Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
-            of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
-            dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
-        param_filepath : pathlib.Path, Optional, default: None
-            User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
-        output_path: pathlib.Path
-            Path to a folder to write the output files in. If not provided, the output files will be
-            stored in the same folder as the input file. If a non-existing path is given,
-            a new directory will be created with all necessary parent directories.
+        receptor : opencadd.protein.Protein
+            Receptor of the target-focused pharmacophore model.
+        fields : opencadd.misc.field.ToxelField
+            Toxel fields calculated for the receptor.
         """
-        self._receptor: protein.Protein = receptor
-        self._interaction_field = interaction_field
+        # Declare attributes
+        self._receptor: protein.Protein
+        self._fields: field.ToxelField
+        self._dist_limit_curr: float
+        self._dist_atoms_within_limit: np.ndarray
+        self._dist_nearest_atoms: np.ndarray
+        self._idx_nearest_atoms: np.ndarray
+        # Assign attributes
+        self._receptor = receptor
+        self._fields = fields
+        self._dist_limit_curr = distance_limit
+        # Distance-related attributes
+        shape_distance_data = (
+            self._receptor.trajectory_length,
+            *self._fields.grid.shape,
+            self._receptor.count_atoms
+        )
+        self._dist_atoms_within_limit = self._receptor.distance_to_atoms_sparse(
+            kdtree=self._fields.grid.kdtree,
+            max_distance=self._dist_limit_curr
+        ).reshape(shape_distance_data)
+        nearest_atoms_distances, nearest_atoms_indices = self._receptor.nearest_atoms(
+            coords=self._fields.grid.coordinates.reshape(-1, 3)
+        )
+        self._dist_nearest_atoms = nearest_atoms_distances.reshape(shape_distance_data[:-1])
+        self._idx_nearest_atoms = nearest_atoms_indices.reshape(shape_distance_data[:-1])
+
+        self._nglwidget = self._receptor.create_new_ngl_widget()
 
         self._vacancy: np.ndarray = None
         self._psp_distances: np.ndarray = None
@@ -128,11 +130,29 @@ class T2FPharm:
 
     @property
     def receptor(self) -> protein.Protein:
+        """
+        Receptor of the model.
+        """
         return self._receptor
 
     @property
-    def field(self):
-        return self._interaction_field
+    def fields(self):
+        """
+        Fields of the model.0
+        """
+        return self._fields
+
+    @property
+    def distances_to_nearest_protein_atom(self) -> np.ndarray:
+        return self._dist_nearest_atoms
+
+
+
+
+
+    @property
+    def ngl_widget(self):
+        return self._nglwidget
 
     @property
     def distances_to_protein_atoms(self):
@@ -156,6 +176,34 @@ class T2FPharm:
     @property
     def hbonding_atoms_count(self):
         return self._hbonding_atoms_count if self._hbonding_atoms_count is not None else self.count_hbonding_atoms_in_radius()
+
+    def filter_by_dist_nearest_atom(
+            self,
+            dist_range: Tuple[float, float],
+            invert: bool = False
+    ) -> np.ndarray:
+        """
+        Filter points by their distances to their nearest atoms.
+
+        Parameters
+        ----------
+        dist_range : tuple[float, float]
+            Lower and upper bounds of distance to the nearest atom.
+        invert : bool, optional, default: False
+            If False (default), the points whose nearest atoms lie within the distance range are
+            returned. If True, the points whose nearest atoms lie outside the range are returned.
+
+        Returns
+        -------
+        boolean_mask : ndarray
+        """
+        op_lower, op_upper = (operator.le, operator.ge) if invert else (operator.ge, operator.le)
+        op_combine = np.logical_or if invert else np.logical_and
+        mask = op_combine(
+            op_lower(self.distances_to_nearest_protein_atom, dist_range[0]),
+            op_upper(self.distances_to_nearest_protein_atom, dist_range[1]),
+        )
+        return mask
 
     def __call__(
             self,
@@ -225,6 +273,8 @@ class T2FPharm:
 
     def calculate_vacancy(
             self,
+            source: Union[str, Sequence[str]] = "mindist",
+            vacancy_range: Tuple[float, float] = (2, ),
             energy_cutoff: float = +0.6,
             mode: Optional[Literal["max", "min", "avg", "sum"]] = "min",
     ) -> np.ndarray:
@@ -262,68 +312,11 @@ class T2FPharm:
         #     if len(ind) != len(ligand_types):
         #         raise ValueError(f"Some of input energies were not calculated.")
         # Reduce the given references using the given operation.
-        energy_vals = red_fun[mode](self._interaction_field.van_der_waals, axis=-1)
+        energy_vals = red_fun[mode](self._fields.van_der_waals, axis=-1)
         # Apply cutoff and return
         self._vacancy = energy_vals < energy_cutoff
         return self._vacancy
 
-    def calculate_psp_distances(
-            self,
-            vacancy: Optional[np.ndarray] = None,
-            num_directions: Literal[3, 7, 13] = 7,
-            max_radius: Optional[float] = None,
-    ) -> np.ndarray:
-        """
-        Calculate the length of protein–solvent–protein (PSP) events for vacant grid points,
-        and the length of solvent–protein–solvent events for occupied grid points,
-        in each direction.
-
-        Parameters
-        ----------
-        vacancy : numpy.ndarray
-            A 4-dimensional boolean array, indicating whether each grid point is vacant (True),
-            or occupied (False), i.e. the output of `T2FPharm.grid_vacancy`.
-        num_directions : Literal[3, 7, 13]
-            Number of directions to look for events for each grid point. Directions are
-            all symmetric around each point, and each direction entails both positive and
-            negative directions, along an axis. Directions are defined in a 3x3x3 unit cell,
-            i.e. for each point, there are 26 neighbors, and thus max. 13 directions.
-            Options are:
-            3: x-, y- and z-directions
-            7: x, y, z, and four 3d-diagonals (i.e. with absolute direction unit vector [1, 1, 1])
-            13: x, y, z, four 3d-diagonals, and six 2d-diagonals (e.g. [1, 1, 0])
-        max_radius : float, Optional, default: None
-            Maximum radius of search, in the same unit as `spacing_grid_points`.
-
-        Returns
-        -------
-        psp_dist : numpy.ndarray[dtype=numpy.single, shape=(*grid_vacancy.shape, num_directions)]
-            A 4-dimensional array matching the first four dimensions of `T2FPharm.grid`,
-            indicating for each grid point its psp distances in each given direction.
-        """
-        if vacancy is None:
-            vacancy = self.vacancy
-        dimensions = {3: 1, 7: (1, 3), 13: None}
-        dir_vectors = self._interaction_field.spatial_direction_vectors(
-            dimensions=dimensions[num_directions]
-        )
-        len_dir_vectors = np.linalg.norm(dir_vectors, axis=-1)
-        num_dir_vectors = dir_vectors.shape[0]
-        # Calculate distance of each vacant grid point to the nearest occupied grid point in each
-        # half direction, in units of corresponding distance vectors
-        dists = spatial.xeno_neighbor_distance(
-            bool_array=vacancy,
-            dir_vectors=dir_vectors,
-            dir_multipliers=(max_radius // len_dir_vectors) if max_radius is not None else None
-        ).astype(np.single)
-        # set distances that are 0 (meaning no neighbor was found in that direction) to Nan.
-        dists[dists == 0] = np.nan
-        # Add distances to neighbors in positive half-directions , to distances to neighbors in
-        # negative half-directions, in order to get the PSP length in units of direction vectors,
-        # and then multiply by direction unit vector lengths, to get the actual PSP distances.
-        psp_grid_dists = dists[..., :num_dir_vectors//2] + dists[..., num_dir_vectors//2:]
-        self._psp_distances = psp_grid_dists * len_dir_vectors[:num_dir_vectors//2]
-        return self._psp_distances
 
     def calculate_buriedness(
             self,
@@ -369,7 +362,7 @@ class T2FPharm:
         return buriedness
 
     def calculate_distances_to_protein_atoms(self):
-        self._distances_to_protein_atoms = self._interaction_field.grid.distance(
+        self._distances_to_protein_atoms = self._fields.grid.distance(
             coordinates=self._receptor.trajectory
         )
         return self._distances_to_protein_atoms
@@ -379,7 +372,7 @@ class T2FPharm:
             max_len_hbond: float = 3.0,
     ) -> np.ndarray:
         proximates = self.distances_to_protein_atoms < max_len_hbond
-        self._hbonding_atoms_count = np.zeros(
+        self._hbonding_atoms_count = np.empty(
             shape=(*self.distances_to_protein_atoms.shape[:-1], 2),
             dtype=np.byte
         )
@@ -390,19 +383,64 @@ class T2FPharm:
             )
         return self._hbonding_atoms_count
 
+    @property
+    def interactive_view(self):
+        view = self._receptor.create_new_ngl_widget()
+
+        def visualizer(
+                vacancy_energy_cutoff: float,
+                vacancy_calc_mode: [Literal["max", "min", "avg", "sum"]],
+                range_psp_len: Tuple[float, float],
+                psp_len_min: float,
+                psp_len_max: float,
+                psp_count_min: int,
+                psp_count_max: int,
+                energy_type,
+                energy_min: float,
+                energy_max: float,
+
+        ):
+            nglview_api.remove_component_by_name(view=view, name="grid")
+            self.calculate_vacancy(energy_cutoff=vacancy_energy_cutoff, mode=vacancy_calc_mode)
+            self.calculate_psp_distances()
+            mask1 = np.logical_and(
+                self.psp_distances >= psp_len_min,
+                self.psp_distances <= psp_len_max
+            )
+            psp_counts = np.count_nonzero(mask1, axis=-1)
+            mask2 = np.logical_and(psp_counts >= psp_count_min, psp_counts <= psp_count_max)
+            mask3 = np.logical_and(energy_type >= energy_min, energy_type <= energy_max)
+            mask = np.logical_and(np.logical_and(mask1, mask2), mask3)[0]
+            self.visualize(grid_mask=mask)
+
+        return interact(
+            visualizer,
+            vacancy_energy_cutoff=(
+                np.min(self.field.van_der_waals),
+                np.max(self.field.van_der_waals),
+                0.1,
+            ),
+            vacancy_calc_mode=["max", "min", "avg", "sum"],
+            psp_len_min=(0, 50, 1),
+            psp_len_max=(0, 50, 1),
+            psp_count_min=(0, 13, 1),
+            psp_count_max=(0, 13, 1),
+            energy_type = [("HD", self.field.h_bond_donor), ("HA", self.field.h_bond_acceptor)],
+            energy_min=(-2,10,1),
+            energy_max=(-2,10,1),
+        )
+
+
     def visualize(
             self,
             grid_mask = None,
             weights1 = None,
             weights2 = None,
-            view = None,
             color_map: str = "bwr",
             opacity: float = 0.8,
     ):
         if grid_mask is None:
-            grid_mask = np.ones(shape=self._interaction_field.grid.shape, dtype=np.bool_)
-        if view is None:
-            view = self.receptor.view
+            grid_mask = np.ones(shape=self._fields.grid.shape, dtype=np.bool_)
         normalizer = mpl.colors.Normalize()
         mapper = plt.cm.ScalarMappable(
             norm=normalizer,
@@ -413,23 +451,535 @@ class T2FPharm:
         elif isinstance(weights1, Sequence):
             weights1 = np.tile(weights1, np.count_nonzero(grid_mask) * 3)
         else:
-            weights1 = (mapper.to_rgba(weights1.flatten())[..., :3]).flatten()
+            weights1 = (mapper.to_rgba(weights1.flatten())[..., :3])
         if weights2 is None:
             weights2 = (
-                    np.ones(np.count_nonzero(grid_mask)) * self._interaction_field.grid.spacing / 4
+                    np.ones(np.count_nonzero(grid_mask)) * self._fields.grid.spacing / 4
             )
         elif isinstance(weights2, (int, float)):
             weights2 = np.ones(np.count_nonzero(grid_mask)) + weights2
         else:
-            weights2 = normalizer(weights2).flatten() * (self._interaction_field.grid.spacing - 0.05) + 0.05
+            weights2 = normalizer(weights2).flatten() * (self._fields.grid.spacing - 0.05) + 0.05
         nglview_api.add_spheres(
-            view=view,
-            coords=list(self._interaction_field.grid.coordinates[grid_mask].flatten()),
-            colors=list(weights1),
-            radii=list(weights2),
+            view=self._nglwidget,
+            coords=self._fields.grid.coordinates[grid_mask],
+            colors=weights1,
+            radii=weights2,
             opacity=opacity
         )
-        return view
+        return
+
+
+class Timer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        self._callback()
+
+    def start(self):
+        self._task = asyncio.ensure_future(self._job())
+
+    def cancel(self):
+        self._task.cancel()
+
+def throttle(wait):
+    """ Decorator that prevents a function from being called
+        more than once every wait period. """
+    def decorator(fn):
+        time_of_last_call = 0
+        scheduled, timer = False, None
+        new_args, new_kwargs = None, None
+        def throttled(*args, **kwargs):
+            nonlocal new_args, new_kwargs, time_of_last_call, scheduled, timer
+            def call_it():
+                nonlocal new_args, new_kwargs, time_of_last_call, scheduled, timer
+                time_of_last_call = time()
+                fn(*new_args, **new_kwargs)
+                scheduled = False
+            time_since_last_call = time() - time_of_last_call
+            new_args, new_kwargs = args, kwargs
+            if not scheduled:
+                scheduled = True
+                new_wait = max(0, wait - time_since_last_call)
+                timer = Timer(new_wait, call_it)
+                timer.start()
+        return throttled
+    return decorator
+
+
+def debounce(wait):
+    """ Decorator that will postpone a function's
+        execution until after `wait` seconds
+        have elapsed since the last time it was invoked. """
+    def decorator(fn):
+        timer = None
+        def debounced(*args, **kwargs):
+            nonlocal timer
+            def call_it():
+                fn(*args, **kwargs)
+            if timer is not None:
+                timer.cancel()
+            timer = Timer(wait, call_it)
+            timer.start()
+        return debounced
+    return decorator
+
+
+class T2FPharmWidget:
+
+    def __init__(
+            self,
+            modeler: T2FPharm
+    ):
+        # DECLARE ATTRIBUTES
+        self._t2fpharm: T2FPharm
+        # Widgets for: BINDING SITE REFINEMENT -> VACANCY
+        self._widget_refine_vacancy_source_buttons: List[widgets.ToggleButton]
+        self._widget_refine_vacancy_mode_buttons: widgets.ToggleButtons
+        self._widget_refine_vacancy_filter_buttons: widgets.ToggleButtons
+        self._widget_refine_vacancy_range_slider: widgets.FloatRangeSlider
+        self._widget_refine_vacancy_range_unit:  widgets.Label
+        # Widgets for: BINDING SITE REFINEMENT -> BURIEDNESS
+        self._widget_refine_buriedness_source_buttons: List[widgets.ToggleButton]
+        self._widget_refine_buriedness_mode_buttons: widgets.ToggleButtons
+        self._widget_refine_buriedness_filter_buttons: widgets.ToggleButtons
+        self._widget_refine_buriedness_range_slider: widgets.FloatRangeSlider
+        self._widget_refine_buriedness_range_unit:  widgets.Label
+
+        # Assign attributes
+        self._t2fpharm = modeler
+
+        self._vacancy_data = np.concatenate(
+            (
+                self._t2fpharm.fields.tensor,
+                self._t2fpharm.distances_to_nearest_protein_atom[..., np.newaxis]
+            ),
+            axis=-1
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> SOURCE -> TOGGLE BUTTONS
+        # These are toggle buttons for selecting the sources of vacancy calculation.
+        # First add the buttons that are always present, regardless of the fields,
+        # then add buttons for each field:
+        self._widget_refine_vacancy_source_buttons = self._create_toggle_buttons_source(
+            labels=["Distance"]+list(self._t2fpharm.fields.field_names),
+            tooltips=["Distance of grid points to protein atoms."]+[
+                f"Field {field_name}" for field_name in self._t2fpharm.fields.field_names
+            ],
+            observer=self._on_value_change_vacancy_source
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> MODE -> TOGGLE BUTTONS
+        # These are toggle buttons for selecting the mode of vacancy calculation.
+        self._widget_refine_vacancy_mode_buttons = self._create_toggle_buttons_mode(
+            observer=self._on_value_change_vacancy_mode
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> FILTER -> TOGGLE BUTTONS
+        # These are toggle buttons for deciding whether the given value range should be included
+        # or excluded.
+        self._widget_refine_vacancy_filter_buttons = self._create_toggle_buttons_filter(
+            observer=self._on_value_change_vacancy_filter
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> RANGE -> SLIDER
+        # This is a range slider for selecting the range of values for vacancy calculation:
+        self._widget_refine_vacancy_range_slider = self._create_range_slider(
+            observer=self._on_value_change_vacancy_range
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> RANGE -> UNIT
+        # This is a label that shows the unit of the selected vacancy source values:
+        self._widget_refine_vacancy_range_unit = widgets.Label(
+            value="",
+            layout=widgets.Layout(margin="0px 0px 0px 0px", align="left")
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY
+        # This is a container Box for all vacancy widgets above, plus added labels, making the
+        # vacancy control panel:
+        vacancy_control_panel = self._create_control_panel(
+            controllers=[
+                widgets.HBox(self._widget_refine_vacancy_source_buttons),
+                widgets.Box(
+                    children=[self._widget_refine_vacancy_mode_buttons],
+                    layout=widgets.Layout(
+                        width='330px',
+                        height='',
+                        flex_flow='row',
+                        display='flex'
+                    )
+                ),
+                self._widget_refine_vacancy_filter_buttons,
+                widgets.HBox(
+                    [
+                        self._widget_refine_vacancy_range_slider,
+                        self._widget_refine_vacancy_range_unit
+                    ]
+                ),
+            ],
+            header_name="Vacancy"
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> BURIEDNESS -> SOURCE -> TOGGLE BUTTON
+        # These are toggle buttons for selecting the sources of buriedness calculation.
+        self._widget_refine_buriedness_source_buttons = self._create_toggle_buttons_source(
+            labels=["PSP Lengths"],
+            tooltips=["Length of PSP events in all 13 cubic directions."],
+            observer=self._on_value_change_buriedness_source
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> BURIEDNESS -> MODE -> TOGGLE BUTTONS
+        # These are toggle buttons for selecting the mode of buriedness calculation.
+        self._widget_refine_buriedness_mode_buttons = self._create_toggle_buttons_mode(
+            observer=self._on_value_change_buriedness_mode
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> BURIEDNESS -> FILTER -> TOGGLE BUTTONS
+        # These are toggle buttons for deciding whether the given value range should be included
+        # or excluded.
+        self._widget_refine_buriedness_filter_buttons = self._create_toggle_buttons_filter(
+            observer=self._on_value_change_buriedness_filter
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> BURIEDNESS -> RANGE -> SLIDER
+        # This is a range slider for selecting the range of values for vacancy calculation:
+        self._widget_refine_buriedness_range_slider = self._create_range_slider(
+            observer=self._on_value_change_buriedness_range
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY -> RANGE -> UNIT
+        # This is a label that shows the unit of the selected vacancy source values:
+        self._widget_refine_buriedness_range_unit = widgets.Label(
+            value="",
+            layout=widgets.Layout(margin="0px 0px 0px 0px", align="left")
+        )
+
+        # CREATE WIDGET FOR: BINDING SITE REFINEMENT -> VACANCY
+        # This is a container Box for all vacancy widgets above, plus added labels, making the
+        # vacancy control panel:
+        buriedness_control_panel = self._create_control_panel(
+            controllers=[
+                widgets.HBox(self._widget_refine_buriedness_source_buttons),
+                widgets.Box(
+                    children=[self._widget_refine_buriedness_mode_buttons],
+                    layout=widgets.Layout(
+                        width='330px',
+                        height='',
+                        flex_flow='row',
+                        display='flex'
+                    )
+                ),
+                self._widget_refine_buriedness_filter_buttons,
+                widgets.HBox(
+                    [
+                        self._widget_refine_buriedness_range_slider,
+                        self._widget_refine_buriedness_range_unit
+                    ]
+                ),
+            ],
+            header_name="Buriedness",
+            header_color="silver"
+        )
+
+        # Assemble the refinement panel
+        refinement_panel = widgets.HBox([vacancy_control_panel, buriedness_control_panel])
+
+        # Assemble the main panel
+        main_panel = widgets.Accordion(
+            children=[refinement_panel, widgets.Text(), widgets.Box()],
+        )  # layout=Layout(
+        # height="200px"))
+        main_panel.set_title(0, "Binding Site Refinement")
+        main_panel.set_title(1, "Feature Selection")
+        main_panel.set_title(2, "Clustering")
+        main_panel.selected_index = 0
+
+
+        self._curr_selection_vacancy_source: np.ndarray = np.zeros(
+            shape=self._t2fpharm.fields.fields_count + 1,
+            dtype=np.bool_,
+        )
+        self._curr_selection_vacancy_mode: str = "min"
+        self._curr_selection_vacancy_range: Tuple[float, float] = (0, 0)
+        self._curr_selection_vacancy_filter: bool = True
+
+        self._curr_values_vacancy: np.ndarray = None
+        self._curr_mask_vacancy_lower_bound: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_vacancy_upper_bound: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_vacancy_range: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_vacancy: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_buriedness: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_refinement: np.ndarray = self._initialize_mask_array()
+        self._curr_mask_feature_selection: np.ndarray = self._initialize_mask_array()
+        self._curr_mask: np.ndarray = self._initialize_mask_array()
+
+        self._mask_vacancy: np.ndarray
+        self._mask_buriedness: np.ndarray
+        self._mask_vacancy_and_buriedness: np.ndarray
+
+        self._nglwidget = self._t2fpharm.receptor.create_new_ngl_widget()
+        self._update_grid()
+
+        self._debug = widgets.Output()
+
+        display(self._debug, main_panel, self._nglwidget.display(gui=True))
+        return
+
+    def _update_grid(self):
+        self._curr_mask = self._curr_mask_vacancy
+        nglview_api.remove_component_by_name(view=self._nglwidget, name="grid")
+        nglview_api.add_spheres(
+            view=self._nglwidget,
+            coords=self._t2fpharm.fields.grid.coordinates[self._curr_mask[0]],
+            name="grid"
+        )
+        return
+
+    def _initialize_mask_array(self):
+        return np.ones(shape=self._t2fpharm.fields.tensor.shape[:-1], dtype=np.bool_)
+
+    def _on_value_change_vacancy_source(self, change: dict):
+        source_name: str = change["owner"].description
+        selected: bool = change["new"]
+        self._curr_selection_vacancy_source[
+            -1 if source_name == "Distance" else
+            self._t2fpharm.fields.index_field_names(names=[source_name])
+        ] = selected
+        num_selected_sources = np.count_nonzero(self._curr_selection_vacancy_source)
+        self._widget_refine_vacancy_mode_buttons.disabled = num_selected_sources in (0, 1)
+        self._widget_refine_vacancy_range_slider.disabled = num_selected_sources == 0
+        self._widget_refine_vacancy_filter_buttons.disabled = num_selected_sources == 0
+        if num_selected_sources == 0:
+            self._curr_mask_vacancy[...] = True
+            self._curr_mask_buriedness[...] = True
+            self._curr_mask_refinement[...] = True
+            self._curr_mask[...] = self._curr_mask_feature_selection
+
+        else:
+            self._calculate_vacancy()
+        self._update_grid()
+        return
+
+    def _on_value_change_vacancy_mode(self, change: dict):
+        self._calculate_vacancy()
+        self._update_grid()
+        return
+
+    #@debounce(1.5)
+    def _on_value_change_vacancy_range(self, change: dict):
+        # self._calculate_vacancy_stage_range(val_range=change["new"])
+        self._calculate_vacancy()
+        self._update_grid()
+        return
+
+    def _on_value_change_vacancy_filter(self, change: dict):
+        change["new"]: str  # Either "Include" or "Exclude"
+        self._curr_mask_vacancy = np.logical_not(self._curr_mask_vacancy)
+        self._update_grid()
+        return
+
+    def _calculate_buriedness_from_begining(self):
+        pass
+
+    def _on_value_change_buriedness_source(self, change: dict):
+        return
+
+    def _on_value_change_buriedness_mode(self, change: dict):
+        return
+
+    def _on_value_change_buriedness_filter(self, change: dict):
+        return
+
+    def _on_value_change_buriedness_range(self, change: dict):
+        return
+
+    def _calculate_vacancy(self):
+        self._curr_mask_vacancy, vacancy_range = vectorized.filter_array(
+            array=self._vacancy_data[..., self._curr_selection_vacancy_source],
+            minmax_vals=self._widget_refine_vacancy_range_slider.value,
+            reduction_op=self._widget_refine_vacancy_mode_buttons.value,
+            reduction_axis=-1,
+            invert=self._widget_refine_vacancy_filter_buttons.value == "Exclude"
+        )
+        with self._widget_refine_vacancy_range_slider.hold_trait_notifications():
+            self._widget_refine_vacancy_range_slider.min = vacancy_range[0]
+            self._widget_refine_vacancy_range_slider.max = vacancy_range[1]
+            slider_value = self._widget_refine_vacancy_range_slider.value
+            new_slider_value = []
+            if vacancy_range[0] <= slider_value[0] <= vacancy_range[1]:
+                new_slider_value.append(slider_value[0])
+            else:
+                new_slider_value.append(vacancy_range[0])
+            if vacancy_range[0] <= slider_value[1] <= vacancy_range[1]:
+                new_slider_value.append(slider_value[1])
+            else:
+                new_slider_value.append(vacancy_range[1])
+            self._widget_refine_vacancy_range_slider.value = new_slider_value
+        return
+
+    @staticmethod
+    def _create_toggle_buttons_source(
+            labels: Sequence[str],
+            tooltips: Union[str, Sequence[str]] = "",
+            initial_values: Union[bool, Sequence[bool]] = False,
+            button_style: Literal['success', 'info', 'warning', 'danger', ''] = "danger",
+            observer: Optional[Callable] = None,
+    ):
+        if isinstance(tooltips, str):
+            tooltips = [tooltips] * len(labels)
+        if isinstance(initial_values, bool):
+            initial_values = [initial_values] * len(labels)
+        toggle_buttons = []
+        for label, initial_value, tooltip in zip(labels, initial_values, tooltips):
+            toggle_button = widgets.ToggleButton(
+                value=initial_value,
+                description=label,
+                tooltip=tooltip,
+                layout=widgets.Layout(width="auto"),
+                button_style=button_style
+            )
+            toggle_buttons.append(toggle_button)
+            if observer is not None:
+                # Set all buttons to observe the same observer function:
+                toggle_button.observe(observer, names="value")
+        return toggle_buttons
+
+    @staticmethod
+    def _create_toggle_buttons_mode(
+            labels: Union[Sequence[str], Sequence[Tuple[str, Any]]] = (
+                    ("Min", "min"),
+                    ("Avg", "avg"),
+                    ("Max", "max"),
+                    ("Sum", "sum"),
+                    ("All", "all"),
+                    ("Any", "any"),
+                    ("One", "one")
+            ),
+            current_value: Any = "min",
+            tooltips: Sequence[str] = (
+                    'Minimum value of all selected source fields.',
+                    'Average value of all selected source fields.',
+                    'Maximum value of all selected source fields.',
+                    'Sum of all selected source fields.',
+                    'All values of selected source fields.',
+                    'Any value of selected source fields.',
+                    'Only one value of selected source fields.',
+            ),
+            button_style: Literal['success', 'info', 'warning', 'danger', ''] = "warning",
+            disabled: bool = True,
+            observer: Optional[Callable] = None,
+    ) -> widgets.ToggleButtons:
+        toggle_buttons = widgets.ToggleButtons(
+            options=labels,
+            value=current_value,
+            button_style=button_style,
+            disabled=disabled,
+            tooltips=tooltips,
+            style=widgets.ToggleButtonsStyle(button_width="auto"),
+        )
+        if observer is not None:
+            toggle_buttons.observe(observer, names="value")
+        return toggle_buttons
+
+    @staticmethod
+    def _create_toggle_buttons_filter(
+        observer: Optional[Callable] = None,
+    ):
+        toggle_buttons = widgets.ToggleButtons(
+            options=["Include", "Exclude"],
+            value="Include",
+            disabled=True,
+            button_style='info',
+            tooltips=['Include the points filtered by current selection.',
+                      'Exclude the points filtered by current selection.'],
+            style=widgets.ToggleButtonsStyle(button_width="4em"),
+        )
+        if observer is not None:
+            toggle_buttons.observe(observer, names="value")
+        return toggle_buttons
+
+    @staticmethod
+    def _create_range_slider(
+            observer: Optional[Callable] = None,
+    ):
+        range_slider = widgets.FloatRangeSlider(
+            value=[0, 0],
+            min=0,
+            max=0,
+            step=0.01,
+            disabled=True,
+            continuous_update=False,
+            orientation='horizontal',
+            readout=True,
+            readout_format='.2e',
+            layout=widgets.Layout(display="flex", align_items='stretch', width='100%')
+        )
+        if observer is not None:
+            range_slider.observe(observer, names="value")
+        return range_slider
+
+    @staticmethod
+    def _create_control_panel(
+            controllers: Sequence[widgets.Widget],
+            header_name: str,
+            header_color: str = "lightblue",
+            controller_labels: Sequence[str] = ("Source", "Mode", "Filter", "Range"),
+    ):
+        # Create the header, i.e. title of the widget
+        # This is created as a button, because it offers more styling options than text,
+        # but it doesn't have any functionality.
+        header = widgets.Button(
+            description=header_name,
+            layout=widgets.Layout(width='auto'),
+            style=widgets.ButtonStyle(button_color=header_color, font_weight='bold')
+        )
+        # Create the left column holding labels of controllers:
+        labels_column = widgets.VBox(
+            [
+                widgets.Label(
+                    value=f"{label} :",
+                    layout=widgets.Layout(margin="3px 10px 3px 0px", width="50px")
+                )
+                for label in controller_labels
+            ],
+            layout=widgets.Layout(width="100px"),
+        )
+        # Create the right column holding the controllers
+        controllers_column = widgets.VBox(
+            controllers,
+            layout=widgets.Layout(
+                display='flex',
+                flex_flow='column',
+                align_items='stretch',
+                width='100%'
+            ),
+        )
+
+        # Horizontal container for two columns holding labels and controllers:
+        controller_box = widgets.HBox([labels_column, controllers_column])
+
+        # Assemble the control panel
+        control_panel = widgets.Box(
+            layout=widgets.Layout(
+                display='flex',
+                flex_flow='column',
+                align_items='stretch',
+                width='50%'
+            ),
+            children=[header, controller_box],
+        )
+        return control_panel
+
+
+
+
+
+
+
 
 # RECEPTOR_FILEPATHS = [Path("/Users/home/Downloads/3w32.pdbqt")]
 # GRID_CENTER = (15.91, 32.33, 11.03)
@@ -538,3 +1088,4 @@ class T2FPharm:
         # )
         # # Calculate the length of each direction unit vector
         # self._direction_vects_len = np.linalg.norm(self._direction_vects, axis=-1) * self._grid_spacing
+
