@@ -64,3 +64,13 @@ If you are using other modules of the OpenCADD package, please cite our [Zenodo 
 
 Project based on the
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.1.
+
+
+# Package Architecture
+```mermaid
+  graph TD;
+      A-->B;
+      A-->C;
+      B-->D;
+      C-->D;
+```
