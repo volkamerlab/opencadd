@@ -22,7 +22,7 @@ import gzip
 # 3rd party
 import numpy as np
 # Self
-from opencadd.webapi.http_request import response_http_request
+from opencadd.api.web.http_request import response_http_request
 
 
 # General API endpoints
