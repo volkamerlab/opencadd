@@ -2,6 +2,7 @@ from typing import Sequence, Tuple, Union, Optional
 from pathlib import Path
 import numpy as np
 import pandas as pd
+import scipy as sp
 import nglview
 from openbabel import pybel
 
@@ -26,6 +27,9 @@ class Protein:
         self._pdb_code = pdb_code
         self._atom_data = atom_data
         self._trajectory = trajectory
+        self._trajectory_2d_view: np.ndarray = self._trajectory.reshape(-1, 3)
+        self._kdtrees: Tuple[sp.spatial.KDTree] = None
+        self._kdtree: sp.spatial.KDTree = sp.spatial.KDTree(data=self._trajectory_2d_view)
         return
 
     @classmethod
@@ -51,12 +55,96 @@ class Protein:
         return getattr(Protein, f"_from_file_{filetype}")(paths=filepaths)
 
     @property
+    def kdtree(self):
+        return self._kdtree
+
+    @property
+    def kdtrees(self):
+        if self._kdtrees is None:
+            self._kdtrees = tuple(
+                sp.spatial.KDTree(data=self._trajectory[i]) for i in range(self.trajectory_length)
+            )
+        return self._kdtrees
+
+    def nearest_atoms(
+            self,
+            coords: np.ndarray,
+            num_atoms: int = 1,
+            error_tolerance: float = 0,
+            trajectory_filter: slice = slice(None),
+    ):
+        """
+        For a given number of points, find the nearest atom in the protein to each point.
+
+        Parameters
+        ----------
+        coords : ndarray, shape: (n, 3)
+            Cartesian coordinates of n points, for which the nearest atom in protein must be found.
+        num_atoms : int, optional, default: 1
+            Number of the nearest atoms to find for each point.
+        error_tolerance :
+        trajectory_filter : slice, optional, default: slice(None)
+            Slice of trajectories to consider.
+
+        Returns
+        -------
+        distances, indices : ndarray, ndarray
+            Distances to, and indices of the k nearest atoms to each point, in each trajectory.
+            For t selected trajectories, the shape of each array will be (t, n) when `num_atoms`
+            is 1, or (t, n, `num_atoms`) otherwise, with n being the number of points in `coords`.
+        """
+        num_selected_trajectories = len(self.kdtrees[trajectory_filter])
+        distances = np.empty(
+            shape=(num_selected_trajectories, coords.shape[0] * num_atoms),
+            dtype=np.single
+        )
+        indices = np.empty(
+            shape=(num_selected_trajectories, coords.shape[0] * num_atoms),
+            dtype=np.ushort
+        )
+        for traj_idx, kdtree in enumerate(self._kdtrees[trajectory_filter]):
+            nearest_atom_distances, nearest_atom_indices = kdtree.query(
+                coords,
+                k=num_atoms,
+                eps=error_tolerance,
+                workers=-1,
+            )
+            distances[traj_idx] = nearest_atom_distances
+            indices[traj_idx] = nearest_atom_indices
+        return distances, indices
+
+    def distance_to_atoms(
+            self,
+
+    ):
+        pass
+
+    def distance_to_atoms_sparse(
+            self,
+            kdtree: sp.spatial.KDTree,
+            max_distance: float,
+    ):
+        distances = self._kdtree.sparse_distance_matrix(
+            other=kdtree,
+            max_distance=max_distance
+        ).toarray().reshape(self.trajectory_length, self.count_atoms, -1)
+        return np.moveaxis(distances, source=2, destination=1)
+
+    @property
+    def count_atoms(self) -> int:
+        return len(self._atom_data)
+
+    @property
     def atom_data(self):
         return self._atom_data
 
     @property
     def autodock_atom_types(self) -> np.ndarray:
         return
+
+    @property
+    def trajectory_length(self) -> int:
+        return self._trajectory.shape[0]
 
     @property
     def trajectory(self) -> np.ndarray:
@@ -66,97 +154,11 @@ class Protein:
     def view(self):
         return nglview.show_file(str(self._structure_filepath))
 
-    def to_file_pdbqt(self):
-        pass
 
 
-    @classmethod
-    def _from_file_pdb(cls, paths: Sequence[Path]):
-        pass
+    def create_new_ngl_widget(self):
+        return nglview.show_file(str(self._structure_filepath), height="800px")
 
-    @classmethod
-    def _from_file_pdbqt(cls, paths: Sequence[Path]):
-        """
-        Parse a PDBQT file.
-
-        Parameters
-        ----------
-        filepath_pdbqt : pathlib.Path
-            Path to the PDBQT file.
-
-        Returns
-        -------
-        dict(str, pandas.DataFrame)
-            A dictionary of record names (e.g. "ATOM") and their corresponding dataframes.
-
-        References
-        ----------
-        PDB file format documentation:
-            https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
-        """
-
-        def parse_atom_records(record_lines_atom: np.ndarray):
-            """
-            Parse ATOM records
-            """
-            columns = {
-                "serial": ((7, 11), int),
-                "name": ((13, 16), (str, 4)),
-                "altLoc": ((17, 17), (str, 1)),
-                "resName": ((18, 20), (str, 3)),
-                "chainID": ((22, 22), (str, 1)),
-                "resSeq": ((23, 26), int),
-                "iCode": ((27, 27), (str, 1)),
-                "x": ((31, 38), float),
-                "y": ((39, 46), float),
-                "z": ((47, 54), float),
-                "occupancy": ((55, 60), float),
-                "tempFactor": ((61, 66), float),
-                "partial_charge": ((67, 76), float),
-                "autodock_atom_type": ((78, 79), (str, 2))
-            }
-
-            df = pd.DataFrame()
-            for col_name, (col_range, col_dtype) in columns.items():
-                df[col_name] = np.char.strip(
-                    extract_column_from_string_array(
-                        array=record_lines_atom,
-                        char_range=(col_range[0] - 1, col_range[1])
-                    )
-                ).astype(col_dtype)
-
-            autodock_atom_types_ids = np.array(
-                [atom_type.name for atom_type in autodock.AtomType])
-            autodock_atom_types_data = [
-                np.array([getattr(atom_type, attr) for atom_type in autodock.AtomType])
-                for attr in ["hbond_status", "hbond_count"]
-            ]
-            indices_target_atom_types = np.where(
-                df.autodock_atom_type.values[..., np.newaxis] == autodock_atom_types_ids
-            )[1]
-            df["hbond_acc"] = autodock_atom_types_data[0][indices_target_atom_types] == 1
-            df["hbond_don"] = autodock_atom_types_data[0][indices_target_atom_types] == -1
-            df["hbond_count"] = autodock_atom_types_data[1][indices_target_atom_types]
-            return df
-
-        record_parsers = {
-            "ATOM": parse_atom_records
-        }
-
-        with open(paths[0], "r") as f:
-            lines = np.array(f.readlines())
-
-        records = dict()
-        for record, parser in record_parsers.items():
-            record_mask = np.char.startswith(lines, prefix=record)
-            records[record] = parser(lines[record_mask])
-
-        trajectory = records["ATOM"][["x", "y", "z"]].to_numpy()[np.newaxis]
-
-        return cls(
-            atom_data=records["ATOM"],
-            trajectory=trajectory,
-        )
 
     def pdb_to_pdbqt_openbabel(
             self,
@@ -210,3 +212,21 @@ class Protein:
             opt={"r": None, "n": None, "p": None}
         )
         return molecule
+
+
+def from_pdb_id(pdb_id: str) -> Protein:
+    pass
+
+
+def from_filepath(path: PathLike) -> Protein:
+    pass
+
+
+def from_file_content(content: Union[str, bytes]) -> Protein:
+    pass
+
+
+def to_file_pdbqt(protein: Protein) -> Path:
+    pass
+
+
