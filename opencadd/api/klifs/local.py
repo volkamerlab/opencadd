@@ -320,7 +320,7 @@ class _LocalDatabaseGenerator:
 
             # Depending on whether alternate model and chain ID is given build file path:
             filepath = metadata_to_filepath(
-                ".",
+                "",
                 row["species.klifs"],
                 row["kinase.klifs_name"],
                 row["structure.pdb_id"],
