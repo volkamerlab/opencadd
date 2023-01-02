@@ -25,6 +25,9 @@ from opencadd.consts import autodock
 from opencadd.interaction.abc import IntraMolecularInteractionField
 
 
+PATH_EXECUTABLE = Path(__file__).parent.resolve()/'executables'/'autogrid4'
+
+
 class AutoGridField(IntraMolecularInteractionField):
 
     def __init__(
@@ -139,6 +142,7 @@ class AutoGridField(IntraMolecularInteractionField):
                 )
         super().__init__(
             field_tensor=fields_tensor,
+            field_names=[ligand_type.name for ligand_type in ligand_types] + ["Electro.", "Desolv."],
             grid_origin=np.array(grid_center) - grid_spacing * np.array(grid_npts) / 2,
             grid_point_spacing=grid_spacing,
         )
