@@ -24,8 +24,9 @@ dependencies:
   - bravado
   - biopandas
   - tqdm
-  - ipywidgets<8
+  - ipywidgets<8 # see this issue on v8: https://github.com/nglviewer/nglview/issues/1032
   - ipyevents
+  - ipympl
   - pip
   # mmligner
   - mmligner
