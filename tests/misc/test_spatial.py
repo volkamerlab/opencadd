@@ -1,6 +1,6 @@
 import numpy as np
 
-from opencadd.misc import spatial
+from opencadd.spacetime import spatial
 
 
 def test_grid_distance():
