@@ -1,15 +1,14 @@
 
 # Standard library
-from typing import Any, Literal, Sequence, Union, Optional, Tuple
-import itertools
+from typing import Literal, Sequence, Optional, Tuple
 # 3rd-party
 import numpy as np
 import numpy.typing as npt
 from opencadd.typing import ArrayLike
-from opencadd.misc.spatial import Grid
+from opencadd.spacetime.grid import Grid
 
 
-class Field:
+class ToxelField:
     """
     A collection of n scalar fields, or one n-dimensional vector field, sampled at regularly
     spaced points on a 3-dimensional grid in Euclidean space, over time (or e.g. in different
@@ -21,6 +20,7 @@ class Field:
             cls,
             field_tensor: npt.ArrayLike,
             order_axes: Tuple[Literal[0, 1, 2, 3, 4]] = (0, 1, 2, 3, 4),
+            field_names: Optional[Sequence[str]] = None,
             field_datatype: npt.DTypeLike = np.single,
             grid_origin: Tuple[float, float, float] = (0, 0, 0),
             grid_point_spacing: float = 1,
@@ -48,7 +48,7 @@ class Field:
 
         Returns
         -------
-        Field
+        ToxelField
         """
         if not isinstance(field_tensor, ArrayLike):
             raise ValueError("`field_values` must be array-like.")
@@ -93,13 +93,27 @@ class Field:
         #     )
         return cls(
             field_tensor=tensor,
+            field_names=field_names,
             grid_origin=grid_origin,
             grid_point_spacing=grid_point_spacing
         )
 
+    def empty(
+            self,
+            temporal_length: int,
+            grid_shape: Tuple[int, int, int],
+            grid_spacing: float,
+            field_shape: Tuple[int],
+            field_datatype: npt.DTypeLike = np.single,
+            field_names: Optional[Sequence[str]] = None,
+            grid_origin: Tuple[float, float, float] = (0, 0, 0),
+    ):
+        pass
+
     def __init__(
             self,
             field_tensor: np.ndarray,
+            field_names: Optional[Sequence[str]] = None,
             grid_origin: Tuple[float, float, float] = (0, 0, 0),
             grid_point_spacing: float = 1,
     ):
@@ -141,6 +155,7 @@ class Field:
             spacing=grid_point_spacing
         )
         self._tensor: np.ndarray = field_tensor
+        self._field_names = np.array(field_names)
         return
 
     @property
@@ -171,6 +186,13 @@ class Field:
             constant_values=0
         )
 
+    def __call__(self, fields=None, times=None):
+        if fields is None:
+            fields = slice(None)
+        if times is None:
+            times = slice(None)
+        return self._tensor[times, ..., self.index_field_names(fields)]
+
     @property
     def temporal_length(self) -> int:
         """
@@ -180,19 +202,67 @@ class Field:
         return self._tensor.shape[0]
 
     @property
+    def field_names(self):
+        return self._field_names
+
+    @property
     def fields_count(self) -> int:
         return self._tensor.shape[-1]
+
+    def index_field_names(self, names: Sequence[str]) -> np.ndarray:
+        index = np.argwhere(self._field_names == np.expand_dims(np.array(names), axis=-1))[:, -1]
+        if index.size == 0:
+            raise IndexError("data label not found.")
+        return index
+
+
+    def calculate_vacancy(
+            self,
+            energy_cutoff: float = +0.6,
+            mode: Optional[Literal["max", "min", "avg", "sum"]] = "min",
+    ) -> np.ndarray:
+        """
+        Calculate whether each grid point is vacant, or occupied by a target atom.
+
+        Parameters
+        ----------
+        energy_cutoff : float, Optional, default: +0.6
+            Cutoff value for energy; grid points with energies lower than cutoff are considered
+            vacant.
+        mode: Literal["max", "min", "avg", "sum"], Optional, default: "min"
+            If the energy of more than one ligand type is to be compared, this parameter defines
+            how those different energy values must be processed, before comparing with the cutoff.
+        ligand_types : Sequence[opencadd.consts.autodock.AtomType], Optional, default: None
+            A subset of ligand types that were used to initialize the object, whose energy values
+            are to be taken as reference for calculating the vacancy of each grid point. If not
+            set to None, then all ligand interaction energies are considered.
+
+        Returns
+        -------
+        vacancy : numpy.ndarray[dtype=numpy.bool_, shape=T2FPharm.grid.shape[:-1]]
+            A 4-dimensional boolean array matching the first four dimensions of `T2FPharm.grid`,
+            indicating whether each grid point is vacant (True), or occupied (False).
+            Vacant grid points can easily be indexed by `T2FPharm.grid[vacancy]`.
+        """
+        # The reducing operations corresponding to each `mode`:
+        red_fun = {"max": np.max, "min": np.min, "avg": np.mean, "sum": np.sum}
+        # Get index of input ligand types
+        # if ligand_types is None:
+        #     ind = slice(None)
+        # else:
+        #     ind = np.argwhere(np.expand_dims(ligand_types, axis=-1) == self._probe_types)[:, 1]
+        #     # Verify that all input ligand types are valid
+        #     if len(ind) != len(ligand_types):
+        #         raise ValueError(f"Some of input energies were not calculated.")
+        # Reduce the given references using the given operation.
+        energy_vals = red_fun[mode](self._interaction_field.van_der_waals, axis=-1)
+        # Apply cutoff and return
+        self._vacancy = energy_vals < energy_cutoff
+        return self._vacancy
 
 
     def __getitem__(self, item):
         return self._tensor.__getitem__(item)
-        # def index_of_label(label) -> np.array:
-        #     index = np.argwhere(self._labels == np.expand_dims(np.array(label), axis=-1))[:, -1]
-        #     if index.size == 0:
-        #         raise IndexError("data label not found.")
-        #     elif index.size == 1:
-        #         return index[0]
-        #     return index
         # if isinstance(item, int) or (isinstance(item, tuple) and isinstance(item[-1], int)):
         #
         # if isinstance(item, str):
@@ -201,4 +271,9 @@ class Field:
         #     return self._tensor.__getitem__(*item[:-1], index_of_label(item))
         # else:
 
+    def visualize(self):
+        pass
 
+
+class BinaryToxelField(ToxelField):
+    pass
