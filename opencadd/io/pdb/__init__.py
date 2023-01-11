@@ -1,1 +1,1 @@
-from opencadd.io.pdb import read, write
+from opencadd.io.pdb.parser import PDBParser
