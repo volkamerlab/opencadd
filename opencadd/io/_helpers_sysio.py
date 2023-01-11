@@ -32,4 +32,16 @@ def filelike_to_filepath(file: FileLike) -> Path:
 
 
 def filelike_to_data_string(file):
+    if isinstance(file, Path):
+        with open(file, "r") as f:
+            return f.read()
+    if isinstance(file, str):
+        possible_path = Path(file)
+        if possible_path.is_file():
+            with open(possible_path, "r") as f:
+                return f.read()
+        return file
+    if isinstance(file, bytes):
+        return file.decode()
     return
+
