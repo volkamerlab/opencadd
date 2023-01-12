@@ -431,7 +431,7 @@ def file_pdb_entry(
         biological_assembly_id: Optional[int] = None,
 ) -> bytes:
     """
-    Download a PDB entry file (or a specific biological assembly in an entry file)
+    Download a PDB entry file (asymmetric unit or a biological assembly)
     in one of available formats.
 
     Parameters
@@ -441,8 +441,8 @@ def file_pdb_entry(
     file_format : Literal["cif", "pdb", "xml", "bcif"], optional, default: "cif"
         Format of the file.
     biological_assembly_id : int, optional, default: None
-        Assembly ID inside the entry. If provided, only the given assembly will be downloaded,
-        otherwise (i.e. when `None`), the whole entry is downloaded.
+        Biological assembly ID. If not provided (i.e. when `None`), the asymmetric unit will be
+        downloaded.
 
     Returns
     -------
