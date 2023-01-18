@@ -1,9 +1,10 @@
 from typing import Tuple
 from abc import ABC, abstractmethod
-from typing import Union, Tuple, Sequence
+from typing import Union, Tuple, Sequence, Optional
 import datetime
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 
@@ -62,10 +63,17 @@ class Date(RecordFieldDataType):
     a valid date.
     """
     @staticmethod
-    def from_pdb(fields: Union[str, Sequence[str]]) -> Union[datetime.date, Tuple[datetime.date]]:
+    def from_pdb(fields: Union[str, Sequence[str]]) -> Union[datetime.date, np.ndarray]:
+        def str_to_date(date_str) -> Optional[datetime.date]:
+            try:
+                return datetime.datetime.strptime(date_str, "%d-%b-%y").date()
+            except ValueError as e:
+                if date_str.isspace():
+                    return
+                raise
         if isinstance(fields, str):
-            return datetime.datetime.strptime(fields, "%d-%b-%y").date()
-        return tuple(datetime.datetime.strptime(field, "%d-%b-%y").date() for field in fields)
+            return str_to_date(fields)
+        return np.array([str_to_date(field) for field in fields])
 
     @staticmethod
     def to_pdb(dates: Union[datetime.date, Sequence[datetime.date]]) -> Union[str, Tuple[str]]:
@@ -92,10 +100,20 @@ class Integer(RecordFieldDataType):
     Right-justified blank-filled integer value.
     """
     @staticmethod
-    def from_pdb(fields: Union[str, Sequence[str]]):
+    def from_pdb(fields: Union[str, Sequence[str]], dtype: npt.DTypeLike = np.int_):
+        dtype = np.dtype(dtype)
         if isinstance(fields, str):
-            return int(fields)
-        return np.asarray(fields).astype(int)
+            if fields.isspace():
+                return np.iinfo(dtype).min
+            return dtype.type(fields)
+        fields = np.asarray(fields)
+        mask_empty_fields = np.char.isspace(fields)
+        if not np.any(mask_empty_fields):
+            return fields.astype(dtype)
+        ints = np.empty(shape=fields.size, dtype=dtype)
+        ints[mask_empty_fields] = np.iinfo(dtype).min
+        ints[~mask_empty_fields] = fields[~mask_empty_fields].astype(dtype)
+        return ints
 
 
 class Token(RecordFieldDataType):
@@ -108,6 +126,12 @@ class List(RecordFieldDataType):
     """
     A String that is composed of text separated with commas.
     """
+    @staticmethod
+    def from_pdb(fields: Union[str, Sequence[str]]):
+        if not isinstance(fields, str):
+            fields = String.from_pdb(fields)
+        return np.char.strip(fields.split(","))
+
 
 
 class LString(RecordFieldDataType):
@@ -145,6 +169,11 @@ class SList(RecordFieldDataType):
     """
     A String that is composed of text separated with semicolons.
     """
+    @staticmethod
+    def from_pdb(fields: Union[str, Sequence[str]]):
+        if not isinstance(fields, str):
+            fields = String.from_pdb(fields)
+        return np.char.strip(fields.split(";"))
 
 
 class Specification(RecordFieldDataType):
@@ -184,73 +213,21 @@ class SymOP(RecordFieldDataType):
     the form nnnMMM where nnn is the symmetry operator number and
     MMM is the translation vector.
     """
+    @staticmethod
+    def from_pdb(fields: Union[str, Sequence[str]]):
+        if isinstance(fields, str):
+            return int(fields[:3]), (int(fields[3]), int(fields[4]), int(fields[5]))
+        fields = np.asarray(fields)
 
+        char_view = np.frombuffer(
+            fields.tobytes(), dtype=(str, 1)
+        ).reshape(-1, 6)
 
-def header_classification(fields: np.ndarray) -> Tuple[Tuple[str]]:
-    """
-    Parse the classification field of a HEADER record.
+        #char_view = fields.view(dtype=(str, 1)).reshape(-1, 6)
+        sym_op_num = char_view[:, :3].view(dtype=(str, 3)).astype(int).reshape(-1)
+        transl_vec = char_view[:, 3:].astype(int)
+        return sym_op_num, transl_vec
 
-    Parameters
-    ----------
-    fields : ndarray, shape: (num_fields, num_chars), dtype: str
-        Array of field values.
-
-    Returns
-    -------
-    Tuple[Tuple[str]]
-        Each sub-tuple corresponds to one molecule in the entry, with each element
-        describing one classification/function of that molecule.
-    """
-    # HEADER is a one-time/single-line record. Take the first occurrence:
-    field = fields[0]
-    # The classification string is left-justified, and can describe dual functions of
-    # molecules (when applicable) separated by a comma “,”. Entries with multiple
-    # molecules in a complex will list the classifications of each macromolecule
-    # separated by slash “/”.
-    # First, split by '/' and then by ',' to get a tuple of tuples
-    class_per_entity = tuple(field.split("/"))
-    class_per_entity_and_function = tuple(
-        tuple(entity_function.strip() for entity_function in entity_class.split(","))
-        for entity_class in class_per_entity
-    )
-    return class_per_entity_and_function
-
-
-def compound_compound(token_value_pairs: np.ndarray):
-    df = pd.DataFrame(
-        columns=[
-            "MOL_ID"
-            "MOLECULE",
-            "CHAIN",
-            "FRAGMENT",
-            "SYNONYM",
-            "EC",
-            "ENGINEERED",
-            "MUTATION",
-            "OTHER_DETAILS"
-        ]
-    )
-    df.index.name = "MOL_ID"
-    ind_mols = np.argwhere(token_value_pairs[:, 0] == "MOL_ID").reshape(-1)
-    for start, stop in np.lib.stride_tricks.sliding_window_view((*ind_mols, None), 2):
-        mol_id = token_value_pairs[start, 1]
-        data = dict(token_value_pairs[start + 1:stop])
-        if "CHAIN" in data:
-            data["CHAIN"] = np.char.strip(data["CHAIN"].split(","))
-        if "SYNONYM" in data:
-            data["SYNONYM"] = np.char.strip(data["SYNONYM"].split(","))
-        if "EC" in data:
-            data["EC"] = np.char.strip(data["EC".split(",")])
-        if "ENGINEERED" in data:
-            if not data["ENGINEERED"] in ("YES", "NO"):
-                raise
-            data["ENGINEERED"] = data["ENGINEERED"] == "YES"
-        if "MUTATION" in data:
-            if not data["MUTATION"] in ("YES", "NO"):
-                raise
-            data["MUTATION"] = data["MUTATION"] == "YES"
-        df.loc[mol_id] = data
-    return df
 
 
 def atom_charge(fields: np.ndarray):
