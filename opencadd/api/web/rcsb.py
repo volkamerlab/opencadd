@@ -428,7 +428,7 @@ def data_holdings_unreleased(pdb_id: str) -> dict:
 def file_pdb_entry(
         pdb_id: str,
         file_format: Literal["cif", "pdb", "xml", "bcif"] = "cif",
-        biological_assembly_id: Optional[int] = None,
+        biological_assembly_id: Optional[Union[int, str]] = None,
 ) -> bytes:
     """
     Download a PDB entry file (asymmetric unit or a biological assembly)
@@ -442,7 +442,7 @@ def file_pdb_entry(
         Format of the file.
     biological_assembly_id : int, optional, default: None
         Biological assembly ID. If not provided (i.e. when `None`), the asymmetric unit will be
-        downloaded.
+        downloaded. Notice that many records are only available in the PDB file of the asymmetric unit.
 
     Returns
     -------
@@ -465,7 +465,7 @@ def file_pdb_entry(
     elif file_format == "cif":
         url = f"{url_prefix}-assembly{biological_assembly_id}.cif.gz"
     elif file_format == "pdb":
-        url = f"{url_prefix}.pdb{biological_assembly_id}"
+        url = f"{url_prefix}.pdb{biological_assembly_id}.gz"
     else:
         raise ValueError("Biological assemblies can only be downloaded in CIF and PDB formats.")
     # Download file, decompress and return as bytes
