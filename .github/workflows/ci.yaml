@@ -27,7 +27,7 @@ jobs:
       PACKAGE: "opencadd"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Additional info about the build
         shell: bash
@@ -36,17 +36,14 @@ jobs:
           df -h
           ulimit -a
 
-      # More info on options: https://github.com/conda-incubator/setup-miniconda
       - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
-          activate-environment: test
-          auto-update-conda: true
-          auto-activate-base: false
-          show-channel-urls: true
-          mamba-version: "*"
 
       # TODO: Remove this step when patched theseus makes it to CF
       - name: Build patched mmligner
