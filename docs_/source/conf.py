@@ -25,7 +25,11 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    # To show a copy button next to code blocks
+    #  see: https://sphinx-copybutton.readthedocs.io/en/latest/
+    'sphinx_copybutton',
+    'sphinx_design',
 ]
 
 autosummary_generate = True
@@ -63,14 +67,41 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_static_path = ['_static']
+html_css_files = ['css/custom.css']
 html_theme = 'pydata_sphinx_theme'
 
 # This is added due to this issue:
 #  https://github.com/pydata/pydata-sphinx-theme/issues/1094#issuecomment-1368264928
 html_theme_options = {
-   "logo": {
-      "image_light": "logo-light.png",
-      "image_dark": "logo-dark.png",
-   }
+    "logo": {
+        # "text": "an open-source Python library for computer-aided drug design",
+        "image_light": "logo.png",
+        "image_dark": "logo.png",
+    },
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_align": "content",  # alt: "left" or "right"
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navbar_persistent": ["search-button"],
+    "icon_links": [
+            {
+                # Label for this link
+                "name": "GitHub",
+                # URL where the link will redirect
+                "url": "https://github.com/volkamerlab/opencadd/",  # required
+                # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+                "icon": "fa-brands fa-square-github",
+                # The type of image to be used (see below for details)
+                "type": "fontawesome",
+            }
+       ],
+    "search_bar_text": "search openCADD ...",
+    "primary_sidebar_end": ["indices", "sidebar-ethical-ads"],
+    "secondary_sidebar_items": ["page-toc"],  # "edit-this-page", "sourcelink",
+    "show_prev_next": True,
+    "footer_items": ["navbar-logo", "copyright"],  # "sphinx-version", "theme-version"
 }
 
+html_sidebars = {
+    "**": ["search-field", "sidebar-nav-bs"]
+}
