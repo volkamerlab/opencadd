@@ -1,0 +1,16 @@
+/* Make each footer item in-line so they stack horizontally instead of vertically */
+.footer-item {
+  display: inline-block;
+}
+
+/* Add a separating border line for all but the last item */
+.footer-item:not(:last-child) {
+  border-right: 1px solid var(--pst-color-text-base);
+  margin-right: .5em;
+  padding-right: .5em;
+}
+
+.bd-content {
+  flex-grow: 1;
+  max-width: 100%;
+}
