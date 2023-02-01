@@ -1,5 +1,5 @@
-Installation
-============
+# Installation
+
 
 To get started, **install** openCADD from one of the following package managers:
 

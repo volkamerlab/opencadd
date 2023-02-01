@@ -1,7 +1,6 @@
 
 ````{margin}
 
-
 ```{image} https://github.com/volkamerlab/opencadd/workflows/CI/badge.svg
 :target: https://github.com/volkamerlab/opencadd/actions
 ```
@@ -38,6 +37,7 @@
 :alt: openCADD logo
 :width: 600px
 :align: center
+:class: dark-light
 ```
 
 
@@ -55,10 +55,20 @@ This project is under active development.
    section, or proceed directly to the [](getting_started/installation) guide.
 2. Start with the [User Guide](user_guide/index) for a detailed description of all openCADD's functionalities 
    and how to use them. This part is organized into topic, and follows the along with theoretical background, usage examples,
-3. The [API Reference](api_reference/index) provides a complete documentation of openCADD's user API.
+3. The [API Reference](api_reference/index.md) provides a complete documentation of openCADD's user API.
 
 ```{tip}
 You can read this documentation like a book, by simply navigating through pages using the left and right
 keys on your keyboard, which walks you through the chapters listed on the left sidebar.
 ```
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+about/index
+user_guide/index
+api_reference/index
+sample_project/index
+developer_guide/index
+```
