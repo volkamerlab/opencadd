@@ -1,6 +1,8 @@
-# Importing Data [`opencadd.io`](../../api_reference/_autosummary/opencadd.io.pdb.rst)
+# Finding Data [`opencadd.data`](../../api_reference/_autosummary/opencadd.data.rst)
 
-The [`opencadd.io`](../../api_reference/_autosummary/opencadd.io.pdb.rst) package allows users to read/write.
+
+
+The [`opencadd.data`](../../api_reference/_autosummary/opencadd.data.rst) package allows users to read/write.
 
 ## Introduction
 Most CADD pipelines rely on some form of input data, such as chemical structures, 

@@ -1,13 +1,9 @@
 # Installation
 
+## TL;DR
+Install openCADD from one of the following package managers:
 
-To get started, **install** openCADD from one of the following package managers:
-
-.. tip::
-    You can simply copy the contents of each presented code/command block in this documentation
-    (like the one below), by hovering your mouse over that block, and clicking on the copy button
-    that appears on the right side of the block.
-
+```{eval-rst}
 .. tab-set::
 
    .. tab-item:: Conda
@@ -33,6 +29,14 @@ To get started, **install** openCADD from one of the following package managers:
                    run the following command in your terminal:
 
          pip install opencadd
+```
 
 If you are not familiar with the above options, or are looking for alternative methods, read the
 :doc:`installation` for more details.
+
+
+```{tip}
+You can simply copy the contents of each presented code/command block in this documentation
+(like the one below), by hovering your mouse over that block, and clicking on the copy button
+that appears on the right side of the block.
+```

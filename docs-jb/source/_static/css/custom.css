@@ -14,3 +14,8 @@
   flex-grow: 1;
   max-width: 100%;
 }
+
+/* Justify text in paragraphs */
+p {
+    text-align: justify;
+}
