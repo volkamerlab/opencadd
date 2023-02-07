@@ -91,9 +91,5 @@
       * **JRNL**: Literature citation that defines the coordinate set. 
       * **REMARK**: General remarks; they can be structured or free form.
 
-### Order of Records
- * All records in a PDB coordinate entry must appear in a defined order. 
- * Mandatory record types are present in all entries. 
- * When mandatory data are not provided, the record name must appear in the entry with a NULL indicator. 
- * Optional items become mandatory when certain conditions exist.
+ 
 

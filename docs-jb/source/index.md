@@ -31,8 +31,6 @@
 ```
 ````
 
-
-
 ```{image} _static/logo.svg
 :alt: openCADD logo
 :width: 600px
@@ -40,14 +38,13 @@
 :class: dark-light
 ```
 
-
-
 **openCADD** is an open-source software for computer-aided drug design.
 The aim of openCADD project is to provide a robust and comprehensive toolbox
 for facile implementation of computational pipelines in chem- and bioinformatics research.
 
-```{note}
-This project is under active development.
+```{warning}
+This project is under active development; some parts are not yet fully implemented, 
+and the API of the implemented parts may also change in the future. 
 ```
 
 ## How to Get Started
@@ -57,21 +54,21 @@ This project is under active development.
    and how to use them. This part is organized into topic, and follows the along with theoretical background, usage examples,
 3. The [API Reference](api_reference/index.md) provides a complete documentation of openCADD's user API.
 
-
-
-
 ```{tip}
 You can read this documentation like a book, by simply navigating through pages using the left and right
 keys on your keyboard, which walks you through the chapters listed on the left sidebar.
 ```
+
 
 ```{toctree}
 :maxdepth: 2
 :hidden:
 
 about/index
+learn/index
 user_guide/index
 api_reference/index
 sample_project/index
 developer_guide/index
+faq/index
 ```

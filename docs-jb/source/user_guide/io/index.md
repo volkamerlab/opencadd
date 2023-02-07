@@ -19,5 +19,8 @@ Chemical structure data
 :maxdepth: 2
 :hidden:
 
+mmcif/index
 pdb/index
+mmtf/index
+pdbqt/index
 ```

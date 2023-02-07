@@ -1,6 +1,4 @@
-# Overview
-
-## Protein Data Bank (PDB) File Format
+# PDB File Format
 
 The PDB file format was invented by the Protein Data Bank in 1976, as a textual file format
 for sharing data on experimentally determined macromolecular structures.{cite}`PDB_history_review`
@@ -18,6 +16,34 @@ and provides PDB files (compliant with version 3.30) for all entries
 (regardless of the deposition format), unless not possible due to the limitations of the PDB file format, 
 for example in case of large macromolecular complexes. In addition, PDB remains to be a common file format 
 in the bioinformatics ecosystem, and many software packages still use it as their primary input/output format. 
+
+## PDB File Format
+https://files.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
+
+### Entries Without PDB Format Files
+The PDB file format is unable to hold data for large macromolecular structures, 
+specifically, structures with more than 99,999 atoms, or with more than 62 chains.
+This is due to the fact that the PDB format has a fixed column size and data type for tabular contents;
+The column for atom serial numbers has a width of 5 characters, and thus can only hold integer values
+between 1 and 99,999. Similarly, the chain ID column is assigned only a single alphanumerical character, 
+and can only have 62 unique values (i.e. 26 lower-case leters, 26 upper-case letters, and 10 digits).
+
+Before the phase-out of the PDB file format in 2014, these structures were 'split' into several PDB files,
+and the complete structure had to be re-assembled by the user from a collection of split files. After the
+replacement of the PDB file format by the PDBx/mmCIF format, these files were combined into single mmCIF files, 
+and the corresponding PDB files are now only available only in some cases, containing only coordinates data.
+For more details, refer to [RCSB Documentation: Structures Without Legacy PDB Format Files](https://www.rcsb.org/docs/general-help/structures-without-legacy-pdb-format-files).
+
+
+There are also some other added structural data that do not fit the old PDB file format. 
+In summary, the Protein Data bank does not offer legacy PDB-format files for:
+* entries with multiple-character chain IDs
+* entries with more than 62 chains
+* entries with 100,000 or more atoms
+* entries with a complex beta sheet topology
+
+
+
 
 ### Contents of PDB Files
 
@@ -108,6 +134,10 @@ All records in a PDB coordinate entry must appear in a defined order. Mandatory 
 present in all entries. When mandatory data are not provided, the record name must appear in the
 entry with a NULL indicator. Optional items become mandatory when certain conditions exist. Old
 records that are not described here are deprecated.
+* All records in a PDB coordinate entry must appear in a defined order. 
+* Mandatory record types are present in all entries. 
+* When mandatory data are not provided, the record name must appear in the entry with a NULL indicator. 
+* Optional items become mandatory when certain conditions exist.
 
 
 

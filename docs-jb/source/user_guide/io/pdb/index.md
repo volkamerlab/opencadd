@@ -10,7 +10,7 @@ kernelspec:
   name: python3
 ---
 
-# PDB Files [`opencadd.io.pdb`](../../../api_reference/_autosummary/opencadd.io.pdb.rst)
+# PDB [`opencadd.io.pdb`](../../../api_reference/_autosummary/opencadd.io.pdb.rst)
 
 ## Background Overview 
 The Protein Data Bank (PDB) file format is a commonly used biochemical data file,

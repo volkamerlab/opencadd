@@ -1,6 +1,4 @@
-# Overview
-
-## History of Protein Data Bank
+# History and Evolution
 The development of experimental techniques such as X-ray crystallography and nuclear magnetic resonance (NMR)
 led to substantial advancements in the field of structural biology. A great breakthrough was the successful 
 modeling of the DNA double-helix structure, by Watson and Crick in 1953, based on previous research by
@@ -54,6 +52,10 @@ both computational and experimental researchers working on related subjects. Alm
 journals now require researchers to submit their structure data to the PDB for their publications.
 
 The full PDB archive is freely accessible, and can be programmatically accessed via a provided web API. 
+
+
+
+
 
 # References
 ```{bibliography}
