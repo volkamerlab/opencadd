@@ -1,6 +1,6 @@
 
 from typing import IO
-from opencadd.typing import FileLike
+from opencadd._typing import FileLike
 from pathlib import Path
 import io
 

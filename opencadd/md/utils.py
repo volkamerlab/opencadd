@@ -12,7 +12,7 @@ from pytraj.cluster import kmeans
 from pdbfixer import PDBFixer
 from simtk.openmm.app import PDBFile
 
-from opencadd.typing import PathLike
+from opencadd._typing import PathLike
 
 
 

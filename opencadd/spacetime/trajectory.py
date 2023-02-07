@@ -5,7 +5,7 @@ import scipy as sp
 import jax.numpy as jnp
 
 
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 from opencadd.spacetime.spatial import Spatial
 
 

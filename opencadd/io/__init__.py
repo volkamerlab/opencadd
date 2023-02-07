@@ -1,5 +1,5 @@
 """
-opencadd.io module
+Read/write different chemical data files.
 """
 
-from opencadd.io import pdb, pdbqt
+from . import pdb, pdbqt

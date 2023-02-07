@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy.typing as npt
 
 import opencadd as oc
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 
 
 class DynamicPointCloud:
@@ -209,10 +209,6 @@ class DynamicPointCloud:
                 shape=(points.count_instances, points.count_points_per_instance)
             )
             return indices_self, indices_other, dist_matrix["v"]
-
-
-
-
 
 
     def find_point_pairs_within_radius(

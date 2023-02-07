@@ -9,9 +9,9 @@ import pandas as pd
 import pytest
 from rdkit import Chem
 
-from opencadd.api.klifs import setup_local, setup_remote
-from opencadd.api.klifs.schema import FIELDS
-from opencadd.utils import enter_temp_directory
+from opencadd.data.klifs import setup_local, setup_remote
+from opencadd.data.klifs.schema import FIELDS
+from opencadd._utils import enter_temp_directory
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
 

@@ -2,7 +2,7 @@ from typing import Literal
 
 import numpy as np
 
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 
 
 def van_der_waals_radius(

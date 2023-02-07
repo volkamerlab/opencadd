@@ -4,7 +4,7 @@ from typing import Literal, Sequence, Optional, Tuple
 # 3rd-party
 import numpy as np
 import numpy.typing as npt
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 from opencadd.spacetime.grid import Grid
 
 

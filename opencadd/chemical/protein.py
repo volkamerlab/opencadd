@@ -6,8 +6,8 @@ import scipy as sp
 import nglview
 from openbabel import pybel
 
-from opencadd.typing import PathLike
-from opencadd.misc.parsing import extract_column_from_string_array
+from opencadd._typing import PathLike
+from opencadd.io._helpers_parsing import extract_column_from_string_array
 from opencadd.consts import autodock
 
 

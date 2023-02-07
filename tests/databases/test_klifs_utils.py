@@ -4,7 +4,7 @@ Tests for opencadd.databases.klifs.utils
 
 import pytest
 
-from opencadd.api.klifs.utils import (
+from opencadd.data.klifs.utils import (
     metadata_to_filepath,
     filepath_to_metadata,
 )

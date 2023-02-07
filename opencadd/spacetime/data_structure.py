@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import numpy.typing as npt
 
 import opencadd as oc
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 
 
 class MinimumBoundingBox(NamedTuple):

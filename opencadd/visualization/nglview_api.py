@@ -1,7 +1,7 @@
 from typing import List, Union, NoReturn, Optional,Sequence
 import nglview as nv
 import numpy as np
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 
 
 def add_points(

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Sequence, Optional, Literal
 
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 
 
 class Composition(ABC):

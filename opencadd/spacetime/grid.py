@@ -11,7 +11,7 @@ import numpy as np
 import jax.numpy as jnp
 import scipy as sp
 import numpy.typing as npt
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 from opencadd.spacetime.data_structure import TensorDataSet
 
 
@@ -58,6 +58,13 @@ def from_shape_spacing_origin(
         Coordinates of the geometric center of the grid.
     """
 
+
+def from_bounds_and_spacing(
+        lower_bounds: npt.ArrayLike,
+        upper_bounds: npt.ArrayLike,
+        spacings: npt.ArrayLike,
+) -> Grid:
+    return
 
 
 class Grid:
@@ -414,10 +421,3 @@ def xeno_neighbor_distance(
             curr_mask[start_slice][reached_xeno] = 0
     return dists
 
-
-def from_bounds_and_spacing(
-        lower_bounds: npt.ArrayLike,
-        upper_bounds: npt.ArrayLike,
-        spacings: npt.ArrayLike,
-) -> Grid:
-    return

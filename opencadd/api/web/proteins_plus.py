@@ -16,10 +16,10 @@ import io
 
 import pandas as pd
 
-from opencadd.typing import FileLike
-from opencadd.api.web.http_request import response_http_request, HTTPRequestRetryConfig
+from opencadd._typing import FileLike
+from opencadd._http_request import response_http_request, HTTPRequestRetryConfig
 #from opencadd.io.io import filelike_to_filepath
-from opencadd.decorator import RetryConfig
+from opencadd._decorator import RetryConfig
 
 
 _URL_ROOT: str = "https://proteins.plus/api"

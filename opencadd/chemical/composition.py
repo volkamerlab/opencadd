@@ -4,7 +4,7 @@ from typing import Sequence, Optional, Literal
 import numpy as np
 import jax.numpy as jnp
 
-from opencadd.typing import ArrayLike
+from opencadd._typing import ArrayLike
 from opencadd.chemical import abc
 
 

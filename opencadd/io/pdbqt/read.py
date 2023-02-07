@@ -2,7 +2,7 @@ from typing import Sequence
 import numpy as np
 import pandas as pd
 
-from opencadd.typing import PathLike
+from opencadd._typing import PathLike
 
 
 def read_file(filepath: PathLike):
