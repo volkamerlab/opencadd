@@ -7,7 +7,7 @@ from typing import Optional, Literal, Union, List, Tuple, NoReturn, Any, Callabl
 # 3rd-party
 import requests
 # Self
-from opencadd.decorator import RetryConfig, retry_on_exception
+from opencadd._decorator import RetryConfig, retry_on_exception
 
 
 class WebAPIError(IOError):
