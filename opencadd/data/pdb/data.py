@@ -1,5 +1,5 @@
 """
-Implementation of the RESTful API of Protein Data Bank (PDB) at https://rcsb.org
+Implementation of the RESTful Data API of the Protein Data Bank (PDB) at https://rcsb.org
 
 References
 ----------
@@ -22,7 +22,7 @@ import gzip
 # 3rd party
 import numpy as np
 # Self
-from opencadd.api.web.http_request import response_http_request
+from opencadd._http_request import response_http_request
 
 
 # General API endpoints
@@ -52,11 +52,11 @@ def schema(
 
     Parameters
     ----------
-    schema_type : Literal[
+    schema_type : {
                     'entry', 'polymer_entity', 'branched_entity', 'nonpolymer_entity',
                     'polymer_entity_instance', 'branched_entity_instance',
                     'nonpolymer_entity_instance', 'assembly', 'chem_comp'
-                  ]
+                  }
         Type of the data schema.
 
     Returns
@@ -70,7 +70,7 @@ def schema(
     return _data_query(url=f"{_END_SCHEMA}/{schema_type}")
 
 
-def data_entry(pdb_id: str) -> dict:
+def entry(pdb_id: str) -> dict:
     """
     Description of a PDB entry at the top level of PDB structural hierarchical data organization.
 
@@ -86,7 +86,7 @@ def data_entry(pdb_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/entry/{pdb_id}")
 
 
-def data_entry_pubmed(pdb_id: str) -> dict:
+def entry_pubmed(pdb_id: str) -> dict:
     """
     Description of a PDB entry's primary citation, annotated by PubMed.
 
@@ -102,7 +102,7 @@ def data_entry_pubmed(pdb_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/pubmed/{pdb_id}")
 
 
-def data_assembly(pdb_id: str, assembly_id: Union[int, str]) -> dict:
+def assembly(pdb_id: str, assembly_id: Union[int, str]) -> dict:
     """
     Description of a structural assembly (quaternary structure) in a PDB entry.
 
@@ -120,7 +120,7 @@ def data_assembly(pdb_id: str, assembly_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/assembly/{pdb_id}/{assembly_id}")
 
 
-def data_entity_branched(pdb_id: str, entity_id: Union[int, str]) -> dict:
+def entity_branched(pdb_id: str, entity_id: Union[int, str]) -> dict:
     """
     Description of a branched entity (molecule) in a PDB entry.
 
@@ -138,7 +138,7 @@ def data_entity_branched(pdb_id: str, entity_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/branched_entity/{pdb_id}/{entity_id}")
 
 
-def data_entity_nonpolymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
+def entity_nonpolymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
     """
     Description of a non-polymer entity (molecule) in a PDB entry.
 
@@ -156,7 +156,7 @@ def data_entity_nonpolymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/nonpolymer_entity/{pdb_id}/{entity_id}")
 
 
-def data_entity_polymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
+def entity_polymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
     """
     Description of a polymer entity (molecule) in a PDB entry.
 
@@ -174,7 +174,7 @@ def data_entity_polymer(pdb_id: str, entity_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/polymer_entity/{pdb_id}/{entity_id}")
 
 
-def data_entity_polymer_uniprot(pdb_id: str, entity_id: Union[int, str]) -> dict:
+def entity_polymer_uniprot(pdb_id: str, entity_id: Union[int, str]) -> dict:
     """
     UniProt annotations for a macromolecular polymer entity (molecule) in a PDB entry.
 
@@ -192,7 +192,7 @@ def data_entity_polymer_uniprot(pdb_id: str, entity_id: Union[int, str]) -> dict
     return _data_query(url=f"{_END_DATA}/uniprot/{pdb_id}/{entity_id}")
 
 
-def data_instance_branched(pdb_id: str, asym_id: Union[int, str]) -> dict:
+def instance_branched(pdb_id: str, asym_id: Union[int, str]) -> dict:
     """
     Description of an instance (chain) of a branched entity in a PDB entry.
 
@@ -210,7 +210,7 @@ def data_instance_branched(pdb_id: str, asym_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/branched_entity_instance/{pdb_id}/{asym_id}")
 
 
-def data_instance_nonpolymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
+def instance_nonpolymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
     """
     Description of an instance (chain) of a non-polymer entity in a PDB entry.
 
@@ -228,7 +228,7 @@ def data_instance_nonpolymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/nonpolymer_entity_instance/{pdb_id}/{asym_id}")
 
 
-def data_instance_polymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
+def instance_polymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
     """
     Description of an instance (chain) of a polymer entity in a PDB entry.
 
@@ -246,7 +246,7 @@ def data_instance_polymer(pdb_id: str, asym_id: Union[int, str]) -> dict:
     return _data_query(url=f"{_END_DATA}/polymer_entity_instance/{pdb_id}/{asym_id}")
 
 
-def data_chemical_component(ccd_id: str) -> dict:
+def chemical_component(ccd_id: str) -> dict:
     """
     Description of a chemical component (i.e. ligand, small molecule, monomer) in a PDB entry.
 
@@ -264,7 +264,7 @@ def data_chemical_component(ccd_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/chemcomp/{ccd_id}")
 
 
-def data_chemical_drugbank(ccd_id: str) -> dict:
+def chemical_drugbank(ccd_id: str) -> dict:
     """
     Description of a chemical component (i.e. ligand, small molecule, monomer) in a PDB entry,
     annotated by DrugBank.
@@ -283,7 +283,7 @@ def data_chemical_drugbank(ccd_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/drugbank/{ccd_id}")
 
 
-def data_group_entry(group_id: str) -> dict:
+def group_entry(group_id: str) -> dict:
     """
     PDB cluster data for entries, based upon a given aggregation method.
 
@@ -299,7 +299,7 @@ def data_group_entry(group_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/entry_groups/{group_id}")
 
 
-def data_group_provenance(provenance_id: str) -> dict:
+def group_provenance(provenance_id: str) -> dict:
     """
     Aggregation method used to create groups.
 
@@ -315,7 +315,7 @@ def data_group_provenance(provenance_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/group_provenance/{provenance_id}")
 
 
-def data_group_entity(group_id: str) -> dict:
+def group_entity(group_id: str) -> dict:
     """
     PDB cluster data for polymer entities, based upon a given aggregation method.
 
@@ -331,7 +331,7 @@ def data_group_entity(group_id: str) -> dict:
     return _data_query(url=f"{_END_DATA}/polymer_entity_groups/{group_id}")
 
 
-def data_interface(
+def interface(
         pdb_id: str,
         assembly_id: Union[int, str] = 1,
         interface_id: Union[int, str] = 1,
@@ -355,7 +355,7 @@ def data_interface(
     return _data_query(url=f"{_END_DATA}/interface/{pdb_id}/{assembly_id}/{interface_id}")
 
 
-def data_holdings(
+def holdings(
         status: Literal["current", "unreleased", "removed"] = "current"
 ) -> np.ndarray:
     """
@@ -377,7 +377,37 @@ def data_holdings(
     return np.array(_data_query(url=f"{_END_HOLDINGS}/{status}/entry_ids"))
 
 
-def data_holdings_status(pdb_id: Union[str, Sequence[str]]) -> dict:
+def holdings_without_pdb_file() -> np.ndarray:
+    """
+    PDB IDs of all entries without a corresponding legacy PDB-format file.
+
+    Returns
+    -------
+    numpy.ndarray[ndim: 1, dtype: <U4]
+        Array of PDB IDs.
+
+    Notes
+    -----
+    * Following entries don't have a corresponding PDB-format file:
+      * Entries with multiple-character chain IDs.
+      * Entries with more than 62 chains.
+      * Entries with 100,000 or more atoms.
+      * Entries with a complex beta sheet topology.
+    * Number of these entries will continue to grow as new large structures are deposited and released.
+    * These entries can also be found using Advanced Search (Deposition > Compatible with PDB Format > equals > N)
+
+    References
+    ----------
+    * `RCSB Documentation: Structures Without Legacy PDB Format Files <https://www.rcsb.org/docs/general-help/structures-without-legacy-pdb-format-files>`_
+    """
+    pdb_ids = response_http_request(
+        url="https://files.wwpdb.org/pub/pdb/compatible/pdb_bundle/pdb_bundle_index.txt",
+        response_type="str"
+    )
+    return np.array(pdb_ids.upper().splitlines())
+
+
+def holdings_status(pdb_id: Union[str, Sequence[str]]) -> dict:
     """
     Status and status code of a PDB entry.
 
@@ -393,7 +423,7 @@ def data_holdings_status(pdb_id: Union[str, Sequence[str]]) -> dict:
     return _data_query(url=f"{_END_HOLDINGS}/status/{pdb_id}")
 
 
-def data_holdings_removed(pdb_id: str) -> dict:
+def holdings_removed(pdb_id: str) -> dict:
     """
     Description of an entry that was removed from the PDB repository.
 
@@ -409,7 +439,7 @@ def data_holdings_removed(pdb_id: str) -> dict:
     return _data_query(url=f"{_END_HOLDINGS}/removed/{pdb_id}")
 
 
-def data_holdings_unreleased(pdb_id: str) -> dict:
+def holdings_unreleased(pdb_id: str) -> dict:
     """
     Description of an entry that is being processed or on hold waiting for release.
 
@@ -423,101 +453,6 @@ def data_holdings_unreleased(pdb_id: str) -> dict:
     dict
     """
     return _data_query(url=f"{_END_HOLDINGS}/unreleased/{pdb_id}")
-
-
-def file_pdb_entry(
-        pdb_id: str,
-        file_format: Literal["cif", "pdb", "xml", "bcif"] = "cif",
-        biological_assembly_id: Optional[Union[int, str]] = None,
-) -> bytes:
-    """
-    Download a PDB entry file (asymmetric unit or a biological assembly)
-    in one of available formats.
-
-    Parameters
-    ----------
-    pdb_id : str
-        PDB ID of the entry.
-    file_format : Literal["cif", "pdb", "xml", "bcif"], optional, default: "cif"
-        Format of the file.
-    biological_assembly_id : int, optional, default: None
-        Biological assembly ID. If not provided (i.e. when `None`), the asymmetric unit will be
-        downloaded. Notice that many records are only available in the PDB file of the asymmetric unit.
-
-    Returns
-    -------
-    bytes
-        Content of the downloaded file in bytes.
-    """
-    # Check whether PDB ID is valid:
-    if not isinstance(pdb_id, str):
-        raise ValueError("`pdb_id` must be of type string.")
-    if len(pdb_id) != 4:
-        raise ValueError("`pdb_id` must have 4 characters.")
-    if not pdb_id[0].isnumeric() or pdb_id[0] == "0":
-        raise ValueError("First character of `pdb_id` must be a non-zero digit.")
-    # Build HTTP request URL
-    url_prefix = f"{_ROOT_FILE}/download/{pdb_id}"
-    if file_format not in ("cif", "pdb", "xml", "bcif"):
-        raise ValueError(f"File format {file_format} not recognized.")
-    if biological_assembly_id is None:
-        url = f"{url_prefix}.{file_format}.gz"
-    elif file_format == "cif":
-        url = f"{url_prefix}-assembly{biological_assembly_id}.cif.gz"
-    elif file_format == "pdb":
-        url = f"{url_prefix}.pdb{biological_assembly_id}.gz"
-    else:
-        raise ValueError("Biological assemblies can only be downloaded in CIF and PDB formats.")
-    # Download file, decompress and return as bytes
-    return gzip.decompress(response_http_request(url=url, response_type="bytes"))
-
-
-def file_small_molecule(
-        ligand_id: str,
-        file_type: Literal["model_coords", "ideal_coords", "def"] = "model_coords",
-        file_format: Literal["sdf", "mol2", "cif"] = "sdf",
-) -> bytes:
-    """
-    Download a small molecule file in one of available formats.
-
-    Parameters
-    ----------
-    ligand_id : str
-        ID of the ligand.
-    file_type: Literal["model_coords", "ideal_coords", "def"], optional, default: "model_coords"
-        Type of the file: model coordinates, ideal coordinates, or definition.
-        Notice that coordinates are only available in MOL2 and SDF file formats,
-        while definition is only available in CIF. Thus, if the argument of `file_type` is `def`,
-        then `file_format` argument is ignored and a CIF file is returned. If the argument of
-        `file_type` is `model_coords` or `ideal_coords` and `file_type` is `cif`,
-        a `ValueError` is raised.
-    file_format : Literal["sdf", "mol2", "cif"], optional, default: "sdf"
-        Format of the file.
-
-    Returns
-    -------
-    bytes
-        Content of the downloaded file in bytes.
-    """
-    if file_format not in ("cif", "mol2", "sdf"):
-        raise ValueError(f"File format {file_format} not recognized.")
-    if file_type not in ("model_coords", "ideal_coords", "def"):
-        raise ValueError(f"File type {file_type} not recognized.")
-
-    _URL_PREFIX_MOL = f"{_ROOT_FILE}/ligands/download/"
-    if file_type == "def":
-        url = f"{_URL_PREFIX_MOL}{ligand_id}.cif"
-    elif file_type == "model_coords":
-        if file_format in ("mol2", "sdf"):
-            url = f"{_URL_PREFIX_MOL}{ligand_id}_model.{file_format}"
-        else:
-            raise ValueError(f"File format {file_format} is not accepted for type `model_coords`")
-    else:
-        if file_format in ("mol2", "sdf"):
-            url = f"{_URL_PREFIX_MOL}{ligand_id}_ideal.{file_format}"
-        else:
-            raise ValueError(f"File format {file_format} is not accepted for type `model_coords`")
-    return response_http_request(url=url, response_type="bytes")
 
 
 def _data_query(url: str) -> dict:
@@ -534,4 +469,3 @@ def _data_query(url: str) -> dict:
     dict
     """
     return response_http_request(url=url, response_type="json")
-
