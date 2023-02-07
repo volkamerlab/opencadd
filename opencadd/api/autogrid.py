@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 # Self
-from opencadd.typing import PathLike, ArrayLike
+from opencadd._typing import PathLike, ArrayLike
 from opencadd.consts import autodock
 from opencadd.interaction.abc import IntraMolecularInteractionField
 
@@ -308,114 +308,6 @@ def routine_run(
     return tuple(fields_values), paths_fields, path_gpf, path_gridfld, path_xyz
 
 
-def create_gpf(
-        receptor_filepath: PathLike,
-        output_path: PathLike,
-        receptor_types: Sequence[autodock.AtomType],
-        ligand_types: Sequence[autodock.AtomType],
-        grid_center: Union[Tuple[float, float, float], Literal["auto"]] = "auto",
-        grid_npts: Tuple[int, int, int] = (40, 40, 40),
-        grid_spacing: float = 0.375,
-        smooth: float = 0.5,
-        dielectric: float = -0.1465,
-        parameter_filepath: Optional[PathLike] = None,
-) -> Tuple[Path, Tuple[Path], Path, Path]:
-    """
-    Create a Grid Parameter File (GPF), used as an input specification file in AutoGrid.
-
-    Parameters
-    ----------
-    receptor_filepath : pathlib.Path
-        Filepath to the PDBQT structure file of the macromolecule.
-    grid_center : tuple[float, float, float] | "auto", Optional, default: "auto"
-        Coordinates (x, y, z) of the center of grid map, in Ångstrom (Å).
-        If set to "auto", AutoGrid automatically centers the grid on macromolecule's center.
-    grid_npts : tuple[int, int, int], Optional, default: (40, 40, 40)
-        Number of grid points to add to the central grid point, along x-, y- and z-axes,
-        respectively. Each value must be an even integer number; when added to the central grid
-        point, there will be an odd number of points in each dimension. The number of x-, y and
-        z-grid points need not be equal.
-    grid_spacing : float, Optional, default: 0.375
-        The grid-point spacing, i.e. distance between two grid points in Ångstrom (Å).
-        Grid points are orthogonal and uniformly spaced in AutoDock, i.e. this value is used for
-        all three dimensions.
-    ligand_types : Sequence[str], Optional, default: ("A", "C", "HD", "OA")
-        Atom types present in the ligand, such as A, C, HD, N, NA, OA, SA.
-    smooth : float, Optional, default: 0.5
-        Smoothing parameter for the pairwise atomic affinity potentials (both van der Waals
-        and hydrogen bonds). For AutoDock4, the force field has been optimized for a value of
-        0.5 Å.
-    dielectric : float, Optional, default: -0.1465
-        Dielectric function flag: if negative, AutoGrid will use distance-dependent dielectric
-        of Mehler and Solmajer; if the float is positive, AutoGrid will use this value as the
-        dielectric constant. AutoDock4 has been calibrated to use a value of –0.1465.
-    parameter_filepath : pathlib.Path, Optional, default: None
-        User-defined atomic parameter file. If not provided, AutoGrid uses internal parameters.
-    output_path: pathlib.Path
-        Path to a folder to write the output files in.
-
-    Returns
-    -------
-    tuple[pathlib.Path, tuple[pathlib.Path], pathlib.Path, pathlib.Path]
-    Filepath to the generated grid parameter file (.GPF), followed by a tuple of paths to grid
-    map files (.MAP), followed by a tuple of paths to the grid field file (.FLD) and .XYZ file,
-    respectively.
-    For each input ligand-type there will be a filepath to the corresponding .MAP
-    file in the tuple of .MAP files, in the same order as inputted. In addition, the two last
-    elements of this tuple correspond to electrostatic and desolvation map files that are always
-    generated.
-    """
-    receptor_filepath = Path(receptor_filepath).absolute()
-    # TODO: apparently AutoGrid cannot handle filepaths in the gpf file that have spaces. Using
-    #  quotation marks around the filepath, and escaping with \ did not work. Find a solution.
-    if " " in str(receptor_filepath):
-        raise ValueError("Path cannot contain spaces.")
-    if not receptor_filepath.is_file() or receptor_filepath.suffix.lower() != ".pdbqt":
-        raise ValueError(f"No PDBQT file found at: {receptor_filepath}")
-    if output_path is None:
-        output_path = receptor_filepath.parent
-    else:
-        output_path = Path(output_path).absolute()
-        if " " in str(output_path):
-            raise ValueError("Path cannot contain spaces.")
-        output_path.mkdir(parents=True, exist_ok=True)
-    # Create filepaths for output files.
-    path_common = output_path / receptor_filepath.name
-    path_gpf, path_gridfld, path_xyz, path_electrostatic_map, path_desolvation_map = (
-        path_common.with_suffix(ext)
-        for ext in (".gpf", ".maps.fld", ".maps.xyz", ".e.map", ".d.map")
-    )
-    paths_ligand_type_maps = [
-        path_common.with_suffix(f'.{ligand_type.name}.map') for ligand_type in ligand_types
-    ]
-    paths_fields = tuple(paths_ligand_type_maps + [path_electrostatic_map, path_desolvation_map])
-    # Generate the file content.
-    # It is recommended by AutoDock to generate the gpf file in this exact order.
-
-    file_content: str = ""
-    if parameter_filepath is not None:
-        file_content += f"parameter_file {Path(parameter_filepath).absolute()}\n"
-    file_content += (
-        f"npts {grid_npts[0]} {grid_npts[1]} {grid_npts[2]}\n"
-        f"gridfld {path_gridfld}\n"
-        f"spacing {grid_spacing}\n"
-        f"receptor_types {' '.join(receptor_type.name for receptor_type in receptor_types)}\n"
-        f"ligand_types {' '.join(ligand_type.name for ligand_type in ligand_types)}\n"
-        f"receptor {receptor_filepath}\n"
-        f"gridcenter {grid_center[0]} {grid_center[1]} {grid_center[2]}\n"
-        f"smooth {smooth}\n"
-    )
-    for path_map in paths_ligand_type_maps:
-        file_content += f"map {path_map}\n"
-    file_content += (
-        f"elecmap {path_electrostatic_map}\n"
-        f"dsolvmap {path_desolvation_map}\n"
-        f"dielectric {dielectric}"
-    )
-    # write to the file content to pgf file.
-    with open(path_gpf, "w") as f:
-        f.write(file_content)
-    return path_gpf, paths_fields, path_gridfld, path_xyz
 
 
 def submit_job(
@@ -465,81 +357,6 @@ def submit_job(
         check=True,
     )
     return process
-
-
-def extract_field_values(
-        map_filepath: PathLike,
-        data_type: np.dtype = np.single,
-) -> np.ndarray:
-    """
-    Extract the calculated grid point energies from a MAP output file.
-
-    Parameters
-    ----------
-    map_filepath : pathlib.Path
-        Filepath of a MAP file outputted by AutoGrid.
-    data_type : numpy.dtype, Optional, default: numpy.single
-        Numpy datatype of the output array. Default is 32-bit float (numpy.single).
-
-    Returns
-    -------
-    grid : numpy.ndarray
-        A 1-dimensional array containing the calculated energy values for each grid point.
-        The grid points are ordered according to the nested loops z(y(x)), so the x-coordinate
-        is changing fastest. The coordinate system is right-handed.
-
-    Notes
-    -----
-    In a MAP file, the first 6 lines are headers. The energy values start at line 7,
-    and are written one per line, until the end of file.
-
-    Example of first few lines of a MAP file:
-    ```
-    GRID_PARAMETER_FILE vac1.nbc.gpf
-    GRID_DATA_FILE 4phv.nbc_maps.fld
-    MACROMOLECULE 4phv.new.pdbq
-    SPACING 0.375
-    NELEMENTS 50 50 80
-    CENTER -0.026 4.353 -0.038
-    125.095596
-    123.634560
-    116.724602
-    108.233879
-    ```
-
-    The header `NELEMENTS` is the same as the input parameter `npts`, defined in function
-    `create_gpf`.
-    """
-    with open(map_filepath, "r") as f:
-        lines = f.readlines()
-    return np.array(lines[6:]).astype(data_type)
-
-
-def extract_grid_params(
-        map_filepath: PathLike
-) -> Tuple[Tuple[float, float, float], Tuple[float, float, float], float]:
-    """
-    Extract the AutoGrid parameters `gridcenter`, `npts` and `spacing` from a MAP file.
-
-    Parameters
-    ----------
-    map_filepath : pathlib.Path
-        Path to one of the calculated MAP files.
-
-    Returns
-    -------
-    gridcenter, npts, spacing : tuple[tuple[float, float, float], tuple[float, float, float], float]
-
-    See Also
-    --------
-    For a sample of MAP file contents, see function `create_grid_tensor_from_map_file`.
-    """
-    with open(map_filepath, "r") as f:
-        lines = f.readlines()
-    grid_spacing = float(lines[3].split()[1])
-    npts = tuple(map(float, lines[4].split()[1:4]))
-    grid_center = tuple(map(float, lines[5].split()[1:4]))
-    return grid_center, npts, grid_spacing
 
 
 def calculate_npts(
