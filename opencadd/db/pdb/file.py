@@ -1,55 +1,52 @@
 """
-Implementation of the RESTful API of the Protein Data Bank (PDB) at https://rcsb.org
-
-References
-----------
-Programmatic access to RCSB:
-* https://www.rcsb.org/docs/programmatic-access
-Data API:
-* https://data.rcsb.org/
-RESTful API documentation:
-* https://data.rcsb.org/redoc/
-Data attributes in responses:
-* https://data.rcsb.org/data-attributes.html
-File services:
-* https://www.rcsb.org/docs/programmatic-access/file-download-services
-* https://www.wwpdb.org/ftp/pdb-ftp-sites
+Download various data files from the Protein Data Bank (PDB) webservers.
 """
 
 # Standard library
 from typing import Literal, Union, Optional
 import gzip
+from pathlib import Path
 # Self
 from opencadd._http_request import response_http_request
-
+from opencadd._typing import PathLike
+from opencadd.io import _helpers_sysio
 
 # General API endpoints
 _ROOT_FILE: str = f"https://files.rcsb.org"
 
 
-def pdb_entry(
+def entry(
         pdb_id: str,
         file_format: Literal["cif", "pdb", "xml", "bcif"] = "cif",
         biological_assembly_id: Optional[Union[int, str]] = None,
-) -> bytes:
+        output_path: Optional[PathLike] = None,
+) -> Union[bytes, Path]:
     """
-    Download a PDB entry file (asymmetric unit or a biological assembly)
-    in one of available formats.
+    Download a PDB entry file in one of available formats.
 
     Parameters
     ----------
     pdb_id : str
         PDB ID of the entry.
-    file_format : Literal["cif", "pdb", "xml", "bcif"], optional, default: "cif"
-        Format of the file.
+    file_format : {'cif', 'pdb', 'xml', 'bcif'}, optional, default: 'cif'
+        Format of the entry file to download.
     biological_assembly_id : int, optional, default: None
-        Biological assembly ID. If not provided (i.e. when `None`), the asymmetric unit will be
-        downloaded. Notice that many records are only available in the PDB file of the asymmetric unit.
+        Biological assembly ID of an assembly within the entry.
+        If not provided (i.e. when set `None`; default), the asymmetric unit will be downloaded,
+        otherwise the file containing the coordinates of the given assembly.
+        Notice that many records are only available in the PDB file of the asymmetric unit.
+    output_path : str or pathlib.Path
+        Path to a local directory for storing the downloaded file.
+        If the directory does not exist, it and all its necessary parent directories will be created.
+        The filename will be the PDB ID, and the extension will be the same as the `file_format` argument.
+        If not provided (i.e. when set `None`; default),
+        the byte contents of the downloaded file will be returned.
 
     Returns
     -------
-    bytes
-        Content of the downloaded file in bytes.
+    bytes or pathlib.Path
+        Either the content of the downloaded file in bytes (when `output_path` is `None`),
+        or the full filepath of the stored file (when `output_path` is specified).
 
     Notes
     -----
@@ -82,15 +79,19 @@ def pdb_entry(
         url = f"{url_prefix}.pdb{biological_assembly_id}.gz"
     else:
         raise ValueError("Biological assemblies can only be downloaded in CIF and PDB formats.")
-    # Download file, decompress and return as bytes
-    return gzip.decompress(response_http_request(url=url, response_type="bytes"))
+    # Download file and decompress
+    byte_content = gzip.decompress(response_http_request(url=url, response_type="bytes"))
+    if output_path is None:
+        return byte_content
+    return _helpers_sysio.save_to_file(content=byte_content, filename=pdb_id, extension=file_format, path=output_path)
 
 
 def small_molecule(
         ligand_id: str,
         file_type: Literal["model_coords", "ideal_coords", "def"] = "model_coords",
         file_format: Literal["sdf", "mol2", "cif"] = "sdf",
-) -> bytes:
+        output_path: Optional[PathLike] = None,
+) -> Union[bytes, Path]:
     """
     Download a small molecule file in one of available formats.
 
@@ -101,17 +102,24 @@ def small_molecule(
     file_type: {'model_coords', 'ideal_coords', 'def'}, optional, default: 'model_coords'
         Type of the file: model coordinates, ideal coordinates, or definition.
         Notice that coordinates are only available in MOL2 and SDF file formats,
-        while definition is only available in CIF. Thus, if the argument of `file_type` is `def`,
-        then `file_format` argument is ignored and a CIF file is returned. If the argument of
-        `file_type` is `model_coords` or `ideal_coords` and `file_type` is `cif`,
+        while definition is only available in CIF. Thus, if the input argument is 'def',
+        then the `file_format` argument is ignored and a CIF file is returned.
+        If the input argument is `model_coords` or `ideal_coords` and `file_type` is set to `cif`,
         a `ValueError` is raised.
     file_format : {'sdf', 'mol2', 'cif'}, optional, default: 'sdf'
-        Format of the file.
+        Format of the file to download.
+    output_path : str or pathlib.Path
+        Path to a local directory for storing the downloaded file.
+        If the directory does not exist, it and all its necessary parent directories will be created.
+        The filename will be the PDB ID, and the extension will be the same as the `file_format` argument.
+        If not provided (i.e. when set `None`; default),
+        the byte contents of the downloaded file will be returned.
 
     Returns
     -------
-    bytes
-        Content of the downloaded file in bytes.
+    bytes or pathlib.Path
+        Either the content of the downloaded file in bytes (when `output_path` is `None`),
+        or the full filepath of the stored file (when `output_path` is specified).
     """
     if file_format not in ("cif", "mol2", "sdf"):
         raise ValueError(f"File format {file_format} not recognized.")
@@ -131,4 +139,14 @@ def small_molecule(
             url = f"{_URL_PREFIX_MOL}{ligand_id}_ideal.{file_format}"
         else:
             raise ValueError(f"File format {file_format} is not accepted for type `model_coords`")
-    return response_http_request(url=url, response_type="bytes")
+
+    byte_content = response_http_request(url=url, response_type="bytes")
+    if output_path is None:
+        return byte_content
+    return _helpers_sysio.save_to_file(
+        content=byte_content,
+        filename=ligand_id,
+        extension=file_format,
+        path=output_path
+    )
+
