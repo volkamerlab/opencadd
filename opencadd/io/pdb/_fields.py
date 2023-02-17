@@ -1,8 +1,9 @@
 from typing import Tuple
 from abc import ABC, abstractmethod
-from typing import Union, Tuple, Sequence, Optional, Callable, Any
+from typing import Union, Tuple, Sequence, Optional, Callable, Any, Type
 import datetime
 import re
+import functools
 
 import numpy as np
 import numpy.typing as npt
@@ -96,6 +97,29 @@ class Date(RecordFieldDataType):
             return dates.strftime("%d-%b-%y").upper()
         return tuple(date.strftime("%d-%b-%y").upper() for date in dates)
 
+    @staticmethod
+    def verify(values):
+
+        def verify_single(value):
+            if not isinstance(value, datetime.date):
+                raise TypeError(
+                    "`deposition_date` must be of type `datetime.date`, "
+                    f"but the type of input ({value}) was {type(value)}."
+                )
+            if value >= datetime.date.today():
+                raise ValueError(
+                    "`deposition_date` must be a date in the past, "
+                    f"but the input date ({value}) is in the future; today is {datetime.date.today()}."
+                )
+            return
+
+        if isinstance(values, datetime.date):
+            verify_single(values)
+        else:
+            for value in values:
+                verify_single(value)
+        return
+
 
 class Element(RecordFieldDataType):
     @staticmethod
@@ -124,12 +148,13 @@ class IDcode(RecordFieldDataType):
             if not pdb_id[0].isnumeric() or pdb_id[0] == "0":
                 raise ValueError("First character of `pdb_id` must be a non-zero digit.")
             return
+
         if isinstance(fields, str):
             verify_pdb_id(fields)
-        for pdb_id in fields:
-            verify_pdb_id(pdb_id)
+        else:
+            for pdb_id in fields:
+                verify_pdb_id(pdb_id)
         return
-
 
 
 class Integer(RecordFieldDataType):
@@ -288,56 +313,12 @@ class SymOP(RecordFieldDataType):
 class Column:
     def __init__(
             self,
-            interval: Tuple[int, int],
-            field_dtype: RecordFieldDataType,
-            name: str = None
-    ):
-        self._interval = np.asarray(interval)
-        if not np.issubdtype(self._interval.dtype, np.integer):
-            raise ValueError(
-                "Parameter `interval` expects an array of integer types, "
-                f"but input argument elements had type {self._interval.dtype}. Input was:\n{interval}"
-            )
-        if self._interval.ndim != 1:
-            raise ValueError(
-                f"Parameter `interval` expects a 1D array, "
-                f"but input argument had {self._interval.ndim} dimensions. Input was:\n{interval}."
-            )
-        if self._interval.size != 2:
-            raise ValueError(
-                "Parameter `interval` expects a 1D array of size 2, "
-                f"but input argument had size {self._interval.size}. Input was:\n{interval}."
-            )
-        self._name = name
-        self._dtype = field_dtype
-        self._slice = slice(*interval)
-        self._length = interval[1] - interval[0]
-        return
-
-    def cast_to_dtype(self, fields: np.ndarray) -> np.ndarray:
-        return self._dtype.from_pdb(fields)
-
-    def extract(self, char_table: np.ndarray, cast: bool = True, strip: Optional[bool] = None):
-        cols = _parsing.extract_columns_by_interval(
-            char_table=char_table,
-            interval=self._interval,
-            strip=(self._dtype not in (String, List, SymOP)) if strip is None else strip
-        )
-        if cast:
-            cols = self.cast_to_dtype(cols)
-        return cols
-
-    @property
-    def length(self) -> int:
-        return self._length
-
-
-class MultiColumn:
-    def __init__(
-            self,
-            intervals: Sequence[Tuple[int, int]],
-            field_dtype: RecordFieldDataType,
-            name: str = None,
+            intervals: Union[Tuple[int, int], Sequence[Tuple[int, int]]],
+            field_dtype: Type[RecordFieldDataType],
+            strip: bool = True,
+            cast: bool = True,
+            only_first: bool = False,
+            only_non_empty: bool = False,
     ):
         self._intervals = np.asarray(intervals)
         if not np.issubdtype(self._intervals.dtype, np.integer):
@@ -345,65 +326,64 @@ class MultiColumn:
                 "Parameter `intervals` expects an array of integer types, "
                 f"but input argument elements had type {self._intervals.dtype}. Input was:\n{intervals}"
             )
-        if self._intervals.ndim != 2:
+        if self._intervals.ndim == 1:
+            if self._intervals.size != 2:
+                raise ValueError(
+                    "Parameter `interval` expects a 1D array of size 2, "
+                    f"but input argument had size {self._intervals.size}. Input was:\n{intervals}."
+                )
+            extract = functools.partial(
+                _parsing.extract_columns_by_interval,
+                interval=self._intervals,
+                strip=strip
+            )
+            self._indices = np.arange(self._intervals[0], self._intervals[1])
+        elif self._intervals.ndim == 2:
+            if self._intervals.shape[1] != 2:
+                raise ValueError(
+                    "Parameter `intervals` expects a 2D array of shape (n, 2), "
+                    f"but input argument had shape {self._intervals.shape}. Input was:\n{intervals}."
+                )
+            col_lengths = self._intervals[:, 1] - self._intervals[:, 0]
+            if np.any(col_lengths != col_lengths[0]):
+                raise ValueError(
+                    "Parameter `intervals` expects a sequence of intervals with equal lengths, "
+                    f"but input argument had intervals of lengths {col_lengths}. Input was:\n{intervals}"
+                )
+            self._indices = np.concatenate(
+                [np.arange(interval[0], interval[1]) for interval in self._intervals]
+            )
+            extract = functools.partial(
+                _parsing.extract_columns_by_index,
+                indices=self._indices,
+                column_len=col_lengths[0],
+                strip=strip
+            )
+        else:
             raise ValueError(
-                f"Parameter `intervals` expects a 2D array, "
+                f"Parameter `intervals` expects either a 1D or 2D array, "
                 f"but input argument had {self._intervals.ndim} dimensions. Input was:\n{intervals}."
             )
-        if self._intervals.shape[1] != 2:
-            raise ValueError(
-                "Parameter `intervals` expects a 2D array of shape (n, 2), "
-                f"but input argument had shape {self._intervals.shape}. Input was:\n{intervals}."
-            )
-        col_lengths = self._intervals[:, 1] - self._intervals[:, 0]
-        if np.any(col_lengths != col_lengths[0]):
-            raise ValueError(
-                "Parameter `intervals` expects a sequence of intervals with equal lengths, "
-                f"but input argument had intervals of lengths {col_lengths}. Input was:\n{intervals}"
-            )
-        self._length = col_lengths[0]
-        self._idx_columns = np.concatenate(
-            [np.arange(interval[0], interval[1]) for interval in self._intervals]
-        )
+        extract1 = extract if not cast else (lambda char_table: self.cast_to_dtype(extract(char_table=char_table)))
+        if only_first:
+            self.extract = lambda char_table: extract1(char_table)[0]
+        elif only_non_empty:
+            self.extract = lambda char_table: self._only_non_empty(extract1(char_table))
+        else:
+            self.extract = extract1
         self._dtype = field_dtype
-        self._name = name
         return
 
     @property
-    def length(self) -> int:
-        return self._length
+    def indices(self) -> np.ndarray:
+        """
+        Indices (i.e. all character positions in a line) of the column.
+        """
+        return self._indices
 
     def cast_to_dtype(self, fields: np.ndarray) -> np.ndarray:
         return self._dtype.from_pdb(fields)
 
-    def extract(self, char_table: np.ndarray, cast: bool = True):
-        cols = _parsing.extract_columns_by_index(
-            char_table=char_table,
-            indices=self._idx_columns,
-            column_len=self._length,
-            strip=self._dtype not in (String, List, SymOP)
-        )
-        if cast:
-            cols = self.cast_to_dtype(cols)
-        return cols
-
-    @property
-    def count_columns(self) -> int:
-        return self._intervals.shape[1]
-
-
-
-
-
-def atom_charge(fields: np.ndarray):
-    """
-    Parse the charge column and turn values into float.
-    Values, if present, are composed of a digit followed by a '+' or '-' sign.
-    """
-    # Swap first and second columns to put the +/- sign in front of digit
-    fields_reversed = np.array([charge[::-1] for charge in fields], dtype=(str, 3))
-    empty_vals = fields_reversed == "  "
-    if np.any(empty_vals):
-        fields_reversed[empty_vals] = "nan"
-        return fields_reversed.astype(np.single)
-    return fields_reversed.astype(np.byte)
+    @staticmethod
+    def _only_non_empty(fields):
+        return fields[fields != ""]
