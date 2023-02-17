@@ -94,10 +94,11 @@ extensions = [
     'sphinx_togglebutton',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
-    'sphinx.ext.napoleon',
+    # 'sphinx.ext.napoleon',
 ]
 
 
@@ -113,8 +114,8 @@ numpydoc_class_members_toctree = False
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = False
 numpydoc_use_plots = True
-numpydoc_xref_ignore = 'all'
-numpydoc_xref_param_type = False
+# numpydoc_xref_ignore = "all"
+numpydoc_xref_param_type = True
 
 # # Napoleon settings (ref: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html)
 # napoleon_google_docstring = False
@@ -163,7 +164,6 @@ bibtex_bibfiles = ['references.bib']
 # extensions = [
 #     'sphinx_thebe',
 #     'sphinx_comments',
-#     'sphinx.ext.intersphinx',
 #     'sphinx.ext.duration',
 #     'sphinx.ext.doctest',
 #     'sphinx_jupyterbook_latex'

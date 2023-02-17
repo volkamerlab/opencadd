@@ -33,7 +33,7 @@
 
 ```{image} _static/logo.svg
 :alt: openCADD logo
-:width: 600px
+:width: 500px
 :align: center
 :class: dark-light
 ```
@@ -68,7 +68,7 @@ about/index
 learn/index
 user_guide/index
 api_reference/index
-sample_project/index
+sample_projects/index
 developer_guide/index
 faq/index
 ```

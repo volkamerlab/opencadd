@@ -1,7 +1,6 @@
 # User Guide
 
-This is the user guide.
-
+This section 
 
 ## How to Read The User Guide
 

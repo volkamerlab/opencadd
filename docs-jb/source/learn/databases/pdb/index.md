@@ -14,10 +14,15 @@ webservers of the PDB organization's members.
 The structural data are commonly obtained by diffraction studies (e.g. X-ray crystallography), 
 spectroscopic methods (e.g. nuclear magnetic resonance [NMR]), and more recently, cryogenic electron microscopy (cryo-EM).
 
+*Note:Since October 15, 2006, theoretical models are no longer accepted for deposition. Any
+theoretical models deposited prior to this date are archived at
+ftp://ftp.wwpdb.org/pub/pdb/data/structures/models. 
 
 ```{toctree}
 :hidden:
 
 history
 hierarchy_3d
+services
+file_formats/index
 ```

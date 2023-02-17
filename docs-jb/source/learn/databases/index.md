@@ -8,7 +8,7 @@ or interaction data, e.g. the half maximal inhibitory concentration (IC{sub}`50`
 
 A typical first step in a CADD pipeline is therefore finding and gathering all the data required
 for the specific project at hand. 
-Fortunately, many freely accessible online repositories exist, dedicated to collect, organize and supply 
+Fortunately, many open-access online repositories exist, dedicated to collect, organize and supply 
 these data. They all provide useful user interfaces accessible through a website, for researchers to 
 perform detailed queries on the database, to find and download their needed data. This is a relatively
 straightforward task when only some specific data from a certain database is required, but becomes cumbersome 

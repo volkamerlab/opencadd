@@ -44,7 +44,6 @@ of water.
 **F)** Only one *instance* of the alpha *entity* is highlighted.
 Image retrieved from the [RCSB PDB website](https://www.rcsb.org/docs/general-help/organization-of-3d-structures-in-the-protein-data-bank).
 ```
-
 ## Entry
 An *entry* corresponds to all the data for a particular 3D structure deposited in the PDB. It is identified 
 by a 4-character alphanumeric code, called the PDB ID (e.g. 2hbs). 

@@ -8,5 +8,6 @@ This is the API reference
    :template: custom-module-template.rst
    :recursive:
 
-   opencadd.io.pdb
+   opencadd.db
+   opencadd.io
 ```

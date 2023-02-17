@@ -2,14 +2,16 @@
 
 The PDB file format was invented by the Protein Data Bank in 1976, as a textual file format
 for sharing data on experimentally determined macromolecular structures.{cite}`PDB_history_review`
-It was designed for human-readability, and compatibility with [punch cards](https://en.wikipedia.org/wiki/Punched_card),
-which were the common medium for digital data storage in those days. As a result, many compromises had
-to be made with regard to machine-readability. After numerous revisions, version 3.30, initially released on July 2011, 
+It was designed for human-readability, and compatibility with 
+[punch cards](https://en.wikipedia.org/wiki/Punched_card),
+which were the common medium for digital data storage in those days. 
+As a result, many compromises had to be made with regard to machine-readability. 
+After numerous revisions, version 3.30, initially released on July 2011, 
 was announced to be the last version of the PDB file format, with no future changes being made. 
 Later in 2014, the Macromolecular Crystallographic Information (mmCIF) 
-file format replaced PDB as the standard format for the PDB archive. In 2019, 
-the wwPDB [announced](https://www.wwpdb.org/news/news?year=2019#5d17c1ceea7d0653b99c87e2) that crystallographic
-depositions would only be accepted in the mmCIF file format. 
+file format replaced PDB as the standard format for the PDB archive. 
+In 2019, the wwPDB [announced](https://www.wwpdb.org/news/news?year=2019#5d17c1ceea7d0653b99c87e2) 
+that crystallographic depositions would only be accepted in the mmCIF file format. 
 
 Nevertheless, the wwPDB continues to accept NMR and EM data in PDB format, 
 and provides PDB files (compliant with version 3.30) for all entries 
@@ -187,6 +189,14 @@ COMPND 8 OTHER_DETAILS: TETRAGONAL MODIFICATION
 
 
 ### Contents
+
+
+
+
+
+
+
+
 ```{eval-rst}
 
 +---------------------------+----------------------+----------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+-----------------+-----------------+
