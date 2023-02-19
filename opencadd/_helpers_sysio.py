@@ -1,6 +1,6 @@
 
-from typing import IO
-from opencadd._typing import FileLike
+from typing import IO, Union
+from opencadd._typing import FileLike, PathLike, FileContentLike
 from pathlib import Path
 import io
 
@@ -45,3 +45,13 @@ def filelike_to_data_string(file):
         return file.decode()
     return
 
+
+def save_to_file(content: FileContentLike, filename: str, extension: str, path: PathLike) -> Path:
+    dir_path = Path(path)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    ext = extension if extension.startswith(".") else f".{extension}"
+    fullpath = (dir_path/filename).with_suffix(ext)
+    mode = "xb" if isinstance(content, bytes) else "xt"
+    with open(fullpath, mode) as f:
+        f.write(content)
+    return fullpath.resolve()
