@@ -8,7 +8,7 @@ from openbabel import pybel
 
 from opencadd._typing import PathLike
 from opencadd.io._helpers_parsing import extract_column_from_string_array
-from opencadd.consts import autodock
+from opencadd.const import autodock
 
 
 class Protein:

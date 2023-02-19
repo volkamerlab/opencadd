@@ -10,7 +10,7 @@ import pandas as pd
 from opencadd.db.klifs.fields import Fields
 
 # PATH_DATA = Path(__name__).parent / "opencadd/data"
-PATH_DATA = Path(__file__).parent / "../../data"
+PATH_DATA = Path(__file__).parent / "../../_data"
 
 PATH_FIELDS = PATH_DATA / "klifs_fields.csv"
 FIELDS = Fields(PATH_FIELDS)

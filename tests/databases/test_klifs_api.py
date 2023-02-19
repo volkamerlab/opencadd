@@ -8,8 +8,8 @@ from bravado.client import SwaggerClient
 import pandas as pd
 import pytest
 
-from opencadd.data.klifs import local, remote
-from opencadd.data.klifs import setup_local, setup_remote
+from opencadd.db.klifs import local, remote
+from opencadd.db.klifs import setup_local, setup_remote
 
 PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
 

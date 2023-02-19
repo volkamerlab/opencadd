@@ -1,5 +1,5 @@
 """
-Read/write different chemical data files.
+Read and write different chemical data files.
 """
 
-from . import pdb, pdbqt
+from . import pdb, autodock

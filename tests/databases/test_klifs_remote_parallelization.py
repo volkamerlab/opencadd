@@ -7,7 +7,7 @@ from multiprocessing import Pool
 
 import pytest
 
-from opencadd.data.klifs import setup_remote
+from opencadd.db.klifs import setup_remote
 
 # Set local session
 REMOTE = setup_remote()

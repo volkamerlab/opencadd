@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from opencadd.data.klifs import setup_local
-from opencadd.data.klifs.exceptions import (
+from opencadd.db.klifs import setup_local
+from opencadd.db.klifs.exceptions import (
     KlifsPocketIncompleteError,
     KlifsPocketUnequalSequenceStructure,
 )

@@ -6,7 +6,7 @@ Defines a KLIFS (kinase) pocket.
 
 import pandas as pd
 
-from opencadd.data.klifs import setup_remote
+from opencadd.db.klifs import setup_remote
 from .core import Pocket
 
 
