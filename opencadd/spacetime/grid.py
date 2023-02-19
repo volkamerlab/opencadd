@@ -1,5 +1,5 @@
 """
-General functions and routines for spatial calculations, such as distances, volumes, etc.
+An n-dimensional grid of points in euclidean space.
 """
 
 
@@ -12,157 +12,62 @@ import jax.numpy as jnp
 import scipy as sp
 import numpy.typing as npt
 from opencadd._typing import ArrayLike
-from opencadd.spacetime.data_structure import TensorDataSet
-
-
-def from_shape_spacing_center(
-        center: Optional[Sequence[float]] = None,
-):
-    if origin is None:
-        if center is None:
-            self._origin = np.zeros(shape=self._dimension)
-            self._center = self._size / 2
-        else:
-            self._center = np.array(center)
-            self._origin = self._center - self._size / 2
-    else:
-        if center is None:
-            self._origin = np.array(origin)
-            self._center = self._origin + self._size / 2
-        else:
-            self._origin = np.array(origin)
-            self._center = np.array(center)
-            if not np.allclose(self._center, self._origin + self._size / 2):
-                raise ValueError("Both `origin` and `center` are provided, but do not match.")
-    pass
-
-
-def from_shape_spacing_origin(
-            shape: Sequence[int],
-            spacing: float = 1,
-            origin: Optional[Sequence[float]] = None,
-):
-    """
-    Instantiate a grid by providing its shape, spacing, and optionally either origin or
-    center coordinates. If neither is provided, the origin will be set to all zeros.
-
-    Parameters
-    ----------
-    shape : Sequence[int]
-        Shape of the grid, i.e. number of grid points per dimension.
-    spacing : float, Optional, default: 1
-        Distance between two adjacent points along a dimension.
-    origin : Sequence[float], Optional, default: None
-        Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
-    center : Sequence[float], Optional, default: None
-        Coordinates of the geometric center of the grid.
-    """
-
-
-def from_bounds_and_spacing(
-        lower_bounds: npt.ArrayLike,
-        upper_bounds: npt.ArrayLike,
-        spacings: npt.ArrayLike,
-) -> Grid:
-    return
+import opencadd as oc
 
 
 class Grid:
     """
-    An n-dimensional grid of equidistant points in space.
+    An n-dimensional grid of points in euclidean space.
     """
 
-    __slots__ = (
-        "_shape",
-        "_spacing",
-        "_meshgrid",
-        "_tensor",
-    )
-
-    def __init__(self, ranges: npt.ArrayLike):
+    def __init__(
+            self,
+            shape: np.ndarray,
+            size: np.ndarray,
+            lower_bounds: np.ndarray,
+            center: np.ndarray,
+            upper_bounds: np.ndarray,
+            spacings: np.ndarray,
+            mgrid: np.ndarray,
+    ):
         """
+
         Parameters
         ----------
-        ranges : ArrayLike, shape=(n, 3), dtype=[float, float, int]
-            Start value, end value (inclusive), and total number of points each dimension.
+        shape : numpy.ndarray
+            Shape of the grid, i.e. number of points in each dimension.
+        size : numpy.ndarray
+            Length of the grid in each dimension.
+        lower_bounds : numpy.ndarray
+            Coordinates of the point with minimum values in all dimensions.
+        center : numpy.ndarray
+            Coordinates of the geometric center of the grid.
+        upper_bounds : numpy.ndarray
+            Coordinates of the point with maximum values in all dimensions.
+        spacings : numpy.ndarray
+            Spacing between grid points in each dimension.
+        mgrid : numpy.ndarray
+            Fleshed out meshgrid of grid point coordinates.
         """
-        # Declare attributes
-        self._shape: jnp.ndarray
-        self._spacing: jnp.ndarray
-        self._meshgrid: jnp.ndarray
-        self._tensor: TensorDataSet
+        self._shape: np.ndarray = shape
+        self._size: np.ndarray = size
+        self._lower_bounds: np.ndarray = lower_bounds
+        self._center: np.ndarray = center
+        self._upper_bounds: np.ndarray = upper_bounds
+        self._spacings: np.ndarray = spacings
+        self._mgrid: jnp.ndarray = jnp.asarray(mgrid)
 
-        ranges_array = jnp.asarray(ranges)
-        if ranges_array.ndim != 2 or ranges_array.shape[1] != 3:
-            raise ValueError("Shape of `ranges` must be (n, 3).")
-        if jnp.any(ranges_array[:,-1] <= 0):
-            raise ValueError("Number of points in each dimension must be a positive integer.")
-
-        self._shape = ranges_array[:, -1].astype(int)
-        self._spacing = (
-                jnp.absolute(ranges_array[:, 0] - ranges_array[:, 1])
-                / (ranges_array[:, 2].astype(int) - 1)
+        self._dimension: int = self._shape.size
+        self._coordinates: jnp.ndarray = jnp.stack(mgrid, axis=-1)
+        self._count_points = np.prod(self._shape)
+        self._indices: np.ndarray = np.array(list(np.ndindex(*self._shape))).reshape(*self._shape, -1)
+        self._pointcloud = oc.spacetime.pointcloud.DynamicPointCloud(
+            data=self._coordinates.reshape(1, self._count_points, self._dimension)
         )
-
-        # Calculating meshgrids with jax is sometimes inaccurate
-        # (see https://github.com/google/jax/issues/13782).
-        # Thus, create the meshgrid with numpy and transform to jax
-        self._meshgrid = jnp.asarray(
-            np.mgrid[
-                tuple(map(lambda axis: slice(axis[0], axis[1], complex(0, int(axis[2]))), ranges))
-            ]
-        )
-
-        self._tensor = TensorDataSet(
-            data=jnp.expand_dims(jnp.stack(self._meshgrid, axis=-1), axis=0),
-            title_instance="time",
-            title_sample="grid",
-            title_observation="position"
-        )
-
-
-
-        self._origin: np.ndarray
-        self._center: np.ndarray
-        self._dimension: int
-        self._size: np.ndarray
-        self._indices: np.ndarray
-        self._shift_vectors: np.ndarray
-        self._coordinates: np.ndarray
-        self._direction_vectors: np.ndarray
-        self._direction_vectors_dimension: np.ndarray
-
-        # Assign attributes
-        self._shape = np.array(shape).astype(int)
-        self._spacing = spacing
-        self._dimension = self._shape.size
-        self._size = (self._shape - 1) * self._spacing
-        self._indices = np.array(list(np.ndindex(*self._shape))).reshape(*self._shape, -1)
-
-        if origin is None:
-            if center is None:
-                self._origin = np.zeros(shape=self._dimension)
-                self._center = self._size / 2
-            else:
-                self._center = np.array(center)
-                self._origin = self._center - self._size / 2
-        else:
-            if center is None:
-                self._origin = np.array(origin)
-                self._center = self._origin + self._size / 2
-            else:
-                self._origin = np.array(origin)
-                self._center = np.array(center)
-                if not np.allclose(self._center, self._origin + self._size / 2):
-                    raise ValueError("Both `origin` and `center` are provided, but do not match.")
-
-        self._shift_vectors = self._indices * self._spacing
-        self._coordinates = self._shift_vectors + self._origin
         self._direction_vectors = np.array(
             list(itertools.product([-1, 0, 1], repeat=self._dimension))
         )
         self._direction_vectors_dimension = np.count_nonzero(self._direction_vectors, axis=-1)
-        self._kdtree = sp.spatial.KDTree(data=self._coordinates.reshape(-1, self._dimension))
         return
 
     @property
@@ -173,47 +78,50 @@ class Grid:
         return self._dimension
 
     @property
-    def shape(self) -> Tuple[int]:
+    def shape(self) -> np.ndarray:
         """
         Shape of the grid, i.e. number of grid points in each dimension.
         """
-        return tuple(self._shape)
+        return np.array(self._shape)
 
     @property
-    def size(self) -> Tuple[float]:
+    def size(self) -> np.ndarray:
         """
-        Size of the grid, i.e. length in each dimension,
-        calculated from number of points and spacing.
+        Size of the grid, i.e. length in each dimension.
         """
-        return tuple(self._size)
+        return np.array(self._size)
 
     @property
-    def point_count(self) -> int:
+    def count_points(self) -> int:
         """
         Total number of points in the grid.
         """
-        return self._shape.prod()
+        return self._count_points
 
     @property
-    def origin(self) -> Tuple[float]:
+    def lower_bounds(self) -> np.ndarray:
         """
         Coordinates of the origin point of the grid, i.e. the point where all indices are zero.
         """
-        return tuple(self._origin)
+        return np.array(self._lower_bounds)
 
     @property
-    def center(self) -> Tuple[float]:
+    def center(self) -> np.ndarray:
         """
         Coordinates of the center of the grid.
         """
-        return tuple(self._origin + self._size / 2)
+        return np.array(self._center)
 
     @property
-    def spacing(self) -> float:
+    def upper_bounds(self) -> np.ndarray:
+        return np.array(self._upper_bounds)
+
+    @property
+    def spacings(self) -> np.ndarray:
         """
         Distance between two adjacent points along a dimension.
         """
-        return self._spacing
+        return np.array(self._spacings)
 
     @property
     def indices(self) -> np.ndarray:
@@ -223,7 +131,7 @@ class Grid:
         return self._indices
 
     @property
-    def coordinates(self) -> np.ndarray:
+    def coordinates(self) -> jnp.ndarray:
         """
         Coordinates of all grid points.
 
@@ -248,45 +156,170 @@ class Grid:
         return
 
     @property
-    def kdtree(self) -> sp.spatial.KDTree:
-        return self._kdtree
+    def points(self):
+        return self._pointcloud
 
     def direction_vectors(self, dimensions: Optional[Sequence[int]] = None) -> np.ndarray:
         if dimensions is None:
             dimensions = np.arange(1, self._dimension + 1)
         return self._direction_vectors[np.isin(self._direction_vectors_dimension, dimensions)]
 
-    def distance(
-            self,
-            coordinates: np.ndarray
-    ):
-        """
-        Calculate distances between each grid point and a set of points.
 
-        Parameters
-        ----------
-        coordinates : numpy.ndarray
-            A 2-dimensional array of shape (n, d), containing the coordinates of n points in a
-            d-dimensional space, where d is equal to the grid dimension.
+def from_bounds_shape(
+        lower_bounds: Sequence[float],
+        upper_bounds: Sequence[float],
+        shape: Sequence[int],
+) -> Grid:
+    """
+    Create a `Grid` from its lower- and upper bounds, and shape.
 
-        Returns
-        -------
-        dists : numpy.ndarray
-            Distances between each grid point and each point in `coordinates`.
-        """
+    Parameters
+    ----------
+    lower_bounds : sequence of float
+        Coordinates of the point with minimum values in all dimensions.
+    upper_bounds : sequence of float
+        Coordinates of the point with maximum values in all dimensions.
+        This must have the same length as `lower_bounds`.
+    shape : sequence of int
+        Shape of the grid, i.e. number of points in each dimension.
+        This must have the same length as `lower_bounds` and `upper_bounds`.
 
-        dist_vects_origin = coordinates - self._origin
-        dist_vects_origin_repeated = np.tile(
-            dist_vects_origin[np.newaxis],
-            reps=(self.point_count, 1, 1) if coordinates.ndim == 2 else (1, self.point_count, 1, 1)
-        ).reshape(
-            (*self.shape, *coordinates.shape) if coordinates.ndim == 2
-            else (coordinates.shape[0], *self.shape, *coordinates.shape[1:])
+    Returns
+    -------
+    Grid
+    """
+    lower_bounds = np.asarray(lower_bounds)
+    upper_bounds = np.asarray(upper_bounds)
+    shape = np.asarray(shape)
+    for bound, arg_name in zip((lower_bounds, upper_bounds, shape), ("lower_bounds", "upper_bounds", "shape")):
+        if bound.ndim != 1:
+            raise ValueError(
+                f"Parameter `{arg_name}` expects a 1D array, "
+                f"but input argument had {bound.ndim} dimensions. Input was: {bound}"
+            )
+    for bound, arg_name in zip((lower_bounds, upper_bounds), ("lower_bounds", "upper_bounds")):
+        if not (np.issubdtype(bound.dtype, np.floating) or np.issubdtype(bound.dtype, np.integer)):
+            raise ValueError(
+                f"Parameter `{arg_name}` expects an array of real numbers, "
+                f"but input argument had elements of type {bound.dtype}. Input was: {bound}"
+            )
+    if not np.issubdtype(shape.dtype, np.integer):
+        raise ValueError(
+            f"Parameter `shape` expects an array of integers, "
+            f"but input argument had elements of type {shape.dtype}. Input was: {shape}"
         )
-        dist_vects = dist_vects_origin_repeated - self._shift_vectors[..., np.newaxis, :]
-        return np.linalg.norm(dist_vects, axis=-1)
+    for arg, arg_name in zip((upper_bounds, shape), ("upper_bounds", "shape")):
+        if lower_bounds.size != arg.size:
+            raise ValueError(
+                f"Parameters `lower_bound` and `{arg_name}` expect 1D arrays of same size, "
+                f"but input argument `lower_bounds` had size {lower_bounds.size}, "
+                f"while `{arg_name}` had size {arg.size}. "
+                f"Inputs were: `lower_bounds` = {lower_bounds}\n`{arg_name}` = {arg}."
+            )
+    size = upper_bounds - lower_bounds
+    size_is_invalid = size <= 0
+    if np.any(size_is_invalid):
+        raise ValueError(
+            "All values in `lower_bounds` must be strictly smaller "
+            f"than corresponding values in `upper_bounds`, but at indices {np.where(size_is_invalid)[0]} "
+            f"`lower_bounds` had values {lower_bounds[size_is_invalid]} and `upper_bounds` had "
+            f"values {upper_bounds[size_is_invalid]}."
+        )
+    shape_is_invalid = shape <= 0
+    if np.any(shape_is_invalid):
+        raise ValueError(
+            "All values in `shape` must be positive integers, "
+            f"but at indices {np.where(shape_is_invalid)[0]} "
+            f"`shape` had values {shape[shape_is_invalid]}."
+        )
+    slices = tuple(
+        slice(start, end, complex(num_points))
+        for start, end, num_points in zip(lower_bounds, upper_bounds, shape)
+    )
+    return Grid(
+        shape=shape,
+        size=size,
+        lower_bounds=lower_bounds,
+        center=(lower_bounds + upper_bounds) / 2,
+        upper_bounds=upper_bounds,
+        spacings=size / (shape - 1),
+        mgrid=np.mgrid[slices]
+    )
 
 
+def from_bounds_spacing(
+        lower_bounds: Sequence[float],
+        upper_bounds: Sequence[float],
+        spacings: Sequence[float],
+) -> Grid:
+    """
+    Create a `Grid` from its lower- and upper bounds, and spacings.
+
+    Parameters
+    ----------
+    lower_bounds : sequence of float
+        Coordinates of the point with minimum values in all dimensions.
+    upper_bounds : sequence of float
+        Coordinates of the point with maximum values in all dimensions.
+        This must have the same length as `lower_bounds`.
+    spacings : sequence of int
+        Spacing between grid points in each dimension.
+        This must have the same length as `lower_bounds` and `upper_bounds`.
+
+    Returns
+    -------
+    Grid
+    """
+    lower_bounds = np.asarray(lower_bounds)
+    upper_bounds = np.asarray(upper_bounds)
+    spacings = np.asarray(spacings)
+    size = upper_bounds - lower_bounds
+    shape = (size / spacings) + 1
+    return from_bounds_shape(lower_bounds=lower_bounds, upper_bounds=upper_bounds, shape=shape)
+
+
+def from_center_spacing_size(
+        center: Sequence[float],
+        spacings: Sequence[float],
+        size: Sequence[float],
+) -> Grid:
+    """
+    Create a `Grid` from its center, size, and spacings.
+
+    Parameters
+    ----------
+    center : sequence of float
+        Coordinates of the geometric center of the grid.
+    spacings : sequence of int
+        Spacing between grid points in each dimension.
+        This must have the same length as `center` and `size`.
+    size : sequence of float
+        Length of the grid in each dimension.
+        This must have the same length as `center`.
+
+    Returns
+    -------
+    Grid
+    """
+    center = np.asarray(center)
+    size = np.asarray(size)
+    spacings = np.asarray(spacings)
+    return from_bounds_spacing(
+        lower_bounds=center-size/2,
+        upper_bounds=center+size/2,
+        spacings=spacings
+    )
+
+
+def from_center_spacing_shape(
+        center: Sequence[float],
+        spacings: Sequence[float],
+        shape: Sequence[int],
+):
+    center = np.asarray(center)
+    shape = np.asarray(shape)
+    spacings = np.asarray(spacings)
+    return from_center_spacing_size(center=center, spacings=spacings, size=(shape - 1)*spacings)
 
 
 def grid_distance(
