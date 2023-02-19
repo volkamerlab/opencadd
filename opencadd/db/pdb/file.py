@@ -9,7 +9,7 @@ from pathlib import Path
 # Self
 from opencadd._http_request import response_http_request
 from opencadd._typing import PathLike
-from opencadd.io import _helpers_sysio
+from opencadd import _helpers_sysio
 
 # General API endpoints
 _ROOT_FILE: str = f"https://files.rcsb.org"
