@@ -520,8 +520,7 @@ class PDBParser:
                         "SEQRES is a mandatory record when ATOM records exist.",
                         raise_level=3
                     )
-            self._check_routine(records.SEQRES)
-        return
+            #self._check_routine(_records.SEQRES)
         return self._extract_record(_records.SEQRES)
 
     def modres(self) -> Optional[pd.DataFrame]:
