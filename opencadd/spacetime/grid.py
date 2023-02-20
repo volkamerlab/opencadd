@@ -70,6 +70,13 @@ class Grid:
         self._direction_vectors_dimension = np.count_nonzero(self._direction_vectors, axis=-1)
         return
 
+    def __repr__(self):
+        rep = (
+            f"Grid(\n  shape={self._shape},\n  size={self._size},\n  spacings={self._spacings},\n  "
+            f"lower_bounds={self._lower_bounds},\n  center={self._center},\n  upper_bounds={self._upper_bounds}\n)"
+        )
+        return rep
+
     @property
     def dimension(self) -> int:
         """
