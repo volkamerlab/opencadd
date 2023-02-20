@@ -5,7 +5,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from opencadd._typing import ArrayLike
-from opencadd.chemical import abc
+from opencadd.chem import abc
 
 
 class MolecularComposition (abc.Composition):
