@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Sequence, Union, Optional, Any, Tuple, Self, NamedTuple, Literal, List, NoReturn
+from typing import Sequence, Union, Optional, Any, Tuple, NamedTuple, Literal, List, NoReturn
 
 import numpy as np
 import scipy as sp
@@ -23,24 +23,17 @@ class DynamicPointCloud:
     )
 
     def __init__(self, data: npt.ArrayLike):
-        # Declare attributes
-        self._data: jnp.ndarray
-        self._data_view_2d: jnp.ndarray
-        self._kdtree_combined: sp.spatial.KDTree
-        self._kdtrees_per_instance: List[sp.spatial.KDTree]
         # Check for errors in `data`:
         data_tensor = jnp.asarray(data)
         if data_tensor.ndim != 3:
             raise ValueError(
-                "Parameter `data` expects a 3-dimensional array. "
-                f"Input argument had: {data_tensor.ndim}"
+                "Parameter `data` expects a 3D array, "
+                f"but input argument had {data_tensor.ndim} dimensions."
             )
-
-        # Assign attributes
-        self._data = data_tensor
-        self._data_view_2d = self._data.reshape(-1, self._data.shape[-1])
-        self._kdtree_combined = None
-        self._kdtrees_per_instance = None
+        self._data: jnp.ndarray = data_tensor
+        self._data_view_2d: jnp.ndarray = self._data.reshape(-1, self._data.shape[-1])
+        self._kdtree_combined: sp.spatial.KDTree = None
+        self._kdtrees_per_instance: List[sp.spatial.KDTree] = None
         return
 
     @property
@@ -111,7 +104,7 @@ class DynamicPointCloud:
         # Get the bounding box of all instances superposed.
         total_bounding_box = self.axis_aligned_minimum_bounding_box(per_instance=False)
         # Create a grid the size of the total bounding box, with given resolution
-        grid = oc.spacetime.grid.from_bounds_and_spacing(
+        grid = oc.spacetime.grid.from_bounds_spacing(
             lower_bounds=total_bounding_box.lower_bounds - padding,
             upper_bounds=total_bounding_box.upper_bounds + padding,
             spacings=resolution
@@ -124,7 +117,10 @@ class DynamicPointCloud:
         ):
             # Radius must be positive:
             if radius_points <= 0:
-                raise ValueError("Parameter `radius_points` expects positive values.")
+                raise ValueError(
+                    "Parameter `radius_points` expects positive real number, "
+                    f"but input argument was {radius_points}."
+                )
 
             dists, indices = self.nearest_neighbors(
                 points=grid.coordinates_2d,
@@ -138,7 +134,7 @@ class DynamicPointCloud:
             toxel_tensor = dists != np.inf  # True when toxel is occupied
             # Create `ToxelField`:
             toxel_field = oc.spacetime.field.ToxelField(
-                field_tensor=toxel_tensor,
+                tensor=toxel_tensor,
                 grid=grid,
             )
             # Create Toxel volume from field and return
@@ -176,7 +172,7 @@ class DynamicPointCloud:
                 (ind_self[0][filter_maybe_occupied][occupied], *grid_inds_occupied2)
             ] = True
             toxel_field = oc.spacetime.field.ToxelField(
-                field_tensor=toxel_tensor,
+                tensor=toxel_tensor,
                 grid=grid,
             )
             # Create Toxel volume from field and return
@@ -217,11 +213,11 @@ class DynamicPointCloud:
     ):
         pass
 
-    def count_neighbors_within_radius(self, points: Self):
+    def count_neighbors_within_radius(self, points):
         pass
 
 
-    def minimize_bounding_box(self) -> Self:
+    def minimize_bounding_box(self):
         """
         Rotate the observations to minimize the bounding box volume.
 
