@@ -736,6 +736,8 @@ class PDBFile:
         self._anisou = anisou
         self._ter = ter
         self._conect = conect
+
+        self._edit_state = None
         return
 
     @property
@@ -1566,6 +1568,52 @@ class PDBFile:
     @property
     def conect(self):
         return self._conect
+
+    @property
+    def edit_state(self):
+        return self._edit_state
+
+    def reset_edits(self):
+        self._edit_state = None
+        return
+
+    def remove_water(self):
+        if self._edit_state is None:
+            self._edit_state = self.atom.copy()
+        if self.hetnam is not None:
+            water_res_names = self.hetnam.het_id[self.hetnam.is_water].tolist()
+            if "HOH" not in water_res_names:
+                water_res_names.append("HOH")
+            self._edit_state = self._edit_state[~self._edit_state.res_name.isin(water_res_names)]
+        else:
+            self._edit_state = self._edit_state[self._edit_state.res_name != "HOH"]
+        return
+
+    def remove_heterogen(
+            self,
+            include: Optional[Sequence[str]] = None,
+            exclude: Optional[Sequence[str]] = None,
+    ):
+        if self._edit_state is None:
+            self._edit_state = self.atom.copy()
+        het_ids = self._edit_state.res_name[~self._edit_state.res_poly].unique()
+        if include is not None:
+            id_is_invalid = np.isin(include, het_ids, invert=True)
+            if np.any(id_is_invalid):
+                raise ValueError
+            self._edit_state = self._edit_state[
+                (self._edit_state.res_poly) | (~self._edit_state.res_name.isin(include))
+            ]
+        elif exclude is not None:
+            id_is_invalid = np.isin(exclude, het_ids, invert=True)
+            if np.any(id_is_invalid):
+                raise ValueError
+            self._edit_state = self._edit_state[
+                (self._edit_state.res_poly) | (self._edit_state.res_name.isin(exclude))
+            ]
+        else:
+            self._edit_state = self._edit_state[self._edit_state.res_poly]
+        return
 
     def to_pdb(self):
         def record_end() -> str:
