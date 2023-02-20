@@ -254,6 +254,62 @@ def from_bounds_shape(
     )
 
 
+def from_shape_spacing_anchor(
+        shape: Sequence[float],
+        spacings: Sequence[float],
+        anchor_coord: Sequence[float] = None,
+        anchor: Union[Literal["lower", "center", "upper"], Sequence[int]] = "center",
+):
+    shape = np.asarray(shape)
+    spacings = np.asarray(spacings)
+    num_spacings = shape - 1
+    size = num_spacings * spacings
+    anchor_coord = np.zeros(shape=shape.size) if anchor_coord is None else np.asarray(anchor_coord)
+    if anchor == "center":
+        lower_bounds = anchor_coord - size / 2
+        upper_bounds = anchor_coord + size / 2
+    elif anchor == "lower":
+        lower_bounds = anchor_coord
+        upper_bounds = anchor_coord + size
+    elif anchor == "upper":
+        lower_bounds = anchor_coord - size
+        upper_bounds = anchor_coord
+    else:
+        anchor = np.asarray(anchor)
+        lower_bounds = anchor_coord - anchor * spacings
+        upper_bounds = lower_bounds + size
+    return from_bounds_shape(lower_bounds=lower_bounds, upper_bounds=upper_bounds, shape=shape)
+
+
+def from_shape_size_anchor(
+        shape: Sequence[float],
+        size: Sequence[float],
+        anchor_coord: Sequence[float] = None,
+        anchor: Union[Literal["lower", "center", "upper"], Sequence[int]] = "center",
+):
+    shape = np.asarray(shape)
+    size = np.asarray(size)
+    num_spacings = shape - 1
+    spacings = size / num_spacings
+    return from_shape_spacing_anchor(shape=shape, spacings=spacings, anchor_coord=anchor_coord, anchor=anchor)
+
+
+def from_size_spacing_anchor(
+        size: Sequence[float],
+        spacings: Sequence[float],
+        anchor_coord: Sequence[float] = None,
+        anchor: Union[Literal["lower", "center", "upper"], Sequence[int]] = "center",
+        shrink_to_fit: bool = False,
+):
+    size = np.asarray(size)
+    spacings = np.asarray(spacings)
+    num_spacings = size / spacings
+    fit_func = np.floor if shrink_to_fit else np.ceil
+    return from_shape_spacing_anchor(
+        shape=fit_func(num_spacings+1).astype(int), spacings=spacings, anchor_coord=anchor_coord, anchor=anchor
+    )
+
+
 def from_bounds_spacing(
         lower_bounds: Sequence[float],
         upper_bounds: Sequence[float],
@@ -283,50 +339,6 @@ def from_bounds_spacing(
     size = upper_bounds - lower_bounds
     shape = (size / spacings) + 1
     return from_bounds_shape(lower_bounds=lower_bounds, upper_bounds=upper_bounds, shape=shape)
-
-
-def from_center_spacing_size(
-        center: Sequence[float],
-        spacings: Sequence[float],
-        size: Sequence[float],
-) -> Grid:
-    """
-    Create a `Grid` from its center, size, and spacings.
-
-    Parameters
-    ----------
-    center : sequence of float
-        Coordinates of the geometric center of the grid.
-    spacings : sequence of int
-        Spacing between grid points in each dimension.
-        This must have the same length as `center` and `size`.
-    size : sequence of float
-        Length of the grid in each dimension.
-        This must have the same length as `center`.
-
-    Returns
-    -------
-    Grid
-    """
-    center = np.asarray(center)
-    size = np.asarray(size)
-    spacings = np.asarray(spacings)
-    return from_bounds_spacing(
-        lower_bounds=center-size/2,
-        upper_bounds=center+size/2,
-        spacings=spacings
-    )
-
-
-def from_center_spacing_shape(
-        center: Sequence[float],
-        spacings: Sequence[float],
-        shape: Sequence[int],
-):
-    center = np.asarray(center)
-    shape = np.asarray(shape)
-    spacings = np.asarray(spacings)
-    return from_center_spacing_size(center=center, spacings=spacings, size=(shape - 1)*spacings)
 
 
 def grid_distance(
