@@ -4,7 +4,7 @@ Data structures representing a PDB file.
 
 from typing import Sequence, Optional
 import datetime
-
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -1615,14 +1615,79 @@ class PDBFile:
             self._edit_state = self._edit_state[self._edit_state.res_poly]
         return
 
-    def to_pdb(self):
-        def record_end() -> str:
-            """
-            END record of a PDB file.
-            The END record marks the end of the PDB file, and must appear as the final record in every
-            file.
-            """
-            return f"{'END':<80}"
+    def to_pdb(self, output_path: _typing.PathLike = None):
+        def format_atom_line(
+                is_std: bool, serial: int, atom_name: str, alt_loc: str, res_name: str, res_num: int,
+                res_icode: str,
+                x: float, y: float, z: float, occupancy, temp_factor, element, charge
+        ):
+            return (
+                f"{'ATOM  ' if is_std else 'HETATM'}{serial:>5} {atom_name:<4}{alt_loc:1}"
+                f"{res_name:>3} {chain_id:1}{res_num:>4}{res_icode:1}{'':3}{x:>8.3f}{y:>8.3f}{z:>8.3f}"
+                f"{occupancy:>6.2f}{temp_factor:>6.2f}{'':10}{element:>2}"
+                f"{('  ' if np.isnan(charge) else charge):<2}"
+            )
+        a = self.atom if self._edit_state is None else self._edit_state
+        pdb_lines = []
+        for model_num in a.model_num.unique():
+            pdb_lines.append(f"MODEL{'':5}{model_num:>4}{'':66}")
+            model = a[a.model_num == model_num]
+            for chain_id in model.chain_id.unique():
+                chain = model[model.chain_id == chain_id]
+                poly = chain[chain.res_poly]
+                for i in poly.index:
+                    row = poly.loc[i]
+                    pdb_lines.append(
+                        format_atom_line(
+                            is_std=row.res_std,
+                            serial=row.serial,
+                            atom_name=row.atom_name,
+                            alt_loc=row.alt_loc,
+                            res_name=row.res_name,
+                            res_num=row.res_num,
+                            res_icode=row.res_icode,
+                            x=row.x,
+                            y=row.y,
+                            z=row.z,
+                            occupancy=row.occupancy,
+                            temp_factor=row.temp_factor,
+                            element=row.element,
+                            charge=row.charge
+                        )
+                    )
+                pdb_lines.append(
+                    f"TER   {row.serial + 1:>5}{'':6}{row.res_name:>3} {chain_id:1}"
+                    f"{row.res_num:>4}{row.res_icode:1}{'':53}"
+                )
+            hets = model[~model.res_poly]
+            for i in hets.index:
+                row = hets.loc[i]
+                pdb_lines.append(
+                    format_atom_line(
+                        is_std=False,
+                        serial=row.serial,
+                        atom_name=row.atom_name,
+                        alt_loc=row.alt_loc,
+                        res_name=row.res_name,
+                        res_num=row.res_num,
+                        res_icode=row.res_icode,
+                        x=row.x,
+                        y=row.y,
+                        z=row.z,
+                        occupancy=row.occupancy,
+                        temp_factor=row.temp_factor,
+                        element=row.element,
+                        charge=row.charge
+                    )
+                )
+            pdb_lines.append(f"{'ENDMDL':<80}")
+        pdb_lines.append(f"{'END':<80}")
+        pdb_str = "\n".join(pdb_lines)
+        if output_path is None:
+            return pdb_str
+        with open(output_path, "xt") as f:
+            f.write(pdb_str)
+        return
 
     @property
     def pdb_format_title(self) -> str:
