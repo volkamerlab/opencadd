@@ -6,7 +6,7 @@ import numpy.typing as npt
 import jax.numpy as jnp
 
 
-class RectangularCuboid(abc.Volume):
+class RectangularCuboid:
     """
     An n-dimensional rectangular cuboid (i.e. line, rectangle, rectangular cuboid,
     hyper-rectangular cuboid), sampled at one or several instances.
@@ -23,7 +23,7 @@ class RectangularCuboid(abc.Volume):
         # Check for errors in input
         lower_bounds_array = jnp.asarray(lower_bounds)
         upper_bounds_array = jnp.asarray(upper_bounds)
-        if lower_bounds_array.ndim != 2 or upper_bounds_array != 2:
+        if lower_bounds_array.ndim != 2 or upper_bounds_array.ndim != 2:
             raise ValueError("Input arrays must be 2-dimensional.")
         if lower_bounds_array.shape != upper_bounds_array.shape:
             raise ValueError("Input arrays must have the same shape.")
