@@ -1,1 +1,1 @@
-from opencadd.chem import protein
+from . import system

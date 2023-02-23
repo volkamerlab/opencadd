@@ -34,6 +34,8 @@ _logger.info(
 from opencadd import (
     db,
     io,
+    chem,
+    pocket,
     spacetime,
     mif
 )
