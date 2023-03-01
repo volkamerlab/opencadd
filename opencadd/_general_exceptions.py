@@ -1,7 +1,14 @@
+"""
+General exceptions raised within the openCADD library.
+"""
+
 from typing import Any, NoReturn, Type
 
 
-def raise_type_error(param_name: str, func_name: str, type: Type, arg: Any) -> NoReturn:
+__author__ = "Armin Ariamajd"
+
+
+def raise_type_error(param_name: str, func_name: str, expected_type: Type, arg: Any) -> NoReturn:
     """
     Raise a TypeError.
 
@@ -11,7 +18,7 @@ def raise_type_error(param_name: str, func_name: str, type: Type, arg: Any) -> N
         Name of the input parameter that received an inappropriate type.
     func_name : str
         Name of the function/method to which the parameter belongs.
-    type_name : str
+    expected_type : str
         Expected type of the parameter.
     arg : Any
         Input argument of the parameter.
@@ -25,6 +32,6 @@ def raise_type_error(param_name: str, func_name: str, type: Type, arg: Any) -> N
     TypeError
     """
     raise TypeError(
-        f"Parameter `{param_name}` of `{func_name}` expects an input of type {type}, "
-        f"but the type of input argument was {type(arg)}. Input was: {arg}."
+        f"Parameter `{param_name}` of `{func_name}` expects an input of type {expected_type}, "
+        f"but the type of input argument was {expected_type(arg)}. Input was: {arg}."
     )
