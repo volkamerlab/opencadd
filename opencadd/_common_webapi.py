@@ -1,64 +1,57 @@
 """
-REST-API implementation of ProteinsPlus tools
-
-References
-----------
-Tools:
-    * https://proteins.plus/pages/about
-REST-API:
-    * https://proteins.plus/help/dogsite_rest
+Common web API calls used by different subpackages/modules within the openCADD library.
 """
 
 
-from typing import Optional, Tuple
+from typing import Union
 import io
 
-import pandas as pd
-
-from opencadd._typing import FileLike
 from opencadd._http_request import response_http_request, HTTPRequestRetryConfig
-#from opencadd.io.io import filelike_to_filepath
-from opencadd._decorator import RetryConfig
 
 
+__author__ = "Armin Ariamajd"
 
 
-def upload_protein(
-        pdb_file: FileLike,
+def proteinsplus_upload_pdb(
+        pdb_content: Union[bytes, str],
         retry_config: HTTPRequestRetryConfig = HTTPRequestRetryConfig(),
 ) -> str:
     """
-    Upload a PDB file to Proteins.Plus webserver.
+    Upload a PDB file to the `ProteinsPlus <https://proteins.plus>`_ webserver.
 
-    Proteins.Plus webtools at https://proteins.plus allow for uploading PBD files
+    ProteinsPlus is a web portal for structural analysis of macromolecules, offering a variety of tools
+    for processing structural data, such as protonation/tautomerization state prediction and
+    binding pocket detection.
+
+    Proteins.Plus webtools at allow for uploading PBD files
     to use in different functionalities.
-    After uploading, a dummy PDB ID is returned, which can be used in place of a valid PDB ID
-    in all available tools.
 
     Parameters
     ----------
-    pdb_file : FileLike
-        A file-like object in PDB format.
-    retry_config : opencadd.webapi.http_request.HTTPRequestRetryConfig, optional,
-                   default: HTTPRequestRetryConfig()
+    pdb_content : str or bytes
+        Content of the PDB file.
+    retry_config : opencadd._http_request.HTTPRequestRetryConfig, optional
         Retry configurations for HTTP requests.
 
     Returns
     -------
-    dummy_pdb_id : str
-        A dummy PDB ID, which can be used in place of a real PDB ID in Proteins.Plus tools.
+    str
+        A dummy PDB ID, which can be used in place of a real PDB ID in all ProteinsPlus tools.
 
     References
     ----------
-    https://proteins.plus/help/index#REST-help
+    * `About ProteinsPlus <https://proteins.plus/pages/about>`_
+    * `REST API <https://proteins.plus/help/index#REST-help>`_
     """
     # Upload the file; this returns a dict having a "location" key, which holds a web address
     # to retrieve the dummy PDB ID from.
-    with open(filelike_to_filepath(pdb_file), "rb") as file:
+    if isinstance(pdb_content, str):
+        pdb_content = pdb_content.encode("utf-8")
+    with io.BytesIO(pdb_content) as file:
         url_of_pdb_id = response_http_request(
             url="https://proteins.plus/api/pdb_files_rest",
             verb="POST",
-            files={"pdb_file[pathvar]": file},
+            files={"pdb_file[pathvar]": ("dummy_name.pdb", file)},
             response_type="json",
             response_verifier=lambda response_dict: "location" in response_dict.keys(),
             retry_config=retry_config
@@ -72,13 +65,3 @@ def upload_protein(
         retry_config=retry_config,
     )["id"]
     return dummy_pdb_id
-
-
-
-
-
-
-
-
-
-
