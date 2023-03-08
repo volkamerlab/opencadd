@@ -40,7 +40,7 @@ def from_file_content(content: bytes):
 
     map_values = np.frombuffer(
         buffer=content, dtype=MODE[word_mode], count=np.prod(grid_shape), offset=1024+word_nsymbt
-    ).reshape(grid_shape, order="F")
+    ).reshape((1, *grid_shape), order="F")
 
     grid = oc.spacetime.grid.from_shape_size_anchor(
         shape=grid_shape,
