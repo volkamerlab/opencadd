@@ -22,22 +22,21 @@ import numpy.typing as npt
 # Self
 from opencadd._typing import PathLike, ArrayLike
 from opencadd.const.autodock import AtomType
-# from opencadd.mif.abc import IntraMolecularInteractionField
 from opencadd import spacetime
+from opencadd import pocket
 import opencadd as oc
 
 _PATH_EXECUTABLE = Path(oc.__file__).parent.resolve()/'_exec'/'autogrid4'
 
 
-def from_filepath_pdbqt(
-        filepath: Union[PathLike, Sequence[PathLike]],
+def _from_pdbqt_content(
+        content: Sequence[str],
+        receptor_types: Sequence[AtomType],
         ligand_types: Sequence[AtomType],
         grid: spacetime.grid.Grid,
         smooth: float = 0.5,
         dielectric: float = -0.1465,
-        receptor_types: Optional[Union[Sequence[AtomType], Sequence[Sequence[AtomType]]]] = None,
         param_filepath: Optional[Path] = None,
-        output_path: Optional[Path] = None,
         field_datatype: npt.DTypeLike = np.single,
 ):
     """
@@ -45,7 +44,7 @@ def from_filepath_pdbqt(
 
     Parameters
     ----------
-    filepath : pathlib.Path
+    content : pathlib.Path
         Path to the PDBQT structure file of the macromolecule.
     ligand_types : Sequence[opencadd.consts.autodock.AtomType]
         Types of ligand atoms, for which interaction energies must be calculated.
@@ -89,56 +88,52 @@ def from_filepath_pdbqt(
         added to the end of the tuple, respectively. The second tuple contains the paths to each
         of the energy map files in the same order.
     """
-    if isinstance(filepath, PathLike):
-        filepath = [filepath]
-    elif not isinstance(filepath, ArrayLike):
-        raise ValueError("`receptor_filepaths` must be path-like or array-like of path-likes.")
-    num_receptors = len(filepath)
 
-    if receptor_types is not None:
-        receptor_types = np.asarray(receptor_types)
-        if receptor_types.ndim == 1:
-            receptor_types = np.tile(
-                receptor_types, num_receptors
-            ).reshape(num_receptors, -1)
-    else:
-        receptor_types = [None] * num_receptors
+    num_receptors = len(content)
 
     center, npts, spacing, slices = _extract_grid_values(grid=grid)
 
-    grid_shape = npts + 1
+    fields_tensor = np.empty(shape=(num_receptors, *grid.shape, len(ligand_types)+2), dtype=field_datatype)
+    temp_path = Path.home() / "opencadd_temp"
+    temp_path_pdbqt = temp_path.with_suffix(".pdbqt")
+    temp_path_gpf = temp_path.with_suffix(".gpf")
+    gpf_file = oc.io.autodock.gpf.GPFFileStructure(
+        receptor=temp_path_pdbqt,
+        receptor_types=receptor_types,
+        ligand_types=ligand_types,
+        gridcenter=center,
+        npts=npts,
+        spacing=spacing,
+        smooth=smooth,
+        dielectric=dielectric,
+        parameter_file=param_filepath,
+    )
+    with open(temp_path_gpf, "wt") as f:
+        f.write(oc.io.autodock.gpf.write(gpf_file))
+    for receptor_idx, receptor_filepath in enumerate(content):
+        with open(temp_path_pdbqt, "wt") as f:
+            f.write(receptor_filepath)
+        _submit_job(filepath_gpf=temp_path_gpf)
 
-    fields_tensor = np.empty(shape=(num_receptors, *grid_shape, len(ligand_types)+2), dtype=field_datatype)
-
-    for receptor_idx, receptor_filepath in enumerate(filepath):
-        paths = oc.io.autodock.gpf.write(
-            receptor_filepath=receptor_filepath,
-            output_path=output_path,
-            receptor_types=receptor_types[receptor_idx],
-            ligand_types=ligand_types,
-            grid_center=center,
-            grid_npts=npts,
-            grid_spacing=spacing,
-            smooth=smooth,
-            dielectric=dielectric,
-            parameter_filepath=param_filepath
-        )
-        _submit_job(filepath_gpf=paths["gpf"], output_path=output_path)
-        paths_maps = list(paths["maps"]["ligands"].values()) + [paths["maps"]["e"], paths["maps"]["d"]]
+        paths_maps = gpf_file.ligand_maps + (gpf_file.elecmap, gpf_file.dsolvmap)
         for idx_map, path_map in enumerate(paths_maps):
             with open(path_map) as f:
                 lines = f.read().splitlines()
             fields_tensor[receptor_idx, ..., idx_map] = np.array(
                 lines[6:], dtype=field_datatype
-            ).reshape(grid_shape, order="F")[slices]
-    return oc.spacetime.field.from_tensor_grid(tensor=fields_tensor, grid=grid)
+            ).reshape(npts + 1, order="F")[slices]
+
+    return oc.spacetime.field.from_tensor_grid(
+        tensor=fields_tensor,
+        grid=grid,
+        names=(*(ligand_type.name for ligand_type in ligand_types), "e", "d")
+    )
 
 
 def _extract_grid_values(grid: spacetime.grid.Grid):
-
     if grid.dimension != 3:
         raise ValueError(f"AutoGrid only accepts 3D grids, but the input grid had {grid.dimension} dimensions.")
-    if np.any(grid.spacings[1:] != grid.spacings[0]):
+    if not np.allclose(grid.spacings, grid.spacings[0]):
         raise ValueError("AutoGrid only accepts grids with equal spacing in all dimensions.")
     is_odd = grid.shape % 2
     if np.all(is_odd):
