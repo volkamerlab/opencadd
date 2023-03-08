@@ -37,6 +37,10 @@ class DynamicPointCloud:
         return
 
     @property
+    def points(self):
+        return self._data
+
+    @property
     def count_instances(self) -> int:
         return self._data.shape[0]
 
@@ -91,24 +95,27 @@ class DynamicPointCloud:
             mins = jnp.min(self._data, axis=1)
             maxes = jnp.max(self._data, axis=1)
         else:
-            mins = jnp.expand_dims(jnp.min(self._data, axis=(0, 1)), axis=0),
+            mins = jnp.expand_dims(jnp.min(self._data, axis=(0, 1)), axis=0)
             maxes = jnp.expand_dims(jnp.max(self._data, axis=(0, 1)), axis=0)
         return oc.spacetime.volume.RectangularCuboid(lower_bounds=mins, upper_bounds=maxes)
 
     def toxelate(
             self,
-            resolution: float,
+            resolution_or_grid: Union[float, Sequence[float], oc.spacetime.grid.Grid],
             radius_points: Union[float, npt.ArrayLike],
             padding: float = 0,
-    ) -> oc.spacetime.volume.Toxel:
-        # Get the bounding box of all instances superposed.
-        total_bounding_box = self.axis_aligned_minimum_bounding_box(per_instance=False)
-        # Create a grid the size of the total bounding box, with given resolution
-        grid = oc.spacetime.grid.from_bounds_spacing(
-            lower_bounds=total_bounding_box.lower_bounds - padding,
-            upper_bounds=total_bounding_box.upper_bounds + padding,
-            spacings=resolution
-        )
+    ) -> oc.spacetime.volume.ToxelVolume:
+        if isinstance(resolution_or_grid, oc.spacetime.grid.Grid):
+            grid = resolution_or_grid
+        else:
+            # Get the bounding box of all instances superposed.
+            total_bounding_box = self.axis_aligned_minimum_bounding_box(per_instance=False)
+            # Create a grid the size of the total bounding box, with given resolution
+            grid = oc.spacetime.grid.from_bounds_spacing(
+                lower_bounds=total_bounding_box.lower_bounds[0] - padding,
+                upper_bounds=total_bounding_box.upper_bounds[0] + padding,
+                spacings=resolution_or_grid
+            )
         # If `radius_points` is a scalar (i.e. int or float), it means all points have the same
         # radius, and thus we only need to query for the first nearest neighbor of each point:
         if (
@@ -123,7 +130,7 @@ class DynamicPointCloud:
                 )
 
             dists, indices = self.nearest_neighbors(
-                points=grid.coordinates_2d,
+                points=grid.coordinates,
                 num_neaerst_neighbors=1,
                 per_instance=True,
                 distance_upper_bound=radius_points
@@ -133,12 +140,12 @@ class DynamicPointCloud:
             # `np.inf` for points where the nearest distance is larger than the upper bound.
             toxel_tensor = dists != np.inf  # True when toxel is occupied
             # Create `ToxelField`:
-            toxel_field = oc.spacetime.field.ToxelField(
-                tensor=toxel_tensor,
-                grid=grid,
-            )
+            # toxel_field = oc.spacetime.field.ToxelField(
+            #     tensor=toxel_tensor,
+            #     grid=grid,
+            # )
             # Create Toxel volume from field and return
-            return oc.spacetime.volume.Toxel(field=toxel_field)
+            return oc.spacetime.volume.ToxelVolume(toxels=np.squeeze(toxel_tensor, axis=-1), grid=grid)
         # If `radius_points` is an array of values, then we cannot rely only on the distances to
         # first nearest neighbors, since it is possible that the first k nearest neighbors have
         # small radii and do not overlap with the toxel, while the (k+1)-th neighbor has a large
@@ -297,12 +304,12 @@ class DynamicPointCloud:
             distances = np.empty(shape=shape_distances, dtype=distance_dtype)
             indices = np.empty(
                 shape=shape_indices,
-                dtype=oc.typing.smallest_integer_dtype_for_range(
+                dtype=oc._typing.smallest_integer_dtype_for_range(
                     min_val=0,
                     max_val=self.count_points_per_instance
                 )
             )
-            for idx_instance, kdtree in enumerate(self._kdtrees_per_instance):
+            for idx_instance, kdtree in enumerate(self._kdtrees_list):
                 indices[idx_instance, ..., 0] = idx_instance
                 distances[idx_instance], indices[idx_instance, ..., 1] = kdtree.query(
                     x=points_array,
