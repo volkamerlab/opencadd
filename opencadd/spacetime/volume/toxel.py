@@ -6,11 +6,37 @@ import jax.numpy as jnp
 
 from opencadd.spacetime.volume import abc
 import opencadd as oc
+import opencadd._typing
+from opencadd import _exceptions
 
 
 class ToxelVolume:
 
     def __init__(self, toxels, grid):
+        _exceptions.raise_type(self.__class__.__name__, ("grid", grid, oc.spacetime.grid.Grid))
+        toxels = jnp.asarray(toxels)
+        _exceptions.raise_array(
+            parent_name=self.__class__.__name__,
+            param_name="toxels",
+            array=toxels,
+            ndim_gt=2,
+            dtype=np.bool_,
+        )
+        if grid.dimension != toxels.ndim - 1:
+            raise ValueError(
+                "Dimension Mismatch:\n"
+                "An n-dimensional `toxels` array requires an (n - 1)-dimensional `grid`, "
+                f"but the input array was {toxels.ndim}-dimensional, while the grid "
+                f"was {grid.dimension}-dimensional."
+            )
+        if np.any(grid.shape != toxels.shape[1:]):
+            raise ValueError(
+                "Shape Mismatch:\n"
+                "The spatial shape of the toxels (i.e. `toxels.shape[1:]`) "
+                f"must be equal to the shape of the grid, but the input array had "
+                f"a spatial shape of {toxels.shape[1:]}, while the shape of the grid "
+                f"was {grid.shape}."
+            )
         self._toxels = jnp.asarray(toxels)
         self._grid = grid
         return
