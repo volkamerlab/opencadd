@@ -2,14 +2,14 @@
 Data structures representing a PDB file.
 """
 
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Union
 import datetime
 from pathlib import Path
 import numpy as np
 import pandas as pd
 
 from opencadd.io.pdb import _fields
-from opencadd import _general_exceptions, _typing
+from opencadd import _exceptions, _typing
 
 
 class RecordHeader:
@@ -91,15 +91,6 @@ class RecordHeader:
                     raise TypeError()
         self._classification = value
         return
-
-    @property
-    def pdb_format(self) -> str:
-        """
-        PDB-formatted string representation of the record.
-        """
-        classification = "/".join(", ".join(entry) for entry in self.classification)
-        dep_date = _fields.Date.to_pdb(self.dep_date)
-        return f"HEADER{'':4}{classification:<40}{dep_date}{'':3}{self.pdb_id}{'':14}"
 
     def __repr__(self):
         return f"Header({self.pdb_id}, {self.dep_date}, {self.classification})"
@@ -198,13 +189,6 @@ class RecordObslte:
         ]
         return "\n".join(lines)
 
-    @property
-    def pdb_format(self) -> str:
-        """
-        PDB-formatted string representation of the record.
-        """
-        raise NotImplementedError
-
 
 class RecordCaveat:
     """
@@ -257,13 +241,6 @@ class RecordCaveat:
             raise TypeError()
         self._description = value
         return
-
-    @property
-    def pdb_format(self) -> str:
-        """
-        PDB-formatted string representation of the record.
-        """
-        raise NotImplementedError
 
     def __repr__(self):
         return f"Caveat({self.pdb_id}, {self.description})"
@@ -659,8 +636,7 @@ class RecordMTRIX:
         return
     
 
-
-class PDBFile:
+class PDBStructure:
     def __init__(
             self,
             header: Optional[RecordHeader] = None,
@@ -1591,13 +1567,15 @@ class PDBFile:
 
     def remove_heterogen(
             self,
-            include: Optional[Sequence[str]] = None,
-            exclude: Optional[Sequence[str]] = None,
+            include: Optional[Union[str, Sequence[str]]] = None,
+            exclude: Optional[Union[str, Sequence[str]]] = None,
     ):
         if self._edit_state is None:
             self._edit_state = self.atom.copy()
         het_ids = self._edit_state.res_name[~self._edit_state.res_poly].unique()
         if include is not None:
+            if isinstance(include, str):
+                include = [include]
             id_is_invalid = np.isin(include, het_ids, invert=True)
             if np.any(id_is_invalid):
                 raise ValueError
@@ -1605,6 +1583,8 @@ class PDBFile:
                 (self._edit_state.res_poly) | (~self._edit_state.res_name.isin(include))
             ]
         elif exclude is not None:
+            if isinstance(exclude, str):
+                exclude = [exclude]
             id_is_invalid = np.isin(exclude, het_ids, invert=True)
             if np.any(id_is_invalid):
                 raise ValueError
@@ -1614,117 +1594,3 @@ class PDBFile:
         else:
             self._edit_state = self._edit_state[self._edit_state.res_poly]
         return
-
-    def to_pdb(self, output_path: _typing.PathLike = None):
-        def format_atom_line(
-                is_std: bool, serial: int, atom_name: str, alt_loc: str, res_name: str, res_num: int,
-                res_icode: str,
-                x: float, y: float, z: float, occupancy, temp_factor, element, charge
-        ):
-            return (
-                f"{'ATOM  ' if is_std else 'HETATM'}{serial:>5} {atom_name:<4}{alt_loc:1}"
-                f"{res_name:>3} {chain_id:1}{res_num:>4}{res_icode:1}{'':3}{x:>8.3f}{y:>8.3f}{z:>8.3f}"
-                f"{occupancy:>6.2f}{temp_factor:>6.2f}{'':10}{element:>2}"
-                f"{('  ' if np.isnan(charge) else charge):<2}"
-            )
-        a = self.atom if self._edit_state is None else self._edit_state
-        pdb_lines = []
-        for model_num in a.model_num.unique():
-            pdb_lines.append(f"MODEL{'':5}{model_num:>4}{'':66}")
-            model = a[a.model_num == model_num]
-            for chain_id in model.chain_id.unique():
-                chain = model[model.chain_id == chain_id]
-                poly = chain[chain.res_poly]
-                for i in poly.index:
-                    row = poly.loc[i]
-                    pdb_lines.append(
-                        format_atom_line(
-                            is_std=row.res_std,
-                            serial=row.serial,
-                            atom_name=row.atom_name,
-                            alt_loc=row.alt_loc,
-                            res_name=row.res_name,
-                            res_num=row.res_num,
-                            res_icode=row.res_icode,
-                            x=row.x,
-                            y=row.y,
-                            z=row.z,
-                            occupancy=row.occupancy,
-                            temp_factor=row.temp_factor,
-                            element=row.element,
-                            charge=row.charge
-                        )
-                    )
-                pdb_lines.append(
-                    f"TER   {row.serial + 1:>5}{'':6}{row.res_name:>3} {chain_id:1}"
-                    f"{row.res_num:>4}{row.res_icode:1}{'':53}"
-                )
-            hets = model[~model.res_poly]
-            for i in hets.index:
-                row = hets.loc[i]
-                pdb_lines.append(
-                    format_atom_line(
-                        is_std=False,
-                        serial=row.serial,
-                        atom_name=row.atom_name,
-                        alt_loc=row.alt_loc,
-                        res_name=row.res_name,
-                        res_num=row.res_num,
-                        res_icode=row.res_icode,
-                        x=row.x,
-                        y=row.y,
-                        z=row.z,
-                        occupancy=row.occupancy,
-                        temp_factor=row.temp_factor,
-                        element=row.element,
-                        charge=row.charge
-                    )
-                )
-            pdb_lines.append(f"{'ENDMDL':<80}")
-        pdb_lines.append(f"{'END':<80}")
-        pdb_str = "\n".join(pdb_lines)
-        if output_path is None:
-            return pdb_str
-        with open(output_path, "xt") as f:
-            f.write(pdb_str)
-        return
-
-    @property
-    def pdb_format_title(self) -> str:
-        """
-        TITLE Record formatted as in a PDB file.
-        """
-        num_lines_needed = int(np.ceil(len(self.title) / 70))
-        continuation = _fields.Continuation.to_pdb(num_lines=num_lines_needed)
-        title = [self.title[i:i + 70] for i in range(0, len(self._title), 70)]
-        lines = [
-            f"TITLE{'':3}{continuation}{title:<70}"
-            for continuation, title in zip(continuation, title)
-        ]
-        return "\n".join(lines)
-
-    @property
-    def pdb_format_compound(self) -> str:
-        spec_str = ""
-        for mol_id in self.compound.index:
-            mol_data = self.compound.loc[mol_id].values
-            mask_nan = np.logical_not(np.isnan(mol_data))
-            non_nan_data = mol_data[mask_nan]
-            spec_str += f"MOL_ID: {mol_id};"
-            for idx, token in enumerate(self.compound.column.values[mask_nan]):
-                if token in ("CHAIN", "SYNONYM", "EC"):
-                    spec_str += f"{token}: {', '.join(non_nan_data[idx])};"
-                elif token in ("ENGINEERED", "MUTATION"):
-                    spec_str += f"{token}: {'YES' if non_nan_data[idx] else 'NO'};"
-                else:
-                    spec_str += f"{token}: {non_nan_data[idx]};"
-
-        lines_needed = int(np.ceil(len(spec_str) / 70))
-        continuations = ["  "] + [f"{line_num:>3}" for line_num in range(2, lines_needed + 1)]
-        specs = [spec_str[i:i + 70] for i in range(0, len(spec_str), 70)]
-        return "\n".join(
-            [
-                f"COMPND{'':1}{continuation}{title:<70}"
-                for continuation, title in zip(continuations, specs)
-            ]
-        )
