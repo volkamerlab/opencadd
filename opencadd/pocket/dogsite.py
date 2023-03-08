@@ -14,7 +14,7 @@ References
 """
 
 from pathlib import Path
-from typing import Optional, Tuple, Sequence, Union
+from typing import Optional, Tuple, Sequence, Union, List, Dict
 import io
 import gzip
 
@@ -25,6 +25,7 @@ from opencadd._http_request import response_http_request, HTTPRequestRetryConfig
 from opencadd._decorator import RetryConfig
 import opencadd as oc
 import opencadd._regex
+import opencadd._common_webapi
 
 
 class DoGSiteScorerDetector:
@@ -34,30 +35,36 @@ class DoGSiteScorerDetector:
 
     def __init__(
             self,
-            receptor,
+            ensemble,
+            pockets,
             pocket_data,
             pocket_atoms,
-            pocket_volumes,
-            data_description: str,
     ):
         """
 
         Parameters
         ----------
-        receptor
+        ensemble
         pocket_data
         pocket_atoms
         pocket_volumes
         data_description : str
             Description of data descriptors used by DoGSiteScorer.
         """
-        self._receptor = receptor
-        self._data = pocket_data
-        self._atoms = pocket_atoms
-        self._volumes = pocket_volumes
-        self._description = data_description
+        self._ensemble = ensemble
+        self._pockets = pockets
+        self._pocket_data = pocket_data
+        self._pocket_atoms = pocket_atoms
         return
-    
+
+    @property
+    def ensemble(self):
+        return self._ensemble
+
+    @property
+    def pockets(self):
+        return self._pockets
+
     @property
     def pocket_data(self):
         """
@@ -149,65 +156,64 @@ class DoGSiteScorerDetector:
                 Druggability score (in range [0, 1]), predicted by a support vector machine (libsvm)
                 trained on a subset of meaningful descriptors.
         """
-        return self._data
+        return self._pocket_data
 
-    def create_pocket(self, pocket_name: str):
-        pocket_idx = self._df.index.get_loc(pocket_name)
+    @property
+    def pocket_atoms(self):
+        return self._pocket_atoms
 
-        toxel_vol = oc.io.ccp4.mrc.from_file_content(gzip.decompress(self._ccp4[pocket_idx]))
-        return oc.pocket.BindingPocket(volume=toxel_vol)
-
-    def select_best_pocket(binding_site_df, selection_method, selection_criteria, ascending=False):
+    @property
+    def best_coverage(self) -> str:
         """
-        Select the best binding site from the table of all detected binding sites,
-        either by sorting the binding sites based on a set of properties in the table,
-        or by applying a function on the property values.
+        Name of the pocket with the highest total coverage for the selected ligand.
 
-        Parameters
-        ----------
-        binding_site_df : pandas.DataFrame
-            Binding site data retrieved from the DoGSiteScorer webserver.
-        selection_method : str
-            Selection method for selecting the best binding site.
-            Either 'sorting' or 'function'.
-        selection_criteria : str or list
-            If 'selection_method' is 'sorting':
-                List of one or more property names.
-            If 'selection_method' is 'function':
-                Any valid python syntax that generates a list-like object
-                with the same length as the number of detected binding sites.
-        ascending : bool
-            Optional; default: False.
-            If set to True, the binding site with the lowest value will be selected,
-            otherwise, the binding site with the highest value is selected.
+        Total coverage is calculated as the product of ligand coverage and pocket coverage.
 
         Returns
         -------
         str
-            Name of the selected binding site.
+            Name of the pocket.
         """
-        df = binding_site_df
-
-        if selection_method == "sorting":
-            sorted_df = df.sort_values(by=selection_criteria, ascending=ascending)
-        elif selection_method == "function":
-            df["function_score"] = eval(selection_criteria)
-            sorted_df = df.sort_values(by="function_score", ascending=ascending)
-        else:
-            raise ValueError(f"Binding site selection method unknown: {selection_method}")
-
-        selected_pocket_name = sorted_df.iloc[0].name
-        return selected_pocket_name
+        return (self.pocket_data.lig_cov * self.pocket_data.poc_cov).idxmax()
 
 
-def from_pdb_id(
-        pdb_id: str,
+def _from_ensemble(
+        ensemble: oc.chem.ensemble.ChemicalEnsemble,
+        model: Optional[int] = 0,
         chain_id: Optional[str] = None,
         ligand_id_chain_num: Optional[Tuple[str, str, int]] = None,
         include_subpockets: bool = True,
         calculate_druggability: bool = True,
         retry_config: Optional[HTTPRequestRetryConfig] = HTTPRequestRetryConfig(),
 ) -> DoGSiteScorerDetector:
+
+    dummy_pdb_id = oc._common_webapi.proteinsplus_upload_pdb(pdb_content=ensemble.to_pdb(model=model))
+    pocket_data_df, atoms_df, pocket_volumes, description = _run(
+        pdb_id=dummy_pdb_id,
+        chain_id=chain_id,
+        ligand_id_chain_num=ligand_id_chain_num,
+        include_subpockets=include_subpockets,
+        calculate_druggability=calculate_druggability,
+        retry_config=retry_config
+    )
+    pockets = {
+        pocket_name: oc.pocket.BindingPocket(
+            ensemble=ensemble,
+            volume=volume,
+            atoms=atoms_df.loc[pocket_name, "atom_serial"].to_numpy()
+        ) for volume, pocket_name in zip(pocket_volumes, pocket_data_df.index)
+    }
+    return DoGSiteScorerDetector(ensemble=ensemble, pockets=pockets, pocket_data=pocket_data_df, pocket_atoms=atoms_df)
+
+
+def _run(
+        pdb_id: str,
+        chain_id: Optional[str] = None,
+        ligand_id_chain_num: Optional[Tuple[str, str, int]] = None,
+        include_subpockets: bool = True,
+        calculate_druggability: bool = True,
+        retry_config: Optional[HTTPRequestRetryConfig] = HTTPRequestRetryConfig(),
+) -> Tuple[pd.DataFrame, pd.DataFrame, List, str]:
     """
     Detect binding pockets for a protein structure from the Protein Data Bank.
 
@@ -235,6 +241,34 @@ def from_pdb_id(
     -------
     DoGSiteScorerDetector
     """
+    job_result_urls = _submit_job(
+        pdb_id=pdb_id,
+        chain_id=chain_id,
+        ligand_id_chain_num=ligand_id_chain_num,
+        include_subpockets=include_subpockets,
+        calculate_druggability=calculate_druggability,
+        retry_config=retry_config
+    )
+    pockets_table, description, ccp4_files, pdb_files = _get_results(
+        job_result_urls=job_result_urls,
+        retry_config=retry_config
+    )
+    pocket_data_df, atoms_df, pocket_volumes = _parse_results(
+        pockets_table=pockets_table,
+        ccp4_files=ccp4_files,
+        pdb_files=pdb_files
+    )
+    return pocket_data_df, atoms_df, pocket_volumes, description
+
+
+def _submit_job(
+        pdb_id: str,
+        chain_id: Optional[str] = None,
+        ligand_id_chain_num: Optional[Tuple[str, str, int]] = None,
+        include_subpockets: bool = True,
+        calculate_druggability: bool = True,
+        retry_config: Optional[HTTPRequestRetryConfig] = HTTPRequestRetryConfig(),
+) -> Dict[str, Union[str, List[str]]]:
     # Submit the job and get submission URL
     url_of_job = response_http_request(
         url="https://proteins.plus/api/dogsite_rest",
@@ -244,7 +278,8 @@ def from_pdb_id(
                 "pdbCode": pdb_id,
                 "analysisDetail": str(int(include_subpockets)),
                 "bindingSitePredictionGranularity": str(int(calculate_druggability)),
-                "ligand": "_".join([str(i) for i in ligand_id_chain_num]) if ligand_id_chain_num is not None else "",
+                "ligand": "_".join(
+                    [str(i) for i in ligand_id_chain_num]) if ligand_id_chain_num is not None else "",
                 "chain": chain_id if chain_id is not None else "",
             }
         },
@@ -254,28 +289,30 @@ def from_pdb_id(
         retry_config=retry_config
     )["location"]
     # Get the URLs of job results when job is done (takes usually 90 seconds)
-    job_result = response_http_request(
+    job_result_urls: dict = response_http_request(
         url=url_of_job,
         verb="GET",
         response_type="json",
         response_verifier=lambda response_dict: "result_table" in response_dict.keys(),
         retry_config=HTTPRequestRetryConfig(
             config_status=retry_config.config_status,
-            config_response=RetryConfig(num_tries=5, sleep_time_init=55, sleep_time_scale=0.5)
+            config_response=RetryConfig(num_tries=30, sleep_time_init=10, sleep_time_scale=1)
         )
     )
-    url_data = job_result["result_table"]
-    url_ccp4_files = job_result["pockets"]
-    url_pdb_files = job_result["residues"]
-    url_descriptor_descriptions = job_result["descriptor_explanation"]
-    # Get results data from URL
-    pocket_data = response_http_request(
-        url=url_data,
-        response_type="str",
-        retry_config=retry_config
-    )
-    pocket_data_df = pd.read_csv(io.StringIO(pocket_data), sep="\t").set_index("name")
-    # Get files from URLs
+    return job_result_urls
+
+
+def _get_results(
+        job_result_urls: dict,
+        retry_config: Optional[HTTPRequestRetryConfig] = HTTPRequestRetryConfig()
+) -> Tuple[str, str, List[bytes], List[bytes]]:
+    pockets_table, description = [
+        response_http_request(
+            url=job_result_urls[data],
+            response_type="str",
+            retry_config=retry_config
+        ) for data in ["result_table", "descriptor_explanation"]
+    ]
     ccp4_files, pdb_files = [
         [
             response_http_request(
@@ -283,46 +320,18 @@ def from_pdb_id(
                 response_type="bytes",
                 retry_config=retry_config
             ) for url_file in url_files
-        ] for url_files in (url_ccp4_files, url_pdb_files)
+        ] for url_files in (job_result_urls["pockets"], job_result_urls["residues"])
     ]
-    # Parse all PDB files
-    atoms_df, pocket_centers, pocket_radii = _parse_dogsite_pdb_files(
-        contents=pdb_files, pocket_names=pocket_data_df.index
-    )
-    # Add centers and radii to the dataframe
-    pocket_data_df[["center_x", "center_y", "center_z"]] = pocket_centers
-    pocket_data_df["max_radius"] = pocket_radii
-    # Parse all CCP4 files
-    pocket_volumes = {
-        pocket_name: oc.io.ccp4.mrc.from_file_content(gzip.decompress(ccp4))
-        for pocket_name, ccp4 in zip(pocket_data_df.index, ccp4_files)
-    }
-    # Get description file
-    data_description = response_http_request(
-        url=url_descriptor_descriptions,
-        response_type="str",
-        retry_config=retry_config
-    )
-    # Get the parsed PDB file
-    receptor_pdb_file = oc.io.pdb.from_pdb_id(pdb_id=pdb_id)
-    # Return DoGSiteScorerDetector
-    dogsite = DoGSiteScorerDetector(
-        receptor=receptor_pdb_file,
-        pocket_data=pocket_data_df,
-        pocket_atoms=atoms_df,
-        pocket_volumes=pocket_volumes,
-        data_description=data_description
-    )
-    return dogsite
+    return pockets_table, description, ccp4_files, pdb_files
 
 
-def _parse_dogsite_pdb_files(contents: Sequence[bytes], pocket_names: Sequence[str]):
+def _parse_results(
+        pockets_table: str,
+        ccp4_files: Sequence[bytes],
+        pdb_files: Sequence[bytes]
+):
     """
     Parse the PDB files generated by DoGSiteScorer for each detected pocket.
-
-    The PDB files contains ATOM records from the input PDB file,
-    corresponding to a specific pocket's residues.
-    They also contain the geometric center and the max. radius of the pockets.
 
     Parameters
     ----------
@@ -338,8 +347,13 @@ def _parse_dogsite_pdb_files(contents: Sequence[bytes], pocket_names: Sequence[s
         * pocket_centers: Coordinates of the geometric center of each pocket.
         * pocket_radii: Maximum radius of each pocket.
     """
+    # Create a pandas DataFrame from the pockets' data.
+    pocket_data_df = pd.read_csv(io.StringIO(pockets_table), sep="\t").set_index("name")
+    # Parse the PDB files; they contain ATOM records from the input PDB file,
+    #  corresponding to a specific pocket's residues.
+    #  They also contain the geometric center and the max. radius of the pockets.
     pocket_names_repeated, atom_serials, pocket_centers, pocket_radii = [], [], [], []
-    for name, content in zip(pocket_names, contents):
+    for name, content in zip(pocket_data_df.index, pdb_files):
         lines = content.decode().splitlines()
         info_line = lines[5]
         center_and_radius = [float(elem) for elem in info_line.split() if oc._regex.ANY_NUM.match(elem)]
@@ -347,9 +361,15 @@ def _parse_dogsite_pdb_files(contents: Sequence[bytes], pocket_names: Sequence[s
         pocket_radii.append(center_and_radius[3])
         serials = [int(line[6:11]) for line in lines[6:]]
         atom_serials.extend(serials)
-        pocket_names_repeated.extend([name]*len(serials))
+        pocket_names_repeated.extend([name] * len(serials))
+    # Add centers and radii to the dataframe
+    pocket_data_df[["center_x", "center_y", "center_z"]] = np.array(pocket_centers)
+    pocket_data_df["max_radius"] = pocket_radii
+    # Create another dataframe for atom serial numbers of each pocket
     atoms_df = pd.DataFrame(data={"atom_serial": atom_serials}, index=pocket_names_repeated)
-    atoms_df.index.name = "pocket_name"
-    pocket_centers = np.array(pocket_centers)
-    pocket_radii = np.array(pocket_radii)
-    return atoms_df, pocket_centers, pocket_radii
+    atoms_df.index.name = "name"
+    # Parse CCP4 map files to volumes
+    pocket_volumes = [
+        oc.io.ccp4.mrc.from_file_content(gzip.decompress(ccp4)) for ccp4 in ccp4_files
+    ]
+    return pocket_data_df, atoms_df, pocket_volumes
