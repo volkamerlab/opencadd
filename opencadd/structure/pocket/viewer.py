@@ -51,7 +51,6 @@ class PocketViewer:
     """
 
     def __init__(self):
-
         self.viewer = nglview.NGLWidget()
         self.viewer._remote_call("setSize", target="Widget", args=["1000px", "600px"])
         self.pockets_residue_ngl_ixs = {}
@@ -204,12 +203,10 @@ class PocketViewer:
         residue_id2ix = dataframe[["residue.name", "residue.id"]].drop_duplicates()
 
         if pocket._extension == "mol2":
-
             # Map residue names to nglview index (starting from 1)
             residue_id2ix["residue.ngl_ix"] = [str(i) for i in range(1, len(residue_id2ix) + 1)]
 
         else:
-
             # In this case, residue ID and nglview index are the same
             residue_id2ix["residue.ngl_ix"] = [str(i) for i in residue_id2ix["residue.id"]]
 

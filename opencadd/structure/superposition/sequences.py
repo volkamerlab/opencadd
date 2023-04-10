@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 def matrices(name):
-
     """
     A SubstitutionMatrix maps each possible pairing of a symbol of a first alphabet with
     a symbol of a second alphabet to a score (int)
@@ -42,7 +41,6 @@ def matrices(name):
 
 
 def sequence_alignment(seq1: str, seq2: str, matrix: str, gap: int, local: bool = False) -> str:
-
     """
     Perform a global alignment, based on the Needleman-Wunsch algorithm
 

@@ -65,7 +65,6 @@ class RemoteInitializer:
     """
 
     def __init__(self, client, *args, **kwargs):
-
         self._client = client
 
 
@@ -77,7 +76,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
     """
 
     def all_kinase_groups(self):
-
         # Use KLIFS API
         result = self._client.Information.get_kinase_groups().response().result
         # Convert list to DataFrame (1 column)
@@ -87,7 +85,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         return kinase_groups
 
     def all_kinase_families(self, groups=None):
-
         groups = self._ensure_list(groups)
         # Use KLIFS API
         result = (
@@ -100,7 +97,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         return kinase_families
 
     def all_kinases(self, groups=None, families=None, species=None):
-
         groups = self._ensure_list(groups)
         families = self._ensure_list(families)
         # Use KLIFS API
@@ -122,7 +118,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         return kinases
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Use KLIFS API
         result = (
@@ -139,7 +134,6 @@ class Kinases(RemoteInitializer, KinasesProvider):
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
-
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API
         result = (
@@ -164,7 +158,6 @@ class Ligands(RemoteInitializer, LigandsProvider):
     """
 
     def all_ligands(self):
-
         # Use KLIFS API: Get all kinase KLIFS IDs
         kinases_remote = Kinases(self._client)
         kinases = kinases_remote.all_kinases()
@@ -182,7 +175,6 @@ class Ligands(RemoteInitializer, LigandsProvider):
         return ligands
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         # Use KLIFS API (send requests iteratively)
         ligands = self._multiple_remote_requests(self._by_kinase_klifs_id, kinase_klifs_ids)
         # Standardize DataFrame
@@ -223,7 +215,6 @@ class Ligands(RemoteInitializer, LigandsProvider):
         return ligands
 
     def by_kinase_name(self, kinase_names):
-
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get kinase KLIFS IDs for input kinase names (remotely)
         # Note: One kinase name can be linked to multiple kinase KLIFS IDs (due to multiple species)
@@ -252,7 +243,6 @@ class Ligands(RemoteInitializer, LigandsProvider):
         return ligands
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
-
         ligand_klifs_ids = self._ensure_list(ligand_klifs_ids)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
@@ -265,7 +255,6 @@ class Ligands(RemoteInitializer, LigandsProvider):
         return ligands
 
     def by_ligand_expo_id(self, ligand_expo_ids):
-
         ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Use KLIFS API: Get all ligands
         ligands = self.all_ligands()
@@ -286,7 +275,6 @@ class Structures(RemoteInitializer, StructuresProvider):
     """
 
     def all_structures(self):
-
         # Use KLIFS API: Get all kinase KLIFS IDs
         kinases_remote = Kinases(self._client)
         kinases = kinases_remote.all_kinases()
@@ -302,7 +290,6 @@ class Structures(RemoteInitializer, StructuresProvider):
         return structures
 
     def by_structure_klifs_id(self, structure_klifs_ids):
-
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Use KLIFS API
         result = (
@@ -321,7 +308,6 @@ class Structures(RemoteInitializer, StructuresProvider):
         return structures
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
-
         ligand_klifs_ids = self._ensure_list(ligand_klifs_ids)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
@@ -336,7 +322,6 @@ class Structures(RemoteInitializer, StructuresProvider):
         return structures
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Use KLIFS API
         result = (
@@ -357,7 +342,6 @@ class Structures(RemoteInitializer, StructuresProvider):
     def by_structure_pdb_id(
         self, structure_pdb_ids, structure_alternate_model=None, structure_chain=None
     ):
-
         structure_pdb_ids = self._ensure_list(structure_pdb_ids)
         # Use KLIFS API
         result = (
@@ -381,7 +365,6 @@ class Structures(RemoteInitializer, StructuresProvider):
         return structures
 
     def by_ligand_expo_id(self, ligand_expo_ids):
-
         ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
@@ -396,7 +379,6 @@ class Structures(RemoteInitializer, StructuresProvider):
         return structures
 
     def by_kinase_name(self, kinase_names):
-
         kinase_names = self._ensure_list(kinase_names)
         # Use KLIFS API: Get all structures
         structures = self.all_structures()
@@ -419,7 +401,6 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
     """
 
     def all_bioactivities(self, _top_n=None):
-
         # Use KLIFS API: Get all kinase KLIFS IDs
         ligands_remote = Ligands(self._client)
         ligands = ligands_remote.all_ligands()
@@ -441,7 +422,6 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         return bioactivities
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Use KLIFS API: Get all kinase KLIFS IDs
         ligands_remote = Ligands(self._client)
@@ -458,7 +438,6 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         return bioactivities
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
-
         # Use KLIFS API (send requests iteratively)
         bioactivities = self._multiple_remote_requests(self._by_ligand_klifs_id, ligand_klifs_ids)
         # Standardize DataFrame
@@ -470,7 +449,6 @@ class Bioactivities(RemoteInitializer, BioactivitiesProvider):
         return bioactivities
 
     def by_ligand_expo_id(self, ligand_expo_id):
-
         # Use KLIFS API (send requests iteratively)
         bioactivities = self._multiple_remote_requests(self._by_ligand_expo_id, ligand_expo_id)
         # Standardize DataFrame
@@ -557,7 +535,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
 
     @property
     def interaction_types(self):
-
         # Use KLIFS API
         result = self._client.Interactions.get_interactions_get_types().response().result
         # Convert list of ABC objects to DataFrame
@@ -571,7 +548,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         return interaction_types
 
     def all_interactions(self):
-
         # Use KLIFS API: Get all structure KLIFS IDs
         structures_remote = Structures(self._client)
         structures = structures_remote.all_structures()
@@ -587,7 +563,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         return interactions
 
     def by_structure_klifs_id(self, structure_klifs_ids):
-
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Use KLIFS API
         result = (
@@ -606,7 +581,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         return interactions
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
-
         ligand_klifs_ids = self._ensure_list(ligand_klifs_ids)
         # Use KLIFS API: Get structure KLIFS IDs from ligand KLIFS IDs
         structures_remote = Structures(self._client)
@@ -623,7 +597,6 @@ class Interactions(RemoteInitializer, InteractionsProvider):
         return interactions
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Use KLIFS API: Get structure KLIFS IDs from ligand KLIFS IDs
         structures_remote = Structures(self._client)
@@ -648,7 +621,6 @@ class Pockets(RemoteInitializer, PocketsProvider):
     """
 
     def by_structure_klifs_id(self, structure_klifs_id):
-
         # Use KLIFS API
         result = (
             self._client.Interactions.get_interactions_match_residues(
@@ -677,7 +649,6 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
     """
 
     def to_text(self, structure_klifs_id, entity="complex", extension="mol2"):
-
         self._raise_invalid_extension(extension)
 
         if entity == "complex" and extension == "mol2":
@@ -721,14 +692,12 @@ class Coordinates(RemoteInitializer, CoordinatesProvider):
             raise ValueError(f"Data could not be fetched.")
 
     def to_dataframe(self, structure_klifs_id, entity="complex", extension="mol2"):
-
         text = self.to_text(structure_klifs_id, entity, extension)
         dataframe = DataFrame.from_text(text, extension)
         dataframe = self._add_residue_klifs_ids(dataframe, structure_klifs_id)
         return dataframe
 
     def to_rdkit(self, structure_klifs_id, entity="complex", extension="mol2", compute2d=True):
-
         text = self.to_text(structure_klifs_id, entity, extension)
         rdkit_mol = Rdkit.from_text(text, extension, compute2d)
         return rdkit_mol
@@ -882,7 +851,6 @@ class Drugs(RemoteInitializer, DrugsProvider):
     """
 
     def all_drugs(self):
-
         # Use KLIFS API
         result = self._client.Ligands.get_drug_list().response().result
         # Convert list of ABC objects to DataFrame
@@ -902,7 +870,6 @@ class StructureConformations(RemoteInitializer, StructureConformationsProvider):
     """
 
     def all_conformations(self):
-
         # Use KLIFS API: Get all structure KLIFS IDs
         structures_remote = Structures(self._client)
         structures = structures_remote.all_structures()
@@ -918,7 +885,6 @@ class StructureConformations(RemoteInitializer, StructureConformationsProvider):
         return conformations
 
     def by_structure_klifs_id(self, structure_klifs_ids):
-
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Use KLIFS API
         result = (
@@ -945,7 +911,6 @@ class StructureModifiedResidues(RemoteInitializer, StructureModifiedResiduesProv
     """
 
     def by_structure_klifs_id(self, structure_klifs_id):
-
         # Use KLIFS API
         result = (
             self._client.Structures.get_structure_modified_residues(

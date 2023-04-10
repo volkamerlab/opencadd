@@ -56,7 +56,6 @@ class Pocket(PocketBase):
     """
 
     def __init__(self):
-
         self.name = None
         self.data = None
         self.center = None

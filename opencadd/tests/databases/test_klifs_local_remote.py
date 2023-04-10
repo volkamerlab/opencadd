@@ -212,7 +212,6 @@ class TestsAllQueries:
         check_dataframe(result_local, FIELDS.oc_name_to_type("interactions"))
 
     def test_all_bioactivities(self):
-
         """
         Test request result for all kinases.
         """

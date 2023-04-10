@@ -24,7 +24,6 @@ class Region:
     """
 
     def __init__(self, name, residue_ids, residue_ixs=None, color="blue"):
-
         self.name = name
         self.color = color
         self.residue_ids = residue_ids
