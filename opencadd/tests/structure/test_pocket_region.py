@@ -18,7 +18,6 @@ class TestRegion:
         [("example", [1, 2], [10, 20], "blue")],
     )
     def test_attributes_and_properties(self, name, residue_ids, residue_ixs, color):
-
         region = Region(name, residue_ids, residue_ixs, color)
         assert region.name == name
         assert region.residue_ids == residue_ids

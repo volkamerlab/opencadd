@@ -79,7 +79,6 @@ class PocketKlifs(Pocket):
 
     @staticmethod
     def add_klifs_regions(pocket, pocket_residues):
-
         for (region, color), group in pocket_residues.groupby(
             ["residue.klifs_region", "residue.klifs_color"]
         ):
@@ -93,7 +92,6 @@ class PocketKlifs(Pocket):
 
     @staticmethod
     def add_klifs_subpockets(pocket, pocket_residues, subpockets):
-
         # Map residue KLIFS IDs > residue ID
         if subpockets is not None:
             subpockets = pd.DataFrame(subpockets)

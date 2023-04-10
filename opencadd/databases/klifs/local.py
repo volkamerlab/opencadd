@@ -52,7 +52,6 @@ class LocalInitializer:
     """
 
     def __init__(self, database, path_to_klifs_download, *args, **kwargs):
-
         self._database = database
         self._path_to_klifs_download = path_to_klifs_download
 
@@ -70,7 +69,6 @@ class _LocalDatabaseGenerator:
     """
 
     def __init__(self):
-
         self.path_to_klifs_download = None
 
     @classmethod
@@ -317,7 +315,6 @@ class _LocalDatabaseGenerator:
         filepaths = []
 
         for _, row in klifs_metadata.iterrows():
-
             # Depending on whether alternate model and chain ID is given build file path:
             filepath = metadata_to_filepath(
                 ".",
@@ -394,7 +391,6 @@ class Kinases(LocalInitializer, KinasesProvider):
     """
 
     def all_kinase_groups(self):
-
         # Get local database
         kinase_groups = self._database.copy()
         # Standardize DataFrame
@@ -404,7 +400,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         return kinase_groups
 
     def all_kinase_families(self, groups=None):
-
         # Get local database and select rows
         kinase_families = self._database.copy()
         groups = self._ensure_list(groups)
@@ -417,7 +412,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         return kinase_families
 
     def all_kinases(self, groups=None, families=None, species=None):
-
         # Get local database and select rows
         kinases = self._database.copy()
         groups = self._ensure_list(groups)
@@ -433,7 +427,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         return kinases
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         kinases = self._database.copy()
@@ -443,7 +436,6 @@ class Kinases(LocalInitializer, KinasesProvider):
         return kinases
 
     def by_kinase_name(self, kinase_names, species=None):
-
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         kinases = self._database.copy()
@@ -469,7 +461,6 @@ class Ligands(LocalInitializer, LigandsProvider):
     """
 
     def all_ligands(self):
-
         # Get local database
         ligands = self._database.copy()
         # Standardize DataFrame
@@ -477,7 +468,6 @@ class Ligands(LocalInitializer, LigandsProvider):
         return ligands
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         ligands = self._database.copy()
@@ -498,7 +488,6 @@ class Ligands(LocalInitializer, LigandsProvider):
         return ligands
 
     def by_kinase_name(self, kinase_names):
-
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows
         ligands = self._database.copy()
@@ -532,7 +521,6 @@ class Ligands(LocalInitializer, LigandsProvider):
         return ligands
 
     def by_ligand_expo_id(self, ligand_expo_ids):
-
         ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Get local database and select rows
         ligands = self._database.copy()
@@ -553,7 +541,6 @@ class Structures(LocalInitializer, StructuresProvider):
     """
 
     def all_structures(self):
-
         # Get local database
         structures = self._database.copy()
         # Standardize DataFrame
@@ -564,7 +551,6 @@ class Structures(LocalInitializer, StructuresProvider):
         return structures
 
     def by_structure_klifs_id(self, structure_klifs_ids):
-
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Get local database and select rows
         structures = self._database.copy()
@@ -582,7 +568,6 @@ class Structures(LocalInitializer, StructuresProvider):
         return structures
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         structures = self._database.copy()
@@ -597,7 +582,6 @@ class Structures(LocalInitializer, StructuresProvider):
     def by_structure_pdb_id(
         self, structure_pdb_ids, structure_alternate_model=None, structure_chain=None
     ):
-
         structure_pdb_ids = self._ensure_list(structure_pdb_ids)
         # Get local database and select rows
         structures = self._database.copy()
@@ -615,7 +599,6 @@ class Structures(LocalInitializer, StructuresProvider):
         return structures
 
     def by_ligand_expo_id(self, ligand_expo_ids):
-
         ligand_expo_ids = self._ensure_list(ligand_expo_ids)
         # Get local database and select rows
         structures = self._database.copy()
@@ -628,7 +611,6 @@ class Structures(LocalInitializer, StructuresProvider):
         return structures
 
     def by_kinase_name(self, kinase_names):
-
         kinase_names = self._ensure_list(kinase_names)
         # Get local database and select rows (search in all available kinase names)
         structures = self._database.copy()
@@ -662,7 +644,6 @@ class Interactions(LocalInitializer, InteractionsProvider):
     """
 
     def all_interactions(self):
-
         # Get local database
         interactions = self._database.copy()
         # Standardize DataFrame
@@ -673,7 +654,6 @@ class Interactions(LocalInitializer, InteractionsProvider):
         return interactions
 
     def by_structure_klifs_id(self, structure_klifs_ids):
-
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
         # Get local database and select rows
         interactions = self._database.copy()
@@ -686,7 +666,6 @@ class Interactions(LocalInitializer, InteractionsProvider):
         return interactions
 
     def by_kinase_klifs_id(self, kinase_klifs_ids):
-
         kinase_klifs_ids = self._ensure_list(kinase_klifs_ids)
         # Get local database and select rows
         interactions = self._database.copy()
@@ -713,7 +692,6 @@ class Pockets(LocalInitializer, PocketsProvider):
     """
 
     def by_structure_klifs_id(self, structure_klifs_id, extension="mol2"):  # pylint: disable=W0221
-
         # Get kinase pocket from structure ID
         structures_local = Structures(self._database, self._path_to_klifs_download)
         structure = structures_local.by_structure_klifs_id(structure_klifs_id).squeeze()
@@ -786,7 +764,6 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     def to_text(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
     ):  # pylint: disable=W0221
-
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         with open(filepath, "r") as f:
             text = f.read()
@@ -795,7 +772,6 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     def to_dataframe(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2"
     ):  # pylint: disable=W0221
-
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         dataframe = DataFrame.from_file(filepath)
         dataframe = self._add_residue_klifs_ids(dataframe, filepath)
@@ -804,7 +780,6 @@ class Coordinates(LocalInitializer, CoordinatesProvider):
     def to_rdkit(
         self, structure_klifs_id_or_filepath, entity="complex", extension="mol2", compute2d=True
     ):  # pylint: disable=W0221
-
         filepath = self._to_filepath(structure_klifs_id_or_filepath, entity, extension)
         rdkit_mol = Rdkit.from_file(filepath, compute2d)
         return rdkit_mol
@@ -893,7 +868,6 @@ class Drugs(LocalInitializer, DrugsProvider):
     """
 
     def all_drugs(self):
-
         raise NotImplementedError(
             "Information on drugs is not available locally! Please use a remote session."
         )
@@ -907,13 +881,11 @@ class StructureConformations(LocalInitializer, StructureConformationsProvider):
     """
 
     def all_conformations(self):
-
         raise NotImplementedError(
             "Information on conformations is not available locally! Please use a remote session."
         )
 
     def by_structure_klifs_id(self, structure_klifs_id):
-
         raise NotImplementedError(
             "Information on conformations is not available locally! Please use a remote session."
         )
@@ -927,7 +899,6 @@ class StructureModifiedResidues(LocalInitializer, StructureModifiedResiduesProvi
     """
 
     def by_structure_klifs_id(self, structure_klifs_id):
-
         raise NotImplementedError(
             "Information on modified residues is not available locally! Please use a remote session."
         )

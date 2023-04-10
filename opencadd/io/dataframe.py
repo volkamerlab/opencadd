@@ -319,10 +319,8 @@ class DataFrame(_Base):
             dataframe_columns = DATAFRAME_COLUMNS["default"]
 
         # If default column names are missing, add empty columns
-        for (column_name, column_dtype) in dataframe_columns:
-
+        for column_name, column_dtype in dataframe_columns:
             if column_name not in dataframe.columns:
-
                 if column_dtype == "string":
                     dataframe.insert(len(dataframe.columns), column_name, None)
                 elif column_dtype == "float32":

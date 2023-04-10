@@ -75,7 +75,6 @@ class MDAnalysisAligner(BaseAligner):
         superposition_weights=None,
         superposition_delta_mass_tolerance=0.1,
     ):
-
         self.alignment_strategy = alignment_strategy.lower()
         if self.alignment_strategy == "global":
             self._align_local = False

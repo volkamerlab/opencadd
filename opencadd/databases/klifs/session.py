@@ -46,7 +46,6 @@ class Session:
     """
 
     def __init__(self):
-
         # Not None in local only
         self._path_to_klifs_download = None
         self._database = None

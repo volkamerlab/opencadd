@@ -1321,7 +1321,6 @@ class CoordinatesProvider(BaseProvider):
     """
 
     def __init__(self, *args, **kwargs):
-
         self.options = {
             "entities": ["complex", "ligand", "pocket", "protein", "water"],
             "extensions": ["mol2", "pdb"],
