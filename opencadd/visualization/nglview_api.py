@@ -208,3 +208,44 @@ class NGLViewer:
             f"""this.stage.removeComponent(this.stage.getComponentsByName("{name}").first)"""
         )
         return
+
+    def add_grid(
+            self,
+            values,
+            shape,
+            basis_vectors,
+            origin=(0, 0, 0),
+            representation: Literal["surface", "dot", "slice"] = "surface",
+            name: str = "Grid",
+            color: str = "rgb(100,0,0)"
+    ):
+        command = f"""
+        var vol = new NGL.Volume("{name}", " ", {values.tolist()}, {shape[0]}, {shape[1]}, {shape[2]})
+        var m = new NGL.Matrix4()
+        m.set({basis_vectors[0][0]}, {basis_vectors[1][0]}, {basis_vectors[2][0]}, {origin[0]}, 
+              {basis_vectors[0][1]}, {basis_vectors[1][1]}, {basis_vectors[2][1]}, {origin[1]}, 
+              {basis_vectors[0][2]}, {basis_vectors[1][2]}, {basis_vectors[2][2]}, {origin[2]}, 
+              0, 0, 0, 1
+        )
+        vol.setMatrix(m)
+        var comp = this.stage.addComponentFromObject(vol)
+        comp.addRepresentation("{representation}", {{isolevelType: 'value', isolevel: 1, wireframe: true, colorValue: "{color}"}})
+        """
+        self._widget._js(command)
+        return
+
+    def add_axes(self):
+        self._widget._js(
+            """
+            var shape = new NGL.Shape("axes", { disableImpostor: true });
+            shape.addArrow([ 0, 0, 0 ], [ 10, 0, 0 ], [ 1, 0, 0 ], 0.5);
+            shape.addArrow([ 0, 0, 0 ], [ 0, 10, 0 ], [ 0, 1, 0 ], 0.5);
+            shape.addArrow([ 0, 0, 0 ], [ 0, 0, 10 ], [ 0, 0, 1 ], 0.5);
+            shape.addText([10, 0, 0], [0, 0, 0], 9, "x")
+            shape.addText([0, 10, 0], [0, 0, 0], 9, "y")
+            shape.addText([0, 0, 10], [0, 0, 0], 9, "z")
+            var shapeComp = this.stage.addComponentFromObject(shape, {visible: false});
+            shapeComp.addRepresentation("axes");
+            """
+        )
+        return
