@@ -98,6 +98,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
+    'sphinxcontrib.mermaid',  # https://github.com/mgaitan/sphinxcontrib-mermaid
     # 'sphinx.ext.napoleon',
 ]
 
