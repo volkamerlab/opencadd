@@ -174,6 +174,10 @@ class Grid:
             dimensions = np.arange(1, self._dimension + 1)
         return self._direction_vectors[np.isin(self._direction_vectors_dimension, dimensions)]
 
+    @property
+    def unit_vectors(self):
+        return self.coordinates[tuple(np.eye(self.dimension, dtype=int))] - self.coordinates_2d[0]
+
 
 def from_bounds_shape(
         lower_bounds: Sequence[float],
