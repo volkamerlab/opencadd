@@ -6,4 +6,6 @@ This section provides useful background knowledge on the central aspects of CADD
 :hidden:
 
 databases/index
+rmsd
+3d_alignment
 ```
