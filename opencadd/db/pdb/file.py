@@ -150,3 +150,172 @@ def small_molecule(
         path=output_path
     )
 
+
+def dictionary(
+    name: Literal[
+        'pdbx_v50',
+        'pdbx_v5_next',
+        'pdbx_v40',
+        'pdbx_vrpt',
+        'ddl',
+        'ihm',
+        'em',
+        'nmr-star',
+        'img',
+        'sas',
+        'std',
+        'biosync',
+        'sim',
+        'nef',
+        'ndb_ntc'
+    ] = "pdbx_v50",
+    output_path: Optional[PathLike] = None,
+) -> Union[bytes, Path]:
+    """
+    Download one of the mmCIF dictionary file.
+
+    Parameters
+    ----------
+    name : {
+        'ddl',
+        'pdbx_v5_next',
+        'pdbx_v50',
+        'pdbx_v40',
+        'pdbx_vrpt',
+        'ihm',
+        'em',
+        'nmr-star',
+        'img',
+        'sas',
+        'std',
+        'biosync',
+        'sim',
+        'nef',
+        'ndb_ntc'
+    }
+        Name of the dictionary to download; available options are:
+            'pdbx_v50'
+                PDB Exchange Dictionary Version 5.0,
+                supporting the data files in the current PDB archive.
+            'pdbx_v5_next'
+                The development version of the PDB Exchange Dictionary Version 5.0.
+            'pdbx_v40'
+                The prior version to the PDB Exchange Dictionary Version 5.0.
+            'pdbx_vrpt'
+                PDB Validation Report Dictionary, which is
+                an extension of the PDBx/mmCIF dictionary to support the public validation reports.
+            'mmcif_ddl'
+                Dictionary Description Language Version 2 (DDL2),
+                supporting mmCIF and PDB Exchange Dictionary.
+            'ihm'
+                Integrative/Hybrid (I/H) methods extension dictionary, as an extension
+                of the PDB Exchange Dictionary.
+            'em'
+                Community extension data dictionary describing 3D EM structures
+                and experimental data deposited in the EMDB and PDB archives.
+            'nmr-star'
+                PDBx/mmCIF translation of the NMRSTAR data dictionary developed by the BioMagResBank.
+            'img'
+                Extension to the mmCIF dictionary describing image data collections
+                and compact binary representations of diffraction image data.
+            'sas
+                Draft data definitions for small-angle scattering applications.
+            'std'
+                Original IUCr mmCIF Dictionary.
+            'biosync'
+                Extension to the mmCIF dictionary describing
+                the features of synchrotron facilities and beamlines.
+            'sim'
+                Dictionary describing crystallographic symmetry operations.
+            'nef'
+                Draft data definitions for NMR exchange format definitions.
+            'ndb_ntc'
+                The NDB NTC dictionary, which is an extension of the PDBx/mmCIF dictionary
+                for DNATCO conformer analysis of nucleic acids.
+    output_path : str or pathlib.Path
+        Path to a local directory for storing the downloaded file.
+        If the directory does not exist, it and all its necessary parent directories will be created.
+        The filename will be the `name` argument, and the extension will be '.dic'.
+        If not provided (i.e. when set `None`; default),
+        the byte contents of the downloaded file will be returned.
+
+    Returns
+    -------
+    bytes or pathlib.Path
+        Either the content of the downloaded file in bytes (when `output_path` is `None`),
+        or the full filepath of the stored file (when `output_path` is specified).
+
+    References
+    ----------
+    https://mmcif.wwpdb.org/dictionaries/downloads.html
+    """
+    byte_content = gzip.decompress(
+        response_http_request(
+            url=f"https://mmcif.wwpdb.org/dictionaries/ascii/mmcif_{name}.dic.gz",
+            response_type="bytes",
+        )
+    )
+    if output_path is None:
+        return byte_content
+    return _sysio.save_to_file(content=byte_content, filename=name, extension="dic", path=output_path)
+
+
+def chemical_component_dictionary(
+        variant: Literal['main', 'protonation', 'model'] = "main",
+        output_path: Optional[PathLike] = None,
+) -> Union[bytes, Path]:
+    """
+    Download the Chemical Component Dictionary, or one of its variants.
+
+    Parameters
+    ----------
+    variant : {'main', 'protonation', 'model'}, default: 'main'
+        Variant of the dictionary to download; available options are:
+            'main'
+                Chemical Component Dictionary
+            'protonation'
+                Protonation Variants Companion Dictionary
+            'model'
+                Chemical Component Model Data
+    output_path : str or pathlib.Path
+        Path to a local directory for storing the downloaded file.
+        If the directory does not exist, it and all its necessary parent directories will be created.
+        The filename will be the PDB ID, and the extension will be the same as the `file_format` argument.
+        If not provided (i.e. when set `None`; default),
+        the byte contents of the downloaded file will be returned.
+
+    Returns
+    -------
+    bytes or pathlib.Path
+        Either the content of the downloaded file in bytes (when `output_path` is `None`),
+        or the full filepath of the stored file (when `output_path` is specified).
+
+    References
+    ----------
+    https://www.wwpdb.org/data/ccd
+    """
+    if variant == "main":
+        url = "https://files.wwpdb.org/pub/pdb/data/monomers/components.cif.gz"
+        name = "components"
+    elif variant == "protonation":
+        url = "https://files.wwpdb.org/pub/pdb/data/monomers/aa-variants-v1.cif.gz"
+        name = "aa-variants-v1"
+    elif variant == "model":
+        url = "https://files.wwpdb.org/pub/pdb/data/component-models/complete/chem_comp_model.cif.gz"
+        name = "chem_comp_model"
+    else:
+        raise ValueError(
+            "Parameter `variant` of `chemical_component_dictionary` "
+            "expects one of the following argument: ('main', 'protonation', 'model'). "
+            f"The input argument was: {variant}."
+        )
+
+    byte_content = gzip.decompress(
+        response_http_request(
+            url=url,
+            response_type="bytes",
+        )
+    )
+    if output_path is None:
+        return byte_content
+    return _sysio.save_to_file(content=byte_content, filename=name, extension="cif", path=output_path)
