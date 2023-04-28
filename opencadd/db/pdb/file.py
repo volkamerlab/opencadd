@@ -9,7 +9,7 @@ from pathlib import Path
 # Self
 from opencadd._http_request import response_http_request
 from opencadd._typing import PathLike
-from opencadd import _helpers_sysio
+from opencadd import _sysio
 
 # General API endpoints
 _ROOT_FILE: str = f"https://files.rcsb.org"
@@ -83,7 +83,7 @@ def entry(
     byte_content = gzip.decompress(response_http_request(url=url, response_type="bytes"))
     if output_path is None:
         return byte_content
-    return _helpers_sysio.save_to_file(content=byte_content, filename=pdb_id, extension=file_format, path=output_path)
+    return _sysio.save_to_file(content=byte_content, filename=pdb_id, extension=file_format, path=output_path)
 
 
 def small_molecule(
@@ -143,7 +143,7 @@ def small_molecule(
     byte_content = response_http_request(url=url, response_type="bytes")
     if output_path is None:
         return byte_content
-    return _helpers_sysio.save_to_file(
+    return _sysio.save_to_file(
         content=byte_content,
         filename=ligand_id,
         extension=file_format,
