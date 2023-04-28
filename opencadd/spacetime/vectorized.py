@@ -1,6 +1,8 @@
 from typing import Tuple, Optional
 import operator
 import numpy as np
+import jax
+import jax.numpy as jnp
 
 
 def filter_array(
@@ -61,3 +63,31 @@ def filter_array_by_range(
         op_upper(array, minmax_vals[1]),
     )
     return mask
+
+
+def _rmsd_unweighted(p1: jax.Array, p2: jax.Array) -> jax.Array:
+    """
+    Root-mean-square deviation (RMSD) between two sets of points in n-dimensional euclidean space.
+
+    Parameters
+    ----------
+    p1 : jax.Array, shape: (n_points, n_dim)
+        Coordinates of the first set of points.
+    p2 : jax.Array, shape: (n_points, n_dim)
+        Coordinates of the second set of points.
+
+    Returns
+    -------
+    jax.Array
+        RMSD between the two sets as a 0-dimensional array (i.e. a scalar)
+    """
+    return jnp.sqrt(jnp.sum((p1 - p2) ** 2) / p1.shape[0])
+
+
+def _rmsd_weighted(p1: jax.Array, p2: jax.Array, weights: jax.Array) -> jax.Array:
+    n_dim = p1.shape[1]
+    sd = (p1 - p2) ** 2
+    w_sd = sd * weights
+    w_msd = w_sd.sum() / (weights.sum() / n_dim)
+    w_rmsd = jnp.sqrt(w_msd)
+    return w_rmsd
