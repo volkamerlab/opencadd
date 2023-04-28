@@ -192,12 +192,12 @@ class CIFParsingErrorType(enum.Enum):
     """
     Types of errors that may occur during parsing.
     """
-    DUPLICATE = enum.auto()
-    TABLE_INCOMPLETE = enum.auto()
-    BLOCK_CODE_EMPTY = enum.auto()
+    DUPLICATE = 2
+    TABLE_INCOMPLETE = 2
+    BLOCK_CODE_EMPTY = 2
     BAD_TOKEN = 2
-    RESERVED_TOKEN = enum.auto()
-    UNEXPECTED_TOKEN = enum.auto()
+    RESERVED_TOKEN = 2
+    UNEXPECTED_TOKEN = 2
     LOOP_HAS_NAME = 3
     INCOMPLETE_FILE = 2
 
@@ -583,7 +583,8 @@ class CIFToDictParser(CIFParser):
     def _finalize(self):
         super()._finalize()
 
-        dict_vertical = dict(
+        df = pl.DataFrame(
+            dict(
                 block_code=self._block_codes,
                 frame_code_category=self._frame_code_categories,
                 frame_code_keyword=self._frame_code_keywords,
@@ -591,8 +592,18 @@ class CIFToDictParser(CIFParser):
                 data_name_keyword=self._data_name_keywords,
                 data_value=self._data_values,
                 loop_id=self._loop_id,
+            ),
+            dict(
+                block_code=pl.Utf8,
+                frame_code_category=pl.Utf8,
+                frame_code_keyword=pl.Utf8,
+                data_name_category=pl.Utf8,
+                data_name_keyword=pl.Utf8,
+                data_value=pl.List(pl.Utf8),
+                loop_id=pl.UInt32,
             )
-        return _filestruct.CIFFile(dict_hor=self._cif_dict_horizontal, df=pl.DataFrame(dict_vertical))
+        )
+        return CIFFileValidator(df=df, errors=self.errors)
 
     def _add_data(
             self,
@@ -609,3 +620,136 @@ class CIFToDictParser(CIFParser):
         self._data_values.append(data_value)
         self._loop_id.append(loop_id)
         return
+
+
+class CIFFileValidator:
+
+    def __init__(self, df: pl.DataFrame, errors: List[CIFParsingError]):
+        self._df = df
+        self._df_ids = df.select(pl.exclude(["data_value", "loop_id"]))
+        self._errors = errors
+        self.cif_file = _filestruct.DDL2CIFFile(df=df.select(pl.exclude("loop_id")))
+        return
+
+    def validate(self, raise_: bool = True):
+        pre_validated = len(self._errors) == 0
+        post_validated = self.validate_post()
+        validated = pre_validated and post_validated
+        if validated:
+            return True
+        if raise_:
+            raise CIFParsingError()
+        return False
+
+    def validate_post(self, ddl_version: Literal[1, 2] = 2):
+        empty_data_id = not self.has_empty_data_identifier()
+        duplicated = not self.has_duplicated_address()
+        table_columns = self.table_columns_have_same_length()
+        cat_columns = self.data_category_columns_have_same_length()
+        null = not self.has_null()
+        loops = self.loops_have_same_category()
+        ddl = self.is_ddl2_conformant() if ddl_version == 2 else self.is_ddl1_conformant()
+        return all([empty_data_id, duplicated, table_columns, cat_columns, null, loops, ddl])
+
+    def has_empty_data_identifier(
+            self, dim: Literal["elem", "col", "row", "df"] = "df"
+    ) -> Union[pl.DataFrame, pl.Series, bool]:
+        if dim == "df":
+            return self._df_ids.select((pl.any(pl.all() == "")).any())[0, 0]
+        if dim == "row":
+            return self._df_ids.select(pl.any(pl.all() == ""))
+        if dim == "col":
+            return self._df_ids.select((pl.all() == "").any())
+        if dim == "elem":
+            return self._df_ids.select(pl.all() == "")
+        raise ValueError()
+
+    def has_duplicated_address(self, dim: Literal["row", "df"] = "df"):
+        mask = self._df_ids.is_duplicated()
+        if dim == "row":
+            return mask
+        if dim == "df":
+            return mask.any()
+        raise ValueError()
+
+    def has_null(self, per_row: bool = False):
+        series: pl.Series = self._df.select(
+            pl.any(
+                pl.exclude(["frame_code_category", "frame_code_keyword", "data_name_keyword"]).is_null()
+            ).alias("mask")
+        )["mask"]
+        if per_row:
+            return series
+        return series.any()
+
+    def table_columns_have_same_length(self, per_table: bool = False):
+        df_per_loop = self._df.with_columns(
+            pl.col("data_value").arr.lengths().alias("list_lengths")
+        ).groupby(
+            "loop_id"
+        ).agg(
+            (pl.col("list_lengths").n_unique() == 1).alias("has_same_length")
+        )
+        if per_table:
+            return df_per_loop
+        return df_per_loop["has_same_length"].all()
+
+    def data_category_columns_have_same_length(self, per_category: bool = False):
+        df_per_category = self._df.with_columns(
+            pl.col("data_value").arr.lengths().alias("list_lengths")
+        ).groupby(
+            ["block_code", "frame_code_category", "frame_code_keyword", "data_name_category"]
+        ).agg(
+            (pl.col("list_lengths").n_unique() == 1).alias("has_same_length")
+        )
+        if per_category:
+            return df_per_category
+        return df_per_category["has_same_length"].all()
+
+    def loops_have_same_category(self, per_loop: bool = False):
+        df_per_loop = self._df.filter(
+            pl.col("loop_id") > 0
+        ).groupby(
+            "loop_id"
+        ).agg(
+            (pl.col("data_name_category").n_unique() == 1).alias("has_same_category")
+        )
+        if per_loop:
+            return df_per_loop
+        return df_per_loop["has_same_category"].all()
+
+    def is_ddl2_conformant(self, per_data_name: bool = False) -> [pl.Series, bool]:
+        """
+        Check whether data names conform to Dictionary Definition Language Version 2 (DDL2) standard.
+
+        According to the DDL2 standard, data names must consist of a category name and a keyword name,
+        separated by a '.' character. Notice that there is no constraint on frame codes, i.e. they can
+        either have a category name and a keyword name like data names, or just a category name.
+
+        Parameters
+        ----------
+        per_data_name : bool, default: False
+            If True, a polars Series is returned, indicating whether each data name conforms (True) to
+            the DDL2 standard or not (False). Otherwise, a single boolean value is returned indicating
+            whether all data names are conformant (True) or not (False).
+
+        Returns
+        -------
+        polars.Series or bool
+        """
+        # If the data name contains no '.', the parser assigns a None to the keyword name.
+        #  Therefore, we can just check whether the `data_name_keyword` column has null values.
+        series_per_data_name: pl.Series = self._df_ids.select(
+            pl.col("data_name_keyword").is_not_null()
+        )["data_name_keyword"]
+        if per_data_name:
+            return series_per_data_name
+        return series_per_data_name.all()
+
+    def is_ddl1_conformant(self, per_data_name: bool = False) -> [pl.Series, bool]:
+        series_per_data_name: pl.Series = self._df.select(
+            pl.all(pl.col(["frame_code_keyword", "data_name_keyword"]).is_null()).alias("mask")
+        )["mask"]
+        if per_data_name:
+            return series_per_data_name
+        return series_per_data_name.all()
