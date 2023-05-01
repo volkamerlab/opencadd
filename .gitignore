@@ -112,3 +112,5 @@ ENV/
 # Sphinx
 /docs/_build/
 /docs/build
+/docs-jb/_build/
+/docs/sample_temp/
