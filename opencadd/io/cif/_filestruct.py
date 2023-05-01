@@ -414,7 +414,6 @@ class DDL2CIFCatDefBlock:
         return _dataframe_per_table(self.df, col_name__other_ids=("frame_code_category", ))
 
 
-
 def _dataframe_per_table(
         df: pl.DataFrame,
         col_name__table_id: str = "data_name_category",
