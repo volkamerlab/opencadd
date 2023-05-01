@@ -131,13 +131,6 @@ Installing OpenCADD-KLIFS only
 
 In case you would like to install the dependencies for the OpenCADD-KLIFS module only, please follow these instructions.
 
-.. note::
-
-    We are assuming you have a working ``mamba`` installation in your computer.
-    If this is not the case, please refer to their `official documentation <https://mamba.readthedocs.io/en/latest/installation.html#mamba>`_.
-
-    If you installed ``mamba`` into an existing ``conda`` installation, also make sure that the ``conda-forge`` channel is configured by running ``conda config --add channels conda-forge``.
-
 
 1. Create a new conda environment called ``opencadd-klifs`` only with the dependencies needed for the OpenCADD-KLIFS module::
 

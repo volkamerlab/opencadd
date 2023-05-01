@@ -1,7 +1,33 @@
-from typing import List, Union, NoReturn, Optional,Sequence
+from typing import List, Union, NoReturn, Optional,Sequence, Literal, NamedTuple
 import nglview as nv
 import numpy as np
 from opencadd._typing import ArrayLike
+
+
+# class RepresentationParameters(NamedTuple):
+#     opacity: float = 1,
+#     wireframe: bool = False,
+#     color_value: str = "rgb(128, 128, 128)"
+#
+#     def __str__(self):
+#
+#         inputs = [f"{param}: "]
+#
+#         ", ".join([])
+#
+# class SurfaceRepresentationParameters(NamedTuple):
+#     """
+#
+#     """
+#     isolevel_type: Literal["value", "sigma"] = "value"
+#     isolevel: float = 1.0
+#     smooth: int = 0
+#     background: bool
+#     opaque_back: bool
+#     box_size: int
+#     use_worker: bool
+#     wrap: bool
+
 
 
 class NGLViewAdaptor(nv.Structure, nv.Trajectory):
@@ -31,7 +57,7 @@ class NGLViewer:
         return
 
     @property
-    def nglwidget(self):
+    def widget(self):
         return self._widget
 
     def add_ensemble(self, ensemble):
@@ -160,6 +186,7 @@ class NGLViewer:
             );
             """
         )
+        return
 
     def add_representation_to_structure(
             self,
@@ -188,6 +215,7 @@ class NGLViewer:
             );
             """
         )
+        return
 
     def remove_component_by_name(self, name: str) -> NoReturn:
         """

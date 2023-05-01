@@ -48,3 +48,10 @@ def from_pdb_id(
     return from_pdb_structure(
         oc.io.pdb.read.from_pdb_id(pdb_id=pdb_id, biological_assembly_id=biological_assembly_id)
     )
+
+
+class ChemicalEnsembleVisualization:
+
+    def __init__(self, ensemble):
+        self._ensemble = ensemble
+        return

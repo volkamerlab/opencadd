@@ -4,6 +4,9 @@ import numpy as np
 import jax.numpy as jnp
 
 
+__author__ = "Armin Ariamajd"
+
+
 PathLike: TypeAlias = Union[str, Path]
 FileContentLike: TypeAlias = Union[str, bytes, IO]
 FileLike: TypeAlias = Union[PathLike, FileContentLike]
@@ -47,5 +50,3 @@ def smallest_integer_dtype_for_range(min_val, max_val) -> Type[np.integer]:
             f"Bit overflow. Bounds for largest type ({[signed_types[-1]]}) is "
             f"[{signed_mins[-1]}, {signed_maxes[-1]}]. Given interval was [{min_val}, {max_val}]."
         )
-
-

@@ -7,7 +7,68 @@ import jax.numpy as jnp
 import numpy.typing as npt
 
 import opencadd as oc
-from opencadd._typing import ArrayLike
+import opencadd._typing
+import opencadd._exceptions
+import opencadd.spacetime.vectorized
+
+
+class PointCloud:
+    """
+    A discrete set of points in n-dimensional space.
+    """
+
+    def __init__(self, points: oc._typing.ArrayLike):
+        points = jnp.asarray(points)
+        oc._exceptions.raise_array(
+            parent_name=self.__class__.__name__,
+            param_name="points",
+            array=points,
+            ndim_eq=2,
+            dtypes="real"
+        )
+        self._points = points
+        self._kdtree = None
+        return
+
+    @property
+    def array(self) -> jnp.ndarray:
+        return self._points
+    
+    @property
+    def count_points(self) -> int:
+        return self._points.shape[0]
+
+    @property
+    def dimension(self) -> int:
+        return self._points.shape[1]
+
+    @property
+    def kdtree(self) -> sp.spatial.KDTree:
+        if self._kdtree is None:
+            self._kdtree = sp.spatial.KDTree(self._points)
+        return self._kdtree
+
+    def rmsd(self, points, weights = None):
+        if weights is not None:
+            weights_arr = jnp.asarray(weights)
+            if weights_arr.ndim == 1:
+                if weights_arr.size != self.count_points:
+                    raise ValueError()
+                weights_arr = jnp.expand_dims(weights_arr, axis=-1)
+            elif (
+                weights_arr.ndim == 2 and (
+                    weights_arr.shape[0] not in (1, self.count_points) or
+                    weights_arr.shape[1] not in (1, self.dimension) or
+                    weights_arr.shape == (1, 1)
+                )
+            ):
+                raise ValueError()
+            else:
+                raise ValueError()
+        points_arr = jnp.asarray(points)
+        if points_arr.ndim == 2 and points_arr.shape == self._points.shape:
+            return oc.spacetime.vectorized
+
 
 
 class DynamicPointCloud:
@@ -22,7 +83,7 @@ class DynamicPointCloud:
         "_kdtrees_per_instance",
     )
 
-    def __init__(self, data: npt.ArrayLike):
+    def __init__(self, data: oc._typing.ArrayLike):
         # Check for errors in `data`:
         data_tensor = jnp.asarray(data)
         if data_tensor.ndim != 3:
@@ -311,6 +372,8 @@ class DynamicPointCloud:
             )
             for idx_instance, kdtree in enumerate(self._kdtrees_list):
                 indices[idx_instance, ..., 0] = idx_instance
+                # Scipy KDTree.query:
+                #  returns distances and indices; distances
                 distances[idx_instance], indices[idx_instance, ..., 1] = kdtree.query(
                     x=points_array,
                     k=k_neighbors,
@@ -367,3 +430,5 @@ class DynamicPointCloud:
         * https://doi.org/10.3390/a11020019
         * https://doi.org/10.1063/1.4965440
         """
+
+

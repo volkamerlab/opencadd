@@ -36,7 +36,7 @@ class ToxelField:
             Label for each type of data present. The grid can then be indexed using labels as well.
         """
         # Check for errors in input arguments.
-        _exceptions.raise_type(self.__class__.__name__, ("grid", grid, Grid))
+        _exceptions.raise_for_type(self.__class__.__name__, ("grid", grid, Grid))
         tensor = jnp.asarray(tensor)
         _exceptions.raise_array(
             parent_name=self.__class__.__name__,

@@ -45,7 +45,7 @@ class PDBParser:
             * 3: completely validate the PDB file and raise all errors.
         """
         if not isinstance(content, str):
-            _exceptions.raise_type(
+            _exceptions.raise_for_type(
                 param_name="content",
                 parent_name="PDBParser",
                 expected_type=str,

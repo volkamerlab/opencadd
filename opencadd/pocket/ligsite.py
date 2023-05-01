@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional, Union, Sequence, Literal
 import opencadd as oc
 
@@ -9,7 +10,7 @@ class LigSiteDetector:
 
     def __init__(
             self,
-            receptor: oc.chem.system.ChemicalSystem,
+            receptor,#: oc.chem.system.ChemicalSystem,
             resolution_or_grid: Union[float, Sequence[float], oc.spacetime.grid.Grid],
             num_directions: Literal[3, 7, 13] = 13,
             max_radius: Optional[float] = None,

@@ -13,7 +13,7 @@ from opencadd import _exceptions
 class ToxelVolume:
 
     def __init__(self, toxels, grid):
-        _exceptions.raise_type(self.__class__.__name__, ("grid", grid, oc.spacetime.grid.Grid))
+        _exceptions.raise_for_type(self.__class__.__name__, ("grid", grid, oc.spacetime.grid.Grid))
         toxels = jnp.asarray(toxels)
         _exceptions.raise_array(
             parent_name=self.__class__.__name__,

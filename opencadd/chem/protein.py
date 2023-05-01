@@ -160,58 +160,7 @@ class Protein:
         return nglview.show_file(str(self._structure_filepath), height="800px")
 
 
-    def pdb_to_pdbqt_openbabel(
-            self,
-            pdb_filepath: Path,
-            pdbqt_filepath: Optional[Path] = None,
-            add_hydrogens: bool = True,
-            protonate_for_pH: Union[float, None] = 7.4,
-            calculate_partial_charges: bool = True,
-    ):
-        """
-        Convert a PDB file to a PDBQT file, and save it in the given filepath.
 
-        Parameters
-        ----------
-        pdb_filepath: str or pathlib.Path
-            Path to input PDB file.
-        pdbqt_filepath: str or pathlib.Path
-            Path to output PDBQT file.
-        add_hydrogens : bool, Optional, default: True
-            Whether to add hydrogen atoms to the structure.
-        protonate_for_pH : float | None, Optional, default: 7.4
-            pH value to optimize protonation state of the structure. Disabled if `None`.
-        calculate_partial_charges : bool, Optional, default: True
-            Whether to calculate partial charges for each atom.
-
-        Returns
-        -------
-        openbabel.pybel.Molecule
-            Molecule object of PDB file, modified according to the input.
-            The PDBQT file will be stored in the provided path.
-
-        References
-        ----------
-        https://open-babel.readthedocs.io/en/latest/FileFormats/AutoDock_PDBQT_format.html
-        """
-        # pybel.readfile() provides an iterator over the Molecules in a file.
-        # To access the first (and possibly only) molecule in a file, we use next()
-        molecule = next(pybel.readfile("pdb", str(Path(pdb_filepath).with_suffix(".pdb"))))
-        if protonate_for_pH:
-            molecule.OBMol.CorrectForPH(protonate_for_pH)
-        if add_hydrogens:
-            molecule.addh()
-        if calculate_partial_charges:
-            for atom in molecule.atoms:
-                atom.OBAtom.GetPartialCharge()
-        # TODO: expose write options to function sig (see ref.)
-        molecule.write(
-            format="pdbqt",
-            filename=str(pdbqt_filepath.with_suffix(".pdbqt")),
-            overwrite=True,
-            opt={"r": None, "n": None, "p": None}
-        )
-        return molecule
 
 
 def from_pdb_id(pdb_id: str) -> Protein:

@@ -17,9 +17,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from ipywidgets import interact
 # Self
-from opencadd.chemical import protein
-from opencadd import interaction
-from opencadd.consts import autodock
+from opencadd.chem import protein
+from opencadd import mif
+from opencadd.const import autodock
 from opencadd.spacetime import field, vectorized
 from opencadd.visualization import nglview_api
 import ipywidgets as widgets
@@ -81,7 +81,7 @@ class T2FPharm:
     def __init__(
             self,
             receptor: protein.Protein,
-            fields: interaction.abc.IntraMolecularInteractionField,
+            fields: mif.abc.IntraMolecularInteractionField,
             distance_limit: float = 5,
     ):
         """
@@ -145,10 +145,6 @@ class T2FPharm:
     @property
     def distances_to_nearest_protein_atom(self) -> np.ndarray:
         return self._dist_nearest_atoms
-
-
-
-
 
     @property
     def ngl_widget(self):
@@ -316,50 +312,6 @@ class T2FPharm:
         # Apply cutoff and return
         self._vacancy = energy_vals < energy_cutoff
         return self._vacancy
-
-
-    def calculate_buriedness(
-            self,
-            vacancy: Optional[np.ndarray] = None,
-            psp_distances: Optional[np.ndarray] = None,
-            psp_max_length: float = 10.0,
-            psp_min_count: int = 4,
-    ) -> np.ndarray:
-        """
-        Calculate whether each grid point is buried inside the target structure or not, based on
-        counting the number of protein-solvent-protein (PSP) events for each point, and applying
-        a cutoff.
-
-        Notice that before using this method, a vacancy grid must be calculated using the method
-        `calculate_vacancy_from_energy`.
-
-        Parameters
-        ----------
-        vacancy : numpy.ndarray
-
-        psp_distances : numpy.ndarray
-        psp_max_length : float, Optional, default: 10.0
-            Maximum acceptable distance for a PSP event, in Ångstrom (Å).
-        psp_min_count : int, Optional, default: 4
-            Minimum required number of PSP events for a grid point, in order to count as buried.
-
-        Returns
-        -------
-        buriedness : numpy.ndarray[dtype=numpy.bool_, shape=grid_vacancy.shape]
-            A 4-dimensional array matching the dimensions of the grid,
-            indicating whether each grid point is buried (True), or exposed (False).
-            Thus, the buried grid points can easily be indexed using boolean indexing with this
-            array, i.e.: `grid[buriedness]`.
-        """
-        if vacancy is None:
-            vacancy = self.vacancy
-        if psp_distances is None:
-            psp_distances = self.psp_distances
-        # Count PSP events that are shorter than the given cutoff.
-        grid_psp_counts = np.count_nonzero(psp_distances <= psp_max_length, axis=-1)
-        buriedness = grid_psp_counts >= psp_min_count
-        buriedness[np.logical_not(vacancy)] = False
-        return buriedness
 
     def calculate_distances_to_protein_atoms(self):
         self._distances_to_protein_atoms = self._fields.grid.distance(
@@ -747,7 +699,7 @@ class T2FPharmWidget:
         selected: bool = change["new"]
         self._curr_selection_vacancy_source[
             -1 if source_name == "Distance" else
-            self._t2fpharm.fields.index_field_names(names=[source_name])
+            self._t2fpharm.fields.index_field(name=[source_name])
         ] = selected
         num_selected_sources = np.count_nonzero(self._curr_selection_vacancy_source)
         self._widget_refine_vacancy_mode_buttons.disabled = num_selected_sources in (0, 1)

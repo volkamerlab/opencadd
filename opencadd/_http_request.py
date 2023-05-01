@@ -10,6 +10,9 @@ import requests
 from opencadd._decorator import RetryConfig, retry_on_exception
 
 
+__author__ = "Armin Ariamajd"
+
+
 class WebAPIError(IOError):
     """Base Exception class for all web API exceptions."""
     pass
@@ -291,4 +294,3 @@ def response_http_request(
     )
     # Call the (decorated or non-decorated) response-value function and return.
     return response_val_func()
-

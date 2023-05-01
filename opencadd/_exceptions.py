@@ -17,7 +17,7 @@ __author__ = "Armin Ariamajd"
 def error_string(
         parent_name: str,
         param_name: str,
-        param_arg,
+        param_arg: Any,
         expectation: str,
         catch: str,
         title: Optional[str] = None
@@ -29,7 +29,7 @@ def error_string(
     return err if title is None else f"{title}:\n{err}"
 
 
-def raise_type(
+def raise_for_type(
         parent_name: str,
         *args: Tuple[str, Any, Type]
 ) -> NoReturn:
@@ -60,6 +60,24 @@ def raise_type(
                     catch=f"the type of input argument was {type(param_arg)}"
                 )
             )
+
+
+def raise_literal(
+        parent_name: str,
+        *args: Tuple[str, Any, Sequence[Any]]
+) -> NoReturn:
+    for param_name, param_arg, expected_vals in args:
+        if param_arg not in expected_vals:
+            raise ValueError(
+                error_string(
+                    parent_name=parent_name,
+                    param_name=param_name,
+                    param_arg=param_arg,
+                    expectation=f"a value from the set {expected_vals}",
+                    catch=f"the input argument was {param_arg}"
+                )
+            )
+
 
 
 def raise_array(
@@ -120,8 +138,11 @@ def raise_array(
             )
 
     def dtype(types):
-        if not isinstance(types, Sequence):
+        if isinstance(types, str) or not isinstance(types, Sequence):
             types = [types]
+        if "real" in types:
+            types.remove("real")
+            types.extend([np.integer, np.floating])
         if not np.any([np.issubdtype(array.dtype, datatype) for datatype in types]):
             raise TypeError(
                 error_string_partial(
