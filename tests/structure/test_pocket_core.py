@@ -9,7 +9,7 @@ import pytest
 
 from opencadd.structure.pocket import Pocket, AnchorResidue
 
-PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/pocket"
+PATH_TEST_DATA = Path(__name__).parent / "tests/data/pocket"
 
 
 class TestsPocket:
