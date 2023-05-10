@@ -3,8 +3,8 @@ opencadd
 A Python library for structural cheminformatics
 """
 
+from ._version import __version__
 import logging
-
 
 _logger = logging.getLogger(__name__)
 
