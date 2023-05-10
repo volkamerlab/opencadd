@@ -1,0 +1,127 @@
+[build-system]
+
+requires = ["setuptools>=61.0", "versioningit~=2.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+name = "opencadd"
+description = "Fundamental tools for computer-aided drug design."
+dynamic = ["version"]
+readme = "README.md"
+authors = [
+    {name = "Armin Ariamajd"},
+    {name = "Dominique Sydow"},
+    {name = "Jaime Rodríguez-Guerra"},
+    {name = "Andrea Volkamer", email = "volkamer@cs.uni-saarland.de"},
+]
+maintainers = [
+  {name = "Armin Ariamajd", email = "a.ariamajd@gmail.com"},
+]
+license = {file = "LICENSE"}
+keywords = [
+    "computer-aided drug design",
+    "CADD",
+    "bioinformatics",
+    "cheminformatics",
+    "drug design",
+]
+classifiers = [  # See https://pypi.org/classifiers/
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+requires-python = ">=3.9"
+dependencies = [  # TODO: Add full list of dependencies
+    "numpy",
+    "scipy",
+    "polars",
+    "pandas",
+]
+
+
+[project.urls]
+Homepage = "https://opencadd.readthedocs.io/"
+Source = "https://github.com/volkamerlab/opencadd/"
+Documentation = "https://opencadd.readthedocs.io/"
+ChangeLog = "https://github.com/volkamerlab/opencadd/blob/master/CHANGELOG.md"
+
+
+[project.optional-dependencies]
+test = [
+  "pytest>=6.1.2",
+  "pytest-runner"
+]
+
+
+[tool.setuptools]
+# This subkey is a beta stage development and keys may change in the future,
+#  see https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html for more details
+
+zip-safe = false
+# As of version 0.971, mypy does not support type checking of installed zipped
+# packages (because it does not actually import the Python packages).
+# We declare the package not-zip-safe so that our type hints are also available
+# when checking client code that uses our (installed) package.
+# Ref:
+# https://mypy.readthedocs.io/en/stable/installed_packages.html?highlight=zip#using-installed-packages-with-mypy-pep-561
+
+
+# Let setuptools discover the package in the current directory,
+# but be explicit about non-Python files.
+# See also:
+#   https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#setuptools-specific-configuration
+# Note that behavior is currently evolving with respect to how to interpret the
+# "data" and "tests" subdirectories. As of setuptools 63, both are automatically
+# included if namespaces is true (default), even if the package is named explicitly
+# (instead of using 'find'). With 'find', the 'tests' subpackage is discovered
+# recursively because of its __init__.py file, but the data subdirectory is excluded
+# with include-package-data = false and namespaces = false.
+include-package-data = true
+
+
+[tool.setuptools.packages.find]
+
+where = ["."]
+namespaces = false  # This will prevent any folder without an __init__.py file from being scanned.
+
+
+[tool.setuptools.package-data]
+# Ref https://setuptools.pypa.io/en/latest/userguide/datafiles.html#package-data
+opencadd = [
+    "py.typed"
+]
+
+
+[tool.versioningit]
+default-version = "1+unknown"
+
+
+[tool.versioningit.format]
+distance = "{base_version}+{distance}.{vcs}{rev}"
+dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+
+
+[tool.versioningit.vcs]
+# The method key:
+method = "git"  # <- The method name
+# Parameters to pass to the method:
+match = ["*"]
+default-tag = "1.0.0"
+
+
+[tool.versioningit.write]
+file = "opencadd/_version.py"
