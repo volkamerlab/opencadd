@@ -13,7 +13,7 @@ from opencadd.databases.klifs.api import setup_local, setup_remote
 from opencadd.databases.klifs.schema import FIELDS
 from opencadd.utils import enter_temp_directory
 
-PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
+PATH_TEST_DATA = Path(__name__).parent / "tests/data/klifs"
 
 # Set local and remote session
 REMOTE = setup_remote()

@@ -12,7 +12,7 @@ from opencadd.databases.klifs.exceptions import (
     KlifsPocketUnequalSequenceStructure,
 )
 
-PATH_TEST_DATA = Path(__name__).parent / "opencadd/tests/data/klifs"
+PATH_TEST_DATA = Path(__name__).parent / "tests/data/klifs"
 
 # Set local session
 LOCAL = setup_local(PATH_TEST_DATA)
