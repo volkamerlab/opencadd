@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - "master"
+      - "dev"
   pull_request:
     branches:
       - "master"
+      - "dev"
   schedule:
     # Run a cron job once weekly on Monday
     - cron: "0 3 * * 1"
