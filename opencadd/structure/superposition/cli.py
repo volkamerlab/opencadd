@@ -6,7 +6,7 @@ import logging
 
 from .api import align, METHODS
 from ..core import Structure
-from ...utils import PerLevelFormatter, EmojiPerLevelFormatter
+from ..._utils import PerLevelFormatter, EmojiPerLevelFormatter
 from ..._version import get_versions as _get_versions
 
 __version__ = _get_versions()["version"]

@@ -63,8 +63,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
-docs/generated/
+docs_/_build/
+docs_/generated/
 
 # PyBuilder
 target/
@@ -104,3 +104,13 @@ ENV/
 
 # VSCode
 .vscode/
+
+# PyCharm
+/.idea/
+
+
+# Sphinx
+/docs/_build/
+/docs/build
+/docs-jb/_build/
+/docs/sample_temp/

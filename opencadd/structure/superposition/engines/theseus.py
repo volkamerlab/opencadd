@@ -26,7 +26,7 @@ from distutils.spawn import find_executable
 import numpy as np
 
 from .base import BaseAligner
-from ....utils import enter_temp_directory
+from ...._utils import enter_temp_directory
 
 
 _logger = logging.getLogger(__name__)

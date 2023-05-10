@@ -123,4 +123,27 @@ Some packages are only needed for a subset of the following modules: [1] ``openc
 [3] ``opencadd.structure.superposition``, 
 [4] ``opencadd.structure.pocket``
 
-This list of minimal supported versions is based on `this CI run <https://github.com/volkamerlab/opencadd/runs/4462667598?check_suite_focus=true#step:6:42>`_.
+This list of miimal supported versions is based on `this CI run <https://github.com/volkamerlab/opencadd/runs/4462667598?check_suite_focus=true#step:6:42>`_.
+
+
+Installing OpenCADD-KLIFS only
+------------------------------
+
+In case you would like to install the dependencies for the OpenCADD-KLIFS module only, please follow these instructions.
+
+
+1. Create a new conda environment called ``opencadd-klifs`` only with the dependencies needed for the OpenCADD-KLIFS module::
+
+    mamba create -n opencadd-klifs bravado pandas tqdm rdkit biopandas
+
+2. Activate the new conda environment::
+
+    conda activate opencadd-klifs
+
+3. Install the ``opencadd`` package without any dependencies (all OpenCADD-KLIFS-relevant dependencies have been installed in step 1 already)::
+
+    mamba install opencadd --no-deps
+
+   If you are planning on working with Jupyter notebooks, install JupyterLab and IPyWidgets::
+
+    mamba install jupyterlab ipywidgets
