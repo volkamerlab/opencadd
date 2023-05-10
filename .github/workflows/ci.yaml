@@ -47,13 +47,13 @@ jobs:
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
 
-#      # TODO: Remove this step when patched theseus makes it to CF
-#      - name: Build patched mmligner
-#        shell: bash -l {0}
-#        run: |
-#          conda activate base
-#          conda install conda-build
-#          conda build devtools/conda-recipes/mmligner/
+      # TODO: Remove this step when patched theseus makes it to CF
+      - name: Build patched mmligner
+        shell: bash -l {0}
+        run: |
+          conda activate base
+          conda install conda-build
+          conda build devtools/conda-recipes/mmligner/
 
       - name: Install package
         shell: bash -l {0}
