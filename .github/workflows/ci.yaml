@@ -93,6 +93,7 @@ jobs:
       - name: Install linters
         uses: mamba-org/provision-with-micromamba@v15
         with:
+          environment-file: false
           channels: conda-forge,defaults,bioconda
           cache-env: true
           extra-specs: |
