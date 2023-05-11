@@ -92,14 +92,14 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      # More info on options: https://github.com/marketplace/actions/provision-with-micromamba
+      - uses: mamba-org/provision-with-micromamba@v15
         with:
-          python-version: "3.9"
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
+          cache-env: true
+          extra-specs: |
+            python=${PYVER}
 
       - name: Run pylint
         shell: bash -l {0}
