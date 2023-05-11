@@ -84,9 +84,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      CI_OS: ubuntu-latest
       PACKAGE: "opencadd"
-      PYVER: "3.9"
 
     steps:
       - name: Checkout the code
@@ -99,7 +97,7 @@ jobs:
           channels: conda-forge,defaults,bioconda
           cache-env: true
           extra-specs: |
-            python=$PYVER
+            python=3.8
 
       - name: Run pylint
         shell: bash -l {0}
