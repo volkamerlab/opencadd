@@ -43,29 +43,26 @@ jobs:
           ulimit -a
 
       - name: Install dependencies
-        uses: conda-incubator/setup-miniconda@v2
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
-          channels: conda-forge,defaults,bioconda
+          cache-env: true
+          extra-specs: |
+            python=${{ matrix.python-version }}
 
       # TODO: Remove this step when patched theseus makes it to CF
       - name: Build patched mmligner
         shell: bash -l {0}
         run: |
-          conda activate base
-          conda install conda-build
+          micromamba install conda-build
           conda build devtools/conda-recipes/mmligner/
 
       - name: Install OpenCADD
         shell: bash -l {0}
         run: |
-          conda install -c local mmligner pip
+          micromamba install -c local mmligner pip
           python -m pip install . --no-deps
-          conda list
+          micromamba list
 
       - name: Run unit tests
         shell: bash -l {0}
