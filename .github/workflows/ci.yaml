@@ -99,7 +99,7 @@ jobs:
           channels: conda-forge,defaults,bioconda
           cache-env: true
           extra-specs: |
-            python=${PYVER}
+            python=${{ PYVER }}
 
       - name: Run pylint
         shell: bash -l {0}
