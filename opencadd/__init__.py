@@ -3,7 +3,7 @@ opencadd
 A Python library for structural cheminformatics
 """
 
-from ._version import __version__
+from ._version import __version__  # pylint: disable=import-error
 import logging
 
 _logger = logging.getLogger(__name__)
