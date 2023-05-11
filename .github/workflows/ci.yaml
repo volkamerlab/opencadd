@@ -1,21 +1,26 @@
-#!/bin/bash
+
 name: CI
 
 on:
+
   push:
     branches:
       - "master"
       - "dev"
+
   pull_request:
     branches:
       - "master"
       - "dev"
+
   schedule:
     # Run a cron job once weekly on Monday
     - cron: "0 3 * * 1"
 
 jobs:
+
   test:
+
     name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -75,8 +80,8 @@ jobs:
           flags: unittests
           yml: ./.codecov.yml
 
-  #############
-  lint-format:
+  Lint:
+
     runs-on: ubuntu-latest
     env:
       CI_OS: ubuntu-latest
@@ -113,6 +118,8 @@ jobs:
           black --check -l 99 $PACKAGE/
 
   docs:
+
+    name: Build Documentation with Sphinx
     runs-on: ubuntu-latest
     env:
       CI_OS: ubuntu-latest
