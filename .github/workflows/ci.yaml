@@ -1,69 +1,72 @@
-#!/bin/bash
+
 name: CI
 
 on:
+
   push:
     branches:
       - "master"
+      - "dev"
+
   pull_request:
     branches:
       - "master"
+      - "dev"
+
   schedule:
     # Run a cron job once weekly on Monday
     - cron: "0 3 * * 1"
 
 jobs:
+
   test:
-    name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
+
+    name: Test (OS ${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macOS-latest, ubuntu-latest]
-        python-version: [3.7, 3.8]
+        os: [macOS-latest, ubuntu-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11"]
     env:
-      CI_OS: ${{ matrix.os }}
-      PYVER: ${{ matrix.python-version }}
       PACKAGE: "opencadd"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Additional info about the build
+      - name: Additional build info
         shell: bash
         run: |
           uname -a
           df -h
           ulimit -a
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Install dependencies
+        uses: mamba-org/provision-with-micromamba@main
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
-          channels: conda-forge,defaults,bioconda
+          cache-env: true
+          extra-specs: |
+            python=${{ matrix.python-version }}
 
       # TODO: Remove this step when patched theseus makes it to CF
       - name: Build patched mmligner
         shell: bash -l {0}
         run: |
-          conda activate base
-          conda install conda-build
+          micromamba install conda-build
           conda build devtools/conda-recipes/mmligner/
 
-      - name: Install package
+      - name: Install OpenCADD
         shell: bash -l {0}
         run: |
-          conda install -c local mmligner pip
+          micromamba install -c local mmligner pip
           python -m pip install . --no-deps
-          conda list
+          micromamba list
 
-      - name: Run tests
+      - name: Run unit tests
         shell: bash -l {0}
-        run: |
-          pytest -v --cov=${PACKAGE} --cov-report=xml --color=yes ${PACKAGE}/tests/
+        run: pytest -v --cov=${PACKAGE} --cov-report=xml --color=yes tests/
 
       - name: CodeCov
         uses: codecov/codecov-action@v1
@@ -73,39 +76,56 @@ jobs:
           flags: unittests
           yml: ./.codecov.yml
 
-  #############
-  lint-format:
+  lint:
+    name: Static code analysis
     runs-on: ubuntu-latest
     env:
-      CI_OS: ubuntu-latest
       PACKAGE: "opencadd"
-      PYVER: "3.8"
 
     steps:
-      - name: Checkout the code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      # More info on options: https://github.com/marketplace/actions/provision-with-micromamba
+      - name: Install dependencies
+        uses: mamba-org/provision-with-micromamba@v15
         with:
-          python-version: "3.8"
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
-          channels: conda-forge,defaults,bioconda
+          cache-env: true
 
-      - name: Install linter and formatter
+      - name: Lint (pylint)
         shell: bash -l {0}
-        run: |
-          conda install -y pylint black
+        run: pylint $PACKAGE/
 
-      - name: Run pylint
-        shell: bash -l {0}
-        run: |
-          pylint $PACKAGE/
-
-      - name: Run black check
+      - name: Code-style (black -l 99)
         shell: bash -l {0}
         if: always()
+        run: black --check -l 99 $PACKAGE/
+
+  docs:
+    name: Sphinx docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # More info on options: https://github.com/marketplace/actions/provision-with-micromamba
+      - name: Install dependencies
+        uses: mamba-org/provision-with-micromamba@v15
+        with:
+          environment-file: devtools/conda-envs/test_env.yaml
+          cache-env: true
+
+      - name: Install OpenCADD
+        shell: bash -l {0}
         run: |
-          black --check -l 99 $PACKAGE/
+          python -m pip install . --no-deps
+          micromamba list
+
+      - name: Build Sphinx docs
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make clean
+          SPHINXOPTS="-W -T --keep-going" make html

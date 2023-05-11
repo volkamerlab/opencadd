@@ -104,3 +104,12 @@ ENV/
 
 # VSCode
 .vscode/
+
+# In-tree generated files
+*/_version.py
+
+# PyCharm
+.idea/
+
+# MacOS files
+.DS_Store

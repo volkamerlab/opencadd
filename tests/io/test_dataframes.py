@@ -10,7 +10,7 @@ import pytest
 from opencadd.io.dataframe import DataFrame
 from opencadd.io.schema import DATAFRAME_COLUMNS
 
-PATH_TEST_DATA = Path(__name__).parent / "opencadd" / "tests" / "data" / "io"
+PATH_TEST_DATA = Path(__name__).parent / "tests" / "data" / "io"
 
 
 class TestsDataFrame:

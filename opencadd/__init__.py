@@ -3,15 +3,8 @@ opencadd
 A Python library for structural cheminformatics
 """
 
+from ._version import __version__  # pylint: disable=import-error
 import logging
-
-# Handle versioneer
-from ._version import get_versions
-
-versions = get_versions()
-__version__ = versions["version"]
-__git_revision__ = versions["full-revisionid"]
-del get_versions, versions
 
 _logger = logging.getLogger(__name__)
 
