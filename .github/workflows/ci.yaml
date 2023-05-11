@@ -79,7 +79,7 @@ jobs:
           flags: unittests
           yml: ./.codecov.yml
 
-  Lint:
+  Lint & Docs:
 
     runs-on: ubuntu-latest
     env:
@@ -93,11 +93,12 @@ jobs:
       - name: Install dependencies
         uses: mamba-org/provision-with-micromamba@v15
         with:
-          environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
           cache-env: true
           extra-specs: |
-            python=3.8
+            python
+            pylint
+            black
 
       - name: Lint (pylint)
         shell: bash -l {0}
@@ -107,6 +108,8 @@ jobs:
         shell: bash -l {0}
         if: always()
         run: black --check -l 99 $PACKAGE/
+
+
 
   docs:
 
@@ -120,7 +123,7 @@ jobs:
       - name: Install dependencies
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.8"
+          python-version: "3.10"
           miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: test
