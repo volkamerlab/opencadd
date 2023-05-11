@@ -208,7 +208,10 @@ enable=import-error,
        binary-op-exception,
        bare-except,
        not-async-context-manager,
-       yield-inside-async-function
+       yield-inside-async-function,
+       abstract-method,
+       protected-access,
+       attribute-defined-outside-init
 
 # Needs investigation:
 # abstract-method (might be indicating a bug? probably not though)
