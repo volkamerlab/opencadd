@@ -21,7 +21,7 @@ jobs:
 
   test:
 
-    name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
+    name: Test (OS ${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -29,21 +29,21 @@ jobs:
         os: [macOS-latest, ubuntu-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11"]
     env:
-      CI_OS: ${{ matrix.os }}
-      PYVER: ${{ matrix.python-version }}
       PACKAGE: "opencadd"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Additional info about the build
+      - name: Additional build info
         shell: bash
         run: |
           uname -a
           df -h
           ulimit -a
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Install dependencies
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Mambaforge
@@ -60,17 +60,16 @@ jobs:
           conda install conda-build
           conda build devtools/conda-recipes/mmligner/
 
-      - name: Install package
+      - name: Install OpenCADD
         shell: bash -l {0}
         run: |
           conda install -c local mmligner pip
           python -m pip install . --no-deps
           conda list
 
-      - name: Run tests
+      - name: Run unit tests
         shell: bash -l {0}
-        run: |
-          pytest -v --cov=${PACKAGE} --cov-report=xml --color=yes tests/
+        run: pytest -v --cov=${PACKAGE} --cov-report=xml --color=yes tests/
 
       - name: CodeCov
         uses: codecov/codecov-action@v1
@@ -87,11 +86,12 @@ jobs:
       PACKAGE: "opencadd"
 
     steps:
-      - name: Checkout the code
+      - name: Checkout
         uses: actions/checkout@v3
 
       # More info on options: https://github.com/marketplace/actions/provision-with-micromamba
-      - uses: mamba-org/provision-with-micromamba@v15
+      - name: Install dependencies
+        uses: mamba-org/provision-with-micromamba@v15
         with:
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
@@ -99,46 +99,41 @@ jobs:
           extra-specs: |
             python=3.8
 
-      - name: Run pylint
+      - name: Lint (pylint)
         shell: bash -l {0}
-        run: |
-          pylint $PACKAGE/
+        run: pylint $PACKAGE/
 
-      - name: Run black check
+      - name: Code-style (black -l 99)
         shell: bash -l {0}
         if: always()
-        run: |
-          black --check -l 99 $PACKAGE/
+        run: black --check -l 99 $PACKAGE/
 
   docs:
 
     name: Build Documentation with Sphinx
     runs-on: ubuntu-latest
-    env:
-      CI_OS: ubuntu-latest
-      PACKAGE: "opencadd"
-      PYVER: "3.9"
 
     steps:
-      - name: Checkout the code
+      - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install dependencies
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.9"
+          python-version: "3.8"
           miniforge-variant: Mambaforge
           miniforge-version: latest
           activate-environment: test
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
 
-      - name: Install package
+      - name: Install OpenCADD
         shell: bash -l {0}
         run: |
           python -m pip install . --no-deps
           conda list
 
-      - name: Run Sphinx
+      - name: Build Sphinx docs
         shell: bash -l {0}
         run: |
           cd docs
