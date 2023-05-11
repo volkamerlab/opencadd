@@ -93,8 +93,9 @@ jobs:
       - name: Install linters
         uses: mamba-org/provision-with-micromamba@v15
         with:
+          environment-name: lint_env
           environment-file: false
-          channels: conda-forge,defaults,bioconda
+          channels: conda-forge,defaults
           cache-env: true
           extra-specs: |
             python
