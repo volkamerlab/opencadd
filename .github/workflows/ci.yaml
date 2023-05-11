@@ -101,11 +101,6 @@ jobs:
           environment-file: devtools/conda-envs/test_env.yaml
           channels: conda-forge,defaults,bioconda
 
-      - name: Install linter and formatter
-        shell: bash -l {0}
-        run: |
-          conda install -y pylint black
-
       - name: Run pylint
         shell: bash -l {0}
         run: |
