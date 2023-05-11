@@ -1,8 +1,10 @@
 name: test
+
 channels:
   - conda-forge
   - defaults
   - bioconda
+
 dependencies:
   # Base depends
   - python
@@ -16,23 +18,24 @@ dependencies:
   - biopandas
   - rdkit
   - tqdm
-  # Chimera reimplementation
   - biotite
   - biopython
-  # mmligner
   - mmligner
   # theseus
   - muscle
   - clustalo
   - theseus
+
   # Testing
   - pytest
   - pytest-cov
   - codecov
+
   # Docs
   - sphinx
   - sphinx_rtd_theme
   - nbsphinx
-  # Linting and code style
+
+  # Linters
   - pylint
   - black
