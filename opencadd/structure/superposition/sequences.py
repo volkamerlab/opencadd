@@ -77,6 +77,27 @@ def sequence_alignment(seq1: str, seq2: str, matrix: str, gap: int, local: bool 
     return alignment[0]
 
 
+def find_gap_character(seq):
+    """
+    Finds the gap character of an alignment sequence
+
+    Args:
+        seq: str
+            aligned sequence
+
+    Returns:
+        gap character if found: str
+        None else
+    """
+    if '-' in seq:
+        return '-'
+    elif '=' in seq:
+        return '='
+    else:
+        return ''
+    #raise ValueError("No standard gap character found!")
+
+
 def fasta2select(
     fastafilename,
     ref_resids=None,
@@ -112,9 +133,8 @@ def fasta2select(
         dictionary with 'reference' and 'mobile' selection string
 
     """
-    protein_gapped = Bio.Alphabet.Gapped(Bio.Alphabet.IUPAC.protein)
     with open(fastafilename) as fasta:
-        alignment = Bio.AlignIO.read(fasta, "fasta", alphabet=protein_gapped)
+        alignment = Bio.AlignIO.read(fasta, "fasta")
 
     nseq = len(alignment)
     if nseq != 2:
@@ -127,7 +147,7 @@ def fasta2select(
         if orig_resids[iseq] is None:
             # build default: assume consecutive numbering of all
             # residues in the alignment
-            GAP = a.seq.alphabet.gap_char
+            GAP = find_gap_character(a.seq)
             length = len(a.seq) - a.seq.count(GAP)
             orig_resids[iseq] = np.arange(1, length + 1)
         else:
@@ -136,7 +156,7 @@ def fasta2select(
         if orig_segids[iseq] is None:
             # build default: assume consecutive numbering of all
             # residues in the alignment
-            GAP = a.seq.alphabet.gap_char
+            GAP = find_gap_character(a.seq)
             length = len(a.seq) - a.seq.count(GAP)
             orig_segids[iseq] = np.full(length, "")
         else:
@@ -175,7 +195,8 @@ def fasta2select(
         t = np.zeros((nseq, alignment.get_alignment_length()), dtype=int)
         s = np.zeros((nseq, alignment.get_alignment_length()), dtype=object)
         for iseq, a in enumerate(alignment):
-            GAP = a.seq.alphabet.gap_char
+            print(a.seq)
+            GAP = find_gap_character(a.seq)
             indices = np.cumsum(np.where(np.array(list(a.seq)) == GAP, 0, 1)) - 1
             t[iseq, :] = seq2resids[iseq][0][indices]
             s[iseq, :] = seq2resids[iseq][1][indices]
@@ -190,8 +211,8 @@ def fasta2select(
     res_list = []  # collect individual selection string
 
     # should be the same for both seqs
-    GAP = alignment[0].seq.alphabet.gap_char
-    if GAP != alignment[1].seq.alphabet.gap_char:
+    GAP = find_gap_character(a.seq)
+    if GAP != find_gap_character(alignment[1].seq):
         raise ValueError("Different gap characters in sequence 'target' and 'mobile'.")
     for ipos in range(alignment.get_alignment_length()):
         aligned = list(alignment[:, ipos])
