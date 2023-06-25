@@ -160,14 +160,14 @@ class MMLignerAligner(BaseAligner):
                 coverage = float(line.split()[2])
             elif line.startswith("I(A & <S,T>)"):
                 ivalue = float(line.split()[4])
-            elif "Print Centers of Mass of moving set:" in line:
-                moving_com = np.array([float(x) for x in next(lines).split()])
-            elif "Print Centers of Mass of fixed set:" in line:
-                fixed_com = np.array([float(x) for x in next(lines).split()])
-            elif "Print Rotation matrix" in line:
-                rotation = [[float(x) for x in next(lines).split()] for _ in range(3)]
-            elif "Print Quaternion matrix" in line:
-                quaternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
+            # elif "Print Centers of Mass of moving set:" in line:
+            #     moving_com = np.array([float(x) for x in next(lines).split()])
+            # elif "Print Centers of Mass of fixed set:" in line:
+            #     fixed_com = np.array([float(x) for x in next(lines).split()])
+            # elif "Print Rotation matrix" in line:
+            #     rotation = [[float(x) for x in next(lines).split()] for _ in range(3)]
+            # elif "Print Quaternion matrix" in line:
+            #     quaternion = [[float(x) for x in next(lines).split()] for _ in range(4)]
             elif line.startswith("Compression"):
                 break
 
@@ -181,7 +181,7 @@ class MMLignerAligner(BaseAligner):
             # fixed_com, moving_com, rotation and quaternion can only be obtained
             # if the patched mmligner is used (check /devtools/conda-recipes/mmligner)
             # -- this will fail in CI for now --
-            translation = fixed_com - moving_com
+            #translation = fixed_com - moving_com
 
             alignment = fasta.FastaFile()
             alignment.read("temp__1.afasta")
@@ -190,9 +190,9 @@ class MMLignerAligner(BaseAligner):
                 "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
                 "metadata": {
                     "alignment": alignment,
-                    "rotation": rotation,
-                    "translation": translation,
-                    "quaternion": quaternion,
+                    #"rotation": rotation,
+                    #"translation": translation,
+                    #"quaternion": quaternion,
                 },
             }
 
@@ -227,6 +227,7 @@ class MMLignerAligner(BaseAligner):
             "scores": {"rmsd": rmsd, "score": ivalue, "coverage": coverage},
         }
 
+    # TODO: Rotation is not working correctly -> commented out for now
     def _calculate_transformed(self, structures, selections, metadata):
         """
         Parse back output PDBs and construct updated Structure objects.
@@ -245,8 +246,8 @@ class MMLignerAligner(BaseAligner):
         """
         ref, mobile, *_ = structures
         ref_selection, mob_selection, *_ = selections
-        translation = metadata["translation"]  # not used
-        rotation = metadata["rotation"]
+        #translation = metadata["translation"]  # not used
+        #rotation = metadata["rotation"]
 
         # calculation on selections
         mob_com = mob_selection.atoms.center_of_geometry()
@@ -254,7 +255,7 @@ class MMLignerAligner(BaseAligner):
 
         # transformation on structure
         mobile.atoms.translate(-mob_com)
-        mobile.atoms.rotate(rotation)
+        #mobile.atoms.rotate(rotation) 
         mobile.atoms.translate(ref_com)
 
         return ref, mobile
