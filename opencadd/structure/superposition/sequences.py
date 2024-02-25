@@ -1,6 +1,7 @@
 """
 Utilities for sequence alignment
 """
+
 import logging
 
 import numpy as np
@@ -89,13 +90,13 @@ def find_gap_character(seq):
         gap character if found: str
         None else
     """
-    if '-' in seq:
-        return '-'
-    elif '=' in seq:
-        return '='
+    if "-" in seq:
+        return "-"
+    elif "=" in seq:
+        return "="
     else:
-        return ''
-    #raise ValueError("No standard gap character found!")
+        return ""
+    # raise ValueError("No standard gap character found!")
 
 
 def fasta2select(

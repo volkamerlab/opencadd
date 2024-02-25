@@ -1,6 +1,7 @@
 """
 Base class for all the superposition engines.
 """
+
 import logging
 
 _logger = logging.getLogger(__name__)
