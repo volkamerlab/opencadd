@@ -52,6 +52,8 @@ KLIFS_API_DEFINITIONS = "https://dev.klifs.net/swagger_v2/swagger.json"
 KLIFS_CLIENT = SerializableSwaggerClient.from_url(
     KLIFS_API_DEFINITIONS, config={"validate_responses": False}
 )
+# Maximum chunk size for input values for remote client endpoints
+N_CHUNK = 10_000
 
 
 class RemoteInitializer:
@@ -564,20 +566,28 @@ class Interactions(RemoteInitializer, InteractionsProvider):
 
     def by_structure_klifs_id(self, structure_klifs_ids):
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
-        # Use KLIFS API
-        result = (
-            self._client.Interactions.get_interactions_get_IFP(structure_ID=structure_klifs_ids)
-            .response()
-            .result
-        )
-        # Convert list of ABC objects to DataFrame
-        interactions = self._abc_to_dataframe(result)
-        # Standardize DataFrame
-        interactions = self._standardize_dataframe(
-            interactions,
-            FIELDS.oc_name_to_type("interactions"),
-            FIELDS.remote_to_oc_names("interactions"),
-        )
+        interactions = []
+        # NOTE: Chunk IDs to avoid HTTPURITooLong
+        for i in range(0, len(structure_klifs_ids), N_CHUNK):
+            _structure_klifs_ids = structure_klifs_ids[i : i + N_CHUNK]
+            # Use KLIFS API
+            result = (
+                self._client.Interactions.get_interactions_get_IFP(
+                    structure_ID=_structure_klifs_ids
+                )
+                .response()
+                .result
+            )
+            # Convert list of ABC objects to DataFrame
+            _interactions = self._abc_to_dataframe(result)
+            # Standardize DataFrame
+            _interactions = self._standardize_dataframe(
+                _interactions,
+                FIELDS.oc_name_to_type("interactions"),
+                FIELDS.remote_to_oc_names("interactions"),
+            )
+            interactions.append(_interactions)
+        interactions = pd.concat(interactions)
         return interactions
 
     def by_ligand_klifs_id(self, ligand_klifs_ids):
@@ -886,20 +896,28 @@ class StructureConformations(RemoteInitializer, StructureConformationsProvider):
 
     def by_structure_klifs_id(self, structure_klifs_ids):
         structure_klifs_ids = self._ensure_list(structure_klifs_ids)
-        # Use KLIFS API
-        result = (
-            self._client.Structures.get_structure_conformation(structure_ID=structure_klifs_ids)
-            .response()
-            .result
-        )
-        # Convert list of ABC objects to DataFrame
-        conformations = self._abc_to_dataframe(result)
-        # Standardize DataFrame
-        conformations = self._standardize_dataframe(
-            conformations,
-            FIELDS.oc_name_to_type("structure_conformations"),
-            FIELDS.remote_to_oc_names("structure_conformations"),
-        )
+        conformations = []
+        # NOTE: Chunk IDs to avoid HTTPURITooLong
+        for i in range(0, len(structure_klifs_ids), N_CHUNK):
+            _structure_klifs_ids = structure_klifs_ids[i : i + N_CHUNK]
+            # Use KLIFS API
+            result = (
+                self._client.Structures.get_structure_conformation(
+                    structure_ID=_structure_klifs_ids
+                )
+                .response()
+                .result
+            )
+            # Convert list of ABC objects to DataFrame
+            _conformations = self._abc_to_dataframe(result)
+            # Standardize DataFrame
+            _conformations = self._standardize_dataframe(
+                _conformations,
+                FIELDS.oc_name_to_type("structure_conformations"),
+                FIELDS.remote_to_oc_names("structure_conformations"),
+            )
+            conformations.append(_conformations)
+        conformations = pd.concat(conformations)
         return conformations
 
 

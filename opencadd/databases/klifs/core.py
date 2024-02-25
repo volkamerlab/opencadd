@@ -140,13 +140,19 @@ class BaseProvider:
 
         # TODO Use None instead of "-"; but may affect downstream pipelines that use "-" already
         if "structure.alternate_model" in dataframe.columns:
-            dataframe["structure.alternate_model"].replace("", "-", inplace=True)
+            dataframe["structure.alternate_model"] = dataframe[
+                "structure.alternate_model"
+            ].replace("", "-")
         if "ligand.expo_id" in dataframe.columns:
-            dataframe["ligand.expo_id"].replace(0, "-", inplace=True)
+            dataframe["ligand.expo_id"] = dataframe["ligand.expo_id"].replace(0, "-")
         if "ligand_allosteric.expo_id" in dataframe.columns:
-            dataframe["ligand_allosteric.expo_id"].replace(0, "-", inplace=True)
+            dataframe["ligand_allosteric.expo_id"] = dataframe[
+                "ligand_allosteric.expo_id"
+            ].replace(0, "-")
         if "structure.resolution" in dataframe.columns:
-            dataframe["structure.resolution"].replace(0, np.nan, inplace=True)
+            dataframe["structure.resolution"] = dataframe["structure.resolution"].replace(
+                0, np.nan
+            )
 
         # In case of drugs
         if "drug.brand_name" in dataframe.columns:

@@ -17,7 +17,7 @@ dependencies:
   - tqdm
   # Chimera reimplementation
   - biotite
-  - biopython<=1.77
+  - biopython
   # mmligner
   - mmligner
   # theseus
