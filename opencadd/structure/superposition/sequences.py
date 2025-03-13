@@ -196,7 +196,7 @@ def fasta2select(
         t = np.zeros((nseq, alignment.get_alignment_length()), dtype=int)
         s = np.zeros((nseq, alignment.get_alignment_length()), dtype=object)
         for iseq, a in enumerate(alignment):
-            print(a.seq)
+#            print(a.seq)
             GAP = find_gap_character(a.seq)
             indices = np.cumsum(np.where(np.array(list(a.seq)) == GAP, 0, 1)) - 1
             t[iseq, :] = seq2resids[iseq][0][indices]
