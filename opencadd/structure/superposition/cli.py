@@ -1,6 +1,7 @@
 """
 Command Line Interface for opencadd
 """
+
 import argparse
 import logging
 

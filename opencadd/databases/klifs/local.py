@@ -184,9 +184,9 @@ class _LocalDatabaseGenerator:
         )
 
         # Unify column 'alternate model' with corresponding column in KLIFS_export.csv
-        klifs_overview["structure.alternate_model"].replace(  # pylint: disable=E1136
-            " ", "-", inplace=True
-        )
+        klifs_overview["structure.alternate_model"] = klifs_overview[
+            "structure.alternate_model"
+        ].replace(" ", "-")
         # Drop column for kinase name; will be taken from KLIFS_export.csv file upon table merge
         klifs_overview.drop(columns=["kinase.klifs_name"], inplace=True)
 

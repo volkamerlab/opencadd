@@ -18,6 +18,7 @@ References
 * Accurate structural correlations from maximum likelihood superpositions.
   Theobald, Douglas L. & Wuttke, Deborah S. (2008) PLOS Computational Biology 4(2):e43
 """
+
 import os
 import subprocess
 import logging
@@ -33,7 +34,6 @@ _logger = logging.getLogger(__name__)
 
 
 class TheseusAligner(BaseAligner):
-
     """
     Superpose structures with different sequences but similar structures
 

@@ -19,7 +19,6 @@ _logger = logging.getLogger(__name__)
 
 
 class MDAnalysisAligner(BaseAligner):
-
     """
     Factory to configure an aligner based on
     MDAnalysis' superposition algorithms.
