@@ -86,14 +86,16 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Miniconda Setup
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.8"
-          miniforge-variant: Mambaforge
           miniforge-version: latest
-          activate-environment: test
-          environment-file: devtools/conda-envs/test_env.yaml
+          auto-update-conda: true
+          conda-build-version: '>=25.1'
           channels: conda-forge,defaults,bioconda
+          environment-file: devtools/conda-envs/test_env.yaml
+          python-version: 3.8
+          activate-environment: test
 
       - name: Install linter and formatter
         run: |
