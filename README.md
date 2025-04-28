@@ -18,6 +18,7 @@ A Python library for structural cheminformatics.
 
 > Some modules of this library are still in early stages of development as indicated below.
 
+- `compounds.standardization`: standardize chemical records.
 - `databases.klifs`: utilities to query the KLIFS database, offline or online.
 - :construction: `io`: read and write molecules from/to files.
 - :construction: `structure.pocket`: identification and analysis of protein (sub)pockets.
@@ -59,6 +60,7 @@ If you are using other modules of the OpenCADD package, please cite our [Zenodo 
 - Jaime Rodríguez-Guerra, PhD
 - Dominique Sydow
 - Dennis Köser, Annie Pham, Enes Kurnaz, Julian Pipart (structural superposition, 2020)
+- Allen Dumler (standardizer, 2021)
 
 # Acknowledgements
 

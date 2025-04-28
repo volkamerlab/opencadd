@@ -1,0 +1,142 @@
+CNCC(O)C(O)C(O)C(O)CO	(di)meglumine
+CC(=O)O	acetate uncharged
+CC(=O)C	acetone
+CC(=O)NCC(=O)O	aceturate uncharged
+CCCCCCCCCCCCCCCCCC(=O)O	acistrate or stearate
+OC(=O)CCCCC(=O)O	Adipate
+[Al]	Aluminium
+N	ammonia or ammonium
+OCC(O)C1OC(=O)C(=C1O)O	ascorbate
+NC(CC(=O)O)C(=O)O	Aspartate
+[Ba]	Barium
+C(Cc1ccccc1)NCc2ccccc2	benethamine
+C(CNCc1ccccc1)NCc2ccccc2	benzathine
+OC(=O)c1ccccc1	benzoate
+OS(=O)(=O)c1ccccc1	besilate or besylate
+[Bi]	bismuth
+Br	Bromide
+CCCC=O	butyraldehyde
+CCCC(=O)OCC	butyrate
+[Ca]	Calcium
+CC1(C)C2CCC1(CS(=O)(=O)O)C(=O)C2	camsilate or camsylate uncharged
+OC(=O)O	carbonate
+Cl	Chloride
+OCC[N+](C)(C)C	choline
+OC(=O)CC(O)(CC(=O)O)C(=O)O	citrate
+OS(=O)(=O)c1ccc(Cl)cc1	closylate
+OS(=O)(=O)NC1CCCCC1	cyclamate
+OC(=O)C(Cl)Cl	dichloroacetate
+CCNCC	diethylamine
+CC(C)(N)CO	dimethylethanolamine
+CS(=O)C	dimethylsulphoxide
+OCCNCCO	diolamine
+NCCN	edamine
+OS(=O)(=O)CCS(=O)(=O)O	edisylate
+OCCN1CCCC1	Epolamine
+CC(C)(C)N	erbumine
+CCCCCCCCCCCCOS(=O)(=O)O	estolate or laurylsulfate
+CCS(=O)(=O)O	esylate uncharged
+CCO	ethanol
+CCOS(=O)(=O)O	ethylsulfate no charge
+F	Fluoride
+C(=O)O	formic acid
+OC(=O)C=CC(=O)O	fumarate
+OCC(O)C(O)C(O)C(O)C(O)C(=O)O	gluceptate
+OCC(O)C(O)C(O)C(O)C(=O)O	gluconate
+OC1OC(C(O)C(O)C1O)C(=O)O	glucuronate
+NC(CCC(=O)O)C(=O)O	glutamate
+OCC(O)CO	glycerate
+OCC(O)COP(=O)(O)O	glycerophosphate
+OC(=O)CNC(=O)c1ccccc1	hippurate charged
+OP=O	hypophosphite uncharged
+OC(C=O)C(O)C(O)C(O)C(=O)O	incorrect glucuronate
+OC(=O)c5c(O)cc6ccccc6c5Cc7c(C(=O)O)c(O)cc8ccccc78	incorrect pamoate
+OC1OC(C(O)C(O)C1O)C(O)=O	incorrect ring gluconate
+OC(C(O)C(=O)O)C(=O)O	incorrect tartrate uncharged no stereo
+I	Iodide
+OCCS(=O)(=O)O	isethionate
+[K]	Potassium
+CC(O)C(=O)O	lactate uncharged
+OCC(O)C(OC1OC(CO)C(O)C(O)C1O)C(O)C(O)C(=O)O	lactobionate
+[Li]	Lithium
+NCCCCC(N)C(=O)O	lysine
+OC(CC(=O)O)C(=O)O	malate
+OC(=O)C=CC(=O)O	maleate
+CS(=O)(=O)O	mesylate
+OP(=O)=O	metaphosphate uncharged
+COS(=O)(=O)O	methosulfate
+O[Mg+]	Mg monohydroxide (looks odd but OK in drug)
+[Mg]	Magnesium
+OP(F)(O)=O	monofluorophosphate
+[Na]	Sodium
+OS(=O)(=O)c1cccc2c(cccc12)S(=O)(=O)O	napadisilate
+OS(=O)(=O)c1ccc2ccccc2c1	napsylate
+O[N+](=O)O	nitrate uncharged
+NCCO	olamine or ethanolamide
+OC(=O)C(=O)O	oxalate
+CCCCCCCCCCCCCCCC(=O)O	palmitate
+OC(=O)c1cc2ccccc2c(Cc3c(O)c(cc4ccccc34)C(=O)O)c1O	pamoate
+OCl(=O)(=O)=O	perchlorate uncharged
+Nc1ccc(cc1)P(=O)(O)O	phosphanilate
+OP(=O)(O)O	phosphate
+Oc1c(cc(cc1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]	picrate
+C1CNCCN1	piperazine
+CC(O)CO	propylene glycol
+OC(C(O)C(O)C(=O)O)C(O)C(=O)O	Saccharate
+O=C1NS(=O)(=O)c2ccccc12	saccharin
+OC(=O)c1ccccc1O	salicylate uncharged
+[Ag]	Silver
+[Sr]	Strontium
+OC(=O)CCC(=O)O	succinate
+OS(=O)(=O)O	sulfate
+c1ccc(C(=O)O)c(O)c1S(=O)(=O)O	sulfosalicylate
+S	sulphide
+OC(=O)c1ccc(cc1)C(=O)O	terephthalate
+Cc1ccc(cc1)S(=O)(=O)O	tosilate or tosylate uncharged
+Oc1cc(Cl)c(Cl)cc1Cl	triclofenate
+CCN(CC)CC	triethylamine
+OC(=O)C(c1ccccc1)(c2ccccc2)c3ccccc3	trifenatate
+OC(=O)C(F)(F)F	triflutate
+NC(CO)(CO)CO	tromethamine
+CCCCC1CCC(CC1)C(=O)O	U_buciclate
+CCCC(=O)O	U_butyrate
+CCCCCC(=O)O	U_caproate
+CC12C=CC(C(=O)O)(CC2)CC1	U_cyclotate
+C1CCCC1CCC(=O)O	U_cypionate
+CN(C)CCC(=O)O	U_daproate
+OC(=O)CN(CC(=O)O)CCN(CC(=O)O)CC(=O)O	U_EDTA
+OC(=O)CCCCCCCC=CCCCCCCCC	U_elaidate
+CCCCCCC(=O)O	U_enanthate
+CCOC(=O)O	U_etabonate
+COCCO	U_ethanediol
+c1ccccc1C(=O)NCC(=O)O	U_etiprate
+OCOC(=O)C(CC)CC	U_etzadroxil
+CCCCCCCCCCCCCCOP(=O)(O)O	U_fostedate
+OC(=O)c1ccco1	U_furoate
+c1cc(O)ccc1C(=O)c2ccccc2C(=O)O	U_hybenzate
+CCCCCCCCCCCC(=O)O	U_laurate
+CC=C(C)C(=O)O	U_mebutate
+CC(O)(C)CCCC(O)(C(=O)O)CC(=O)OC	U_mepesuccinate
+OC(=O)c1cccc(c1)S(=O)(=O)O	U_metazoate
+CSCCC(N)C(=O)C	U_methionil
+c1ccncc1C(=O)O	U_nicotinate
+CCCCCCCCC=CCCCCCCCC(=O)O	U_oleate
+OO	U_peroxide
+c1ccccc1CCC(=O)O	U_phenpropionate
+c1ccccc1CC(=O)O	U_phenylacetate
+CC(C)(C)C(=O)O	U_pivalate
+CCC(=O)O	U_propionate
+CC(C)(C)CC(=O)O	U_tebutate
+OCCN(CCO)CCO	U_trolamine
+CCCCCCCCCCC(=O)O	U_undecylate
+OC(=O)CCCCCCCCC=C	undecylenate
+CCCCC(=O)O	valerate uncharged
+O	water or hydroxide
+OC(=O)c1ccc2ccccc2c1O	xinafoate
+[Zn]	Zinc
+[N+](=O)([O-])O	nitrate
+OS(=O)(=O)C(F)(F)F	trifluorosulphonate
+O[Cl+3](O)(O)O	perchlorate_rdkit
+c1nnn[nH]1	tetrazole
+CN	methyl-amine
+C1CCCCC1N	cyclohexyl-amine
