@@ -17,9 +17,11 @@ class Structure(Universe):
     @classmethod
     @redo.retriable(attempts=10, sleeptime=2)
     def from_pdbid(cls, pdbid):
-        import mmtf
-
-        return cls(mmtf.fetch(pdbid))
+        from tempfile import TemporaryDirectory
+        from biotite.database import rcsb
+        with TemporaryDirectory() as td:
+            tmppdb = rcsb.fetch(pdbid, "pdb", target_path=td)
+            return cls(tmppdb)
 
     @classmethod
     def from_string(cls, pdbid_or_path, **kwargs):
@@ -31,7 +33,7 @@ class Structure(Universe):
 
     @classmethod
     def from_atomgroup(cls, *args):
-        """Create a new new :class:`Structure` from one or more
+        """Create a new :class:`Structure` from one or more
         ``AtomGroup`` instances.
 
         Parameters
