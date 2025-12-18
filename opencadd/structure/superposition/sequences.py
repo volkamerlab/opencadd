@@ -213,7 +213,7 @@ def fasta2select(
 
     # should be the same for both seqs
     GAP = find_gap_character(a.seq)
-    if GAP != find_gap_character(alignment[1].seq):
+    if GAP != find_gap_character(alignment[0].seq):
         raise ValueError("Different gap characters in sequence 'target' and 'mobile'.")
     for ipos in range(alignment.get_alignment_length()):
         aligned = list(alignment[:, ipos])
