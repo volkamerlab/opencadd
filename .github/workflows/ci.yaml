@@ -28,7 +28,7 @@ jobs:
       PACKAGE: "opencadd"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Additional info about the build
         run: |
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Miniconda Setup
         uses: conda-incubator/setup-miniconda@v3
